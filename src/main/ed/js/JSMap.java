@@ -97,8 +97,7 @@ public class JSMap extends JSObjectBase {
     private final Map _map = new CustomHashMap(){
             public boolean doEquals( Object a , Object b ){
 
-                if ( a.getClass() == JSObjectBase.class &&
-                     b.getClass() == JSObjectBase.class ){
+                if ( JS.isBaseObject( a ) && JS.isBaseObject( b ) ){
 
                     JSObjectBase ao = (JSObjectBase)a;
                     JSObjectBase bo = (JSObjectBase)b;

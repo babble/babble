@@ -19,11 +19,15 @@
 package ed.lang.php;
 
 import java.lang.reflect.*;
+import java.io.File;
 import javax.script.*;
 
 import ed.lang.*;
 import ed.js.engine.*;
 import ed.appserver.jxp.*;
+import ed.appserver.adapter.AdapterType;
+import ed.appserver.AppContext;
+import ed.appserver.JSFileLibrary;
 
 import com.caucho.quercus.*;
 import com.caucho.quercus.env.*;
@@ -35,6 +39,11 @@ public class PHP extends Language {
 
     public PHP(){
         super( "php" );
+    }
+
+    public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
+        // TODO - fix me
+        return null;
     }
 
     public boolean isScriptable(){

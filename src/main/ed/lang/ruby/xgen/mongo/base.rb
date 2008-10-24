@@ -166,7 +166,7 @@ module XGen
         #          string like "field1 asc, field2 desc, field3", then sorts
         #          those fields in the specified order (default is ascending).
         #          If an array, each element is either a field name or symbol
-         #          (which will be sorted in ascending order) or a hash where
+        #          (which will be sorted in ascending order) or a hash where
         #          key = field and value = 'asc' or 'desc' (case-insensitive),
         #          1 or -1, or if any other value then true == 1 and false/nil
         #          == -1.

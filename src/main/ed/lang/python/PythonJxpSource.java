@@ -26,10 +26,9 @@ import org.python.Version;
 
 import ed.js.*;
 import ed.js.engine.*;
-import ed.lang.cgi.EnvMap;
 import ed.util.*;
 import ed.appserver.*;
-import ed.appserver.jxp.*;
+import ed.appserver.jxp.JxpSource;
 import ed.log.Logger;
 
 public class PythonJxpSource extends JxpSource {
@@ -71,24 +70,6 @@ public class PythonJxpSource extends JxpSource {
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
 
-                // --- start of modification for AE/CGI/etc discussion ---
-
-                EnvMap envMap = null;
-
-                PyObject args[] = new PyObject[ extra == null ? 0 : extra.length ];
-                for ( int i=0; i<args.length; i++ ) {
-
-                    if (extra[i] instanceof EnvMap) {
-                        envMap = (EnvMap) extra[i];
-                        continue;
-                    }
-
-                    args[i] = Python.toPython( extra[i] );  // TODO - do we really need this?  not used anywhere...
-                }
-
-                // --- start of modification for AE/CGI/etc discussion ---
-
-                final AppRequest ar = AppRequest.getThreadLocal();
                 final AppContext ac = getAppContext();
 
                 Scope siteScope;
@@ -104,24 +85,7 @@ public class PythonJxpSource extends JxpSource {
 
                 PyObject globals = ss.globals;
                 PyObject oldFile = globals.__finditem__( "__file__" );
-
-                // --- start of modification for AE/CGI/etc discussion ---
-
-                /**
-                 *  if someone passed us an envMap, then we're CGI, so lets drop in the
-                 *  map, and re-route the output
-                 */
-                if (envMap != null) {
-                    PyObject environ = ss.getPyState().getEnviron();
-
-                    for (String key : envMap.keySet()) {
-                        environ.__setitem__( key.intern() , Py.newString(envMap.get(key)));
-                    }
-
-                    ss.getPyState().stdout = new PyCGIOutputHandler(_log); // TODO - do we have to put this back?
-                }
-
-                // --- end of modification for AE/CGI/etc discussion ---
+                PyObject oldName = globals.__finditem__( "__name__" );
 
                 PyObject result = null;
                 try {
@@ -130,21 +94,23 @@ public class PythonJxpSource extends JxpSource {
 
                     //Py.initClassExceptions( globals );
                     globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
-                    PyModule module = new PyModule( "__main__" , globals );
+                    // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
+                    // Right now I only want this for _init.py
+                    String name = _file.getName();
+                    if( name.endsWith( ".py" ) )
+                        name = name.substring( 0 , name.length() - 3 );
+                    //globals.__setitem__( "__name__", Py.newString( name ) );
+
+                    PyModule module = new PyModule( name , globals );
 
                     PyObject locals = module.__dict__;
                     result = Py.runCode( code, locals, globals );
+                    if( ac != null ) ss.addRecursive( "_init" , ac );
                 }
                 finally {
-                    if( oldFile != null ){
-                        globals.__setitem__( "__file__" , oldFile );
-                    }
-                    else{
-                        // FIXME -- delitem should really be deleting from siteScope
-                        globals.__delitem__( "__file__" );
-                        siteScope.set( "__file__", null );
-                        
-                    }
+                    globalRestore( globals , siteScope , "__file__" , oldFile );
+                    globalRestore( globals , siteScope , "__name__" , oldName );
+
                     Py.setSystemState( pyOld );
                 }
 
@@ -167,8 +133,18 @@ public class PythonJxpSource extends JxpSource {
                 }
                 return Python.toJS( result );
             }
-
         };
+    }
+
+    private void globalRestore( PyObject globals , Scope siteScope , String name , PyObject value ){
+        if( value != null ){
+            globals.__setitem__( name , value  );
+        }
+        else{
+            // FIXME -- delitem should really be deleting from siteScope
+            globals.__delitem__( name );
+            siteScope.set( name , null );
+        }
     }
 
     private PyCode _getCode()

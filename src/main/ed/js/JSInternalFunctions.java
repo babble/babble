@@ -262,7 +262,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @return The constructed object
      */
     public JSObject JS_buildLiteralObject( String names[] , Object ... fields ){
-        JSObject o = new JSObjectBase();
+        JSObject o = new JSDict();
         int max = names.length;
         if ( fields != null )
             max = Math.min( fields.length , max );

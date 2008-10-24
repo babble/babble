@@ -26,6 +26,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import ed.appserver.jxp.*;
+import ed.appserver.adapter.AdapterType;
 import ed.db.*;
 import ed.log.*;
 import ed.js.*;
@@ -131,6 +132,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
 
         _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
 
+    }
+
+    public AdapterType getAdapterType() {
+        return Config.get().getBoolean("IS_DONT_SAY_ELIOT_CGI") ? AdapterType.CGI : AdapterType.DIRECT_10GEN;
     }
 
     /**
@@ -763,6 +768,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
             _initFlies.add( f );
     }
 
+    public void addInitDependency( File f ){
+        _initFlies.add( f );
+    }
+
     JxpServlet getServlet( File f )
         throws IOException {
         JxpSource source = getSource( f );
@@ -811,6 +820,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
             this.approxSize( _contextReachable );
         }
         
+    }
+
+    public boolean inScopeSetup() {
+        return _inScopeSetup;
     }
 
     private void _runInitFiles( String[] files )
@@ -1127,7 +1140,8 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
     public Logger getLogger( String sub ){
         return _logger.getChild( sub );
     }
-    
+
+
     // ----  START JSObject INTERFACE
     
     public Object get( Object n ){

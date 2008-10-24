@@ -22,6 +22,9 @@ import org.python.core.*;
 import java.util.*;
 import java.io.*;
 
+import ed.appserver.*;
+import ed.util.*;
+
 public class PythonModuleTracker extends PyStringMap {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.PYTHONMODULETRACKER" );
 
@@ -164,6 +167,7 @@ public class PythonModuleTracker extends PyStringMap {
 
     // Stores relationships of "module Y was imported by modules X1, X2, X3.."
     Map<String, Set<String> > _reverseDeps = new HashMap<String, Set<String> >();
+    Map<String, Set<String> > _forwardDeps = new HashMap<String, Set<String> >();
 
     public void addDependency( PyObject module , PyObject importer ){
         String moduleS = module.toString();
@@ -176,6 +180,54 @@ public class PythonModuleTracker extends PyStringMap {
         if( DEBUG )
             System.out.println( "Module "+ module + " was imported by module " + importer );
         rdeps.add( importerS );
+
+        Set<String> fdeps = _forwardDeps.get( importerS );
+        if( fdeps == null ){
+            fdeps = new HashSet<String>();
+            _forwardDeps.put( importerS , fdeps );
+        }
+        fdeps.add( moduleS );
+    }
+
+    public void addRecursive( String name , AppContext ac ){
+        addRecursive( name , ac , new IdentitySet());
+    }
+
+    public void addRecursive( String name , AppContext ac , IdentitySet seen ){
+        if( seen.contains( name ) ) return;
+
+        seen.add( name );
+
+        PyObject mod = __finditem__( name );
+        if( DEBUG )
+            System.out.println("Adding init dependency for " + name + " " + mod);
+        if( mod != null ){
+            PyObject __file__ = mod.__findattr__( "__file__" );
+            if( __file__ != null ){
+                File file = new File( __file__.toString() );
+                ac.addInitDependency( file );
+            }
+            else {
+                // builtin module; for dependency purposes, it doesn't matter,
+                // because how could a builtin module import user code?
+            }
+        }
+        else {
+            // This is OK because a JXP doesn't have a module, but imported
+            // other modules.
+            if( DEBUG )
+                System.out.println("Skipping -- no module by that name.");
+        }
+
+        Set<String> fdeps = _forwardDeps.get( name );
+        if( DEBUG ){
+            System.out.println( name + " imported " + fdeps );
+        }
+
+        if( fdeps == null ) return; // didn't import any modules
+        for( String s : fdeps ){
+            addRecursive( s, ac , seen );
+        }
     }
 
 }

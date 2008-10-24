@@ -34,10 +34,11 @@ public class DBRef extends JSObjectBase {
     }
 
     public JSObject getRealObject(){
-        JSObject o = _getPointedTo();
-        if ( ! o.getClass().equals( JSObjectBase.class ) )
-            return o;
-        return this;
+        final JSObject o = _getPointedTo();
+        if ( JS.isBaseObject( o ) )
+            return this;
+        return o;
+
     }
     
     public Object prefunc(){
@@ -67,7 +68,7 @@ public class DBRef extends JSObjectBase {
         
         Object ret = this;
 
-        if ( ! o.getClass().equals( JSObjectBase.class ) ){
+        if ( ! JS.isBaseObject( o ) ){
             _parent.set( _fieldName , o );
             ret = o;
         }

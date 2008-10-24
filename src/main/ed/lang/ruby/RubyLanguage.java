@@ -18,37 +18,48 @@ package ed.lang.ruby;
 
 import org.jruby.Ruby;
 import org.jruby.exceptions.RaiseException;
-import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.lang.Language;
 import ed.js.engine.Scope;
+import ed.appserver.jxp.JxpSource;
+import ed.appserver.adapter.AdapterType;
+import ed.appserver.AppContext;
+import ed.appserver.JSFileLibrary;
 
-class RubyShellSource extends RubyJxpSource {
-
-    static final Ruby RUNTIME = Ruby.newInstance(RubyJxpSource.config);
-
-    protected String _code;
-    RubyShellSource(String code) {
-        super(null, null, false, RUNTIME);
-        _code = code;
-    }
-    protected String getContent() { return _code; }
-}
+import java.io.File;
 
 /**
  * Used by the {@lang ed.js.Shell} to run Ruby code.
  */
 public class RubyLanguage extends Language {
 
+    static class RubyShellSource extends RubyJxpSource {
+
+        static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.config);
+
+        protected String _code;
+        RubyShellSource(String code) {
+            super(null, RUNTIME);
+            _code = code;
+        }
+        protected String getContent() { return _code; }
+    }
+
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
 
     public RubyLanguage() { super("ruby"); }
+
+    public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
+
+        
+        return null;
+    }
 
     public Object eval(Scope s, String code, boolean[] hasReturn) {
         RubyJxpSource source = new RubyShellSource(code);
         Object result = null;
         try {
-            result = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
+            result = RubyObjectWrapper.toJS(s, source._doCall(source.parseContent("(shell)"), s, RuntimeEnvironment.EMPTY_OBJECT_ARRAY));
             hasReturn[0] = true;
         }
         catch (RaiseException re) {
@@ -59,9 +70,7 @@ public class RubyLanguage extends Language {
             if (DEBUG)
                 e.printStackTrace();
         }
-        finally {
-            return result;
-        }
+        return result;
     }
 
     /**
@@ -76,7 +85,7 @@ public class RubyLanguage extends Language {
         code.append("IRB.start\n");
         RubyJxpSource source = new RubyShellSource(code.toString());
         try {
-            source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
+            source._doCall(source.parseContent("(shell)"), s, RuntimeEnvironment.EMPTY_OBJECT_ARRAY);
         }
         catch (RaiseException re) {
             re.printStackTrace();

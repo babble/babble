@@ -22,13 +22,34 @@ import javax.script.*;
 
 import ed.js.*;
 import ed.js.engine.*;
+import ed.appserver.AppContext;
+import ed.appserver.JSFileLibrary;
+import ed.appserver.adapter.AdapterType;
+import ed.appserver.jxp.JxpSource;
+
+import java.io.File;
 
 public abstract class Language {
     
     protected Language( String name ){
         _name = name;
     }
-    
+
+    /**
+     *  Returns the adapter (10gen, CGI, etc) for the given file and the current request.  The adapter
+     *  type is passed in,  which is usually determined from the appcontext, but the appcontext
+     *  is provided for further information.
+     *
+     *  If nothing else, this should return a basic JxpSource
+     *
+     * @param type adapter type requested
+     * @param fileName  application file (e.g. foo.jxp) to be processed by adapter. T
+     * @param context   application context
+     * @param lib  applications file library
+     * @return JxpSource object for the file.  Could be CGI, WSGI, Rack, etc
+     */
+    public abstract JxpSource getAdapter(AdapterType type, File fileName, AppContext context , JSFileLibrary lib);
+
     public boolean isScriptable(){
         return false;
     }
