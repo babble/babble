@@ -39,6 +39,7 @@ import ed.js.engine.NativeBridge;
 /**
  * RubyObjectWrapper acts as a bridge between Ruby objects and Java objects.
  */
+@SuppressWarnings("serial")
 public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");

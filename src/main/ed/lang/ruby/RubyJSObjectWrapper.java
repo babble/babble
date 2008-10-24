@@ -41,6 +41,7 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  * reads and writes of Ruby instance variables into reads and writes of the
  * underlying JavaScript object's instance variables.
  */
+@SuppressWarnings("serial")
 public class RubyJSObjectWrapper extends RubyHash {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
@@ -67,10 +68,11 @@ public class RubyJSObjectWrapper extends RubyHash {
         return ref.get();
     }
 
-    static Collection<? extends Object> jsKeySet(JSObject jsobj) {
+    @SuppressWarnings("unchecked")
+	static Collection<? extends Object> jsKeySet(JSObject jsobj) {
         try {
             if (jsobj instanceof JSMap)
-                return (Collection<? extends Object>)((JSMap)jsobj).keys();
+                return ((JSMap)jsobj).keys();
             else
                 return jsobj.keySet(true);
         }

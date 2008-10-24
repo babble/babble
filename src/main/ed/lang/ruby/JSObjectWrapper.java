@@ -170,7 +170,7 @@ public class JSObjectWrapper implements JSObject {
         Set<String> names = new HashSet<String>();
 
         /* Add each ivar's name iff the ivar has a setter or a getter. */
-        for (Variable var : _robj.getInstanceVariables().getInstanceVariableList()) {
+        for (Variable<IRubyObject> var : _robj.getInstanceVariables().getInstanceVariableList()) {
             String name = var.getName().substring(1); // Strip off leading "@"
             if (_robj.respondsTo(name) || _robj.respondsTo(name + "="))
                 names.add(var.getName().substring(1));

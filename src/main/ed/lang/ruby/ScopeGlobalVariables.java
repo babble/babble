@@ -41,7 +41,6 @@ public class ScopeGlobalVariables extends GlobalVariables {
     private Scope _scope;
     private Ruby _runtime;
     private GlobalVariables _delegate;
-    private IRubyObject _defaultSeparator;
 
     public ScopeGlobalVariables(Scope scope, Ruby runtime) {
         super(runtime);
@@ -52,7 +51,6 @@ public class ScopeGlobalVariables extends GlobalVariables {
         while (_delegate instanceof ScopeGlobalVariables)
             _delegate = ((ScopeGlobalVariables)_delegate)._delegate;
 
-        Set<String> delegateNamesCopy = new HashSet<String>(_delegate.getNames());
         for (Object key : RubyJSObjectWrapper.jsKeySet(_scope)) { // Add scope vars to Ruby globals
             if (!isSpecial(key.toString())) {
                 Object val = _scope.get(key);

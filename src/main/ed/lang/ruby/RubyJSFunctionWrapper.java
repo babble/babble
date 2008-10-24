@@ -41,6 +41,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
  *
  * @see JSFunctionWrapper
  */
+@SuppressWarnings("serial")
 public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();

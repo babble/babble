@@ -32,6 +32,7 @@ import ed.js.engine.Scope;
 /**
  * RubyDBCursorWrapper is a RubyArray.
  */
+@SuppressWarnings("serial")
 public class RubyDBCursorWrapper extends RubyArray {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
