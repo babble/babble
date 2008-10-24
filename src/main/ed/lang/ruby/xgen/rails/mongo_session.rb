@@ -45,6 +45,9 @@ module XGen
       end
 
       def save
+        # FIXME we need to "tickle" the session with a new value because right
+        # now sessions do not notice changes in sub-objects, only top-level
+        # values and objects.
         $session[:_timestamp] = Time.new.to_i
       end
 
