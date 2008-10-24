@@ -313,7 +313,12 @@ public class HttpServer extends NIOServer {
         public void close(){
             if ( _lastResponse != null )
                 _lastResponse.socketClosing();
+
             super.close();
+
+            ByteBufferHolder holder = _in;
+            _in = null;
+            _connectionByteBufferHolder.done( holder );
         }
         
         public String toString(){
@@ -325,7 +330,7 @@ public class HttpServer extends NIOServer {
 
         final HttpServer _server;
 
-        ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
+        private ByteBufferHolder _in = _connectionByteBufferHolder.get();
         int _endOfHeader = 0;
         boolean _done = false;
         HttpRequest _lastRequest;
@@ -345,6 +350,17 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
 
+    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new SimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolds" , 20 , -1  ){
+
+        public ByteBufferHolder createNew(){
+            return new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
+        }
+        
+        public boolean ok( ByteBufferHolder holder ){
+            return holder.capacity() < 1024 * 1024;
+        }
+    };
+    
     private int _lastHandlerHash = 0;
     private List<HttpHandler> _lastHandlers;
     
