@@ -137,7 +137,6 @@ public class ServletWriter extends JSFunctionCalls1 {
             throw new RuntimeException( "output closed.  are you using an old print function" );
 
         while ( s.length() > 0 ){
-
             if ( _extra.length() > 0 ){
                 _extra.append( s );
                 s = _extra.toString();
@@ -155,8 +154,8 @@ public class ServletWriter extends JSFunctionCalls1 {
                         return;
                     }
                     this._inDoubleQuote = false;
-                    _writer.print(s.substring(0, dq + 2));
-                    s = s.substring(dq + 2);
+                    _writer.print(s.substring(0, dq));
+                    s = s.substring(dq);
                 } else if (this._inSingleQuote) {
                     int sq = findSingleQuote(s);
                     if (sq == -1) {
@@ -164,8 +163,8 @@ public class ServletWriter extends JSFunctionCalls1 {
                         return;
                     }
                     this._inSingleQuote = false;
-                    _writer.print(s.substring(0, sq + 2));
-                    s = s.substring(sq + 2);
+                    _writer.print(s.substring(0, sq));
+                    s = s.substring(sq);
                 }
 
                 int doubleQuote = s.indexOf('"');
@@ -177,20 +176,21 @@ public class ServletWriter extends JSFunctionCalls1 {
                 }
 
                 _closeScriptMatcher.reset(s);
-                if (!_closeScriptMatcher.find()) {
-                    setQuoteState(doubleQuote, singleQuote);
-                    _writer.print(s);
-                    return;
-                }
-                if (_closeScriptMatcher.start() < quoteMin || quoteMin == -1) {
+
+                if (_closeScriptMatcher.find() && (_closeScriptMatcher.start() < quoteMin || quoteMin == -1)) {
                     this._inScript = false;
+
                     _writer.print(s.substring(0, _closeScriptMatcher.start()));
                     s = s.substring(_closeScriptMatcher.start());
                 } else {
-                    setQuoteState(doubleQuote, singleQuote);
-                    _writer.print(s.substring(0, quoteMin));
-                    s = s.substring(quoteMin);
-                    continue;
+                    if (quoteMin != -1) {
+                        setQuoteState(doubleQuote, singleQuote);
+                        _writer.print(s.substring(0, quoteMin + 1));
+                        s = s.substring(quoteMin + 1);
+                        continue;
+                    }
+                    _writer.print(s);
+                    return;
                 }
             }
 
@@ -238,7 +238,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         if (!_closeDoubleQuoteMatcher.find()) {
             return -1;
         }
-        return _closeDoubleQuoteMatcher.start();
+        return _closeDoubleQuoteMatcher.start() + _closeDoubleQuoteMatcher.group(1).length();
     }
 
     private int findSingleQuote (String s) {
@@ -246,7 +246,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         if (!_closeSingleQuoteMatcher.find()) {
             return -1;
         }
-        return _closeSingleQuoteMatcher.start();
+        return _closeSingleQuoteMatcher.start() + _closeSingleQuoteMatcher.group(1).length();
     }
 
     boolean printTag(String tag, String s, boolean allowTagHandlers) {
@@ -393,8 +393,8 @@ public class ServletWriter extends JSFunctionCalls1 {
     static final Map<String,Pattern> _attPatternCache = Collections.synchronizedMap( new HashMap<String,Pattern>() );
     final Matcher _matcher = _tagPattern.matcher("");
     final Matcher _closeScriptMatcher = Pattern.compile("</\\s*script\\s*>", Pattern.CASE_INSENSITIVE).matcher("");
-    final Matcher _closeDoubleQuoteMatcher = Pattern.compile("[^\\\\]\"").matcher("");
-    final Matcher _closeSingleQuoteMatcher = Pattern.compile("[^\\\\]'").matcher("");
+    final Matcher _closeDoubleQuoteMatcher = Pattern.compile("([^\\\\]\"|^\")").matcher("");
+    final Matcher _closeSingleQuoteMatcher = Pattern.compile("([^\\\\]'|^')").matcher("");
 
     final StringBuilder _extra = new StringBuilder();
 

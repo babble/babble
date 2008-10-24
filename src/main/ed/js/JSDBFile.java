@@ -30,7 +30,7 @@ public class JSDBFile extends JSFile {
     }
 
     public JSFileChunk getChunk( int num ){
-        throw new RuntimeException( "not done uet" );
+        throw new RuntimeException( "not done yet" );
     }
 
     public void remove(){

@@ -113,6 +113,7 @@ public class DjangoRegressionTests {
         
         AppContext appContext = new AppContext("tmp");
         Logger appLogger = appContext.getLogger();
+        appLogger.getChild( "djang10" ).setLevel( Level. DEBUG );
         Scope appScope = appContext.getScope();
 
         //config logger
