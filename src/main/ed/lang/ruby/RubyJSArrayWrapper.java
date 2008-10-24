@@ -34,6 +34,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
  * of Ruby array contents into reads and writes of the underlying JSArray's
  * instance variables.
  */
+@SuppressWarnings("serial")
 public class RubyJSArrayWrapper extends RubyArray {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();

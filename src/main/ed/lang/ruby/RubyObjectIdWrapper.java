@@ -23,14 +23,11 @@ import org.jruby.*;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.runtime.callback.Callback;
 import static org.jruby.runtime.Visibility.PRIVATE;
 
 import ed.db.ObjectId;
 
-/**
- * RubyDBCursorWrapper is a RubyArray.
- */
+@SuppressWarnings("serial")
 public class RubyObjectIdWrapper extends RubyObject {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();

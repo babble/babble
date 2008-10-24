@@ -16,33 +16,16 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.io.*;
-import java.util.*;
 
 import org.jruby.*;
 import org.jruby.ast.Node;
-import org.jruby.exceptions.RaiseException;
-import org.jruby.internal.runtime.GlobalVariables;
-import org.jruby.internal.runtime.methods.JavaMethod;
-import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.util.IdUtil;
-import org.jruby.util.KCode;
-import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.appserver.AppContext;
-import ed.appserver.AppRequest;
-import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
-import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
 import ed.net.httpserver.HttpResponse;
-import ed.util.Dependency;
-import static ed.lang.ruby.RubyObjectWrapper.toJS;
-import static ed.lang.ruby.RubyObjectWrapper.toRuby;
-import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 public class RubyJxpSource extends JxpSource.JxpFileSource {
 
