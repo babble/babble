@@ -177,7 +177,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
                 System.err.println("allocating an instance of " + klass.name());
             JSObject jsobj = _func.newOne();
             RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, runtime, jsobj, klass);
-            // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
+            /* Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here. */
             r.makeMetaClass(r.getSingletonClass());
             if (RubyObjectWrapper.DEBUG_CREATE || RubyObjectWrapper.DEBUG_FCALL)
                 System.err.println("  wrapped new object inside a " + r.getClass().getName());

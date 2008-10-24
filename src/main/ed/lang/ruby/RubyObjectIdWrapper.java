@@ -28,9 +28,6 @@ import static org.jruby.runtime.Visibility.PRIVATE;
 
 import ed.db.ObjectId;
 
-/**
- * RubyDBCursorWrapper is a RubyArray.
- */
 public class RubyObjectIdWrapper extends RubyObject {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();

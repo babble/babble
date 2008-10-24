@@ -79,11 +79,11 @@ public class RubyDBCursorWrapper extends RubyArray {
         return toRuby(_cursor.getInt((int)i));
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject initialize(ThreadContext context, IRubyObject[] args, Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject initialize_copy(IRubyObject orig) {
 //     }
 
@@ -248,7 +248,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         return getRuntime().getFalse();
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyBoolean frozen_p(ThreadContext context) {
 //     }
 
@@ -424,11 +424,11 @@ public class RubyDBCursorWrapper extends RubyArray {
         return join(context, sep);
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyArray to_a() {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject to_ary() {
 //     }
 
@@ -516,7 +516,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         return runtime.getNil();
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject indexes(IRubyObject[] args) {
 //     }
 

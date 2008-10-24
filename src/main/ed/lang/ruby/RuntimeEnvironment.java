@@ -62,11 +62,11 @@ class RuntimeEnvironment {
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
-        // Don't pre-load XGen::Mongo::Base because it uses /core/js/sql, and
-        // that isn't on the path this early in the game. Since Base was the
-        // only thing that we pre-loaded here, I've commented this out.
-        // Uncomment and re-add xgen.rb if there's anything we always want
-        // required.
+        /* Don't pre-load XGen::Mongo::Base because it uses /core/js/sql, and
+         * that isn't on the path this early in the game. Since Base was the
+         * only thing that we pre-loaded here, I've commented this out.
+         * Uncomment and re-add xgen.rb if there's anything we always want
+         * required. */
 //         if (!SKIP_REQUIRED_LIBS)
 //             config.requiredLibraries().add("xgen");
         DO_NOT_LOAD_FUNCS = new ArrayList<String>();
@@ -102,7 +102,7 @@ class RuntimeEnvironment {
                     if (DEBUG)
                         System.err.println("adding top-level method " + key);
                     alreadySeen.add(key);
-                    // Creates method and attaches to the module. Also creates a new Ruby class if appropriate.
+                    /* Creates method and attaches to the module. Also creates a new Ruby class if appropriate. */
                     RubyObjectWrapper.createRubyMethod(scope, runtime, (JSFunction)obj, key, xgen, null);
                 }
             }
@@ -163,7 +163,7 @@ class RuntimeEnvironment {
     }
 
     IRubyObject commonRun(Node node, Scope s) {
-        // See the second part of JRuby's Ruby.executeScript(String, String)
+        /* See the second part of JRuby's Ruby.executeScript(String, String). */
         Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
 
@@ -179,7 +179,7 @@ class RuntimeEnvironment {
     }
 
     Node parse(String script, String filePath) {
-        // See the first part of JRuby's Ruby.executeScript(String, String)
+        /* See the first part of JRuby's Ruby.executeScript(String, String). */
         byte[] bytes;
         try {
             bytes = script.getBytes(KCode.NONE.getKCode());
@@ -222,9 +222,9 @@ class RuntimeEnvironment {
         Ruby runtime = getRuntime(scope);
         runtime.getGlobalVariables().set("$scope", toRuby(scope, runtime, scope));
 
-        // Creates a module named XGen, includes it in the Object class (just
-        // like Kernel), and adds all top-level JavaScript methods to the
-        // module.
+        /* Creates a module named XGen, includes it in the Object class (just
+         * like Kernel), and adds all top-level JavaScript methods to the
+         * module. */
         RubyModule xgen = runtime.getOrCreateModule(XGEN_MODULE_NAME);
         runtime.getObject().includeModule(xgen);
         createNewClassesAndXGenMethods(scope, runtime);
@@ -255,9 +255,9 @@ class RuntimeEnvironment {
      */    
     private void resetOnFileChange(Scope s) {
         return;
-        // This code is commented out for now because when run against an app
-        // with 1,000 froze Rails files, calling anyLocalFileChanged for
-        // every request is too slow.
+        /* This code is commented out for now because when run against an app
+         * with 1,000 froze Rails files, calling anyLocalFileChanged for
+         * every request is too slow. */
 //         if (anyLocalFileChanged(s)) {
 //             if (DEBUG)
 //                 System.err.println("new file or file mod time changed; resetting Ruby runtime");
@@ -265,8 +265,8 @@ class RuntimeEnvironment {
 //         }
     }
 
-    // This code is commented out for now because when run against an app with
-    // 1,000 froze Rails files, doing this for every request is too slow.
+    /* This code is commented out for now because when run against an app with
+     * 1,000 froze Rails files, doing this for every request is too slow. */
 //     private boolean anyLocalFileChanged(Scope s) {
 //         return false;
 //         if (s == null)
