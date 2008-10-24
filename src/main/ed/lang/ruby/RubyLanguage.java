@@ -28,22 +28,22 @@ import ed.appserver.JSFileLibrary;
 
 import java.io.File;
 
-class RubyShellSource extends RubyJxpSource {
-
-    static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.config);
-
-    protected String _code;
-    RubyShellSource(String code) {
-        super(null, RUNTIME);
-        _code = code;
-    }
-    protected String getContent() { return _code; }
-}
-
 /**
  * Used by the {@lang ed.js.Shell} to run Ruby code.
  */
 public class RubyLanguage extends Language {
+
+    class RubyShellSource extends RubyJxpSource {
+
+        static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.config);
+
+        protected String _code;
+        RubyShellSource(String code) {
+            super(null, RUNTIME);
+            _code = code;
+        }
+        protected String getContent() { return _code; }
+    }
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
 
