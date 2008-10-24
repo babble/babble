@@ -768,6 +768,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
             _initFlies.add( f );
     }
 
+    public void addInitDependency( File f ){
+        _initFlies.add( f );
+    }
+
     JxpServlet getServlet( File f )
         throws IOException {
         JxpSource source = getSource( f );

@@ -166,6 +166,10 @@ public class SiteSystemState {
         ((PythonModuleTracker)pyState.modules).addDependency( to , importer );
     }
 
+    public void addRecursive( String name , AppContext ac ){
+        ((PythonModuleTracker)pyState.modules).addRecursive( name , ac );
+    }
+
     public AppContext getContext(){
         return _context;
     }
@@ -359,8 +363,12 @@ public class SiteSystemState {
             //addDependency( to.toString() );
 
             // Add a module dependency -- module being imported was imported by
-            // the importing module
-            sss.addDependency( to , importer );
+            // the importing module.
+            // Don't add dependencies to _10gen. FIXME: other "virtual"
+            // modules should be OK.
+            if( ! ( m instanceof PyModule && ((PyModule)m).__dict__ instanceof PyJSObjectWrapper ) )
+                sss.addDependency( to , importer );
+
             return _finish( target , siteModule , m );
 
             //PythonJxpSource foo = PythonJxpSource.this;
