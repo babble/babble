@@ -366,7 +366,7 @@ public class SiteSystemState {
             // the importing module.
             // Don't add dependencies to _10gen. FIXME: other "virtual"
             // modules should be OK.
-            if( ! ( m.__findattr__( "__dict__" ) instanceof PyJSObjectWrapper ) )
+            if( ! ( m instanceof PyModule && ((PyModule)m).__dict__ instanceof PyJSObjectWrapper ) )
                 sss.addDependency( to , importer );
 
             return _finish( target , siteModule , m );
