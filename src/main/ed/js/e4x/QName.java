@@ -115,12 +115,12 @@ public class QName extends JSObjectBase {
         // convert null to "null" as a local name
         this.localName = new JSString( name + "" );
         if( namespace != null ) {
-            this.uri = new JSString( namespace.uri );
-            this.prefix = new JSString( namespace.prefix == null ? "" : namespace.prefix );
+            this.uri = namespace.uri;
+            this.prefix = namespace.prefix;
         }
         else {
             this.uri = null;
-            this.prefix = new JSString( "" );
+            this.prefix = null;
         }
     }
 
@@ -171,16 +171,25 @@ public class QName extends JSObjectBase {
         return getNamespace( null );
     }
 
-    public Namespace getNamespace( ArrayList<Namespace> isn ) {
+    public Namespace getNamespace( List<Namespace> a ) {
         if( this.uri == null )
             return null;
 
-        for( Namespace ns : isn ) {
-            if( ns.uri.equals( this.uri ) ) {
-                return ns;
+        if( a != null ) {
+            for( Namespace ns : a ) {
+                if( ( ns.uri == null && this.uri == null ) ||
+                    ( ns.uri != null && ns.uri.toString().equals( this.uri.toString() ) ) )
+                    return ns;
             }
+            return null;
         }
-        return new Namespace( this.uri );
+
+        if( this.prefix == null ) {
+            return new Namespace( this.uri.toString() );
+        }
+        else {
+            return new Namespace( this.prefix.toString(), this.uri.toString() );
+        }
     }
 
     public Object get( Object n ) {

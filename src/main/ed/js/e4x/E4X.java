@@ -32,27 +32,31 @@ import ed.util.*;
 
 public class E4X {
 
-    static Object _nodeGet( ENode start , String s ){
-        if( start instanceof XMLList )
+    static Object _nodeGet( ENode start , Object s ){
+        if( start instanceof XMLList ) {
             return _nodeGet( (XMLList)start, s );
+        }
         return _nodeGet( new XMLList( start ), s );
     }
 
-    static Object _nodeGet( XMLList start , String s ){
+    static Object _attrNodeGet( ENode start , Object s ){
+        if( start instanceof XMLList ) {
+            return _attrNodeGet( (XMLList)start, s );
+        }
+        return _attrNodeGet( new XMLList( start ), s );
+    }
+
+    static Object _attrNodeGet( XMLList start, Object obj ) {
+        String s = obj instanceof QName ?
+            ((QName)obj).localName.toString() :
+            obj.toString();
+
         final boolean search = s.startsWith( ".." );
         if ( search )
             s = s.substring(2);
 
-        final boolean attr = s.startsWith( "@" );
-        if ( attr )
-            s = s.substring(1);
-
-        final boolean qualified = s.contains( "::" );
-        String uri = "";
-        if( qualified ) {
-            uri = s.substring( 0, s.indexOf("::") );
-            s = s.substring( s.indexOf( "::" ) + 2 );
-        }
+        if( s.startsWith( "@" ) )
+            s = s.substring( 1 );
 
         final boolean all = s.endsWith("*");
         if( all ) {
@@ -60,21 +64,27 @@ public class E4X {
             s = "";
         }
 
+        final boolean qualified = (obj instanceof QName);
+        String uri = qualified ? ((QName)obj).uri + "" : "";
+
         List<ENode> traverse = new LinkedList<ENode>();
         List<ENode> res = new ArrayList<ENode>();
-    
+
         for(int k=0; k< start.size(); k++) {
             traverse.add( start.get(k) );
 
             while ( ! traverse.isEmpty() ){
                 ENode n = traverse.remove(0);
 
-                if ( attr ){
-                    ArrayList<ENode> nnm = n.getAttributes();
-                    for( ENode enode : nnm ) {
-                        if( all || ( ( ( qualified && enode.name().uri.equals( uri ) ) || !qualified ) && enode.localName().equals( s ) ) ) {
-                            res.add( enode );
-                        }
+                ArrayList<ENode> nnm = n.getAttributes();
+                for( ENode enode : nnm ) {
+                    if( all || 
+                        ( ( ( qualified && 
+                              ( enode.name().uri != null && 
+                                enode.name().uri.equals( uri ) ) ) || 
+                            !qualified ) && 
+                          enode.localName().equals( s ) ) ) {
+                        res.add( enode );
                     }
                 }
             
@@ -84,8 +94,49 @@ public class E4X {
 
                 for ( int i=0; i<kids.size(); i++ ){
                     ENode c = kids.get(i);
-                    if ( !attr && 
-                         c.node.getNodeType() != Node.ATTRIBUTE_NODE &&
+                    if ( search )
+                        traverse.add( c );
+                }
+            }
+        }
+        return _handleListReturn( res );
+    }
+
+    static Object _nodeGet( XMLList start , Object obj ){
+        String s = obj instanceof QName ?
+            ((QName)obj).localName.toString() :
+            obj.toString();
+
+        final boolean search = s.startsWith( ".." );
+        if ( search )
+            s = s.substring(2);
+
+        final boolean all = s.endsWith("*");
+        if( all ) {
+            if( s.length() > 1) return null;
+            s = "";
+        }
+
+        final boolean qualified = (obj instanceof QName);
+        String uri = qualified ? ((QName)obj).uri.toString() : "";
+
+        List<ENode> traverse = new LinkedList<ENode>();
+        List<ENode> res = new ArrayList<ENode>();
+    
+        for(int k=0; k< start.size(); k++) {
+            traverse.add( start.get(k) );
+
+            while ( ! traverse.isEmpty() ){
+                ENode n = traverse.remove(0);
+            
+                XMLList kids = n.children();
+                if ( kids == null || kids.size() == 0 )
+                    continue;
+
+                for ( int i=0; i<kids.size(); i++ ){
+                    ENode c = kids.get(i);
+
+                    if ( c.node.getNodeType() != Node.ATTRIBUTE_NODE &&
                          ( all || 
                            ( ( c.node.getNodeType() == Node.TEXT_NODE && 
                                c.text().equals( s ) ) || 

@@ -406,7 +406,7 @@ public class ENode extends JSObjectBase {
         }
 
         public Namespace setAndGetDefaultNamespace(Object o) {
-            defaultNamespace = new Namespace( "", o );
+            defaultNamespace = new Namespace( o );
             return defaultNamespace;
         }
     }
@@ -481,11 +481,40 @@ public class ENode extends JSObjectBase {
             parent = ((XMLList)parent).get(0);
         }
         if(parent != null && parent.node != null) {
-            node = parent.node.getOwnerDocument().createElement( o.toString() );
+            Document doc = parent.node.getOwnerDocument();
+            if( o instanceof QName ) {
+                QName q = (QName)o;
+                node = doc.createElementNS( q.uri.toString(), q.localName.toString() );
+            }
+            else {
+                node = doc.createElement( o.toString() );
+            }
         }
         this.children = new XMLList();
         this._dummy = true;
         nodeSetup(parent);
+    }
+
+    public static ENode attributeNodeFactory( ENode parent, Object nodeName ) {
+        ENode enode = new ENode();
+        enode._dummy = true;
+        enode.parent = parent;
+        Document doc = enode.parent.node.getOwnerDocument();
+        if( nodeName instanceof QName ) {
+            QName q = (QName)nodeName;
+            q.localName = new JSString( q.localName.toString().substring( q.localName.toString().indexOf( "@" ) + 1 ) );
+            enode.node = doc.createAttributeNS( q.uri.toString() , q.localName.toString() );
+            enode.addInScopeNamespace( new Namespace( q ) );
+            enode.setName( q );
+            enode.setLocalName( q.localName );
+        }
+        else {
+            String s = nodeName.toString();
+            s = s.substring( s.indexOf( "@" ) + 1 );
+            enode.node = doc.createAttribute( s );
+            enode.setLocalName( s );
+        }
+        return enode;
     }
 
     /** Sets this node's parent, points it to the XML constructor, gets
@@ -493,14 +522,33 @@ public class ENode extends JSObjectBase {
      */
     void nodeSetup( ENode parent ) {
         this.parent = parent;
-        this.XML = this.parent == null ? (Cons)this._getCons() : this.parent.XML;
+        this.XML = this.parent == null ? 
+            (Cons)this._getCons() : 
+            this.parent.XML;
 
+        getNamespace();
         if( this.node != null && 
             this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+            // parse the name if it is qualified and find the uri
+            String nodeName = this.node.getNodeName();
+            if( nodeName.indexOf( ":" ) > 0 ) {
+                String uri = getNamespaceURI( nodeName.substring( 0, nodeName.indexOf( ":" ) ) );
+                this.setName( new QName( new Namespace( nodeName.substring( 0, nodeName.indexOf( ":" ) ), uri ), 
+                                         nodeName.substring( nodeName.indexOf( ":" ) + 1 ) ) );
+                this.setLocalName( nodeName.substring( nodeName.indexOf( ":" ) + 1 ) );
+            }
+            // make sure that there are no duplicate attributes
             ((Attr)this.node).setValue( E4X.escapeAttributeValue( ((Attr)this.node).getValue() ) );
+            for( ENode n : parent.children ) {
+                if( n.node.getNodeType() == Node.ATTRIBUTE_NODE &&
+                    n.name().toString().equals( this.name().toString() ) ) {
+                    throw new JSException( "TypeError: duplicate XML attribute "+this.name() );
+                }
+            }
         }
-        getNamespace();
-        addAttributes();
+        else {
+            addAttributes();
+        }
     }
 
     /** Get attributes */
@@ -539,10 +587,10 @@ public class ENode extends JSObjectBase {
         }
         else if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
             String temp = this.node.getNodeName();
-            if( temp.indexOf( ':' ) > 0) {
-                String prefix = temp.substring( 0, temp.indexOf( ':' ) );
-                String localName = temp.substring( temp.indexOf( ':' ) + 1 );
-                this.name = new QName( new Namespace( prefix, this.getNamespaceURI( prefix ) ), localName );
+            String ns = this.node.getNamespaceURI();
+            if( ns != null ) {
+                this.setName( ns );
+                this.setLocalName( temp );
             }
             else {
                 this.name = new QName( XML.defaultNamespace, this.node.getNodeName() );
@@ -576,8 +624,11 @@ public class ENode extends JSObjectBase {
             String prefix = "";
             if( name.group(1) != null ) {
                 prefix = name.group(2);
+                this.name = new QName( new Namespace( prefix, this.getNamespaceURI( prefix ) ), name.group( 3 ) );
             }
-            this.name = new QName( new Namespace( prefix, this.getNamespaceURI( prefix ) ), name.group( 3 ) );
+            else {
+                this.name = new QName( XML.defaultNamespace, name.group( 3 ) );
+            }
         }
     }
 
@@ -693,8 +744,31 @@ public class ENode extends JSObjectBase {
                 }
             }
 
-            Object o = E4X._nodeGet( this, s );
-            return ( o == null && E4X.isXMLName(s) ) ? new ENode( this, s ) : o;
+            Object o;
+            // an attribute search could start with ..
+            if( s.indexOf( "@" ) >= 0 ) {
+                o = E4X._attrNodeGet( this, s );
+                return o == null ? attributeNodeFactory( this, s ) : o;
+            }
+            else {
+                o = E4X._nodeGet( this, s );
+                return ( o == null && E4X.isXMLName(s) ) ? new ENode( this, s ) : o;
+            }
+        }
+
+        if ( n instanceof QName ) {
+            Object o;
+            if( ((QName)n).localName.toString().indexOf( "@" ) >= 0 ) {
+                o = E4X._attrNodeGet( this, n );
+                return ( o == null ) ? attributeNodeFactory( this, n ) : o;
+            }
+            else {
+                o = E4X._nodeGet( this, n );
+                return ( o == null && 
+                         E4X.isXMLName( ((QName)n).localName.toString() ) ) ? 
+                    new ENode( this, n ) : 
+                    o;
+            }
         }
 
         if ( n instanceof Query ) {
@@ -724,6 +798,14 @@ public class ENode extends JSObjectBase {
         if(this.children == null ) 
             this.children = new XMLList();
 
+        String p;
+        if( k instanceof QName ) {
+            p = ((QName)k).localName.toString();
+        }
+        else {
+            p = k.toString();
+        }
+
         // attach any dummy ancestors to the tree
         if( this.isDummy() ) {
             ENode topParent = this;
@@ -737,11 +819,11 @@ public class ENode extends JSObjectBase {
         }
 
         // set an attribute
-        if( k.toString().startsWith("@") )
-            return setAttribute(k.toString(), v.toString());
+        if( p.startsWith("@") )
+            return setAttribute(k, v.toString());
 
         // if v is an XML list, add each element
-        if( v instanceof XMLList && !k.equals( "*" ) ) {
+        if( v instanceof XMLList && !p.equals( "*" ) ) {
             int index = this.children.size();
             for( ENode target : (XMLList)v ) {
                 if ( ((List)this.children).contains( target ) ) {
@@ -756,7 +838,7 @@ public class ENode extends JSObjectBase {
         }
 
         Pattern num = Pattern.compile("-?\\d+");
-        Matcher m = num.matcher(k.toString());
+        Matcher m = num.matcher(p);
 
         // find out if this k/v pair exists
         ENode n;
@@ -776,7 +858,7 @@ public class ENode extends JSObjectBase {
             // in the unusual situation where we have x.set("*", x), we have
             // to copy x before resetting its children
             ENode vcopy = ((ENode)v).copy();
-            if( k.toString().equals("*") ) {
+            if( p.equals("*") ) {
                 // replace children
                 if( v instanceof XMLList ) {
                     for( int i=0; i < this.children.size(); ) {
@@ -796,7 +878,7 @@ public class ENode extends JSObjectBase {
             // if k is a number, go back one
             if( m.matches() ) {
                 if ( this.parent == null ) {
-                    this.setAtIndex( Integer.parseInt(k.toString()), vcopy );
+                    this.setAtIndex( Integer.parseInt(p), vcopy );
                 }
                 else {
                     int index = this.parent.children.indexOf( this );
@@ -820,7 +902,7 @@ public class ENode extends JSObjectBase {
         if( m.matches() ) {
             int index;
             // the index must be greater than 0
-            if( ( index = Integer.parseInt(k.toString()) ) < 0)
+            if( ( index = Integer.parseInt(p) ) < 0)
                 return v;
 
             int numChildren = this instanceof XMLList ? ((XMLList)this).size() : this.children.size();
@@ -874,7 +956,7 @@ public class ENode extends JSObjectBase {
         else {
             int index = getInsertionIndex( n );
             
-            n = new ENode(this.node.getOwnerDocument().createElement(k.toString()), this , null);
+            n = new ENode(this.node.getOwnerDocument().createElement(p), this , null);
             Node content = this.node.getOwnerDocument().createTextNode(v.toString());
             n.children.add( new ENode( content, n , null ) );
             if( !((List)this.children).contains( n ) ) {
@@ -925,27 +1007,31 @@ public class ENode extends JSObjectBase {
         return v;
     }
 
-    private Object setAttribute( String k, String v ) {
-        if( !k.startsWith("@") )
-            return v;
-
-        Object obj = get(k);
-        k = k.substring(1);
-
-        // create a new attribute
-        if( obj == null ) {
-            Attr newNode = node.getOwnerDocument().createAttribute(k);
-            newNode.setValue( v );
-            this.children.add( new ENode(newNode, this , null) );
+    private Object setAttribute( Object k, String v ) {
+        ENode n;
+        Object obj = get( k );
+        if( obj instanceof ENode ) {
+            n = ( ENode )obj;
         }
-        // change an existing attribute
         else {
-            List<ENode> list = this.getAttributes();
-            for( ENode n : list ) {
-                if( ((Attr)n.node).getName().equals( k ) )
-                    ((Attr)n.node).setValue( v );
+            n = (( ENodeFunction )obj).cnode;
+            if( n == null ) {
+                n = new ENode( this.XML, this.defaultNamespace );
             }
         }
+
+        for( int i=0; i<this.children.size(); i++ ) {
+            ENode child = this.children.get( i );
+            if( child.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+                if( n.localName().equals( child.localName() ) &&
+                    ( n.name().uri == null || n.name().uri.equals( child.name().uri ) ) ) {
+                    this.children.remove( child );
+                    i--;
+                }
+            }
+        }
+        this.children.add( n );
+        ((Attr)n.node).setValue( E4X.escapeAttributeValue( v.toString() ) );
         return v;
     }
 
@@ -1196,7 +1282,7 @@ public class ENode extends JSObjectBase {
     private String getNamespacePrefix( String uri ) {
         for( Namespace n : this.inScopeNamespaces ) {
             if( n.uri != null && n.uri.equals( uri ) ) 
-                return n.prefix;
+                return n.prefix.toString();
         }
         return null;
     }
@@ -1206,7 +1292,7 @@ public class ENode extends JSObjectBase {
         while( temp != null ) {
             for( Namespace n : temp.inScopeNamespaces ) {
                 if( n.prefix != null && n.prefix.equals( prefix ) ) 
-                    return n.uri;
+                    return n.uri.toString();
             }
             temp = temp.parent;
         }
@@ -1277,7 +1363,7 @@ public class ENode extends JSObjectBase {
         ENode temp = this;
         while( temp != null ) {
             for( Namespace ns : temp.inScopeNamespaces ) {
-                if( ! ns.containsPrefix( isn ) )
+                if( ! isn.contains( ns ) )
                     isn.add( ns );
             }
             temp = temp.parent;
@@ -1334,7 +1420,11 @@ public class ENode extends JSObjectBase {
 
     public Namespace namespace( String prefix ) {
         if( prefix == null ) {
-            return this.name.getNamespace( this.inScopeNamespaces );
+            Namespace ns = this.name.getNamespace( this.inScopeNamespaces );
+            if( ns == null ) {
+                return this.defaultNamespace;
+            }
+            return ns;
         }
         ENode n = this;
         while( n != null ) {
@@ -1507,6 +1597,8 @@ public class ENode extends JSObjectBase {
             this.node.getNodeType() == Node.TEXT_NODE ||
             this.node.getNodeType() == Node.COMMENT_NODE )
             return;
+        if( this.name == null )
+            this.name = new QName();
         this.name.localName = ( name instanceof QName ) ? ((QName)name).localName : new JSString( name.toString() );
     }
 
@@ -1531,20 +1623,31 @@ public class ENode extends JSObjectBase {
         if ( name instanceof QName && ((QName)name).uri.equals("") )
             name = ((QName)name).localName;
 
-        n = new QName( XML.defaultNamespace, name );
+        if( name instanceof QName )
+            n = new QName( name );
+        else 
+            n = new QName( XML.defaultNamespace, name );
 
         if( this.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE )
             n.uri = new JSString( "" );
         this.name = n;
 
-        Namespace ns = n.uri == null ? XML.defaultNamespace : new Namespace( n.prefix.toString(), n.uri.toString() );
+        Namespace ns;
+        if( n.uri == null )
+            ns = XML.defaultNamespace ;
+        else if( n.prefix == null )  
+            ns = new Namespace( n.uri.toString() );
+        else
+            ns = new Namespace( n.prefix.toString(), n.uri.toString() );
+
         if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
             if( this.parent == null )
                 return;
             this.parent.addInScopeNamespace( ns );
         }
-        if( this.node.getNodeType() == Node.ELEMENT_NODE )
+        if( this.node.getNodeType() == Node.ELEMENT_NODE ){
             this.addInScopeNamespace( ns );
+        }
     }
 
     public void setNamespace( Object ns) {
@@ -1554,12 +1657,7 @@ public class ENode extends JSObjectBase {
             this.node.getNodeType() == Node.COMMENT_NODE )
             return;
 
-        Namespace ns2;
-        if( ns instanceof Namespace )
-            ns2 = (Namespace)ns;
-        else
-            ns2 = new Namespace( ns );
-
+        Namespace ns2 = new Namespace( ns );
         this.name = new QName( ns2, this.name );
 
         if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
@@ -1698,69 +1796,72 @@ public class ENode extends JSObjectBase {
     private String attributesToString( ArrayList<Namespace> ancestors ) {
         StringBuilder buf = new StringBuilder();
 
-        boolean defaultDefined = false;
-        ArrayList<Namespace> namespaces = this.namespaceDeclarations();
-        if( this.defaultNamespace != null && !ancestors.contains( this.defaultNamespace ) ) {
-            namespaces.add( 0, this.defaultNamespace );
-            ancestors.add( this.defaultNamespace );
+        ArrayList<Namespace> nsDeclarations = new ArrayList<Namespace>();
+        if( this.name != null ) {
+            Namespace thisNS = this.name.getNamespace();
+            if( thisNS != null && thisNS.prefix == null && !ancestors.contains( thisNS ) ) {
+                nsDeclarations.add( thisNS );
+            }
         }
 
-        ArrayList<Namespace> xmlns = new ArrayList<Namespace>();
-        Namespace lastXmlns = new Namespace();
-        for( int i = 0; i < namespaces.size(); i++ ) {
-            Namespace ns = namespaces.get(i);
-            if( ( ns.prefix == null || ns.prefix.equals( "" ) ) && ns.uri.equals( "" ) ) 
+        for( Namespace ns : this.inScopeNamespaces ) {
+            if( !ancestors.contains( ns ) ) {
+                ancestors.add( ns );
+                Namespace ns2 = new Namespace( ns );
+                if( ns2.prefix == null ){
+                    ns2.prefix = new JSString( ns2.getPrefix() );
+                }
+                nsDeclarations.add( ns2 );
+            }
+        }
+
+        Hashtable<String,Integer> matches = new Hashtable<String,Integer>();
+        for( Namespace ns : nsDeclarations ) {
+            if( ( ns.prefix == null || ns.prefix.equals( "" ) ) && ( ns.uri == null || ns.uri.equals( "" ) ) )
                 continue;
 
-            // if the prefix is null, generate a prefix and display
-            // the prefix-less namespace
             if( ns.prefix == null ) {
-                xmlns.remove( lastXmlns );
-                xmlns.add( ns );
-                lastXmlns = new Namespace( "", ns.uri );
-                xmlns.add( lastXmlns );
-            }
-            else if( ns.prefix.equals( "" ) && !defaultDefined ) {
-                xmlns.remove( lastXmlns );
-                lastXmlns = ns;
-                xmlns.add( ns );
-            }
-            else if( !ns.prefix.equals( "" ) ) {
-                xmlns.add( ns );
-            }
-        }
-
-        for( int i=0; i < xmlns.size(); i++ ) {
-            Namespace ns = xmlns.get(i);
-            if( ns.prefix == null ) {
-                String genPrefix = ns.getPrefix();
-                int matchCount = 0;
-                for( int j=0; j < i; j++ ) {
-                    if( xmlns.get(j).prefix.startsWith( genPrefix ) ) {
-                        matchCount++;                            
-                    }
-                }
-                if( matchCount > 0 ) {
-                    genPrefix += "-" + matchCount;
-                }
-                ns.prefix = genPrefix;
-                buf.append( " xmlns:" + genPrefix + "=\"" + ns.uri + "\"" );
-            }
-            else if( ns.prefix.equals( "" ) ) {
                 buf.append( " xmlns=\"" + ns.uri + "\"" );
             }
-            else { //if( !ns.prefix.equals( "" ) ) {
-                buf.append( " xmlns:" + ns.prefix + "=\"" + ns.uri + "\"" );
+            else {
+                // hack!
+                if( inScopeNamespaces.size() == 1 ) 
+                    continue;
+
+                String genPrefix = ns.prefix.toString();
+                if( ns.prefix.equals( "" ) )
+                    genPrefix = ns.getPrefix();
+
+                Integer num = matches.get( genPrefix );
+                if( num != null ) {
+                    matches.put( genPrefix, num + 1 );
+                    genPrefix += "-" + num;
+                }
+                else {
+                    matches.put( genPrefix, 1 );
+                }
+
+                buf.append( " xmlns:" + genPrefix + "=\"" + ns.uri + "\"" );
             }
-        }
+        }    
 
         // get attrs
         ArrayList<ENode> attr = this.getAttributes();
         String[] attrArr = new String[attr.size()];
         for( int i = 0; i< attr.size(); i++ ) {
             String prefix = "";
-            if( !attr.get(i).name.prefix.equals( "" ) )
-                prefix = attr.get(i).name.prefix + ":";
+            if( attr.get(i).name.uri != null ) {
+                int prefixIdx = inScopeNamespaces.indexOf( attr.get(i).name().getNamespace() );
+                if( prefixIdx >= 0 ) {
+                    Namespace ns = inScopeNamespaces.get( prefixIdx );
+                    if( ns.prefix == null )
+                        prefix = ns.getPrefix() + ":";
+                    else if( !ns.prefix.equals( "" ) ) 
+                        prefix = ns.prefix.toString() + ":";
+                    //                    prefix = ns.prefix == null ? null : ns.prefix.toString();
+                    //                    prefix = prefix != null && prefix.length() > 0 ? prefix + ":" : "";
+                }
+            }
             attrArr[i] = " " + prefix + attr.get(i).localName() + "=\"" + attr.get(i).node.getNodeValue() + "\"";
         }
         Arrays.sort(attrArr);
@@ -1803,26 +1904,15 @@ public class ENode extends JSObjectBase {
     }
 
     private void addInScopeNamespace( Namespace n ) {
-        if ( this.node == null || this.isSimpleTypeNode() )
+        if ( n == null || 
+             this.node == null || 
+             this.isSimpleTypeNode() )
             return;
 
-        ArrayList<Namespace> match = this.getNamespaces( n.prefix );
-        for( Namespace ns : this.inScopeNamespaces ) {
-            if( ( ns.prefix == null && n.prefix == null ) ||
-                ( ns.prefix != null && ns.prefix.equals( n.prefix ) ) ) {
-                // no duplicates allowed... bug in spidermonkey!
-                if( ns.uri.equals( n.uri ) ) {
-                    return;
-                }
-                // if two prefixes are the same, set the old one to null
-                else if( ns.prefix != null && !ns.prefix.equals( "" ) ) {
-                    ns.prefix = null;
-                    break;
-                }
-            }
+        if( ! this.inScopeNamespaces.contains( n ) ) {
+            this.inScopeNamespaces.add( n );
         }
 
-        this.inScopeNamespaces.add( n );
     }
 
     public ArrayList getAttributes() {
