@@ -275,10 +275,14 @@ public class Python extends Language {
 
     public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
 
+        if (context != null && context.inScopeSetup()) {
+            return new ed.lang.python.PythonJxpSource(f, lib);
+        }
+        
         switch(type) {
             case CGI :
                 // return CGI source at some point
-                return new ed.lang.python.PythonJxpSource(f, lib);
+                return new ed.lang.python.PythonCGIAdapter(f, lib);
             case DIRECT_10GEN :
                 return new ed.lang.python.PythonJxpSource(f, lib);
             case WSGI :

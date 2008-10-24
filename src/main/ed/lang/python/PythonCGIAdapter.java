@@ -23,17 +23,23 @@ import ed.appserver.adapter.cgi.CGIAdapter;
 import ed.util.Dependency;
 import ed.log.Logger;
 import org.python.Version;
+import org.python.expose.ExposedType;
+import org.python.expose.ExposedMethod;
 import org.python.core.PySystemState;
 import org.python.core.Py;
 import org.python.core.PyObject;
 import org.python.core.PyFile;
 import org.python.core.PyModule;
 import org.python.core.PyCode;
+import org.python.core.PyType;
+import org.python.core.PyUnicode;
+import org.python.core.PyString;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Set;
 
 public class PythonCGIAdapter extends CGIAdapter {
@@ -89,7 +95,7 @@ public class PythonCGIAdapter extends CGIAdapter {
                 environ.__setitem__( key.intern() , Py.newString(env.get(key)));
             }
 
-            ss.getPyState().stdout = new PyFile(stdout);
+            ss.getPyState().stdout = new CGIOutFile(stdout);
             ss.getPyState().stdin = new PyFile(stdin);
         }
 
@@ -145,4 +151,67 @@ public class PythonCGIAdapter extends CGIAdapter {
 
     // static b/c it has to use ThreadLocal anyway
     final static Logger _log = Logger.getLogger( "pythonCGI" );
+
+
+    @ExposedType(name="_10gen_cgiout")
+    public static class CGIOutFile extends PyFile {
+
+        static PyType TYPE = Python.exposeClass(CGIOutFile.class);
+
+        OutputStreamWriter _osWriter;
+
+        OutputStream _os;
+
+        CGIOutFile(OutputStream outStream){
+            super( TYPE );
+            _osWriter = new OutputStreamWriter(outStream);
+        }
+        @ExposedMethod
+        public void flush(){
+            try {
+                _osWriter.flush();
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @ExposedMethod
+        public void _10gen_cgiout_write( PyObject o ){
+            
+            if ( o instanceof PyUnicode){
+                _10gen_cgiout_write(o.__str__().toString());
+            }
+            else if ( o instanceof PyString){
+                _10gen_cgiout_write(o.toString());
+            }
+            else {
+                throw Py.TypeError("write requires a string as its argument");
+            }
+        }
+
+        @ExposedMethod(names={"__str__", "__repr__"})
+        public String toString(){
+            return "<open file '_10gen.apprequest', mode 'w'>";
+        }
+
+        public Object __tojava__( Class cls ){
+            return this;
+        }
+
+        final public void _10gen_cgiout_write( String s ){
+            try {
+                _osWriter.write(s);
+                _osWriter.flush();
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void write( String s ){
+            _10gen_cgiout_write( s );
+        }
+    }
+
 }
