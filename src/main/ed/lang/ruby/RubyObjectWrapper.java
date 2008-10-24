@@ -39,6 +39,7 @@ import ed.js.engine.NativeBridge;
 /**
  * RubyObjectWrapper acts as a bridge between Ruby objects and Java objects.
  */
+@SuppressWarnings("serial")
 public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
@@ -211,9 +212,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
         }
         if (r instanceof RubyRegexp) {
             RubyRegexp regex = (RubyRegexp)r;
-            // Ruby regex.to_s returns "(?i-mx:foobar)", where the first part
-            // contains the flags. Everything after the minus is a flag that
-            // is off.
+            /* Ruby regex.to_s returns "(?i-mx:foobar)", where the first part
+             * contains the flags. Everything after the minus is a flag that
+             * is off. */
             String options = regex.to_s().toString().substring(2);
             options = options.substring(0, options.indexOf(':'));
             if (options.indexOf('-') >= 0)
