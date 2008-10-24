@@ -1849,14 +1849,19 @@ public class ENode extends JSObjectBase {
         ArrayList<ENode> attr = this.getAttributes();
         String[] attrArr = new String[attr.size()];
         for( int i = 0; i< attr.size(); i++ ) {
-                        String prefix = "";
-                        /*if( attr.get(i).name.uri != null ) {
-                Namespace ns = xmlns.get( attr.get(i).name.uri );
-                if( ns != null ) {
-                    prefix = ns.prefix.toString();
-                    prefix = prefix != null && prefix.length() > 0 ? prefix + ":" : "";
+            String prefix = "";
+            if( attr.get(i).name.uri != null ) {
+                int prefixIdx = inScopeNamespaces.indexOf( attr.get(i).name().getNamespace() );
+                if( prefixIdx >= 0 ) {
+                    Namespace ns = inScopeNamespaces.get( prefixIdx );
+                    if( ns.prefix == null )
+                        prefix = ns.getPrefix() + ":";
+                    else if( !ns.prefix.equals( "" ) ) 
+                        prefix = ns.prefix.toString() + ":";
+                    //                    prefix = ns.prefix == null ? null : ns.prefix.toString();
+                    //                    prefix = prefix != null && prefix.length() > 0 ? prefix + ":" : "";
                 }
-                }*/
+            }
             attrArr[i] = " " + prefix + attr.get(i).localName() + "=\"" + attr.get(i).node.getNodeValue() + "\"";
         }
         Arrays.sort(attrArr);
