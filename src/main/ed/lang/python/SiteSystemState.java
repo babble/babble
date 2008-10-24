@@ -19,8 +19,6 @@
 package ed.lang.python;
 
 import org.python.expose.*;
-import org.python.Version;
-import org.python.expose.generate.*;
 import java.io.*;
 import java.util.*;
 
@@ -29,11 +27,8 @@ import org.python.core.*;
 import ed.appserver.*;
 import ed.log.*;
 import ed.js.*;
-import ed.log.*;
 import ed.js.engine.*;
-import ed.lang.*;
 import ed.util.*;
-import ed.appserver.jxp.*;
 
 /**
  * 10gen-specific Python system state.
@@ -342,8 +337,10 @@ public class SiteSystemState {
             // But if we got "from foo import bar", m = bar, and we don't want
             // to do anything. Ahh, crappy __import__ semantics..
             // For more information see http://docs.python.org/lib/built-in-funcs.html
-            PyObject innerMod = null;
-            if( fromlist != null && fromlist.__len__() > 0 ) innerMod = m;
+
+            PyObject innerMod;
+            if( fromlist != null && fromlist.__len__() > 0 )
+                innerMod = m;
             else {
                 innerMod = m;
                 String [] modNames = target.split("\\.");
