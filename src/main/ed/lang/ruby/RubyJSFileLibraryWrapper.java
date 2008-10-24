@@ -37,6 +37,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
  * file library object is not initialized. It also makes sure newly-defined
  * classes are created after every call to itself.
  */
+@SuppressWarnings("serial")
 public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();

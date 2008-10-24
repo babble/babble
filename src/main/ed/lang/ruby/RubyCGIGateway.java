@@ -37,13 +37,8 @@ public class RubyCGIGateway extends CGIAdapter {
     protected long lastCompile;
 
     public RubyCGIGateway(File f) {
-        this(f, null);
-    }
-
-    /** For testing and {@link RubyLanguage} use. */
-    protected RubyCGIGateway(File f, Ruby runtime) {
         file = f;
-        runenv = new RuntimeEnvironment(runtime);
+        runenv = new RuntimeEnvironment(null);
     }
 
     protected String getContent() throws IOException {

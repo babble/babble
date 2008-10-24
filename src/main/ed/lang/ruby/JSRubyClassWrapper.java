@@ -16,18 +16,12 @@
 
 package ed.lang.ruby;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import org.jruby.*;
 import org.jruby.runtime.Block;
-import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.js.JSObject;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
-import static ed.lang.ruby.RubyObjectWrapper.toJS;
-import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 
 /**
  * JSRubyClassWrapper acts as a bridge between Ruby class objects and

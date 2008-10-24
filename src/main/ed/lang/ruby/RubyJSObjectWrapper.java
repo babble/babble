@@ -41,6 +41,7 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  * reads and writes of Ruby instance variables into reads and writes of the
  * underlying JavaScript object's instance variables.
  */
+@SuppressWarnings("serial")
 public class RubyJSObjectWrapper extends RubyHash {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
@@ -67,10 +68,11 @@ public class RubyJSObjectWrapper extends RubyHash {
         return ref.get();
     }
 
-    static Collection<? extends Object> jsKeySet(JSObject jsobj) {
+    @SuppressWarnings("unchecked")
+	static Collection<? extends Object> jsKeySet(JSObject jsobj) {
         try {
             if (jsobj instanceof JSMap)
-                return (Collection<? extends Object>)((JSMap)jsobj).keys();
+                return ((JSMap)jsobj).keys();
             else
                 return jsobj.keySet(true);
         }
@@ -184,27 +186,27 @@ public class RubyJSObjectWrapper extends RubyHash {
         return super.respond_to_p(mname, includePrivate);
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject initialize(IRubyObject[] args, final Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject default_value_get(ThreadContext context) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject default_value_get(ThreadContext context, IRubyObject arg) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject default_value_set(final IRubyObject defaultValue) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject default_proc() {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject inspect(ThreadContext context) {
 //     }
 
@@ -216,11 +218,11 @@ public class RubyJSObjectWrapper extends RubyHash {
         return jsKeySet().size() == 0 ? getRuntime().getTrue() : getRuntime().getFalse();
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyArray to_a() {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject to_s() {
 //     }
 
@@ -228,7 +230,7 @@ public class RubyJSObjectWrapper extends RubyHash {
         return this;
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash to_hash() {
 //     }
 
@@ -285,23 +287,23 @@ public class RubyJSObjectWrapper extends RubyHash {
         return getRuntime().getFalse();
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash each(final ThreadContext context, final Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash each_pair(final ThreadContext context, final Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash each_value(final ThreadContext context, final Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash each_key(final ThreadContext context, final Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyArray sort(Block block) {
 //     }
 
@@ -314,15 +316,15 @@ public class RubyJSObjectWrapper extends RubyHash {
         return runtime.getNil();
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyArray indices(ThreadContext context, IRubyObject[] indices) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyArray keys() {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyArray rb_values() {
 //     }
 
@@ -371,15 +373,15 @@ public class RubyJSObjectWrapper extends RubyHash {
         return context.getRuntime().getNil();
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public IRubyObject select(final ThreadContext context, final Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash delete_if(final ThreadContext context, final Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash reject(ThreadContext context, Block block) {
 //     }
 
@@ -403,7 +405,7 @@ public class RubyJSObjectWrapper extends RubyHash {
         return this;
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash invert(final ThreadContext context) {
 //     }
 
@@ -425,19 +427,19 @@ public class RubyJSObjectWrapper extends RubyHash {
         return this;
     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash merge(ThreadContext context, IRubyObject other, Block block) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash initialize_copy(ThreadContext context, IRubyObject other) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyHash replace(final ThreadContext context, IRubyObject other) {
 //     }
 
-    // Superclass implementation is OK
+    /* Superclass implementation is OK. */
 //     public RubyArray values_at(ThreadContext context, IRubyObject[] args) {
 //     }
 
@@ -510,7 +512,7 @@ public class RubyJSObjectWrapper extends RubyHash {
         _eigenclass.addMethod("method_missing", new JavaMethod(_eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
                     Ruby runtime = context.getRuntime();
-                    // args[0] is method name symbol, args[1..-1] are arguments
+                    /* args[0] is method name symbol, args[1..-1] are arguments. */
                     String key = args[0].toString();
                     if (RubyObjectWrapper.DEBUG_FCALL)
                         System.err.println("RubyJSObjectWrapper.method_missing " + key);
@@ -521,9 +523,9 @@ public class RubyJSObjectWrapper extends RubyHash {
                         return op_aset(context, toRuby(_scope, runtime, key), toRuby(_scope, runtime, args[1], key.toString()));
                     }
 
-                    // Look for the thing anyway. It's possible that the
-                    // JSObject does not respond to keySet but it still has
-                    // something named key.
+                    /* Look for the thing anyway. It's possible that the
+                     * JSObject does not respond to keySet but it still has
+                     * something named key. */
                     Object val = peek(key);
                     if (val == null) {
                         if (RubyObjectWrapper.DEBUG_FCALL)
