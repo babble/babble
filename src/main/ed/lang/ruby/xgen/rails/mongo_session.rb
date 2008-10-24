@@ -22,13 +22,25 @@ module XGen
 
       def initialize(session, options={})
         @session_id = session.session_id # unused
+        @data = {}
+      end
+
+      def [](key)
+        @data[key]
+      end
+
+      def []=(key, value)
+        @data[key] = value
       end
 
       def restore
-        $session
+        @data = {}
+        $session.keySet().each { |k| @data[k] = $session[k] unless k == '_key' }
+        self
       end
 
       def update
+        @data.each { |k, v| $session[k] = v unless k == '_key' }
         # FIXME we need to "tickle" the session with a new value because right
         # now sessions do not notice changes in sub-objects, only top-level
         # values and objects.
@@ -40,7 +52,8 @@ module XGen
       end
 
       def delete
-        $session.keys.each { |k| $session.remove_field(k) }
+        @data = {}
+        $session.keys.each { |k| $session.removeField(k) }
       end
 
     end

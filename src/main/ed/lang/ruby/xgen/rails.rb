@@ -59,5 +59,4 @@ require 'dispatcher'
 
 # Session
 require 'xgen/rails/mongo_session'
-# TODO
-# ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] = XGen::Rails::MongoSession
+ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] = XGen::Rails::MongoSession
