@@ -56,7 +56,7 @@ public class Python extends Language {
 
     public static PyCode compile( File f )
         throws IOException {
-        return (PyCode)(Py.compile( new FileInputStream( f ) , f.toString() , "exec" ));
+        return (PyCode)(Py.compile_flags( new FileInputStream( f ) , f.toString() , "exec" , new CompilerFlags() ));
     }
 
     public static void deleteCachedJythonFiles( File dir ){
