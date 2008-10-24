@@ -20,38 +20,26 @@ module XGen
 
       attr_reader :session_id
 
-      def self.find_by_session_id(session_id)
-        @session_id = session_id
+      def initialize(session, options={})
+        @session_id = session.session_id # unused
+      end
+
+      def restore
         $session
       end
 
-      def initialize(hash_of_session_id_and_data)
-        @session_id = attributes[:session_id]
-        self.data = attributes[:data]
-      end
-
-      def session_id
-        @session_id
-      end
-
-      def data
-        data = {}
-        $session.keys.each { |k| data[k] = $session[k] }
-        data
-      end
-
-      def data=(session_data)
-        session_data.each { |k, v| $session[k] = v } if attributes[:data]
-      end
-
-      def save
+      def update
         # FIXME we need to "tickle" the session with a new value because right
         # now sessions do not notice changes in sub-objects, only top-level
         # values and objects.
         $session[:_timestamp] = Time.new.to_i
       end
 
-      def destroy
+      def close
+        update
+      end
+
+      def delete
         $session.keys.each { |k| $session.remove_field(k) }
       end
 
