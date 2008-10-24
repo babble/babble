@@ -33,7 +33,7 @@ import java.io.File;
  */
 public class RubyLanguage extends Language {
 
-    class RubyShellSource extends RubyJxpSource {
+    static class RubyShellSource extends RubyJxpSource {
 
         static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.config);
 
@@ -70,9 +70,7 @@ public class RubyLanguage extends Language {
             if (DEBUG)
                 e.printStackTrace();
         }
-        finally {
-            return result;
-        }
+        return result;
     }
 
     /**
