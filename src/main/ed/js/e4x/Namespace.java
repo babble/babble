@@ -229,9 +229,9 @@ public class Namespace extends JSObjectBase {
         String prefix = this.uri.toString();
         while( prefix.endsWith("/") || prefix.endsWith(".xml") ) {
             if ( prefix.endsWith( "/" ) )
-                prefix.substring( 0, prefix.length() - 1 );
+                prefix = prefix.substring( 0, prefix.length() - 1 );
             if ( prefix.endsWith( ".xml" ) )
-                prefix.substring( 0, prefix.length() - 4 );
+                prefix = prefix.substring( 0, prefix.length() - 4 );
         }
         prefix = prefix.substring( prefix.lastIndexOf("/") + 1 );
         prefix = prefix.substring( prefix.lastIndexOf(".") + 1 );

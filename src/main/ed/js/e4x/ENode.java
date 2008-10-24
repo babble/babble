@@ -1761,7 +1761,6 @@ public class ENode extends JSObjectBase {
             nextIndentLevel = level + 1;
         else
             nextIndentLevel = 0;
-
         for ( ENode c : kids ) {
             if( c.node.getNodeType() == Node.ATTRIBUTE_NODE ||
                 ( XML.ignoreComments && c.node.getNodeType() == Node.COMMENT_NODE ) ||
@@ -1775,7 +1774,6 @@ public class ENode extends JSObjectBase {
             // delete from ancestors
             ancestors.remove( c.defaultNamespace );
         }
-
         if( XML.prettyPrinting && indentChildren ) {
             buf.append( "\n" );
             _level( buf, level );
@@ -1858,12 +1856,11 @@ public class ENode extends JSObjectBase {
                         prefix = ns.getPrefix() + ":";
                     else if( !ns.prefix.equals( "" ) ) 
                         prefix = ns.prefix.toString() + ":";
-                    //                    prefix = ns.prefix == null ? null : ns.prefix.toString();
-                    //                    prefix = prefix != null && prefix.length() > 0 ? prefix + ":" : "";
                 }
             }
             attrArr[i] = " " + prefix + attr.get(i).localName() + "=\"" + attr.get(i).node.getNodeValue() + "\"";
         }
+
         Arrays.sort(attrArr);
         for( String a : attrArr ) {
             buf.append( a );
