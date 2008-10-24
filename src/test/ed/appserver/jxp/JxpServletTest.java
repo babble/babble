@@ -299,6 +299,16 @@ public class JxpServletTest extends ed.TestCase {
         assert(ratio < 40.0);
     }
 
+    @Test(groups = {"basic"})
+    public void testAdminHeader () {
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        p.print("<script>");
+        p.print("\"\"");
+        p.print("</script ><img src='/1.jpg'>");
+        assertClose("<script>\"\"</script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
+    }
+
     public static void main( String args[] ){
         (new JxpServletTest()).runConsole();
     }
