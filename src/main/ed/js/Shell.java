@@ -168,6 +168,7 @@ public class Shell {
                         throw new RuntimeException( "first argument must be a Python function");
                     JSFunction j = (JSFunction)f;
                     Object name = j.get("func_name");
+                    scope = scope.getGlobal( true );
                     if( name == null )
                         throw new RuntimeException( "first argument must be a Python function" );
                     scope.set( name , j );
