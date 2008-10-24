@@ -768,6 +768,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
             _initFlies.add( f );
     }
 
+    public void addInitDependency( File f ){
+        _initFlies.add( f );
+    }
+
     JxpServlet getServlet( File f )
         throws IOException {
         JxpSource source = getSource( f );
@@ -816,6 +820,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
             this.approxSize( _contextReachable );
         }
         
+    }
+
+    public boolean inScopeSetup() {
+        return _inScopeSetup;
     }
 
     private void _runInitFiles( String[] files )
@@ -1132,7 +1140,8 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
     public Logger getLogger( String sub ){
         return _logger.getChild( sub );
     }
-    
+
+
     // ----  START JSObject INTERFACE
     
     public Object get( Object n ){

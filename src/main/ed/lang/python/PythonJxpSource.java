@@ -85,6 +85,7 @@ public class PythonJxpSource extends JxpSource {
 
                 PyObject globals = ss.globals;
                 PyObject oldFile = globals.__finditem__( "__file__" );
+                PyObject oldName = globals.__finditem__( "__name__" );
 
                 PyObject result = null;
                 try {
@@ -93,21 +94,23 @@ public class PythonJxpSource extends JxpSource {
 
                     //Py.initClassExceptions( globals );
                     globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
-                    PyModule module = new PyModule( "__main__" , globals );
+                    // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
+                    // Right now I only want this for _init.py
+                    String name = _file.getName();
+                    if( name.endsWith( ".py" ) )
+                        name = name.substring( 0 , name.length() - 3 );
+                    //globals.__setitem__( "__name__", Py.newString( name ) );
+
+                    PyModule module = new PyModule( name , globals );
 
                     PyObject locals = module.__dict__;
                     result = Py.runCode( code, locals, globals );
+                    if( ac != null ) ss.addRecursive( "_init" , ac );
                 }
                 finally {
-                    if( oldFile != null ){
-                        globals.__setitem__( "__file__" , oldFile );
-                    }
-                    else{
-                        // FIXME -- delitem should really be deleting from siteScope
-                        globals.__delitem__( "__file__" );
-                        siteScope.set( "__file__", null );
-                        
-                    }
+                    globalRestore( globals , siteScope , "__file__" , oldFile );
+                    globalRestore( globals , siteScope , "__name__" , oldName );
+
                     Py.setSystemState( pyOld );
                 }
 
@@ -131,6 +134,17 @@ public class PythonJxpSource extends JxpSource {
                 return Python.toJS( result );
             }
         };
+    }
+
+    private void globalRestore( PyObject globals , Scope siteScope , String name , PyObject value ){
+        if( value != null ){
+            globals.__setitem__( name , value  );
+        }
+        else{
+            // FIXME -- delitem should really be deleting from siteScope
+            globals.__delitem__( name );
+            siteScope.set( name , null );
+        }
     }
 
     private PyCode _getCode()

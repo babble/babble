@@ -251,6 +251,54 @@ public class JxpServletTest extends ed.TestCase {
         assertClose("abc <script> \"</script><img src='/1.jpg'>'</script><img src='/1.jpg'>\\\"''\"'<img src=\'/1.jpg\'>' </ script ><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
     }
 
+    @Test(groups = {"basic"})
+    public void testPerformance () {
+        double ratio = 0;
+        for (int h = 0; h < 20; h += 1) {
+            JxpWriter w = new JxpWriter.Basic();
+            ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+
+            long before = System.currentTimeMillis();
+            for (int i = 0; i < 10000; i += 1) {
+                p.print("abc ");
+                p.print(" blah blah <br /> <p> hello </p>  ");
+                p.print(" <script src='/1.jpg'>heres some stuff</script> <script />");
+                p.print(" <script>\"''\\\"\"' </script>'");
+                p.print("</script>");
+                p.print("123 anoe <img src='/1.jpg'> blah");
+                p.print("do more stuff ");
+                p.print("<script>");
+                p.print("'within a quote \' </script");
+                p.print("leave \" the quote ' </script> blah");
+            }
+            long after = System.currentTimeMillis();
+            long diffOurs = after - before;
+
+            StringBuffer b = new StringBuffer();
+            before = System.currentTimeMillis();
+            for (int i = 0; i < 10000; i += 1) {
+                b.append("abc ");
+                b.append(" blah blah <br /> <p> hello </p>  ");
+                b.append(" <script src='/1.jpg'>heres some stuff</script> <script />");
+                b.append(" <script>\"''\\\"\"' </script>'");
+                b.append("</script>");
+                b.append("123 anoe <img src='/1.jpg'> blah");
+                b.append("do more stuff ");
+                b.append("<script>");
+                b.append("'within a quote \' </script");
+                b.append("leave \" the quote ' </script> blah");
+            }
+            after = System.currentTimeMillis();
+            long diffTheirs = after - before;
+
+            ratio += (double)diffOurs / diffTheirs;
+        }
+        ratio /= 20;
+
+        // seems to usually be ~26 on my machine
+        assert(ratio < 40.0);
+    }
+
     public static void main( String args[] ){
         (new JxpServletTest()).runConsole();
     }
