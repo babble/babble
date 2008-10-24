@@ -449,8 +449,12 @@ public class Convert {
 
         case Token.SET_REF:
             Node fc = n.getFirstChild();
-            if( fc.getType() != Token.REF_SPECIAL && fc.getType() != Token.REF_MEMBER )
-                throw new RuntimeException( "token is of type "+Token.name(fc.getType())+", should be of type REF_SPECIAL or REF_MEMBER.");
+            if( fc.getType() != Token.REF_SPECIAL && 
+                fc.getType() != Token.REF_MEMBER && 
+                fc.getType() != Token.REF_NS_MEMBER )
+                throw new RuntimeException( "token is of type "+
+                                            Token.name(fc.getType())+
+                                            ", should be of type REF_SPECIAL or REF_MEMBER or REF_NS_MEMBER.");
 
             _addAsJSObject( n.getFirstChild().getFirstChild() , state );
             _append( ".set( " , n );
@@ -482,12 +486,17 @@ public class Convert {
             break;
 
         case Token.REF_NS_MEMBER :
-            if( ( n.getIntProp(Node.MEMBER_TYPE_PROP,0) & Node.ATTRIBUTE_FLAG ) != 0 ) {
-                _append( "\"@\" + " , n );
-            }
+            _append( " new ed.js.e4x.QName( (ed.js.e4x.Namespace)" , n );
             _add( n.getFirstChild().getNext() , state );
-            _append( " + \"::\" + ", n );
+            _append( ", ", n );
+            final int memberTypeFlags2 = n.getIntProp(Node.MEMBER_TYPE_PROP, 0);
+            if ( ( memberTypeFlags2 & Node.DESCENDANTS_FLAG ) != 0 )
+                _append( "\"..\" + " , n );
+            if ( ( memberTypeFlags2 & Node.ATTRIBUTE_FLAG ) != 0 )
+                _append( "\"@\" + " , n );
+
             _add( n.getFirstChild().getNext().getNext() , state );
+            _append( " ) " , n );
             break;
 
         case Token.REF_NAME :
