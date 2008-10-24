@@ -18,7 +18,6 @@ package ed.lang.ruby;
 
 import org.jruby.Ruby;
 import org.jruby.exceptions.RaiseException;
-import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.lang.Language;
 import ed.js.engine.Scope;
