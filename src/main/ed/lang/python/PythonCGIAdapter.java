@@ -99,7 +99,6 @@ public class PythonCGIAdapter extends CGIAdapter {
             ss.getPyState().stdin = new PyFile(stdin);
         }
 
-        PyObject result = null;
         try {
             Py.setSystemState( ss.getPyState() );
 
@@ -107,7 +106,7 @@ public class PythonCGIAdapter extends CGIAdapter {
             PyModule module = new PyModule( "__main__" , globals );
 
             PyObject locals = module.__dict__;
-            result = Py.runCode(_getCode(), locals, globals );
+            Py.runCode(_getCode(), locals, globals );
         }
         catch (IOException e) {
             // TODO - fix
@@ -213,5 +212,4 @@ public class PythonCGIAdapter extends CGIAdapter {
             _10gen_cgiout_write( s );
         }
     }
-
 }

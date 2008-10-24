@@ -34,7 +34,6 @@ import ed.db.*;
 import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
-import ed.js.func.*;
 import ed.lang.*;
 import ed.appserver.*;
 import ed.appserver.adapter.AdapterType;
