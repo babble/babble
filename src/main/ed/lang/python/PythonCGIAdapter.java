@@ -34,6 +34,7 @@ import org.python.core.PyCode;
 import org.python.core.PyType;
 import org.python.core.PyUnicode;
 import org.python.core.PyString;
+import org.python.core.PyDictionary;
 
 import java.io.File;
 import java.io.InputStream;
@@ -85,7 +86,12 @@ public class PythonCGIAdapter extends CGIAdapter {
         ss.ensurePath( _lib.getRoot().toString() );
         ss.ensurePath( _lib.getTopParent().getRoot().toString() );
 
-        PyObject globals = ss.globals;
+       /*
+        * "un-welded" scopes - if you need to weld, restore the commented out line (gmj)
+        */
+        PyObject globals = new PyDictionary();
+        // PyObject globals = ss.globals;
+       
         PyObject oldFile = globals.__finditem__( "__file__" );
 
         if (env != null) {
@@ -128,9 +134,11 @@ public class PythonCGIAdapter extends CGIAdapter {
 
     private PyCode _getCode()
         throws IOException {
+
         PyCode c = _code;
-	final long lastModified = _file.lastModified();
+    	final long lastModified = _file.lastModified();
         if ( c == null || _lastCompile < lastModified ){
+
             c = Python.compile( _file );
             _code = c;
             _lastCompile = lastModified;
