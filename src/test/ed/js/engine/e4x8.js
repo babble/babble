@@ -55,9 +55,9 @@ xml.removeNamespace( ns );
 // multiple pseudo namespaces
 xml=<x xmlns:foo="bar"><y>z</y></x>;
 xml.setNamespace("foo.foo.foo");
-print( xml );
+print( xml.toXMLString().match(/xmlns(:\w+)?/g).length );
 xml.setNamespace("b.b.b.foo");
-print( xml );
+print( xml.toXMLString().match(/xmlns(:\w+)?/g).length );
 
 // copying
 abc = <a x="y"><b foo="bar">c<!-- comment --></b></a>;
@@ -81,6 +81,6 @@ print( xml.inScopeNamespaces().join(",") );
 print( xml.removeNamespace( ns ) );
 print( xml.inScopeNamespaces().length + " " + xml.y.inScopeNamespaces().length );
 xml.setNamespace("hi");
-print( xml );
+print( xml.toXMLString().match(/xmlns(:\w+)?/g).length );
 print( xml.name() );
 print( xml.inScopeNamespaces().join(",") );

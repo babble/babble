@@ -44,7 +44,12 @@ public class Namespace extends JSObjectBase {
             Object blah = scope.getThis();
 
             Namespace e;
-            if ( blah instanceof Namespace) {
+            if ( args.length == 1 && 
+                 args[0] instanceof Namespace && 
+                 !( blah instanceof Namespace ) ) {
+                return (Namespace)args[0];
+            }
+            else if ( blah instanceof Namespace) {
                 e = (Namespace)blah;
              }
             else {
@@ -52,7 +57,7 @@ public class Namespace extends JSObjectBase {
             }
 
             if( args.length == 1 ) {
-                e.init( args[0].toString() );
+                e.init( args[0] );
             }
             if( args.length == 2 ) {
                 e.init( args[0].toString(), args[1].toString() );
@@ -61,6 +66,8 @@ public class Namespace extends JSObjectBase {
         }
 
         protected void init() {
+            _prototype.set( "prefix", null );
+            _prototype.set( "uri", null );
             _prototype.set( "hasOwnProperty" , new JSFunctionCalls1() {
                     public Object call( Scope s, Object foo, Object extra[] ) {
                         if( foo == null )
@@ -92,8 +99,8 @@ public class Namespace extends JSObjectBase {
 
     void init( String prefix, Object uri ) {
         if(prefix == null && uri == null) {
-            this.prefix = "";
-            this.uri = "";
+            this.prefix = new JSString( "" );
+            this.uri = new JSString( "" );
         }
         else if (prefix == null) {
             if ( uri instanceof Namespace ) {
@@ -101,23 +108,24 @@ public class Namespace extends JSObjectBase {
                 this.uri = ((Namespace)uri).uri;
             }
             else if( uri instanceof QName ) {
-                this.uri = ((QName)uri).uri.toString();
+                this.prefix = ((QName)uri).prefix;
+                this.uri = ((QName)uri).uri;
             }
             else {
-                this.uri = uri.toString();
-                this.prefix = this.uri.equals("") ? "" : null;
+                this.uri = new JSString( uri.toString() );
+                this.prefix = this.uri.toString().equals("") ? new JSString( "" ) : null;
             }
         }
         else {
             if( uri instanceof QName && ((QName)uri).uri != null) {
-                this.uri = ((QName)uri).uri.toString();
+                this.uri = ((QName)uri).uri;
             }
             else {
-                this.uri = uri == null ? "" : uri.toString();
+                this.uri = new JSString( uri == null ? "" : uri.toString() );
             }
             if( this.uri.equals("") ) {
                 if( prefix == null || prefix.equals("") ) {
-                    this.prefix = "";
+                    this.prefix = new JSString( "" );
                 }
                 else {
                     return;
@@ -127,13 +135,13 @@ public class Namespace extends JSObjectBase {
                 this.prefix = null;
             }
             else {
-                this.prefix = prefix;
+                this.prefix = new JSString( prefix );
             }
         }
     }
 
-    public String prefix;
-    public String uri;
+    public JSString prefix;
+    public JSString uri;
 
     private static String prefixStr = "prefix";
     private static String uriStr = "uri";
@@ -155,7 +163,11 @@ public class Namespace extends JSObjectBase {
         return Scope.getThreadLocalFunction( "Namespace" , _cons );
     }
 
-    public boolean equals( Namespace ns ) {
+    public boolean equals( Object n ) {
+        if( !( n instanceof Namespace ) )
+            return false;
+
+        Namespace ns = (Namespace)n;
         if( ( ns.prefix == null && this.prefix != null ) ||
             ( ns.prefix != null && this.prefix == null ) ||
             ( ns.uri == null && this.uri != null ) ||
@@ -169,7 +181,7 @@ public class Namespace extends JSObjectBase {
     }
 
     public String toString() {
-        return this.uri;
+        return this.uri.toString();
     }
 
     public boolean containedIn( ArrayList<Namespace> list ) {
@@ -197,9 +209,14 @@ public class Namespace extends JSObjectBase {
             if( ( ns.prefix == null && this.prefix != null ) ||
                 ( ns.prefix != null && this.prefix == null ) )
                 continue;
-            if( ( ns.prefix == null && this.prefix == null ) ||
-                ns.prefix.equals( this.prefix ) )
+            if( ns.prefix == null && this.prefix == null ) 
                 return true;
+            if( ns.prefix.equals( this.prefix ) ) {
+                if( ns.prefix.equals( "" ) && this.prefix.equals( "" ) &&
+                    !ns.getPrefix().equals( this.prefix ) )
+                    continue;
+                return true;
+            }
         }
         return false;
     }
@@ -209,7 +226,7 @@ public class Namespace extends JSObjectBase {
     }
 
     public String getPrefix() {
-        String prefix = this.uri;
+        String prefix = this.uri.toString();
         while( prefix.endsWith("/") || prefix.endsWith(".xml") ) {
             if ( prefix.endsWith( "/" ) )
                 prefix.substring( 0, prefix.length() - 1 );
@@ -231,10 +248,10 @@ public class Namespace extends JSObjectBase {
             return objFromProto;
         }
         else if( str.equals( uriStr ) ) {
-            return new JSString(this.uri);
+            return this.uri;
         }
         else if ( str.equals( prefixStr ) ) {
-            return new JSString(this.prefix);
+            return this.prefix;
         }
         else {
             return null;

@@ -29,6 +29,7 @@ import org.python.core.PyObject;
 import org.python.core.PyFile;
 import org.python.core.PyModule;
 import org.python.core.PyCode;
+import org.python.core.PyDictionary;
 
 import java.io.File;
 import java.io.InputStream;
@@ -79,7 +80,12 @@ public class PythonCGIAdapter extends CGIAdapter {
         ss.ensurePath( _lib.getRoot().toString() );
         ss.ensurePath( _lib.getTopParent().getRoot().toString() );
 
-        PyObject globals = ss.globals;
+       /*
+        * "un-welded" scopes - if you need to weld, restore the commented out line (gmj)
+        */
+        PyObject globals = new PyDictionary();
+        // PyObject globals = ss.globals;
+       
         PyObject oldFile = globals.__finditem__( "__file__" );
 
         if (env != null) {
@@ -89,11 +95,10 @@ public class PythonCGIAdapter extends CGIAdapter {
                 environ.__setitem__( key.intern() , Py.newString(env.get(key)));
             }
 
-            ss.getPyState().stdout = new PyFile(stdout);
+            ss.getPyState().stdout = new PythonCGIOutFile(stdout);
             ss.getPyState().stdin = new PyFile(stdin);
         }
 
-        PyObject result = null;
         try {
             Py.setSystemState( ss.getPyState() );
 
@@ -101,7 +106,7 @@ public class PythonCGIAdapter extends CGIAdapter {
             PyModule module = new PyModule( "__main__" , globals );
 
             PyObject locals = module.__dict__;
-            result = Py.runCode(_getCode(), locals, globals );
+            Py.runCode(_getCode(), locals, globals );
         }
         catch (IOException e) {
             // TODO - fix
@@ -123,9 +128,11 @@ public class PythonCGIAdapter extends CGIAdapter {
 
     private PyCode _getCode()
         throws IOException {
+
         PyCode c = _code;
-	final long lastModified = _file.lastModified();
+    	final long lastModified = _file.lastModified();
         if ( c == null || _lastCompile < lastModified ){
+
             c = Python.compile( _file );
             _code = c;
             _lastCompile = lastModified;

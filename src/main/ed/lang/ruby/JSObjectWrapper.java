@@ -169,8 +169,8 @@ public class JSObjectWrapper implements JSObject {
     public Set<String> keySet(boolean includePrototype) {
         Set<String> names = new HashSet<String>();
 
-        // Add each ivar's name iff the ivar has a setter or a getter
-        for (Variable var : _robj.getInstanceVariables().getInstanceVariableList()) {
+        /* Add each ivar's name iff the ivar has a setter or a getter. */
+        for (Variable<IRubyObject> var : _robj.getInstanceVariables().getInstanceVariableList()) {
             String name = var.getName().substring(1); // Strip off leading "@"
             if (_robj.respondsTo(name) || _robj.respondsTo(name + "="))
                 names.add(var.getName().substring(1));
@@ -187,7 +187,7 @@ public class JSObjectWrapper implements JSObject {
         return new JSRubyClassWrapper(_scope, _robj.type());
     }
 
-    // Can't return super (?) because Ruby super != JavaScript super.
+    /* Can't return super (?) because Ruby super != JavaScript super. */
     public JSObject getSuper() {
         return null;
     }
