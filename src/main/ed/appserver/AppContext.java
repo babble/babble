@@ -818,6 +818,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
         
     }
 
+    public boolean inScopeSetup() {
+        return _inScopeSetup;
+    }
+
     private void _runInitFiles( String[] files )
         throws IOException {
 
@@ -1132,7 +1136,8 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
     public Logger getLogger( String sub ){
         return _logger.getChild( sub );
     }
-    
+
+
     // ----  START JSObject INTERFACE
     
     public Object get( Object n ){
