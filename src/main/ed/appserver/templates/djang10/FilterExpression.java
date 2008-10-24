@@ -94,21 +94,7 @@ public class FilterExpression extends JSObjectBase {
             }
             else {
                 if(!e.isSameAsJsNull()) {
-                    if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0) {
-                        log.info(e.getMessage(),e);
-                    } 
-                    else {
-                        Throwable t=e;
-                        StringBuilder buffer = new StringBuilder();
-                        while(t != null) {
-                            if(t != e)
-                                buffer.append("Caused By: ");
-                                
-                            buffer.append(t.getMessage());
-                            t = t.getCause();
-                        }
-                        log.info(buffer);
-                    }
+                    log.debug(e.getMessage(), e);
                 }
                 
                 JSHelper jsHelper = JSHelper.get(scope);
