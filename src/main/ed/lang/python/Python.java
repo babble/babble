@@ -198,7 +198,7 @@ public class Python extends Language {
             return new PyBoolean( (Boolean)o );
 
         if ( o instanceof Integer )
-            return new PyInteger( ((Integer)o).intValue() );
+            return new PyInteger( ((Integer)o) );
 
         if ( o instanceof Number )
             return new PyFloat( ((Number)o).doubleValue() );
@@ -272,15 +272,21 @@ public class Python extends Language {
         throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
 
+        /*
+         *  if we're still in init, treat everything as a .py - for example, an import initialized
+         *  in an _init.py would be mightily disturbed to be treated like a CGI script
+         */
         if (context != null && context.inScopeSetup()) {
             return new ed.lang.python.PythonJxpSource(f, lib);
         }
         
         switch(type) {
             case CGI :
-                // return CGI source at some point
                 return new ed.lang.python.PythonCGIAdapter(f, lib);
             case DIRECT_10GEN :
                 return new ed.lang.python.PythonJxpSource(f, lib);
@@ -341,7 +347,6 @@ public class Python extends Language {
         Scope pyglobals = s.child( "scope to hold python builtins" );
 
         PyObject globals = new PyJSScopeWrapper( pyglobals , false );
-        Scope tl = pyglobals.getTLPreferred();
 
         pyglobals.setGlobal( true );
         __builtin__.fillWithBuiltins( globals );
@@ -388,7 +393,7 @@ public class Python extends Language {
             theFunc = p;
         }
 
-        return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
+        return theFunc != null ? new JSPyObjectWrapper(theFunc.getContained(), true) : null;
     }
 
     /**
@@ -402,6 +407,8 @@ public class Python extends Language {
      * The Scope will store the Python state, so if possible make it an
      * AppContext (or suitably long-lived) scope.
      *
+     * @param ac app context
+     * @param s place to store the python state
      * @return an already-existing SiteSystemState for the given site
      *   or a new one if needed
      */
@@ -439,6 +446,9 @@ public class Python extends Language {
      * This assumes you've already passed through the other
      * getSiteSystemState code path at some point and are returning a
      * PySystemState wrapped by a SiteSystemState.
+     *
+     * @param py Python system state to be wrapped
+     * @return pre-existing SiteSystemState that wraps the input
      */
     public static SiteSystemState getSiteSystemState( PySystemState py ){
         return _rmap.get( py );
@@ -508,6 +518,9 @@ public class Python extends Language {
      *
      * The alternative is to use PyType.fromClass(), which seems to be more
      * for "ordinary" Java classes.
+     *
+     * @param c class to expose
+     * @return jythonic interpretation of the class c
      */
     public static PyType exposeClass( Class c ){
         String fileName = c.getName().replaceAll( "\\.", "/" ) + ".class";
@@ -527,3 +540,4 @@ public class Python extends Language {
     private static Map<PySystemState, SiteSystemState> _rmap;
     private static Set<String> _seenClasses = Collections.synchronizedSet( new HashSet<String>() );
 }
+
