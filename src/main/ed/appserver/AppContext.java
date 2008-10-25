@@ -147,23 +147,6 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     public AdapterType getAdapterType() {
-
-        /*
-         * check to see if overridden in 10gen.properties
-         */
-        String override = Config.get().getProperty(INIT_ADAPTER_MARKER);
-
-        if (override != null) {
-            AdapterType t = _adapterTypeFromString(override);
-
-            if (t == null){
-                log("Adapter type specified as override [" + override + "] unknown - using app specified or default");
-            }
-            else {
-                return t;
-            }
-        }
-
         return _adapterType;
     }
 
@@ -520,24 +503,46 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     protected void _setAdapterType() {
 
         if (_scope == null) {
-            return;
-        }
-        
-        String s = ((JSString) _scope.get(INIT_ADAPTER_MARKER)).toString();
-
-        if (s == null) {
-            return;
-        }
-
-        _adapterType = _adapterTypeFromString(s);
-
-        if(_adapterType == null) {
-            log("Specified adapter type [" + s + "] unknown - using default value of DIRECT_10GEN");
+            log("Cannot discern adapter type.  _scope is null.  Using default DIRECT_10GEN");
             _adapterType = AdapterType.DIRECT_10GEN;
+            return;
+        }
+
+        /*
+         * check to see if overridden in 10gen.properties
+         */
+        String override = Config.get().getProperty(INIT_ADAPTER_MARKER);
+
+        if (override != null) {
+            AdapterType t = _adapterTypeFromString(override);
+
+            if (t == null){
+                log("Adapter type specified as override [" + override + "] unknown - will app specified or default");
+            }
+            else {
+                log("Adapter type overridden by 10gen.properties or env. Using : " + override);
+                _adapterType = t;
+                return;
+            }
+        }
+
+        JSString js = (JSString) _scope.get(INIT_ADAPTER_MARKER);
+
+        if (js == null) {
+            log("Adapter type not specified - using default value of DIRECT_10GEN");
+            _adapterType = AdapterType.DIRECT_10GEN;
+        }
+        else {
+            _adapterType = _adapterTypeFromString(js.toString());
+
+            if(_adapterType == null) {
+                log("Specified adapter type [" + js.toString() + "] unknown - using default value of DIRECT_10GEN");
+                _adapterType = AdapterType.DIRECT_10GEN;
+            }
         }
 
         log("Application adapter type = " + _adapterType);
-        
+
         return;
     }
 
