@@ -118,7 +118,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         if (name == null)
             throw new NullPointerException("how could name be null");
 
-        _root = root;
+            _root = root;
         _rootFile = rootFile;
         _name = name;
         _environment = environment;
@@ -147,7 +147,24 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     public AdapterType getAdapterType() {
-        return Config.get().getBoolean("IS_DONT_SAY_ELIOT_CGI") ? AdapterType.CGI : AdapterType.DIRECT_10GEN;
+
+        /*
+         * check to see if overridden in 10gen.properties
+         */
+        String override = Config.get().getProperty(INIT_ADAPTER_MARKER);
+
+        if (override != null) {
+            AdapterType t = _adapterTypeFromString(override);
+
+            if (t == null){
+                log("Adapter type specified as override [" + override + "] unknown - using app specified or default");
+            }
+            else {
+                return t;
+            }
+        }
+
+        return _adapterType;
     }
 
     /**
@@ -490,11 +507,55 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _scopeInited = true;
         _lastScopeInitTime = System.currentTimeMillis();
 
-
         _setupScope();
+
+        _setAdapterType();
 
         return _scope;
     }
+
+    /**
+     *  Figure out what kind of adapter we are.  By default it's a 10genDEFAULT app
+     */
+    protected void _setAdapterType() {
+
+        if (_scope == null) {
+            return;
+        }
+        
+        String s = ((JSString) _scope.get(INIT_ADAPTER_MARKER)).toString();
+
+        if (s == null) {
+            return;
+        }
+
+        _adapterType = _adapterTypeFromString(s);
+
+        if(_adapterType == null) {
+            log("Specified adapter type [" + s + "] unknown - using default value of DIRECT_10GEN");
+            _adapterType = AdapterType.DIRECT_10GEN;
+        }
+
+        log("Application adapter type = " + _adapterType);
+        
+        return;
+    }
+
+    protected AdapterType _adapterTypeFromString(String s) {
+
+        if (AdapterType.DIRECT_10GEN.toString().equals(s.toUpperCase())) {
+            return AdapterType.DIRECT_10GEN;
+        }
+        else if (AdapterType.CGI.toString().equals(s.toUpperCase())) {
+            return AdapterType.CGI;
+        }
+        else if (AdapterType.WSGI.toString().equals(s.toUpperCase())) {
+            return AdapterType.WSGI;
+        }
+
+        return null;
+    }
+
 
     /**
      * @unexpose
@@ -1269,6 +1330,9 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     private File _gitFile = null;
     private long _lastGitCheckTime = 0;
 
+    private AdapterType _adapterType = AdapterType.DIRECT_10GEN;
+    public final static String INIT_ADAPTER_MARKER = "_10gen_adapter_type";
+    
     private static Logger _libraryLogger = Logger.getLogger("library.load");
 
     static {
