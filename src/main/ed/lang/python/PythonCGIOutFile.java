@@ -28,6 +28,11 @@ import java.io.OutputStreamWriter;
 import java.io.IOException;
 
 
+/**
+ *  PyFile that writes to a thread-local stream.  Used for CGI
+ *  since the Python 'state' appears to be a singleton and thus
+ *  concurrent CGI requests can stomp on one another.
+ */
 @ExposedType(name = "_10gen_cgiout")
 public class PythonCGIOutFile extends PyFile {
 
@@ -98,6 +103,4 @@ public class PythonCGIOutFile extends PyFile {
     void setOSWriter() {   
         _osWriter = PythonCGIAdapter.CGIOutputStreamWriter.getThreadLocal();
     }
-
-
 }

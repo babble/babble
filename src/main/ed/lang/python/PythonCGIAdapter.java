@@ -90,7 +90,7 @@ public class PythonCGIAdapter extends CGIAdapter {
          *  create a threadlocal writer for the output stream
          *  TODO - need to do for input stream as it will suffer the same problem
          */
-        new CGIOutputStreamWriter(stdout);
+        CGIOutputStreamWriter cgiosw = new CGIOutputStreamWriter(stdout);
 
         ss.getPyState().stdout = new PythonCGIOutFile();
         ss.getPyState().stdin = new PyFile(stdin);
@@ -109,6 +109,9 @@ public class PythonCGIAdapter extends CGIAdapter {
             e.printStackTrace();
         }
         finally {
+
+            cgiosw.unset();
+
             if (oldFile != null) {
                 globals.__setitem__("__file__", oldFile);
             } else {
@@ -120,13 +123,12 @@ public class PythonCGIAdapter extends CGIAdapter {
         }
     }
 
-    private PyCode _getCode()
-            throws IOException {
+    private PyCode _getCode() throws IOException {
 
         PyCode c = _code;
         final long lastModified = _file.lastModified();
+        
         if (c == null || _lastCompile < lastModified) {
-
             c = Python.compile(_file);
             _code = c;
             _lastCompile = lastModified;
@@ -177,6 +179,10 @@ public class PythonCGIAdapter extends CGIAdapter {
 
         public static CGIOutputStreamWriter getThreadLocal() {
             return _tl.get();
+        }
+
+        public void unset() {
+            _tl.remove();   // note added in Java 5
         }
     }
 }
