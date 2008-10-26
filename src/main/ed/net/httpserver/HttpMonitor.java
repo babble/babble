@@ -30,6 +30,7 @@ import ed.util.*;
 
 public abstract class HttpMonitor implements HttpHandler {
     
+    public static enum Status { OK , WARN , ERROR , FATAL };
 
     public HttpMonitor( String name ){
         this( name , false );
@@ -276,7 +277,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	    startData( null );
 	}
 
-	public void startData( String type ){
+	public void startData( String type , String ... fields ){
 	    if ( _json ){
 		JSObject next = _cur.peek();
 		if ( type != null ){
@@ -288,33 +289,56 @@ public abstract class HttpMonitor implements HttpHandler {
 		    }
 		}
 		_cur.push( next );
+                next.set( "_fields" , fields );
 	    }
 	    else {
 		if ( type != null )
 		    addHeader( type );
 		startTable();
+                if ( fields.length > 0 )
+                    addTableRow( "" , (Object[])fields );
 	    }
 	    
 	}
 	
 	public void endData(){
 	    if ( _json ){
-		_cur.pop();
+		_cur.pop().removeField( "_fields" );
 	    }
 	    else {
 		endTable();
 	    }
 	}
 	
-	public void addData( Object name , Object value ){
-	    addData( name , value , null );
+	public void addData( String name , Object ... values ){
+	    addData( name , Status.OK , values );
 	}
 	
-	public void addData( Object name , Object value , String type ){
-	    if ( _json )
-		_cur.peek().set( name.toString() , value );
-	    else
-		addTableRow( name , value , type );
+	public void addData( String name , Status status , Object ... values ){
+	    if ( _json ){
+                JSObject o = _cur.peek();
+
+                if ( values.length == 0 ){}
+                else if ( values.length == 1 ){
+                    o.set( name.toString() , values[0] );
+                }
+                else {
+                    String[] fields = (String[])o.get( "_fields" );
+                    if ( fields == null )
+                        throw new RuntimeException( "no _fields" );
+                    
+                    JSObject foo = new JSObjectBase();
+                    int max = Math.max( fields.length , values.length );
+                    for ( int i=0; i<max; i++ )
+                        foo.set( fields[i] , values[i] );
+
+                    o.set( name.toString() , foo );
+                }
+
+            }
+            else {
+		addTableRow( name , status , values );
+            }
 	}
 
 	// RAW HTML API
@@ -343,10 +367,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	    _out.print( "</table>" );
 	}
 	
-	public void addTableRow( Object header , Object data ){
-	    addTableRow( header , data , null );
-	    _assertIfJson();
-	}
+
 	
 	public void addTableCell( Object data ){
             addTableCell( data , null );
@@ -364,17 +385,32 @@ public abstract class HttpMonitor implements HttpHandler {
 		_out.print( data.toString() );
 	    _out.print( "</td>" );
 	}
+
+	public void addTableRow( String header , Object ... datas ){
+	    addTableRow( header , Status.OK ,  datas  );
+	    _assertIfJson();
+	}
 	
-	public void addTableRow( Object header , Object data , String valueClass ){
+	public void addTableRow( String header , Status status , Object ... datas ){
 	    _assertIfJson();
 	    _out.print( "<tr><th>" );
 	    _out.print( header == null ? "null" : header.toString() );
-	    _out.print( "</th><td " );
-	    if ( valueClass != null )
-		_out.print( "class=\"" + valueClass + "\" " );
-	    _out.print( ">" );
-	    _out.print( data == null ? "null" : data.toString() );
-	    _out.print( "</td></tr>" );
+	    _out.print( "</th>" );
+
+            for ( int i=0; i<datas.length; i++ ){
+                Object data = datas[i];
+                
+                _out.print( "<td " );
+                if ( status != null )
+                    _out.print( "class=\"" + status.name().toLowerCase() + "\" " );
+                _out.print( ">" );
+                
+                _out.print( data == null ? "null" : data.toString() );
+                
+                _out.print( "</td>" );
+            }
+            
+            _out.print( "</tr>" );
 	}
 	
 	// BASICS

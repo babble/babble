@@ -20,12 +20,52 @@ package ed.io;
 
 import java.io.*;
 import java.util.*;
+import java.lang.reflect.*;
 
 import ed.js.*;
 import ed.js.engine.*;
 import ed.security.*;
 
 public class SysExec extends ed.js.func.JSFunctionCalls5 {
+
+    /**
+     * @return the pid, or -1 if it can't find one
+     */
+    public static int getPID( Process p ){
+        for ( Field f : p.getClass().getDeclaredFields() ){
+            if ( f.getType() != Integer.TYPE )
+                continue;
+            
+            if ( f.getName().equals( "pid" ) ){
+                try {
+                    f.setAccessible( true );
+                    return f.getInt( p );
+                }
+                catch ( Exception e ){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public static String[] envMapToArray( Map<String,String> map ){
+        if ( map == null || map.size() == 0 )
+            return null;
+        
+        String[] arr = new String[map.size()];
+        int pos = 0;
+        for ( String name : map.keySet() ){
+            String val = map.get( name );
+            if ( val == null )
+                val = "";
+            arr[pos++] = name + "=" + val;
+        }
+        
+        return arr;
+    }
+
 
 
     /**
