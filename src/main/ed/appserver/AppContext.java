@@ -118,7 +118,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         if (name == null)
             throw new NullPointerException("how could name be null");
 
-            _root = root;
+        _root = root;
         _rootFile = rootFile;
         _name = name;
         _environment = environment;
@@ -146,8 +146,40 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
     }
 
-    public AdapterType getAdapterType() {
-        return _adapterType;
+    /**
+     *  Returns the adapter type for the given file.  Will first use the
+     *  adapter selector function if it was specified in init.js, otherwise
+     *  will use the static type (either set in _init.js, as a server-wide
+     *  override in 10gen.properties, or default of DIRECT_10GEN)
+     *
+     * @param file to produce type for
+     * @return adapter type for the specified file
+     */
+    public AdapterType getAdapterType(File file) {
+
+        // Q : I think this is the right thing to do
+        if (inScopeSetup()) {
+            return AdapterType.DIRECT_10GEN;
+        }
+
+        if (_adapterSelector == null) {
+            return _staticAdapterType;
+        }
+
+        Object o = _adapterSelector.call(_initScope, new JSString(file.getAbsolutePath()));
+
+        if (o == null) {
+            return _staticAdapterType;
+        }
+
+        if (!(o instanceof JSString)) {
+            log("Error : adapter selector not returning string.  Ignoring and using static adapter type");
+            return _staticAdapterType;
+        }
+
+        AdapterType t = _getAdapterTypeFromString(o.toString());
+        
+        return (t == null ? _staticAdapterType : t);
     }
 
     /**
@@ -492,36 +524,50 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         _setupScope();
 
-        _setAdapterType();
+        _setStaticAdapterType();
+        _setAdapterSelectorFunction();
 
         return _scope;
     }
 
-    /**
-     *  Figure out what kind of adapter we are.  By default it's a 10genDEFAULT app
-     */
-    protected void _setAdapterType() {
+    protected void _setAdapterSelectorFunction() {
 
-        if (_scope == null) {
-            log("Cannot discern adapter type.  _scope is null.  Using default DIRECT_10GEN");
-            _adapterType = AdapterType.DIRECT_10GEN;
+        Object o = this.getFromInitScope(INIT_ADAPTER_SELECTOR);
+
+        if (o == null) {
+            log("Adapter selector function not specified in _init.js");
             return;
         }
+
+        if (!(o instanceof JSFunction)) {
+            log("Adapter selector function specified in _init.js not a function.  Ignoring. [" + o.getClass() + "]");
+            return;
+        }
+
+        _adapterSelector = (JSFunction) o;
+        log("Adapter selector function specified in _init.js");
+    }
+    
+    /**
+     *  Figure out what kind of static adapter type was specified.
+     *  By default it's a 10genDEFAULT app
+     */
+    protected void _setStaticAdapterType() {
 
         /*
          * check to see if overridden in 10gen.properties
          */
-        String override = Config.get().getProperty(INIT_ADAPTER_MARKER);
+        String override = Config.get().getProperty(INIT_ADAPTER_TYPE);
 
         if (override != null) {
             AdapterType t = _getAdapterTypeFromString(override);
 
             if (t == null){
-                log("Adapter type specified as override [" + override + "] unknown - will use _init.js specified or default");
+                log("Static adapter type specified as override [" + override + "] unknown - will use _init.js specified or default");
             }
             else {
-                log("Adapter type overridden by 10gen.properties or env. Value : " + override);
-                _adapterType = t;
+                log("Static adapter type overridden by 10gen.properties or env. Value : " + override);
+                _staticAdapterType = t;
                 return;
             }
         }
@@ -530,28 +576,28 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
          *  if not, use the one from _init.js if specified
          */
 
-        _adapterType = AdapterType.DIRECT_10GEN;
-        Object o = getFromInitScope(INIT_ADAPTER_MARKER);
+        _staticAdapterType = AdapterType.DIRECT_10GEN;
+        Object o = getFromInitScope(INIT_ADAPTER_TYPE);
 
         if (o == null) {
-            log("Adapter type not specified in _init.js - using default value of DIRECT_10GEN");
+            log("Static adapter type not specified in _init.js - using default value of DIRECT_10GEN");
             return;
         }
 
         if (!(o instanceof JSString)) {
-            log("Adapter type from _init.js not a string - using default value of DIRECT_10GEN");
+            log("Static adapter type from _init.js not a string - using default value of DIRECT_10GEN");
             return;
         }
 
-        _adapterType = _getAdapterTypeFromString(o.toString());
+        _staticAdapterType = _getAdapterTypeFromString(o.toString());
 
-        if(_adapterType == null) {
-            log("Adapter type from _init.js [" + o.toString() + "] unknown - using default value of DIRECT_10GEN");
-            _adapterType = AdapterType.DIRECT_10GEN;
+        if(_staticAdapterType == null) {
+            log("Static adapter type from _init.js [" + o.toString() + "] unknown - using default value of DIRECT_10GEN");
+            _staticAdapterType = AdapterType.DIRECT_10GEN;
             return;
         }
 
-        log("Application adapter type specified in _init.js = " + _adapterType);
+        log("Static adapter type specified in _init.js = " + _staticAdapterType);
 
         return;
     }
@@ -1346,9 +1392,17 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     private File _gitFile = null;
     private long _lastGitCheckTime = 0;
 
-    private AdapterType _adapterType = AdapterType.DIRECT_10GEN;
-    public final static String INIT_ADAPTER_MARKER = "_10gen_adapter_type";
-    
+    /*
+     *  adapter type - can have either a static ("all files in this app are X")
+     *  or dynamic - the provided selector function dynamically chooses, falling
+     *  back to the static if it returns null
+     */
+    public final static String INIT_ADAPTER_TYPE = "adapterType";
+    public final static String INIT_ADAPTER_SELECTOR = "adapterSelector";
+
+    private AdapterType _staticAdapterType = AdapterType.DIRECT_10GEN;
+    private JSFunction _adapterSelector = null;
+
     private static Logger _libraryLogger = Logger.getLogger("library.load");
 
     static {
@@ -1363,7 +1417,8 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _knownInitScopeThings.add("allowed");
         _knownInitScopeThings.add("staticCacheTime");
         _knownInitScopeThings.add("handle404");
-        _knownInitScopeThings.add(INIT_ADAPTER_MARKER);
+        _knownInitScopeThings.add(INIT_ADAPTER_TYPE);
+        _knownInitScopeThings.add(INIT_ADAPTER_SELECTOR);
     }
 
 }

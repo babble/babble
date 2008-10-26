@@ -45,7 +45,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         AdapterType adapterType = AdapterType.DIRECT_10GEN;
 
         if (context != null) {
-            adapterType = context.getAdapterType();
+            adapterType = context.getAdapterType(f);
         }
 
         if ( f.getName().endsWith(".djang10") ) {
