@@ -468,7 +468,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
     Object getFromInitScope(String what) {
         if (!_knownInitScopeThings.contains(what))
-            System.err.println("*** Unkknow thing being request from initScope [" + what + "]");
+            System.err.println("*** Unknown thing requested from initScope [" + what + "]");
         return _initScope.get(what);
     }
 
@@ -514,53 +514,64 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         String override = Config.get().getProperty(INIT_ADAPTER_MARKER);
 
         if (override != null) {
-            AdapterType t = _adapterTypeFromString(override);
+            AdapterType t = _getAdapterTypeFromString(override);
 
             if (t == null){
-                log("Adapter type specified as override [" + override + "] unknown - will app specified or default");
+                log("Adapter type specified as override [" + override + "] unknown - will use _init.js specified or default");
             }
             else {
-                log("Adapter type overridden by 10gen.properties or env. Using : " + override);
+                log("Adapter type overridden by 10gen.properties or env. Value : " + override);
                 _adapterType = t;
                 return;
             }
         }
 
-        JSString js = (JSString) _scope.get(INIT_ADAPTER_MARKER);
+        /*
+         *  if not, use the one from _init.js if specified
+         */
 
-        if (js == null) {
-            log("Adapter type not specified - using default value of DIRECT_10GEN");
+        _adapterType = AdapterType.DIRECT_10GEN;
+        Object o = getFromInitScope(INIT_ADAPTER_MARKER);
+
+        if (o == null) {
+            log("Adapter type not specified in _init.js - using default value of DIRECT_10GEN");
+            return;
+        }
+
+        if (!(o instanceof JSString)) {
+            log("Adapter type from _init.js not a string - using default value of DIRECT_10GEN");
+            return;
+        }
+
+        _adapterType = _getAdapterTypeFromString(o.toString());
+
+        if(_adapterType == null) {
+            log("Adapter type from _init.js [" + o.toString() + "] unknown - using default value of DIRECT_10GEN");
             _adapterType = AdapterType.DIRECT_10GEN;
-        }
-        else {
-            _adapterType = _adapterTypeFromString(js.toString());
-
-            if(_adapterType == null) {
-                log("Specified adapter type [" + js.toString() + "] unknown - using default value of DIRECT_10GEN");
-                _adapterType = AdapterType.DIRECT_10GEN;
-            }
+            return;
         }
 
-        log("Application adapter type = " + _adapterType);
+        log("Application adapter type specified in _init.js = " + _adapterType);
 
         return;
     }
 
-    protected AdapterType _adapterTypeFromString(String s) {
+    protected AdapterType _getAdapterTypeFromString(String s) {
 
         if (AdapterType.DIRECT_10GEN.toString().equals(s.toUpperCase())) {
             return AdapterType.DIRECT_10GEN;
         }
-        else if (AdapterType.CGI.toString().equals(s.toUpperCase())) {
+
+        if (AdapterType.CGI.toString().equals(s.toUpperCase())) {
             return AdapterType.CGI;
         }
-        else if (AdapterType.WSGI.toString().equals(s.toUpperCase())) {
+
+        if (AdapterType.WSGI.toString().equals(s.toUpperCase())) {
             return AdapterType.WSGI;
         }
 
         return null;
     }
-
 
     /**
      * @unexpose
@@ -1352,6 +1363,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _knownInitScopeThings.add("allowed");
         _knownInitScopeThings.add("staticCacheTime");
         _knownInitScopeThings.add("handle404");
+        _knownInitScopeThings.add(INIT_ADAPTER_MARKER);
     }
 
 }
