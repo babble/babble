@@ -49,6 +49,7 @@ public class HttpServer extends NIOServer {
     public HttpServer( int port )
         throws IOException {
         super( port );
+        _listentingPorts.add( port );
     }
     
     protected HttpSocketHandler accept( SocketChannel sc ){
@@ -456,6 +457,16 @@ public class HttpServer extends NIOServer {
         }
         
         return false;
+    }
+
+    private static Set<Integer> _listentingPorts = new HashSet<Integer>();
+    
+    public static int numberListeningPorts(){
+        return _listentingPorts.size();
+    }
+
+    public static Set<Integer> getListeningPorts(){
+        return Collections.unmodifiableSet( _listentingPorts );
     }
 
     static final HttpHandler _stats = new HttpMonitor( "stats" ){
