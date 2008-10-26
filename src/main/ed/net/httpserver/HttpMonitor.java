@@ -428,6 +428,10 @@ public abstract class HttpMonitor implements HttpHandler {
     
     public static final String AUTH_COOKIE = Config.get().getProperty( "authCookie" , null );
     
+    public static final String getAuthCookie(){
+        return AUTH_COOKIE;
+    }
+
     // ----------------------------------------
     // Some Basic Monitors
     // ----------------------------------------
