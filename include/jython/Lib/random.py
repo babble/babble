@@ -38,10 +38,14 @@ General notes on the underlying Mersenne Twister core generator:
   a single Python step, and is, therefore, threadsafe.
 
 """
+import time
 from types import BuiltinMethodType as _BuiltinMethodType
 from math import log as _log, exp as _exp, pi as _pi, e as _e
 from math import sqrt as _sqrt, acos as _acos, cos as _cos, sin as _sin
 from math import floor as _floor
+from os import urandom as _urandom
+from binascii import hexlify as _hexlify
+
 
 __all__ = ["Random","seed","random","uniform","randint","choice","sample",
            "randrange","shuffle","normalvariate","lognormvariate",
@@ -54,6 +58,7 @@ TWOPI = 2.0*_pi
 LOG4 = _log(4.0)
 SG_MAGICCONST = 1.0 + _log(4.5)
 BPF = 53        # Number of bits in a float
+RECIP_BPF = 2**-BPF
 
 # Translated by Guido van Rossum from C source provided by
 # Adrian Baddeley.  Adapted by Raymond Hettinger for use with
@@ -96,7 +101,6 @@ class Random(_random.Random):
         """
 
         if a is None:
-            import time
             a = long(time.time() * 256) # use fractional seconds
         super(Random, self).seed(a)
         self.gauss_next = None
@@ -765,6 +769,39 @@ class WichmannHill(Random):
         y = (y + a) % 256 or 1
         z = (z + a) % 256 or 1
         self.__whseed(x, y, z)
+## --------------- Operating System Random Source  ------------------
+
+class SystemRandom(Random):
+    """Alternate random number generator using sources provided
+    by the operating system (such as /dev/urandom on Unix or
+    CryptGenRandom on Windows).
+
+     Not available on all systems (see os.urandom() for details).
+    """
+
+    def random(self):
+        """Get the next random number in the range [0.0, 1.0)."""
+        return (long(_hexlify(_urandom(7)), 16) >> 3) * RECIP_BPF
+
+    def getrandbits(self, k):
+        """getrandbits(k) -> x.  Generates a long int with k random bits."""
+        if k <= 0:
+            raise ValueError('number of bits must be greater than zero')
+        if k != int(k):
+            raise TypeError('number of bits should be an integer')
+        bytes = (k + 7) // 8                    # bits / 8 and rounded up
+        x = long(_hexlify(_urandom(bytes)), 16)
+        return x >> (bytes * 8 - k)             # trim excess bits
+
+    def _stub(self, *args, **kwds):
+        "Stub method.  Not used for a system random number generator."
+        return None
+    seed = jumpahead = _stub
+
+    def _notimplemented(self, *args, **kwds):
+        "Method should not be called for a system random number generator."
+        raise NotImplementedError('System entropy source does not have state.')
+    getstate = setstate = _notimplemented
 
 ## -------------------- test program --------------------
 

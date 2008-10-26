@@ -7,19 +7,7 @@
 #   Copyright (C) 2006 Python Software Foundation.
 # See C source code for _functools credits/copyright
 
-class partial(object):
-
-    def __init__(*args, **kw):
-        self = args[0]
-        self.fn, self.args, self.kw = (args[1], args[2:], kw)
-
-    def __call__(self, *args, **kw):
-        if kw and self.kw:
-            d = self.kw.copy()
-            d.update(kw)
-        else:
-            d = kw or self.kw
-        return self.fn(*(self.args + args), **d)
+from _functools import partial
 
 # update_wrapper() and wraps() are tools to help write
 # wrapper functions that can handle naive introspection
@@ -44,7 +32,7 @@ def update_wrapper(wrapper,
     for attr in assigned:
         setattr(wrapper, attr, getattr(wrapped, attr))
     for attr in updated:
-        getattr(wrapper, attr).update(getattr(wrapped, attr))
+        getattr(wrapper, attr).update(getattr(wrapped, attr, {}))
     # Return the wrapper so this can be used as a decorator via partial()
     return wrapper
 

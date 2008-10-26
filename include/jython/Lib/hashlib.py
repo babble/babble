@@ -1,4 +1,4 @@
-# $Id: hashlib.py 52533 2006-10-29 18:01:12Z georg.brandl $
+# $Id: hashlib.py 66095 2008-08-31 16:36:21Z gregory.p.smith $
 #
 #  Copyright (C) 2005   Gregory P. Smith (greg@electricrain.com)
 #  Licensed to PSF under a Contributor Agreement.
@@ -42,7 +42,7 @@ spammish repetition':
     >>> m.update("Nobody inspects")
     >>> m.update(" the spammish repetition")
     >>> m.digest()
-    '\xbbd\x9c\x83\xdd\x1e\xa5\xc9\xd9\xde\xc9\xa1\x8d\xf0\xff\xe9'
+    '\\xbbd\\x9c\\x83\\xdd\\x1e\\xa5\\xc9\\xd9\\xde\\xc9\\xa1\\x8d\\xf0\\xff\\xe9'
 
 More condensed:
 
