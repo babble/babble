@@ -482,7 +482,7 @@ public class HttpServer extends NIOServer {
 
 		mr.startData();
 
-                mr.addData( "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
+                mr.addData( "forked queue length" , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? Status.WARN : Status.ERROR ) , forkedQueueSize );
                 mr.addData( "admin queue length" , server._forkThreadsAdmin.queueSize() );
 		
 		mr.addData( "forked processing" , server._forkThreads.inProgress() );
