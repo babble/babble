@@ -80,6 +80,7 @@ public class PythonJxpSource extends JxpSource {
 
                 ss.flushOld();
 
+                ss.ensurePath( _file.getParent().toString() );
                 ss.ensurePath( _lib.getRoot().toString() );
                 ss.ensurePath( _lib.getTopParent().getRoot().toString() );
 

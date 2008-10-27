@@ -21,6 +21,7 @@ package ed.appserver.jxp;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
+import java.lang.Math;
 
 import ed.js.*;
 import ed.util.*;
@@ -165,28 +166,45 @@ public class ServletWriter extends JSFunctionCalls1 {
                     this._inSingleQuote = false;
                     _writer.print(s.substring(0, sq));
                     s = s.substring(sq);
+                } else if (this._inComment) {
+                    int c = findCloseComment(s);
+                    if (c == -1) {
+                        _writer.print(s);
+                        return;
+                    }
+                    this._inComment = false;
+                    _writer.print(s.substring(0, c));
+                    s = s.substring(c);
                 }
 
                 int doubleQuote = s.indexOf('"');
                 int singleQuote = s.indexOf('\'');
+                int longComment = s.indexOf("/*");
+                int shortComment = s.indexOf("//");
 
-                int quoteMin = singleQuote;
+                int stateMin = singleQuote;
                 if (doubleQuote != -1) {
-                    quoteMin = (singleQuote == -1 || doubleQuote < singleQuote) ? doubleQuote : singleQuote;
+                    stateMin = (stateMin == -1 || doubleQuote < stateMin) ? doubleQuote : stateMin;
+                }
+                if (longComment != -1) {
+                    stateMin = (stateMin == -1 || longComment < stateMin) ? longComment : stateMin;
+                }
+                if (shortComment != -1) {
+                    stateMin = (stateMin == -1 || shortComment < stateMin) ? shortComment : stateMin;
                 }
 
                 _closeScriptMatcher.reset(s);
 
-                if (_closeScriptMatcher.find() && (_closeScriptMatcher.start() < quoteMin || quoteMin == -1)) {
+                if (_closeScriptMatcher.find() && (_closeScriptMatcher.start() < stateMin || stateMin == -1)) {
                     this._inScript = false;
 
                     _writer.print(s.substring(0, _closeScriptMatcher.start()));
                     s = s.substring(_closeScriptMatcher.start());
                 } else {
-                    if (quoteMin != -1) {
-                        setQuoteState(doubleQuote, singleQuote);
-                        _writer.print(s.substring(0, quoteMin + 1));
-                        s = s.substring(quoteMin + 1);
+                    if (stateMin != -1 && stateMin != shortComment) {
+                        this.setState(doubleQuote, singleQuote, longComment);
+                        _writer.print(s.substring(0, stateMin + 1));
+                        s = s.substring(stateMin + 1);
                         continue;
                     }
                     _writer.print(s);
@@ -221,15 +239,22 @@ public class ServletWriter extends JSFunctionCalls1 {
 
     }
 
-    private void setQuoteState (int doubleQuote, int singleQuote) {
-        if (doubleQuote != -1) {
-            if (singleQuote != -1 && singleQuote < doubleQuote) {
-                this._inSingleQuote = true;
-            } else {
-                this._inDoubleQuote = true;
-            }
-        } else if (singleQuote != -1) {
+    private void setState (int doubleQuote, int singleQuote, int comment) {
+        doubleQuote = (doubleQuote != -1) ? doubleQuote : Integer.MAX_VALUE;
+        singleQuote = (singleQuote != -1) ? singleQuote : Integer.MAX_VALUE;
+        comment = (comment != -1) ? comment : Integer.MAX_VALUE;
+
+        int min = Math.min(doubleQuote, Math.min(singleQuote, comment));
+        if (min == Integer.MAX_VALUE) {
+            return;
+        }
+
+        if (doubleQuote == min) {
+            this._inDoubleQuote = true;
+        } else if (singleQuote == min) {
             this._inSingleQuote = true;
+        } else {
+            this._inComment = true;
         }
     }
 
@@ -247,6 +272,10 @@ public class ServletWriter extends JSFunctionCalls1 {
             return -1;
         }
         return _closeSingleQuoteMatcher.start() + _closeSingleQuoteMatcher.group(1).length();
+    }
+
+    private int findCloseComment (String s) {
+        return s.indexOf("*/");
     }
 
     boolean printTag(String tag, String s, boolean allowTagHandlers) {
@@ -409,6 +438,7 @@ public class ServletWriter extends JSFunctionCalls1 {
     boolean _inScript = false;
     boolean _inDoubleQuote = false;
     boolean _inSingleQuote = false;
+    boolean _inComment = false;
 
     Map<String,JSFunction> _tagHandlers;
 }

@@ -14,5 +14,5 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-def foo():
-    return 17
+import google.atom.service
+assert google.atom.service.AtomService
