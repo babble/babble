@@ -25,7 +25,10 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.lang.php.PHPJxpSource;
 import ed.lang.ruby.RubyCGIAdapter;
+import ed.lang.ruby.RubyJxpSource;
+import ed.lang.ruby.RubyErbSource;
 import ed.lang.python.PythonJxpSource;
 import ed.util.*;
 import ed.appserver.*;
@@ -62,19 +65,17 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             }
         }
         else if ( f.getName().endsWith( ".rb" ) ){
-
             s = Language.RUBY.getAdapter(adapterType, f, context, lib);
 
             if (s == null) {
-                s = new ed.lang.ruby.RubyJxpSource(f);
+                s = new RubyJxpSource(f);
             }
         }
-
         else if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
-            s = new ed.lang.ruby.RubyErbSource( f );
+            s = new RubyErbSource( f );
 
         else if ( f.getName().endsWith( ".php" ) )
-            s = new ed.lang.php.PHPJxpSource( f );
+            s = new PHPJxpSource( f );
 
         else if ( f.getName().endsWith( ".cgi" ) )
             s = new SysExecCGIAdapter( f );
