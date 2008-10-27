@@ -48,6 +48,11 @@ public class TextSimpleConfig implements SimpleConfig {
         }
     }
 
+    public static TextSimpleConfig read( File f )
+        throws IOException {
+        return read( new FileInputStream( f ) );
+    }
+
     public static TextSimpleConfig read( InputStream in )
         throws IOException {
         return read( new LineReader( in ) );

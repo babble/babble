@@ -22,6 +22,8 @@ import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
 
+import org.apache.commons.cli.*;
+
 import ed.log.*;
 import ed.net.httpserver.*;
 
@@ -32,10 +34,15 @@ import ed.net.httpserver.*;
 public class Manager extends Thread {
 
     public Manager( ApplicationFactory factory ){
+        this( factory , false );
+    }
+    
+    public Manager( ApplicationFactory factory , boolean verbose ){
         super( "ApplicationManager" );
         _factory = factory;
         _logger = Logger.getLogger( "manager" );
-        
+        _logger.setLevel( verbose ? Level.DEBUG : Level.INFO );
+
         _webView = new WebView( this );
         
         if ( HttpServer.numberListeningPorts() == 0 ){
@@ -52,8 +59,14 @@ public class Manager extends Thread {
         }
 
         _webView.add();
+        
+        Runtime.getRuntime().addShutdownHook( new Thread(){
+                public void run(){
+                    Manager.this.shutdown();
+                }
+            } );
     }
-    
+
     public void run(){
         
         while ( ! _shutdown ){
@@ -102,9 +115,12 @@ public class Manager extends Thread {
 
     public void shutdown(){
         _shutdown = true;
+
         if ( _server != null )
             _server.stopServer();
-        throw new RuntimeException( "don't know how to shutdown Manager" );
+
+        for ( RunningApplication ra : _running.values() )
+            ra.shutdown();
     }
 
     public boolean isShutDown(){
@@ -126,4 +142,24 @@ public class Manager extends Thread {
 
     private boolean _shutdown = false;
     private final Map<Application,RunningApplication> _running = new HashMap<Application,RunningApplication>();
+
+    public static void main( String args[] )
+        throws Exception {
+
+        Options o = new Options();
+        o.addOption( "v" , "verbose" , false , "Verbose" );
+        o.addOption( "c" , "config" , true , "config file for TextConfigApplicationFactory" );
+        
+        CommandLine cl = ( new BasicParser() ).parse( o , args );
+        
+        ApplicationFactory factory = null;
+        if ( cl.hasOption( "config" ) )
+            factory = new TextConfigApplicationFactory( new File( cl.getOptionValue( "config" , null ) ) );
+        else 
+            throw new RuntimeException( "don't know how to create default factory" );
+
+        Manager m = new Manager( factory , cl.hasOption( "v" ) );
+        m.start();
+        m.join();
+    }
 }
