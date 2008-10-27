@@ -149,7 +149,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     /**
      *  Returns the adapter type for the given file.  Will first use the
      *  adapter selector function if it was specified in init.js, otherwise
-     *  will use the static type (either set in _init.js, as a server-wide
+     *  will use the static type (either set in _init file, as a server-wide
      *  override in 10gen.properties, or default of DIRECT_10GEN)
      *
      * @param file to produce type for
@@ -547,17 +547,17 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         Object o = this.getFromInitScope(INIT_ADAPTER_SELECTOR);
 
         if (o == null) {
-            log("Adapter selector function not specified in _init.js");
+            log("Adapter selector function not specified in _init file");
             return;
         }
 
         if (!(o instanceof JSFunction)) {
-            log("Adapter selector function specified in _init.js not a function.  Ignoring. [" + o.getClass() + "]");
+            log("Adapter selector function specified in _init file  not a function.  Ignoring. [" + o.getClass() + "]");
             return;
         }
 
         _adapterSelector = (JSFunction) o;
-        log("Adapter selector function specified in _init.js");
+        log("Adapter selector function specified in _init file");
     }
     
     /**
@@ -575,7 +575,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             AdapterType t = _getAdapterTypeFromString(override);
 
             if (t == null){
-                log("Static adapter type specified as override [" + override + "] unknown - will use _init.js specified or default");
+                log("Static adapter type specified as override [" + override + "] unknown - will use _init file specified or default");
             }
             else {
                 log("Static adapter type overridden by 10gen.properties or env. Value : " + override);
@@ -585,31 +585,31 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         }
 
         /*
-         *  if not, use the one from _init.js if specified
+         *  if not, use the one from _init file if specified
          */
 
         _staticAdapterType = AdapterType.DIRECT_10GEN;
         Object o = getFromInitScope(INIT_ADAPTER_TYPE);
 
         if (o == null) {
-            log("Static adapter type not specified in _init.js - using default value of DIRECT_10GEN");
+            log("Static adapter type not specified in _init file - using default value of DIRECT_10GEN");
             return;
         }
 
         if (!(o instanceof JSString)) {
-            log("Static adapter type from _init.js not a string - using default value of DIRECT_10GEN");
+            log("Static adapter type from _init file not a string - using default value of DIRECT_10GEN");
             return;
         }
 
         _staticAdapterType = _getAdapterTypeFromString(o.toString());
 
         if(_staticAdapterType == null) {
-            log("Static adapter type from _init.js [" + o.toString() + "] unknown - using default value of DIRECT_10GEN");
+            log("Static adapter type from _init file [" + o.toString() + "] unknown - using default value of DIRECT_10GEN");
             _staticAdapterType = AdapterType.DIRECT_10GEN;
             return;
         }
 
-        log("Static adapter type specified in _init.js = " + _staticAdapterType);
+        log("Static adapter type specified in _init file = " + _staticAdapterType);
 
         return;
     }
