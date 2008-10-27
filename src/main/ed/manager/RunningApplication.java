@@ -77,14 +77,17 @@ public class RunningApplication extends Thread {
         throws IOException , InterruptedException {
             
         fileRotate( app.getLogDir() , app.getType() , app.getId() );
-            
+        
+        app.getLogDir().mkdirs();
         File logFile = _getLogFile( app.getLogDir() , app.getType() , app.getId() );
-        _logger.info( "logFile : " + logFile.getAbsolutePath() );
+        _logger.debug( "logFile : " + logFile.getAbsolutePath() );
         OutputStream log = new FileOutputStream( logFile );
         
         String[] command = app.getCommand();
         if ( command[0].startsWith( "./" ) )
             command[0] = (new File( app.getExecDir() , command[0] ) ).getAbsolutePath();
+        
+        _logger.debug( "full command " + Arrays.toString( command ) );
 
         _process = Runtime.getRuntime().exec( command , SysExec.envMapToArray( app.getEnvironmentVariables() ) , app.getExecDir() );
         _pid = SysExec.getPID( _process );

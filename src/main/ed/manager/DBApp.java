@@ -23,6 +23,32 @@ import java.util.*;
 
 public class DBApp extends SimpleApplication {
 
+    DBApp( String id ){
+        this( id , new String[0] );
+    }
+
+    DBApp( String id , Map<String,String> options ){
+        this( id , _optionsToArgs( options ) );
+    }
+
+    DBApp( String id , String args[] ){
+        super( _findDatabase() , "db" , id , _fixCommands( args ) );
+
+        String dbpath = "/data/db/";
+        for ( int i=0; i<_commands.length-1; i++ ){
+            if ( ! _commands[i].equals( "--dbpath" ) )
+                continue;
+            
+            dbpath = _commands[i+1];
+        }
+        
+        if ( dbpath.startsWith( "/" ) )
+            ( new File( dbpath ) ).mkdirs();
+        else 
+            ( new File( getExecDir() , dbpath ) ).mkdirs();
+
+    }
+
     static String[] _dbSearchPath = new String[]{ 
         "../p/" , "../mongo" ,
         System.getProperty( "user.home" ) + "/p/" , 
@@ -48,18 +74,40 @@ public class DBApp extends SimpleApplication {
         else 
             for ( String a : args )
                 commands.add( a );
-
+        
         String[] arr = new String[commands.size()];
         return commands.toArray( arr );
     }
 
-    DBApp( String id , String args[] ){
-        super( _findDatabase() , "db" , id , _fixCommands( args ) );
+    static String[] _optionsToArgs( Map<String,String> m ){
+        if ( m == null || m.size() == 0 )
+            return null;
+
+        List<String> args = new ArrayList<String>();
+
+        for ( String c : _configs ){
+            if ( m.containsKey( c ) ){
+                args.add( "--" + c );
+                args.add( m.get( c ) );
+            }
+        }
+
+        for ( String b : _booleans ){
+            if ( m.containsKey( b ) ){
+                args.add( "--" + b );
+            }
+        }
+
+        String[] arr = new String[args.size()];
+        return args.toArray( arr );        
     }
+
+    final static String[] _configs = new String[]{ "port" , "dbpath" , "appsrvpath" };
+    final static String[] _booleans = new String[]{ "master" , "slave" , "nocursors" , "nojni" };
     
     public static void main( String args[] )
         throws InterruptedException {
-        OneTimeApplicationFactory factory = new OneTimeApplicationFactory( new DBApp( "play" , null ) );
+        OneTimeApplicationFactory factory = new OneTimeApplicationFactory( new DBApp( "play" ) );
         Manager m = new Manager( factory );
         m.start();
         m.join();

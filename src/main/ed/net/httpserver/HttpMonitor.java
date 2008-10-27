@@ -336,7 +336,7 @@ public abstract class HttpMonitor implements HttpHandler {
                         throw new RuntimeException( "no _fields" );
                     
                     JSObject foo = new JSObjectBase();
-                    int max = Math.max( fields.length , values.length );
+                    int max = Math.min( fields.length , values.length );
                     for ( int i=0; i<max; i++ )
                         foo.set( fields[i] , values[i] );
 
