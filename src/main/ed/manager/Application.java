@@ -36,6 +36,12 @@ public interface Application {
      */
     public String getId();
 
+    /**
+     * usually <type>.<id>
+     */
+    public String getFullId();
+
+
     public String[] getCommand();
     public Map<String,String> getEnvironmentVariables();
     

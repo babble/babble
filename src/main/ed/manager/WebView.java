@@ -21,15 +21,19 @@ package ed.manager;
 import ed.net.httpserver.*;
 
 public class WebView extends HttpMonitor {
+    
+    
+    static final String BASE_NAME = "appManager";
+
     public WebView( Manager manager ){
-        super( "appManager" );
+        super( BASE_NAME );
         _manager = manager;
     }
 
     public void handle( MonitorRequest request ){
         
         request.startData( "applications" , "type" , "id" , "uptime" , "timesStarted" );
-
+        
         for ( Application app : _manager.getApplications() ){
             RunningApplication ra = _manager.getRunning( app );
             request.addData( app.getType() + "." + app.getId() , 
@@ -37,6 +41,56 @@ public class WebView extends HttpMonitor {
         }
 
         request.endData();
+    }
+    
+    void add(){
+        HttpServer.addGlobalHandler( this );
+        HttpServer.addGlobalHandler( new Tail() );
+    }
+    
+    class Tail extends HttpMonitor {
+        Tail(){
+            super( BASE_NAME + "-tail" );
+        }
+        
+        public void handle( MonitorRequest request ){
+            String fullId = request.getRequest().getParameter( "id" );
+            if ( fullId == null ){
+                request.print( "<ul>" );
+                for ( Application app : _manager.getApplications() ){
+                    request.print( "<li>" );
+                    request.print( "<a href='" + getURI() + "?id=" + app.getFullId() + "'>" + 
+                                   app.getType() + "." + app.getId() + 
+                                   "</a>" );
+                    request.print( "</li>" );
+                }  
+                request.print( "</ul>" );
+            }
+            else {
+                
+                Application app = null;
+                
+                for ( Application temp : _manager.getApplications() ){
+                    if ( ! fullId.equals( temp.getFullId() ) )
+                        continue;
+                    app = temp;
+                    break;
+                }         
+                
+                if ( app == null )
+                    request.print( "can't find app [" + fullId + "]" );
+                else {
+                    request.print( "<pre>\n" );
+                    RunningApplication ra = _manager.getRunning( app );
+                    for ( int i=0; i<ra._lastOutput.size(); i++ ){
+                        request.print( ra._lastOutput.get(i) );
+                        request.print( "\n" );
+                    }
+                    request.print( "\n</pre>\n" );
+                }
+
+            }
+        }
     }
 
     final Manager _manager;

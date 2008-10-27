@@ -34,6 +34,10 @@ public class SimpleApplication implements Application {
         _environment = new HashMap<String,String>();
     }
 
+    public String getFullId(){
+        return _fullId;
+    }
+
     public File getExecDir(){
         return _root;
     }

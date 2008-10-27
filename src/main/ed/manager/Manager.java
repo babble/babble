@@ -37,7 +37,7 @@ public class Manager extends Thread {
         _logger = Logger.getLogger( "manager" );
         
         _webView = new WebView( this );
-
+        
         if ( HttpServer.numberListeningPorts() == 0 ){
             try {
                 _server = new HttpServer( 8000 );
@@ -51,11 +51,11 @@ public class Manager extends Thread {
             _server = null;
         }
 
-        HttpServer.addGlobalHandler( _webView );
+        _webView.add();
     }
     
     public void run(){
-
+        
         while ( ! _shutdown ){
             
             int running = 0;
