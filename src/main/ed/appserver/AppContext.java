@@ -308,7 +308,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     private void _loadConfig() {
         try {
 
-            File f = null;
+            File f;
             if (!_admin)
                 f = getFileSafe("_config.js");
             else
