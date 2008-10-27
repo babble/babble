@@ -318,7 +318,7 @@ public class JxpServletTest extends ed.TestCase {
         p.print("<img src='/1.jpg'>");
         p.print("</script>");
         p.print("<img src='/1.jpg'>");
-        //assertClose("<script>abc 123 // </script><img src='/1.jpg'></script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
+        assertClose("<script>abc 123 // </script><img src='/1.jpg'></script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
     }
 
     @Test(groups = {"basic"})
@@ -330,7 +330,7 @@ public class JxpServletTest extends ed.TestCase {
         p.print("<img src='/1.jpg'>");
         p.print("</script>");
         p.print("<img src='/1.jpg'>");
-        //assertClose("<script>abc 123 /* </script>*/<img src='/1.jpg'></script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
+        assertClose("<script>abc 123 /* </script>*/<img src='/1.jpg'></script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
     }
 
     @Test(groups = {"basic"})
@@ -338,12 +338,10 @@ public class JxpServletTest extends ed.TestCase {
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
         p.print("<script>");
-        p.print("abc '123 // ' ");
-        p.print("</script>");
-        p.print("<img src='/1.jpg'>'");
+        p.print("abc 123 // ' ");
         p.print("</script>");
         p.print("<img src='/1.jpg'>");
-        //assertClose("<script>abc '123 // ' </script><img src='/1.jpg'>'</script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
+        assertClose("<script>abc 123 // ' </script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
     }
 
     @Test(groups = {"basic"})
@@ -351,12 +349,10 @@ public class JxpServletTest extends ed.TestCase {
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
         p.print("<script>");
-        p.print("abc '123 /* ' */");
-        p.print("</script>");
-        p.print("<img src='/1.jpg'>'");
+        p.print("abc 123 /* ' */");
         p.print("</script>");
         p.print("<img src='/1.jpg'>");
-        //assertClose("<script>abc '123 /* ' */</script><img src='/1.jpg'>'</script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
+        assertClose("<script>abc 123 /* ' */</script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
     }
 
     public static void main( String args[] ){

@@ -31,7 +31,7 @@ public class SimpleApplication implements Application {
         _commands = commands;
         
         _logDir = new File( _root , "logs" );
-        _environment = new HashMap<String,String>();
+        _environment = new TreeMap<String,String>();
     }
 
     public String getFullId(){
@@ -73,10 +73,15 @@ public class SimpleApplication implements Application {
     public boolean gotErrorLine( String line ){
         return true;
     }
+
+    public long timeToShutDown(){
+        return 1000 * 2;
+    }
     
     public boolean sameConfig( Application other ){
-        if ( ! ( other instanceof SimpleApplication ) )
+        if ( ! ( other instanceof SimpleApplication ) ){
             return false;
+        }
 
         SimpleApplication sa = (SimpleApplication)other;
         
@@ -85,7 +90,7 @@ public class SimpleApplication implements Application {
             _root.equals( sa._root ) &&
             _logDir.equals( sa._logDir ) &&
             Arrays.toString( _commands ).equals( Arrays.toString( sa._commands ) ) &&
-            _environment.equals( sa._environment );
+            _environment.toString().equals( sa._environment.toString() );
     }
 
     public int hashCode(){

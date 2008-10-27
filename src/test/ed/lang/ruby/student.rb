@@ -18,7 +18,7 @@ end
 class Student < XGen::Mongo::Base
 
   collection_name :rubytest_students
-  fields :name, :email, :num_array
+  fields :name, :email, :num_array, :created_at, :created_on, :updated_on
   has_one :address
   has_many :scores, :class_name => 'Score'
 
