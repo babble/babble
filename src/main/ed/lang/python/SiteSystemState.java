@@ -403,6 +403,7 @@ public class SiteSystemState {
         JSLibrary _core;
         JSLibrary _local;
         JSLibrary _localModules;
+        Map<JSLibrary, String> _loaded = new HashMap<JSLibrary, String>();
         ModuleFinder( Scope s ){
             _scope = s;
             Object core = s.get( "core" );
@@ -450,8 +451,10 @@ public class SiteSystemState {
             assert argc >= 1;
             assert args[0] instanceof PyString;
             String modName = args[0].toString();
+            PyList __path__ = null;
+            if( args.length > 1 && args[1] instanceof PyList ) __path__ = (PyList)args[1];
             if( DEBUG ){
-                System.out.println( "meta_path " + __builtin__.id(this) + " looking for " + modName );
+                System.out.println( "meta_path " + __builtin__.id(this) + " looking for " + modName + " " + __path__);
             }
 
             if( modName.equals("core.modules") ){
@@ -488,6 +491,39 @@ public class SiteSystemState {
                 return new JSLibraryLoader( _core, path );
             }
 
+            int period = modName.indexOf('.');
+            if( __path__ != null && period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
+                // look for foo.bar.baz in core-module foo and try foo.baz
+                String baz = modName.substring( modName.lastIndexOf( '.' ) + 1 );
+
+                System.out.println("Got a path " + __path__);
+                String location = __path__.pyget(0).toString();
+                for( JSLibrary key : _loaded.keySet() ){
+                    if( location.startsWith( key.getRoot().toString() ) ){
+                        String name = _loaded.get( key );
+                        Object foo = key.getFromPath( baz , true );
+                        if( foo == null ) continue;
+
+                        return new RewriteModuleLoader( name + "." + baz );
+                    }
+                }
+            }
+
+            if( modName.indexOf('.') == -1 ){
+                String firstpart = modName;
+
+                try {
+                    Object foo = _coreModules.getFromPath( firstpart , true );
+                    if( foo instanceof JSLibrary ){
+                        JSLibrary lib = (JSLibrary)foo;
+                        _loaded.put( lib , modName );
+                        return new LibraryModuleLoader( lib );
+                    }
+                }
+                catch(Exception e){
+                    // This sucks
+                }
+            }
             if( DEBUG ){
                 System.out.println( "meta_path hook didn't match " + modName );
             }
