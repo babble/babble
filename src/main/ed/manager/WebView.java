@@ -28,16 +28,19 @@ public class WebView extends HttpMonitor {
     public WebView( Manager manager ){
         super( BASE_NAME );
         _manager = manager;
+        _tail = new Tail();
     }
-
+    
     public void handle( MonitorRequest request ){
-        
+
         request.startData( "applications" , "type" , "id" , "uptime" , "timesStarted" );
         
         for ( Application app : _manager.getApplications() ){
             RunningApplication ra = _manager.getRunning( app );
             request.addData( app.getType() + "." + app.getId() , 
-                             app.getType() , app.getId() , ra.getUptimeMinutes() , ra.timesStarted() );
+                             app.getType() , app.getId() , ra.getUptimeMinutes() , ra.timesStarted() , 
+                             "<a href='" + _tail.getURI() + "?id=" + app.getFullId() + "'>tail</a> | "
+                             );
         }
 
         request.endData();
@@ -45,7 +48,7 @@ public class WebView extends HttpMonitor {
     
     void add(){
         HttpServer.addGlobalHandler( this );
-        HttpServer.addGlobalHandler( new Tail() );
+        HttpServer.addGlobalHandler( _tail );
     }
     
     class Tail extends HttpMonitor {
@@ -94,4 +97,5 @@ public class WebView extends HttpMonitor {
     }
 
     final Manager _manager;
+    final Tail _tail;
 }
