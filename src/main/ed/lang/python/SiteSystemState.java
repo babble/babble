@@ -521,7 +521,9 @@ public class SiteSystemState {
                     }
                 }
                 catch(Exception e){
-                    // This sucks
+                    // This sucks -- this is probably "core module xxx doesn't exist"
+                    // No way to check for it specifically, or check whether it will
+                    // happen, since we have to do a git clone
                 }
             }
             if( DEBUG ){
