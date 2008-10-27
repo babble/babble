@@ -332,16 +332,16 @@ public class Shell {
                 break;
             }
 
-            command += line;
-            if( ! replLang.isComplete( command ) ){
-                command += "\n";
-                continue;
-            }
-
-            if ( command.length() == 0 )
-                continue;
-
             try {
+                command += line;
+                if( ! replLang.isComplete( command ) ){
+                    command += "\n";
+                    continue;
+                }
+
+                if ( command.length() == 0 )
+                    continue;
+
                 Object res = replLang.eval( s , command , hasReturn );
                 if ( hasReturn[0] ){
                     if ( res instanceof DBCursor )
