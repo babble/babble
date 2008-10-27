@@ -68,10 +68,6 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         else if ( f.getName().endsWith( ".php" ) )
             s = new ed.lang.php.PHPJxpSource( f );
 
-        else if ( f.getName().endsWith( ".yaml" ) ) {
-            //s = new AECGISource( f , lib );
-        }
-
         else if ( f.getName().endsWith( ".cgi" ) )
             s = new SysExecCGIAdapter( f );
 
