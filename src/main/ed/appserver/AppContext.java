@@ -166,7 +166,19 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             return _staticAdapterType;
         }
 
-        Object o = _adapterSelector.call(_initScope, new JSString(file.getAbsolutePath()));
+        /*
+         *  only let the app select type if file is part of application (i.e.
+         *  don't do it for corejs, core modules, etc...
+         */
+
+        String fp = file.getAbsolutePath();
+        String fullRoot = _rootFile.getAbsolutePath();  // there must be a nicer way to do this?
+        
+        if (!fp.startsWith(fullRoot)) {
+            return AdapterType.DIRECT_10GEN;
+        }
+
+        Object o = _adapterSelector.call(_initScope, new JSString(fp.substring(fullRoot.length())));
 
         if (o == null) {
             return _staticAdapterType;
