@@ -67,6 +67,15 @@ public class SiteSystemState {
         PyObject pyImport = builtins.__finditem__( "__import__" );
         if( ! ( pyImport instanceof TrackImport ) )
             builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
+
+        if( ac != null ){
+            try {
+                pyState.setCurrentWorkingDir( ac.getFile(".").getAbsolutePath() );
+            }
+            catch(FileNotFoundException e){
+                throw new RuntimeException("java sucks");
+            }
+        }
     }
 
     public PySystemState getPyState(){

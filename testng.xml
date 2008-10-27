@@ -34,6 +34,7 @@
       <class name="ed.lang.python.PythonReloadTest" />
       <class name="ed.lang.python.PythonDeleteTest" />
       <class name="ed.lang.python.PythonResetTest" />
+      <class name="ed.lang.python.PythonFileTest" />
       <class name="ed.manager.ManagerTest" />
     </classes>
   </test>

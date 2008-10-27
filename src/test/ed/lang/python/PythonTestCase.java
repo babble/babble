@@ -52,7 +52,7 @@ abstract public class PythonTestCase extends ed.TestCase {
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
 
-        AppContext ac = new AppContext( name );
+        AppContext ac = new AppContext( dir );
         Scope globalScope = ac.getScope();
         globalScope.setGlobal(true);
         globalScope.makeThreadLocal();
