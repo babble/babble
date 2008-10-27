@@ -326,7 +326,14 @@ public class Shell {
         boolean hasReturn[] = new boolean[1];
         
         String command = "";
-        while ( ( line = console.readLine( "> " ) ) != null ){
+        while ( true ){
+            String prompt = "> ";
+            if( command.length() != 0 )
+                prompt = "  ";
+
+            line = console.readLine( prompt );
+            if( line == null ) break;
+
             if ( line.equals( "exit" ) ){
                 System.out.println( "bye" );
                 break;
