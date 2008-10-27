@@ -300,6 +300,14 @@ public class Python extends Language {
         return extractLambda( source );
     }
 
+    public boolean isComplete( String code ){
+        // Be careful! Right now ed.js.Shell doesn't leave \n at the EOL, so we
+        // signify the user having typed a blank line by just one \n!
+        System.out.println("Trying to see  complete " + code);
+        if( code.indexOf(':') == -1 || code.endsWith("\n") ) return true;
+        return false;
+    }
+
     public Object eval( Scope s , String code , boolean[] hasReturn ){
         if( D )
             System.out.println( "Doing eval on " + code );

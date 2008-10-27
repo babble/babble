@@ -74,6 +74,10 @@ public abstract class Language {
         return ret;
     }
 
+    public boolean isComplete( String code ){
+        return true;
+    }
+
     public String toString(){
         return _name;
     }

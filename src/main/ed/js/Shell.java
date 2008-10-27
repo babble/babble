@@ -325,18 +325,24 @@ public class Shell {
         
         boolean hasReturn[] = new boolean[1];
         
+        String command = "";
         while ( ( line = console.readLine( "> " ) ) != null ){
-            line = line.trim();
-            if ( line.length() == 0 )
-                continue;
-
             if ( line.equals( "exit" ) ){
                 System.out.println( "bye" );
                 break;
             }
 
+            command += line;
+            if( ! replLang.isComplete( command ) ){
+                command += "\n";
+                continue;
+            }
+
+            if ( command.length() == 0 )
+                continue;
+
             try {
-                Object res = replLang.eval( s , line , hasReturn );
+                Object res = replLang.eval( s , command , hasReturn );
                 if ( hasReturn[0] ){
                     if ( res instanceof DBCursor )
                         ed.db.Shell.displayCursor( System.out , (DBCursor)res );
@@ -352,6 +358,7 @@ public class Shell {
                 e.printStackTrace();
                 System.out.println();
             }
+            command = "";
         }
     }
 
