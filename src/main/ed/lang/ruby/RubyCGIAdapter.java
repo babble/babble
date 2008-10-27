@@ -16,11 +16,9 @@
 
 package ed.lang.ruby;
 
-import java.io.*;
-import java.util.*;
-
-import org.jruby.*;
 import org.jruby.ast.Node;
+import org.jruby.RubyIO;
+import org.jruby.Ruby;
 
 import ed.appserver.AppRequest;
 import ed.appserver.adapter.cgi.EnvMap;
@@ -29,14 +27,21 @@ import ed.js.engine.Scope;
 import ed.appserver.adapter.cgi.CGIAdapter;
 import ed.util.Dependency;
 
-public class RubyCGIGateway extends CGIAdapter {
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Set;
+
+public class RubyCGIAdapter extends CGIAdapter {
 
     protected RuntimeEnvironment runenv;
     protected File file;
     protected Node node;
     protected long lastCompile;
 
-    public RubyCGIGateway(File f) {
+    public RubyCGIAdapter(File f) {
         file = f;
         runenv = new RuntimeEnvironment(null);
     }
@@ -70,7 +75,7 @@ public class RubyCGIGateway extends CGIAdapter {
             runenv.commonRun(getAST(), s);
         }
         catch (IOException e) {
-            System.err.println("RubyCGIGateway.handle: " + e);
+            System.err.println("RubyCGIAdapter.handle: " + e);
         }
     }
 

@@ -25,6 +25,8 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.lang.ruby.RubyCGIAdapter;
+import ed.lang.python.PythonJxpSource;
 import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.adapter.cgi.SysExecCGIAdapter;
@@ -56,11 +58,17 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             s = Language.PYTHON.getAdapter(adapterType, f, context, lib);
 
             if (s == null) {
-                s = new ed.lang.python.PythonJxpSource( f , lib );
+                s = new PythonJxpSource( f , lib );
             }
         }
-        else if ( f.getName().endsWith( ".rb" ) )
-            s = new ed.lang.ruby.RubyJxpSource( f );
+        else if ( f.getName().endsWith( ".rb" ) ){
+
+            s = Language.RUBY.getAdapter(adapterType, f, context, lib);
+
+            if (s == null) {
+                s = new ed.lang.ruby.RubyJxpSource(f);
+            }
+        }
 
         else if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
             s = new ed.lang.ruby.RubyErbSource( f );
@@ -72,7 +80,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             s = new SysExecCGIAdapter( f );
 
         else if ( f.getName().endsWith( ".rbcgi" ) )
-            s = new ed.lang.ruby.RubyCGIGateway( f );
+            s = new RubyCGIAdapter( f );
 
         if( s == null )
             s = new JxpFileSource( f );
