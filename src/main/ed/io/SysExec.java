@@ -71,7 +71,10 @@ public class SysExec extends ed.js.func.JSFunctionCalls5 {
     /**
      * adds quotes as needed
      */
-    static String[] fix( String s ){
+    public static String[] fix( String s ){
+        if ( s == null )
+            return new String[0];
+
         String base[] = s.split( "\\s+" );
             
         List<String> fixed = new ArrayList();
