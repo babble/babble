@@ -203,6 +203,14 @@ public abstract class HttpMonitor implements HttpHandler {
         return Double.MIN_VALUE;
     }
     
+    public String getName(){
+        return _name;
+    }
+    
+    public String getURI(){
+        return _uri;
+    }
+
     String _section(){
         return _section( _name );
     }
@@ -440,6 +448,13 @@ public abstract class HttpMonitor implements HttpHandler {
 	    if ( _json )
 		throw new RuntimeException( "this is a json request, and you're trying to do a non-json thing" );
 	}
+
+        public void print( Object o ){
+            _assertIfJson();
+            if ( o == null )
+                o = "null";
+            _out.print( o.toString() );
+        }
 	
 	private final JxpWriter _out;
 	private final HttpRequest _request;
