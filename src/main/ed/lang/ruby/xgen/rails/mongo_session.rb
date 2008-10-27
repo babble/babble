@@ -12,11 +12,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+require 'base64'
+
 module XGen
 
   module Rails
 
+    # MongoSession handles sessions for CGI. The 10gen session object uses the
+    # Mongo database for persistence and it manages matching sessions with
+    # requests.
+    #
+    # We store data in the session by marshalling the data to be saved, just
+    # like CGI::Session::ActiveRecordStore does.
+    #
+    # See ../rails.rb for the code that tells Rails about this class.
     class MongoSession
+
+      SESSION_DATA_KEY = :session_data
 
       attr_reader :session_id
 
@@ -35,16 +47,13 @@ module XGen
 
       def restore
         @data = {}
-        $session.keySet().each { |k| @data[k] = $session[k] unless k == '_key' }
+        marshalled_data = $session[SESSION_DATA_KEY]
+        @data = Marshal.load(Base64.decode64(marshalled_data)) if marshalled_data
         self
       end
 
       def update
-        @data.each { |k, v| $session[k] = v unless k == '_key' }
-        # FIXME we need to "tickle" the session with a new value because right
-        # now sessions do not notice changes in sub-objects, only top-level
-        # values and objects.
-        $session[:_timestamp] = Time.new.to_i
+        $session[SESSION_DATA_KEY] = Base64.encode64(Marshal.dump(@data))
       end
 
       def close
@@ -53,7 +62,7 @@ module XGen
 
       def delete
         @data = {}
-        $session.keys.each { |k| $session.removeField(k) }
+        $session[SESSION_DATA_KEY] = nil
       end
 
     end
