@@ -80,9 +80,6 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         else if ( f.getName().endsWith( ".cgi" ) )
             s = new SysExecCGIAdapter( f );
 
-        else if ( f.getName().endsWith( ".rbcgi" ) )
-            s = new RubyCGIAdapter( f );
-
         if( s == null )
             s = new JxpFileSource( f );
         s._lib = lib;
