@@ -441,10 +441,14 @@ public class JSInternalFunctions extends JSNumericFunctions {
 	if ( a == null || b == null )
 	    return false;
 
-        if( a instanceof ENode ) { 
+        if( a instanceof ENode || 
+            a instanceof QName ||
+            a instanceof Namespace ) { 
             a = a.toString();
         }
-        if( b instanceof ENode ) { 
+        if( b instanceof ENode ||
+            b instanceof QName ||
+            b instanceof Namespace ) { 
             b = b.toString();
         }
 
