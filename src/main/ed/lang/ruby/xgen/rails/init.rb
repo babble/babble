@@ -22,6 +22,9 @@ You don't have to use this file---you can copy and modify the code below
 and put it in your _init.rb instead.
 =end
 
+# Set adapter to CGI.
+$adapterType = 'CGI'
+
 # Look for the requested URI in the public directory. If not found, pass it on
 # to the 10gen Rails dispatcher.
 $mapUrlToJxpFile = Proc.new do |uri, req|
@@ -29,6 +32,6 @@ $mapUrlToJxpFile = Proc.new do |uri, req|
   if File.exist?(File.join($local.getRoot.getPath, 'public', uri[1..-1]))
     "/public" + uri
   else
-    "public/xgen_dispatch.rbcgi"
+    "public/xgen_dispatch.rb"
   end
 end

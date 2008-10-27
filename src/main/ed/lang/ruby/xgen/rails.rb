@@ -18,21 +18,12 @@ To get Rails to work with babble, you need to create two files. First,
 create a file named _init.rb in the root directory of your Rails app that
 looks like this:
 
-# Look for the requested URI in the public directory. If not found, pass it on
-# to the 10gen Rails dispatcher.
-$mapUrlToJxpFile = Proc.new do |uri, req|
-  uri = '/index.html' if uri == '/'
-  if File.exist?(File.join($local.getRoot.getPath, 'public', uri[1..-1]))
-    "/public" + uri
-  else
-    "public/xgen_dispatch.rbcgi"
-  end
-end
+  require 'xgen/rails/init'
 
-Next, add public/xgen_dispatch.rbcgi:
+Next, add public/xgen_dispatch.rb:
 
-require 'xgen/rails'
-Dispatcher.dispatch
+  require 'xgen/rails'
+  Dispatcher.dispatch
 =end
 
 
