@@ -1,0 +1,15 @@
+This is Jython 2.5a3 - an alpha version.
+
+Installation was done using the installer into this directory.
+
+Then the "jython-compelete.jar" was renamed "jython.jar" - this is
+required due to some jython cache directory searching functionality
+
+Additionally, I added a "javalibs" directory, which is something we had 
+when we build 2.1.1 from code.  This appears to be something needed for
+building and running old version - the new jython-complete.jar seems
+to have everything it needs.  We'll see.
+
+Also, the db currently has a hardcoded reference to include/jython/javalibs
+and if it doesn't exist, the db refuses to start.
+
