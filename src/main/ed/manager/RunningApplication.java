@@ -68,7 +68,8 @@ public class RunningApplication extends Thread {
             
             _logger.info( "RESTARTING.  exitValue : " + exitValue  );
         }
-            
+        
+        _done = true;
         _manager.interrupt();
     }
 
@@ -98,7 +99,7 @@ public class RunningApplication extends Thread {
             
         log.close();
             
-        return _process.exitValue();
+        return _process.waitFor();
     }
 
     public void shutdown(){
@@ -144,6 +145,10 @@ public class RunningApplication extends Thread {
         return new File( dir , type + "." + id + ".log" + ( num == 0 ? "" : "." + num ) );
     }
 
+    boolean isDone(){
+        return _done;
+    }
+
     Application _app;
     
     final Manager _manager;
@@ -153,6 +158,8 @@ public class RunningApplication extends Thread {
     final CircularList<String> _lastOutput = new CircularList<String>( 100 , true );
 
     private boolean _shutdown = false;
+    private boolean _done = false;
+    
     private int _pid = -1;
     private Process _process;
     private long _lastStart;
