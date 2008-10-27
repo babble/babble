@@ -45,7 +45,12 @@ public class PyJSObjectWrapper extends PyDictionary {
             throw new NullPointerException( "don't think you should create a PyJSObjectWrapper for null" );
     }
 
+    public PyObject __iter__(){
+        return keys().__iter__();
+    }
+
     public PyObject iterkeys(){
+        System.err.println( "iterkeys" );
         return jswrapper_iterkeys();
     }
 

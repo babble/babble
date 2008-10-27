@@ -46,7 +46,8 @@ import time
 import stat as _stat
 import sys
 from java.io import File
-from org.python.core.io import FileDescriptors
+from org.python.core import PyFile
+from org.python.core.io import FileDescriptors, FileIO, IOBase
 
 # Mapping of: os._name: [name list, shell command list]
 _os_map = dict(nt=[
@@ -243,11 +244,12 @@ def chdir(path):
 
     Change the current working directory to the specified path.
     """
-    if not _path.exists(path):
+    realpath = _path.realpath(path)
+    if not _path.exists(realpath):
         raise OSError(errno.ENOENT, errno.strerror(errno.ENOENT), path)
-    if not _path.isdir(path):
+    if not _path.isdir(realpath):
         raise OSError(errno.ENOTDIR, errno.strerror(errno.ENOTDIR), path)
-    sys.setCurrentWorkingDir(_path.realpath(path))
+    sys.setCurrentWorkingDir(realpath)
 
 def listdir(path):
     """listdir(path) -> list_of_strings
@@ -497,25 +499,22 @@ def utime(path, times):
     """utime(path, (atime, mtime))
     utime(path, None)
 
-    Set the access and modified time of the file to the given values.
-    If the second form is used, set the access and modified times to the
+    Set the access and modification time of the file to the given values.
+    If the second form is used, set the access and modification times to the
     current time.
 
-    Due to java limitations only the modification time is changed.
+    Due to Java limitations, on some platforms only the modification time
+    may be changed.
     """
-    if times is not None:
-        # We don't use the access time, but typecheck it anyway
-        long(times[0])
-        if times[0] is None: # XXX http://bugs.jython.org/issue1059
-            # CPython says the same, although it takes floats too
-            raise TypeError('an integer is required')
-        mtime = times[1]
-    else:
-        mtime = time.time()
     if path is None:
         raise TypeError('path must be specified, not None')
-    # Only the modification time is changed
-    File(sys.getPath(path)).setLastModified(long(mtime * 1000.0))
+
+    if times is not None:
+        atime, mtime = times
+    else:
+        atime = mtime = time.time()
+
+    _posix.utimes(path, long(atime * 1000), long(mtime * 1000))
 
 def close(fd):
     """close(fd)
@@ -536,7 +535,6 @@ def fdopen(fd, mode='r', bufsize=-1):
     if rawio.closed():
         raise OSError(errno.EBADF, errno.strerror(errno.EBADF))
 
-    from org.python.core import PyFile
     try:
         fp = PyFile(rawio, '<fdopen>', mode, bufsize)
     except IOError:
@@ -583,11 +581,12 @@ def open(filename, flag, mode=0777):
     if not creating and not path.exists(filename):
         raise OSError(errno.ENOENT, errno.strerror(errno.ENOENT), filename)
 
-    if not writing or updating:
-        # Default to reading
-        reading = True
+    if not writing:
+        if updating:
+            writing = True
+        else:
+            reading = True
 
-    from org.python.core.io import FileIO
     if truncating and not writing:
         # Explicitly truncate, writing will truncate anyway
         FileIO(filename, 'w').close()
@@ -646,6 +645,13 @@ def _handle_oserror(func, *args, **kwargs):
         raise OSError(errno.EBADF, errno.strerror(errno.EBADF))
 
 if _name == 'posix' and _native_posix:
+    def link(src, dst):
+        """link(src, dst)
+    
+        Create a hard link to a file.
+        """
+        _posix.link(sys.getPath(src), sys.getPath(dst))
+
     def symlink(src, dst):
         """symlink(src, dst)
 
@@ -957,8 +963,6 @@ def isatty(fileno):
 
     if isinstance(fileno, FileDescriptor):
         return _posix.isatty(fileno)
-
-    from org.python.core.io import IOBase
 
     if not isinstance(fileno, IOBase):
         print fileno

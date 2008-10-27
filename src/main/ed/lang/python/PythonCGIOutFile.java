@@ -25,23 +25,28 @@ import org.python.core.PyString;
 import org.python.core.Py;
 
 import java.io.OutputStreamWriter;
-import java.io.OutputStream;
 import java.io.IOException;
 
 
+/**
+ *  PyFile that writes to a thread-local stream.  Used for CGI
+ *  since the Python 'state' appears to be a singleton and thus
+ *  concurrent CGI requests can stomp on one another.
+ */
 @ExposedType(name = "_10gen_cgiout")
 public class PythonCGIOutFile extends PyFile {
 
     protected static PyType TYPE = Python.exposeClass(PythonCGIOutFile.class);
     protected OutputStreamWriter _osWriter;
 
-    PythonCGIOutFile(OutputStream outStream) {
+    PythonCGIOutFile() {
         super(TYPE);
-        _osWriter = new OutputStreamWriter(outStream);
     }
-
+    
     @ExposedMethod
     public void flush() {
+        setOSWriter();
+
         try {
             _osWriter.flush();
         }
@@ -72,9 +77,9 @@ public class PythonCGIOutFile extends PyFile {
     }
 
     final public void _10gen_cgiout_write(String s) {
+        setOSWriter();
         try {
             _osWriter.write(s);
-            _osWriter.flush();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -83,5 +88,19 @@ public class PythonCGIOutFile extends PyFile {
 
     public void write(String s) {
         _10gen_cgiout_write(s);
+    }
+
+    public void flushOS() {
+        setOSWriter();
+        try {
+            _osWriter.flush();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void setOSWriter() {   
+        _osWriter = PythonCGIAdapter.CGIOutputStreamWriter.getThreadLocal();
     }
 }

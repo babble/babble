@@ -1,6 +1,24 @@
 // SimplePoolTest.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.util;
+
+import org.testng.annotations.Test;
 
 public class SimplePoolTest extends ed.TestCase {
 
@@ -16,7 +34,8 @@ public class SimplePoolTest extends ed.TestCase {
 
 	int _num = 0;
     }
-    
+
+    @Test
     public void testBasic1(){
 	MyPool p = new MyPool( 10 , 10 );
 	
@@ -31,6 +50,7 @@ public class SimplePoolTest extends ed.TestCase {
 	assertEquals( 0 , a );
     }
 
+    @Test
     public void testBasic2(){
 	MyPool p = new MyPool( 0 , 0 );
 	
@@ -45,6 +65,7 @@ public class SimplePoolTest extends ed.TestCase {
 	assertEquals( 2 , a );
     }
 
+    @Test
     public void testMax1(){
 	MyPool p = new MyPool( 10 , 2 );
 	
@@ -56,7 +77,8 @@ public class SimplePoolTest extends ed.TestCase {
 	
 	assertNull( p.get( 0 ) );
     }
-
+    
+    @Test
     public void testMax2(){
 	MyPool p = new MyPool( 10 , 3 );
 	
@@ -69,6 +91,7 @@ public class SimplePoolTest extends ed.TestCase {
 	assertEquals( 2 , (int)p.get( -1 ) );
     }
 
+    @Test
     public void testMax3(){
 	MyPool p = new MyPool( 10 , 3 );
 	

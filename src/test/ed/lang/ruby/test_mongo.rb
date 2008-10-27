@@ -444,6 +444,30 @@ EOS
     assert_equal @mayor_str, str
   end
 
+  def test_time_updates
+    s = Student.new(:name => 'Spongebob Squarepants')
+    assert s.instance_variable_defined?(:@created_at)
+
+    assert !s.created_at?
+    assert !s.created_on?
+    assert !s.updated_on?
+
+    s.save
+    assert s.created_at?
+    assert s.created_on?
+    assert !s.updated_on?
+    t = Time.now
+    assert_equal Time.local(t.year, t.month, t.day).to_i, s.created_on
+
+    # Potential bug: if this test runs at midnight, the create runs before
+    # midnight and the update runs after, then this test will fail.
+    s.save
+    assert s.created_at?
+    assert s.created_on?
+    assert s.updated_on?
+    assert_equal s.created_on, s.updated_on
+  end
+
   def assert_all_songs(str)
     assert_match(/song: The Ability to Swing/, str)
     assert_match(/song: Budapest by Blimp/, str)

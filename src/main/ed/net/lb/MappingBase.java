@@ -193,7 +193,7 @@ public abstract class MappingBase implements Mapping {
         }
         
         if ( _defaultPool != null )
-            buf.append( "default " ).append( _defaultPool ).append( "\n\n" );
+            buf.append( "default pool " ).append( _defaultPool ).append( "\n\n" );
 
         for ( String addr : _blockedIps )
             buf.append( "block ip " ).append( addr ).append( "\n\n" );

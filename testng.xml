@@ -19,6 +19,8 @@
       <class name="ed.util.FastStackTest"/>
       <class name="ed.util.CircularListTest"/>
       <class name="ed.util.ThreadPoolTest"/>
+      <class name="ed.util.SimplePoolTest"/>
+      <class name="ed.util.TextSimpleConfigTest"/>
       <class name="ed.io.ByteBufferStreamTest"/>
       <class name="ed.appserver.AppContextTestNG" />
       <class name="ed.appserver.JSFileLibraryTest" />
@@ -32,6 +34,7 @@
       <class name="ed.lang.python.PythonReloadTest" />
       <class name="ed.lang.python.PythonDeleteTest" />
       <class name="ed.lang.python.PythonResetTest" />
+      <class name="ed.manager.ManagerTest" />
     </classes>
   </test>
 

@@ -272,6 +272,8 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     public void addHeader( String n , String v ){
         List<String> lst = _getHeaderList( n , true );
+        if ( isSingleOutputHeader( n ) )
+            lst.clear();
         lst.add( v );
     }
 
@@ -1187,4 +1189,16 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     }
 
+    static boolean isSingleOutputHeader( String name ){
+        return SINGLE_OUTPUT_HEADERS.contains( name.toLowerCase() );
+    }
+
+    static final Set<String> SINGLE_OUTPUT_HEADERS;
+    static {
+        Set<String> s = new HashSet<String>();
+        s.add( "content-type" );
+        s.add( "content-length" );
+        s.add( "date" );
+        SINGLE_OUTPUT_HEADERS = Collections.unmodifiableSet( s );
+    }
 }

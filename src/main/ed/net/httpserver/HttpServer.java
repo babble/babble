@@ -49,6 +49,7 @@ public class HttpServer extends NIOServer {
     public HttpServer( int port )
         throws IOException {
         super( port );
+        _listentingPorts.add( port );
     }
     
     protected HttpSocketHandler accept( SocketChannel sc ){
@@ -313,7 +314,12 @@ public class HttpServer extends NIOServer {
         public void close(){
             if ( _lastResponse != null )
                 _lastResponse.socketClosing();
+
             super.close();
+
+            ByteBufferHolder holder = _in;
+            _in = null;
+            _connectionByteBufferHolder.done( holder );
         }
         
         public String toString(){
@@ -325,7 +331,7 @@ public class HttpServer extends NIOServer {
 
         final HttpServer _server;
 
-        ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
+        private ByteBufferHolder _in = _connectionByteBufferHolder.get();
         int _endOfHeader = 0;
         boolean _done = false;
         HttpRequest _lastRequest;
@@ -345,6 +351,17 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
 
+    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new SimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolds" , 20 , -1  ){
+
+        public ByteBufferHolder createNew(){
+            return new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
+        }
+        
+        public boolean ok( ByteBufferHolder holder ){
+            return holder.capacity() < 1024 * 1024;
+        }
+    };
+    
     private int _lastHandlerHash = 0;
     private List<HttpHandler> _lastHandlers;
     
@@ -442,6 +459,16 @@ public class HttpServer extends NIOServer {
         return false;
     }
 
+    private static Set<Integer> _listentingPorts = new HashSet<Integer>();
+    
+    public static int numberListeningPorts(){
+        return _listentingPorts.size();
+    }
+
+    public static Set<Integer> getListeningPorts(){
+        return Collections.unmodifiableSet( _listentingPorts );
+    }
+
     static final HttpHandler _stats = new HttpMonitor( "stats" ){
 
             public void handle( MonitorRequest mr ){
@@ -455,7 +482,7 @@ public class HttpServer extends NIOServer {
 
 		mr.startData();
 
-                mr.addData( "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
+                mr.addData( "forked queue length" , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? Status.WARN : Status.ERROR ) , forkedQueueSize );
                 mr.addData( "admin queue length" , server._forkThreadsAdmin.queueSize() );
 		
 		mr.addData( "forked processing" , server._forkThreads.inProgress() );

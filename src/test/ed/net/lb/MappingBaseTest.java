@@ -93,6 +93,7 @@ public class MappingBaseTest extends TestCase {
             "   n1\n" + 
             "pool prod2\n" + 
             "   n2\n" + 
+            "default pool prod1\n" + 
             "block ip 1.2.3.4\n" + 
             "block url www.alleyinsider.com/blah"
             ;

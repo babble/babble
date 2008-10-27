@@ -73,7 +73,17 @@ public class LB extends NIOClient {
     
     public void run(){
         _logger.debug( "Started" );
-        super.run();
+        try {
+            super.run();
+        }
+        catch ( Throwable t ){
+            try {
+                System.err.println( "LB run got error" );
+                t.printStackTrace();
+            }
+            catch ( Throwable t2 ){}
+            System.exit(-1);
+        }
     }
 
 

@@ -300,9 +300,20 @@ public class Python extends Language {
         return extractLambda( source );
     }
 
+    public boolean isComplete( String code ){
+        // Be careful! Right now ed.js.Shell doesn't leave \n at the EOL, so we
+        // signify the user having typed a blank line by just one \n!
+        if( Py.compile_command_flags( code, "<input>", "single", Py.getCompilerFlags(), false) == Py.None ) return false;
+        return true;
+    }
+
     public Object eval( Scope s , String code , boolean[] hasReturn ){
         if( D )
             System.out.println( "Doing eval on " + code );
+
+        SiteSystemState sss = getSiteSystemState( null , s );
+        PySystemState oldPyState = Py.getSystemState();
+
         PyObject globals = getGlobals( s );
         code = code+ "\n";
         PyCode pycode;
@@ -333,7 +344,13 @@ public class Python extends Language {
             pycode = (PyCode)Py.compile( mod , filename );
         }
 
-        return toJS( __builtin__.eval( pycode , globals ) );
+        try {
+            Py.setSystemState( sss.getPyState() );
+            return toJS( __builtin__.eval( pycode , globals ) );
+        }
+        finally {
+            Py.setSystemState( oldPyState );
+        }
     }
 
     public void repl( Scope s ){

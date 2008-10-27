@@ -514,6 +514,11 @@ module XGen
 
       # Saves and returns self.
       def save
+        if @_id == nil
+          set_create_times
+        else
+          set_update_times
+        end
         row = self.class.coll.save(to_mongo_value)
         if @_id == nil
           @_id = row._id
@@ -557,6 +562,38 @@ module XGen
             else
               instance_variable_set(ivar_name, val)
             end
+      end
+
+      def set_create_times(t=nil)
+        t ||= Time.now
+        self.class.field_names.each { |iv|
+          case iv
+          when :created_at
+            instance_variable_set("@#{iv}", t.to_i)
+          when :created_on
+            instance_variable_set("@#{iv}", Time.local(t.year, t.month, t.day).to_i)
+          end
+        }
+        self.class.subobjects.keys.each { |iv|
+          val = instance_variable_get("@#{iv}")
+          val.send(:set_create_times, t) if val
+        }
+      end
+
+      def set_update_times(t=nil)
+        t ||= Time.now
+        self.class.field_names.each { |iv|
+          case iv
+          when :updated_at
+            instance_variable_set("@#{iv}", t.to_i)
+          when :updated_on
+            instance_variable_set("@#{iv}", Time.local(t.year, t.month, t.day).to_i)
+          end
+        }
+        self.class.subobjects.keys.each { |iv|
+          val = instance_variable_get("@#{iv}")
+          val.send(:set_update_times, t) if val
+        }
       end
 
     end

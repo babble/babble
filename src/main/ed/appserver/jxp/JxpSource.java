@@ -25,6 +25,11 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.lang.php.PHPJxpSource;
+import ed.lang.ruby.RubyCGIAdapter;
+import ed.lang.ruby.RubyJxpSource;
+import ed.lang.ruby.RubyErbSource;
+import ed.lang.python.PythonJxpSource;
 import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.adapter.cgi.SysExecCGIAdapter;
@@ -45,7 +50,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         AdapterType adapterType = AdapterType.DIRECT_10GEN;
 
         if (context != null) {
-            adapterType = context.getAdapterType();
+            adapterType = context.getAdapterType(f);
         }
 
         if ( f.getName().endsWith(".djang10") ) {
@@ -56,27 +61,24 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             s = Language.PYTHON.getAdapter(adapterType, f, context, lib);
 
             if (s == null) {
-                s = new ed.lang.python.PythonJxpSource( f , lib );
+                s = new PythonJxpSource( f , lib );
             }
         }
-        else if ( f.getName().endsWith( ".rb" ) )
-            s = new ed.lang.ruby.RubyJxpSource( f );
+        else if ( f.getName().endsWith( ".rb" ) ){
+            s = Language.RUBY.getAdapter(adapterType, f, context, lib);
 
+            if (s == null) {
+                s = new RubyJxpSource(f);
+            }
+        }
         else if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
-            s = new ed.lang.ruby.RubyErbSource( f );
+            s = new RubyErbSource( f );
 
         else if ( f.getName().endsWith( ".php" ) )
-            s = new ed.lang.php.PHPJxpSource( f );
-
-        else if ( f.getName().endsWith( ".yaml" ) ) {
-            //s = new AECGISource( f , lib );
-        }
+            s = new PHPJxpSource( f );
 
         else if ( f.getName().endsWith( ".cgi" ) )
             s = new SysExecCGIAdapter( f );
-
-        else if ( f.getName().endsWith( ".rbcgi" ) )
-            s = new ed.lang.ruby.RubyCGIGateway( f );
 
         if( s == null )
             s = new JxpFileSource( f );
