@@ -75,26 +75,32 @@ public class Manager extends Thread {
 
             for ( Application app : _factory.getApplications() ){
 
-                _logger.info( "manager checking apps" );
-
-                RunningApplication run = _running.get( app );
-                
-                if ( run != null ){
-                    if ( run._app.sameConfig( app ) ){
-                        if ( ! run.isDone() ){
-                            running++;
+                try {
+                    _logger.info( "manager checking apps" );
+                    
+                    RunningApplication run = _running.get( app );
+                    
+                    if ( run != null ){
+                        
+                        if ( run._app.sameConfig( app ) ){
+                            if ( ! run.isDone() )
+                                running++;
+                            continue;
                         }
+                        
+                        _logger.info( "config changed" );
+                        run.restart( app );
                         continue;
                     }
-                    _logger.info( "config changed" );
-                    run.shutdown();
-                    run = null;
+                    
+                    run = new RunningApplication( this , app );
+                    _running.put( app , run );
+                    run.start();
+                    running++;
                 }
-                
-                run = new RunningApplication( this , app );
-                _running.put( app , run );
-                run.start();
-                running++;
+                catch ( Exception e ){
+                    _logger.error( "error in run loop for app [" + app.getFullId() + "]" , e );
+                }
             }
             
             if ( running == 0 ){

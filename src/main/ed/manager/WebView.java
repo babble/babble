@@ -18,6 +18,8 @@
 
 package ed.manager;
 
+import java.util.*;
+
 import ed.net.httpserver.*;
 
 public class WebView extends HttpMonitor {
@@ -28,18 +30,18 @@ public class WebView extends HttpMonitor {
     public WebView( Manager manager ){
         super( BASE_NAME );
         _manager = manager;
-        _tail = new Tail();
+        _detail = new Detail();
     }
     
     public void handle( MonitorRequest request ){
 
-        request.startData( "applications" , "type" , "id" , "uptime" , "timesStarted" );
+        request.startData( "applications" , "type" , "id" , "started" , "uptime" , "timesStarted" );
         
         for ( Application app : _manager.getApplications() ){
             RunningApplication ra = _manager.getRunning( app );
             request.addData( app.getType() + "." + app.getId() , 
-                             app.getType() , app.getId() , ra.getUptimeMinutes() , ra.timesStarted() , 
-                             "<a href='" + _tail.getURI() + "?id=" + app.getFullId() + "'>tail</a> | "
+                             app.getType() , app.getId() , new Date( ra.getLastStart() ) , ra.getUptimeMinutes() , ra.timesStarted() , 
+                             "<a href='" + _detail.getURI() + "?id=" + app.getFullId() + "'>detail</a> | "
                              );
         }
 
@@ -48,12 +50,12 @@ public class WebView extends HttpMonitor {
     
     void add(){
         HttpServer.addGlobalHandler( this );
-        HttpServer.addGlobalHandler( _tail );
+        HttpServer.addGlobalHandler( _detail );
     }
     
-    class Tail extends HttpMonitor {
-        Tail(){
-            super( BASE_NAME + "-tail" );
+    class Detail extends HttpMonitor {
+        Detail(){
+            super( BASE_NAME + "-detail" );
         }
         
         public void handle( MonitorRequest request ){
@@ -83,6 +85,9 @@ public class WebView extends HttpMonitor {
                 if ( app == null )
                     request.print( "can't find app [" + fullId + "]" );
                 else {
+
+                    request.print( "Command: <b>" + Arrays.toString( app.getCommand() ) + "</b><br>" );
+
                     request.print( "<pre>\n" );
                     RunningApplication ra = _manager.getRunning( app );
                     for ( int i=0; i<ra._lastOutput.size(); i++ ){
@@ -97,5 +102,5 @@ public class WebView extends HttpMonitor {
     }
 
     final Manager _manager;
-    final Tail _tail;
+    final Detail _detail;
 }

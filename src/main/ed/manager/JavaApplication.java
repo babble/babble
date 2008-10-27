@@ -51,7 +51,10 @@ public class JavaApplication extends SimpleApplication {
     }
 
     static String[] _getCommands( String type , String className , String[] args , String[] jvmArgs , int maxMemory , boolean gc ){
-        
+
+        if ( className == null )
+            throw new IllegalArgumentException( "className can't be null" );
+
         List<String> commands = new ArrayList<String>();
         
         commands.add( JAVA );
