@@ -30,7 +30,11 @@ public class JavaApplication extends SimpleApplication {
     }
 
     public JavaApplication( String type , String id , String className , int maxMemory , String[] args , String[] jvmArgs ){
-        super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , true ) );
+        this( type , id , className , maxMemory , args , jvmArgs , true );
+    }
+    
+    public JavaApplication( String type , String id , String className , int maxMemory , String[] args , String[] jvmArgs , boolean gc ){
+        super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , gc ) );
     }
 
     public boolean gotOutputLine( String line ){

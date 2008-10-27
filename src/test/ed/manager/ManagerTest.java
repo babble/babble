@@ -29,7 +29,7 @@ public class ManagerTest extends ed.TestCase {
         
         public List<Application> getApplications(){
             List<Application> l = new LinkedList<Application>();
-            l.add( new JavaApplication( "test" , "test1" , "ed.manager.TestApp" ) );
+            l.add( new JavaApplication( "test" , "test1" , "ed.manager.TestApp" , -1 , null , null , false ) );
             return l;
         }
 
