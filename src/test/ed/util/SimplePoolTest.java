@@ -18,6 +18,8 @@
 
 package ed.util;
 
+import org.testng.annotations.Test;
+
 public class SimplePoolTest extends ed.TestCase {
 
     class MyPool extends SimplePool<Integer> {
@@ -32,7 +34,8 @@ public class SimplePoolTest extends ed.TestCase {
 
 	int _num = 0;
     }
-    
+
+    @Test
     public void testBasic1(){
 	MyPool p = new MyPool( 10 , 10 );
 	
@@ -47,6 +50,7 @@ public class SimplePoolTest extends ed.TestCase {
 	assertEquals( 0 , a );
     }
 
+    @Test
     public void testBasic2(){
 	MyPool p = new MyPool( 0 , 0 );
 	
@@ -61,6 +65,7 @@ public class SimplePoolTest extends ed.TestCase {
 	assertEquals( 2 , a );
     }
 
+    @Test
     public void testMax1(){
 	MyPool p = new MyPool( 10 , 2 );
 	
@@ -72,7 +77,8 @@ public class SimplePoolTest extends ed.TestCase {
 	
 	assertNull( p.get( 0 ) );
     }
-
+    
+    @Test
     public void testMax2(){
 	MyPool p = new MyPool( 10 , 3 );
 	
@@ -85,6 +91,7 @@ public class SimplePoolTest extends ed.TestCase {
 	assertEquals( 2 , (int)p.get( -1 ) );
     }
 
+    @Test
     public void testMax3(){
 	MyPool p = new MyPool( 10 , 3 );
 	
