@@ -1,4 +1,3 @@
+import import3_help
 
-#import import3_help
-
-#print( import3_help.foo() )
+print( import3_help.foo() )
