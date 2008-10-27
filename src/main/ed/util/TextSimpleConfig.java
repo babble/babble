@@ -71,9 +71,9 @@ public class TextSimpleConfig implements SimpleConfig {
                 // have an internal line
                 
                 line = line.trim();
-                int idx = line.indexOf( ":" );
+                int idx = line.indexOf( ": " );
                 if ( idx < 0 )
-                    idx = line.indexOf( ":" );
+                    idx = line.indexOf( " " );
                 
                 if ( idx < 0 ){ // value
                     sc.addValue( type , name , line );

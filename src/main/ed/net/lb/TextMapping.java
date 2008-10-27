@@ -74,75 +74,29 @@ public class TextMapping extends MappingBase {
         throws IOException {
         super( "TextMapping" );
         
-        String current = null;
-        String type = null;
+        TextSimpleConfig config = TextSimpleConfig.read( in );
+
+        for ( String site : config.getNames( "site" ) )
+            for ( Map.Entry<String,String> entry : config.getMap( "site" , site ).entrySet() )
+                addSiteMapping( site , entry.getKey() , entry.getValue() );
+
+        for ( String site : config.getNames( "site-alias" ) )
+            for ( Map.Entry<String,String> entry : config.getMap( "site-alias" , site ).entrySet() )
+                addSiteAlias( site , entry.getKey() , entry.getValue() );        
         
-        for ( String line : in ){
-            if ( line.length() == 0 )
-                continue;
-            
-            if ( line.startsWith( "site " ) ){
-                type = "site";
-                current = line.substring( 5 ).trim();
-                continue;
-            }
+        for ( String pool : config.getNames( "pool" ) )
+            for ( String node : config.getValues( "pool" , pool ) )
+                addAddressToPool( pool , node );
+        
+        for ( String ip : config.getValues( "block" , "ip" ) )
+            blockIp( ip );
 
-            if ( line.startsWith( "site-alias " ) ){
-                type = "site-alias";
-                current = line.substring( 10 ).trim();
-                continue;
-            }
-            
-            if ( line.startsWith( "pool " ) ){
-                type = "pool";
-                current = line.substring( 5 ).trim();
-                continue;
-            }
-            
-            if ( line.startsWith( "default " ) ){
-                current = null;
-                setDefaultPool( line.substring( 8 ).trim() );
-                continue;
-            }
-            
-            if ( line.startsWith( "block ip" ) ){
-                blockIp( line.substring( 8 ).trim() );
-                continue;
-            }
+        for ( String url : config.getValues( "block" , "url" ) )
+            blockUrl( url );
+        
+        for ( String def : config.getValues( "default" , "pool" ) )
+            setDefaultPool( def );
 
-            if ( line.startsWith( "block url" ) ){
-                line = line.substring( 9 ).trim();
-                int idx = line.indexOf( " " );
-                if ( idx < 0 ){
-                    idx = line.indexOf( "/" );
-                    if ( idx < 0 ){
-                        throw new RuntimeException( "bad block url line [" + line + "]" );
-                    }
-                }
-                
-                blockUrl( line.substring( 0 , idx ).trim() , line.substring( idx + 1 ).trim() );
-                continue;
-            }
-
-            if ( ! Character.isWhitespace( line.charAt(0) ) )
-                throw new RuntimeException( "invalid starting line [" + line + "]" );
-            
-            if ( type.equals( "site" ) ){
-                Pair<String,String> p = parseNameValue( line );
-                addSiteMapping( current , p.first , p.second );
-                continue;
-            }
-            
-            if ( type.equals( "site-alias" ) ){
-                Pair<String,String> p = parseNameValue( line );
-                addSiteAlias( current , p.first , p.second );
-                continue;                
-            }
-            
-	    line = line.trim();
-	    if ( line.length() > 0 )
-		addAddressToPool( current , line );
-        }
     }
 
     static Pair<String,String> parseNameValue( String line ){
