@@ -21,6 +21,8 @@ package ed.manager;
 import java.io.*;
 import java.util.*;
 
+import org.testng.annotations.Test;
+
 public class ManagerTest extends ed.TestCase {
     
     class MyApplicationFactory implements ApplicationFactory {
@@ -37,6 +39,7 @@ public class ManagerTest extends ed.TestCase {
 
     }
 
+    @Test
     public void testJavaApplicationCommands(){
         assertEquals( JavaApplication.JAVA + " Foo" , 
                       _toString( JavaApplication._getCommands( null , "Foo" , null , null , -1 , false ) ) );
@@ -55,6 +58,7 @@ public class ManagerTest extends ed.TestCase {
                       
     }
 
+    @Test
     public void testRunning()
         throws Exception {
         Manager m = new Manager( new MyApplicationFactory() );
@@ -63,10 +67,10 @@ public class ManagerTest extends ed.TestCase {
         assertEquals( 1 , m.getApplications().size() );
         RunningApplication ra = m.getRunning( m.getApplications().get( 0 ) );
         assertEquals( 1 , ra.timesStarted() );
-        Thread.sleep( 2000 );
+        m.join();
         assertEquals( "hello" , ra.outputLine( 1 ) );
         assertEquals( "goodbye" , ra.outputLine( 0 ) );
-        m.join();
+
     }
     
     String _toString( String[] s ){

@@ -68,11 +68,12 @@ public class Manager extends Thread {
                 
                 if ( run != null ){
                     if ( run._app.sameConfig( app ) ){
-                        if ( run.getState() != Thread.State.TERMINATED ){
+                        if ( ! run.isDone() ){
                             running++;
                         }
                         continue;
                     }
+                    _logger.info( "config changed" );
                     run.shutdown();
                     run = null;
                 }
