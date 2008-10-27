@@ -300,6 +300,13 @@ public class Python extends Language {
         return extractLambda( source );
     }
 
+    public boolean isComplete( String code ){
+        // Be careful! Right now ed.js.Shell doesn't leave \n at the EOL, so we
+        // signify the user having typed a blank line by just one \n!
+        if( Py.compile_command_flags( code, "<input>", "single", Py.getCompilerFlags(), false) == Py.None ) return false;
+        return true;
+    }
+
     public Object eval( Scope s , String code , boolean[] hasReturn ){
         if( D )
             System.out.println( "Doing eval on " + code );
