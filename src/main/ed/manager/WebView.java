@@ -34,14 +34,28 @@ public class WebView extends HttpMonitor {
     }
     
     public void handle( MonitorRequest request ){
-
+        
+        final String restartId = request.getRequest().getParameter( "restart" );
+        if ( restartId != null ){
+            Application app = _manager.findApplication( restartId );
+            if ( app == null ){
+                request.addMessage( "can't find application [" + restartId + "]" );
+            }
+            else {
+                request.addMessage( "restarted [" + restartId + "]" );
+                _manager.getRunning( app ).restart();
+            }
+            
+        }
+        
         request.startData( "applications" , "type" , "id" , "started" , "uptime" , "timesStarted" );
         
         for ( Application app : _manager.getApplications() ){
             RunningApplication ra = _manager.getRunning( app );
             request.addData( app.getType() + "." + app.getId() , 
                              app.getType() , app.getId() , new Date( ra.getLastStart() ) , ra.getUptimeMinutes() , ra.timesStarted() , 
-                             "<a href='" + _detail.getURI() + "?id=" + app.getFullId() + "'>detail</a> | "
+                             "<a href='" + _detail.getURI() + "?id=" + app.getFullId() + "'>detail</a> | " + 
+                             "<a href='" + getURI() + "?restart=" + app.getFullId() + "'>restart</a>"
                              );
         }
 
@@ -73,14 +87,7 @@ public class WebView extends HttpMonitor {
             }
             else {
                 
-                Application app = null;
-                
-                for ( Application temp : _manager.getApplications() ){
-                    if ( ! fullId.equals( temp.getFullId() ) )
-                        continue;
-                    app = temp;
-                    break;
-                }         
+                Application app = _manager.findApplication( fullId );
                 
                 if ( app == null )
                     request.print( "can't find app [" + fullId + "]" );
