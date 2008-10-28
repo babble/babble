@@ -123,7 +123,7 @@
 
  <target  name="test-basic" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
-     <jvmarg value="-Xmx256M" />
+     <jvmarg value="-Xmx512M" />
      <xmlfileset dir="." includes="testng.xml"/>
     <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
