@@ -157,7 +157,7 @@ public class PythonWSGIAdapter extends WSGIAdapter {
         env.set("wsgi.multiprocess", Py.True);
         env.set("wsgi.run_once", Py.False);
 
-        env.set("wsgi.input", new PythonCGIOutFile());
+        env.set("wsgi.input", new PythonCGIOutFile());  // TODO - fix me (same w/ CGI input problem)
         env.set("wsgi.errors", null); // TODO - fix me
 
         handleWSGI(env, stdin, stdout, ar);
