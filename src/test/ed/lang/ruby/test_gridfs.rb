@@ -20,6 +20,9 @@ class GridFSTest < RubyTest
   def setup
     super
     run_js "db = connect('test'); db._files.remove({});"
+
+    @str = "Hello, GridFS!"
+    GridFS.open('myfile', 'w') { |f| f.write @str }
   end
 
   def teardown
@@ -28,10 +31,19 @@ class GridFSTest < RubyTest
   end
 
   def test_read_write
-    str = "Hello, GridFS!"
-    GridFS.open('myfile', 'w') { |f| f.write str }
-    new_str = GridFS.open('myfile', 'r') { |f| f.read }
-    assert_equal str, new_str
+    read_str = GridFS.open('myfile', 'r') { |f| f.read }
+    assert_equal @str, read_str
+  end
+
+  def test_exist?
+    assert GridFS.exist?('myfile')
+    assert GridFS.exists?('myfile') # make sure the alias works, too
+    assert !GridFS.exist?('does-not-exist')
+  end
+
+  def test_delete
+    GridFS.delete('myfile')
+    assert !GridFS.exist?('myfile')
   end
 
 end
