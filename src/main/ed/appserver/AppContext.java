@@ -940,6 +940,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
     JxpServlet getServlet(File f)
             throws IOException {
+        // if this site doesn't exist, don't return anything
+        if( !_rootFile.exists() )
+            return null;
+
         JxpSource source = getSource(f);
         if (source == null)
             return null;
