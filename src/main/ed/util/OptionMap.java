@@ -22,4 +22,8 @@ import java.util.*;
 
 public class OptionMap extends TreeMap<String,String> {
     
+    public int getInt( String name , int def ){
+        return StringParseUtil.parseIfInt( get( name ) , def );
+    }
+
 }
