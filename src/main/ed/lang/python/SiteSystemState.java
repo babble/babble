@@ -500,6 +500,7 @@ public class SiteSystemState {
                 return new JSLibraryLoader( _core, path );
             }
 
+            /*
             int period = modName.indexOf('.');
             if( __path__ != null && period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
                 // look for foo.bar.baz in core-module foo and try foo.baz
@@ -537,6 +538,8 @@ public class SiteSystemState {
                     }
                 }
             }
+            */
+
             if( DEBUG ){
                 System.out.println( "meta_path hook didn't match " + modName );
             }
