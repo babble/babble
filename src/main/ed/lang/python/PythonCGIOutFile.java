@@ -24,8 +24,14 @@ import org.python.core.PyUnicode;
 import org.python.core.PyString;
 import org.python.core.Py;
 
-import java.io.OutputStreamWriter;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CharacterCodingException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 
 
 /**
@@ -36,8 +42,10 @@ import java.io.IOException;
 @ExposedType(name = "_10gen_cgiout")
 public class PythonCGIOutFile extends PyFile {
 
+    protected static Charset _charset = Charset.forName("ISO-8859-1");
+    protected CharsetEncoder encoder = _charset.newEncoder();
+
     protected static PyType TYPE = Python.exposeClass(PythonCGIOutFile.class);
-    protected OutputStreamWriter _osWriter;
 
     PythonCGIOutFile() {
         super(TYPE);
@@ -45,10 +53,9 @@ public class PythonCGIOutFile extends PyFile {
     
     @ExposedMethod
     public void flush() {
-        setOSWriter();
-
         try {
-            _osWriter.flush();
+            PythonCGIAdapter.CGIStreamHolder osw = PythonCGIAdapter.CGIStreamHolder.getThreadLocal();
+            osw.getOut().flush();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -77,30 +84,23 @@ public class PythonCGIOutFile extends PyFile {
     }
 
     final public void _10gen_cgiout_write(String s) {
-        setOSWriter();
+
+        PythonCGIAdapter.CGIStreamHolder osw = PythonCGIAdapter.CGIStreamHolder.getThreadLocal();
+
         try {
-            _osWriter.write(s);
+            // decode to bytes - python seems to do iso-8859-1
+            ByteBuffer bbuf = encoder.encode(CharBuffer.wrap(s));
+            osw.getOut().write(bbuf.array());
+
+        } catch (CharacterCodingException e) {
+                e.printStackTrace();
         }
         catch (IOException e) {
             e.printStackTrace();
-        }
+        }    
     }
 
     public void write(String s) {
         _10gen_cgiout_write(s);
-    }
-
-    public void flushOS() {
-        setOSWriter();
-        try {
-            _osWriter.flush();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    void setOSWriter() {   
-        _osWriter = PythonCGIAdapter.CGIOutputStreamWriter.getThreadLocal();
     }
 }
