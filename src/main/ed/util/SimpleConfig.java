@@ -25,7 +25,7 @@ public interface SimpleConfig {
     public void addEntry( String type , String name , String key , String value );
     public void addValue( String type , String name , String value );
 
-    public Map<String,String> getMap( String type , String name );
+    public OptionMap getMap( String type , String name );
     public List<String> getValues( String type , String name );
 
     public List<String> getTypes();

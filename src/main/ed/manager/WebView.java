@@ -18,6 +18,8 @@
 
 package ed.manager;
 
+import java.util.*;
+
 import ed.net.httpserver.*;
 
 public class WebView extends HttpMonitor {
@@ -28,18 +30,32 @@ public class WebView extends HttpMonitor {
     public WebView( Manager manager ){
         super( BASE_NAME );
         _manager = manager;
-        _tail = new Tail();
+        _detail = new Detail();
     }
     
     public void handle( MonitorRequest request ){
-
-        request.startData( "applications" , "type" , "id" , "uptime" , "timesStarted" );
+        
+        final String restartId = request.getRequest().getParameter( "restart" );
+        if ( restartId != null ){
+            Application app = _manager.findApplication( restartId );
+            if ( app == null ){
+                request.addMessage( "can't find application [" + restartId + "]" );
+            }
+            else {
+                request.addMessage( "restarted [" + restartId + "]" );
+                _manager.getRunning( app ).restart();
+            }
+            
+        }
+        
+        request.startData( "applications" , "type" , "id" , "started" , "uptime" , "timesStarted" );
         
         for ( Application app : _manager.getApplications() ){
             RunningApplication ra = _manager.getRunning( app );
             request.addData( app.getType() + "." + app.getId() , 
-                             app.getType() , app.getId() , ra.getUptimeMinutes() , ra.timesStarted() , 
-                             "<a href='" + _tail.getURI() + "?id=" + app.getFullId() + "'>tail</a> | "
+                             app.getType() , app.getId() , new Date( ra.getLastStart() ) , ra.getUptimeMinutes() , ra.timesStarted() , 
+                             "<a href='" + _detail.getURI() + "?id=" + app.getFullId() + "'>detail</a> | " + 
+                             "<a href='" + getURI() + "?restart=" + app.getFullId() + "'>restart</a>"
                              );
         }
 
@@ -48,12 +64,12 @@ public class WebView extends HttpMonitor {
     
     void add(){
         HttpServer.addGlobalHandler( this );
-        HttpServer.addGlobalHandler( _tail );
+        HttpServer.addGlobalHandler( _detail );
     }
     
-    class Tail extends HttpMonitor {
-        Tail(){
-            super( BASE_NAME + "-tail" );
+    class Detail extends HttpMonitor {
+        Detail(){
+            super( BASE_NAME + "-detail" );
         }
         
         public void handle( MonitorRequest request ){
@@ -71,18 +87,14 @@ public class WebView extends HttpMonitor {
             }
             else {
                 
-                Application app = null;
-                
-                for ( Application temp : _manager.getApplications() ){
-                    if ( ! fullId.equals( temp.getFullId() ) )
-                        continue;
-                    app = temp;
-                    break;
-                }         
+                Application app = _manager.findApplication( fullId );
                 
                 if ( app == null )
                     request.print( "can't find app [" + fullId + "]" );
                 else {
+
+                    request.print( "Command: <b>" + Arrays.toString( app.getCommand() ) + "</b><br>" );
+
                     request.print( "<pre>\n" );
                     RunningApplication ra = _manager.getRunning( app );
                     for ( int i=0; i<ra._lastOutput.size(); i++ ){
@@ -97,5 +109,5 @@ public class WebView extends HttpMonitor {
     }
 
     final Manager _manager;
-    final Tail _tail;
+    final Detail _detail;
 }

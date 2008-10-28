@@ -58,4 +58,7 @@ public interface Application {
     public boolean gotErrorLine( String line );
 
     public boolean sameConfig( Application other );
+
+
+    public long timeToShutDown();
 }

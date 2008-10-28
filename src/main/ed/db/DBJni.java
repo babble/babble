@@ -51,7 +51,8 @@ public class DBJni extends DBMessageLayer {
         
         dataIn.put( b.in );
         dataIn.flip();
-
+        
+        _pool.done( b );
         return dataIn.limit();
     }
 

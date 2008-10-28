@@ -1,49 +1,44 @@
+// AppServerApp.java
+
 /**
 *    Copyright (C) 2008 10gen Inc.
-*
+*  
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*
+*  
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*
+*  
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver.adapter.cgi;
+package ed.manager;
 
-import java.util.HashMap;
+import java.io.*;
+import java.util.*;
 
-/**
- *  Simple extension of HashMap to prevent null values
- */
-public class EnvMap extends HashMap<String, Object> {
+import ed.util.*;
 
-    public EnvMap() {
+public class AppServerApp extends JavaApplication {
+
+    AppServerApp( String name , OptionMap options ){
+        super( "appserver" , name , "ed.appserver.AppServer" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
+    }
+    
+    static int _howMuchMemory( OptionMap options ){
+        return options.getInt( "memory" , 1200 );
+    }
+    
+    static String[] _getArgs( OptionMap options ){
+        return new String[]{};
     }
 
-    public void set(String name, String value)
-    {
-        put(name, nonNull(value));
+    static String[] _getJvmArgs( OptionMap options ){
+        return new String[]{};
     }
 
-    /**
-     * Mainly for WSGI, which can pass pythong thingies (e.g. tupeles) for values
-     * 
-     * @param name name of var
-     * @param value value of var
-     */
-    public void set(String name, Object value)
-    {
-        put(name, value);
-    }
-
-    public String nonNull(String s)
-    {
-        return s == null ? "" : s;
-    }
 }

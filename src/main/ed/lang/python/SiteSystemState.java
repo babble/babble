@@ -67,6 +67,15 @@ public class SiteSystemState {
         PyObject pyImport = builtins.__finditem__( "__import__" );
         if( ! ( pyImport instanceof TrackImport ) )
             builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
+
+        if( ac != null ){
+            try {
+                pyState.setCurrentWorkingDir( ac.getFile(".").getAbsolutePath() );
+            }
+            catch(FileNotFoundException e){
+                throw new RuntimeException("java sucks");
+            }
+        }
     }
 
     public PySystemState getPyState(){
@@ -496,7 +505,6 @@ public class SiteSystemState {
                 // look for foo.bar.baz in core-module foo and try foo.baz
                 String baz = modName.substring( modName.lastIndexOf( '.' ) + 1 );
 
-                System.out.println("Got a path " + __path__);
                 String location = __path__.pyget(0).toString();
                 for( JSLibrary key : _loaded.keySet() ){
                     if( location.startsWith( key.getRoot().toString() ) ){
@@ -504,26 +512,29 @@ public class SiteSystemState {
                         Object foo = key.getFromPath( baz , true );
                         if( foo == null ) continue;
 
+                        if( DEBUG )
+                            System.out.println("Returning rewrite loader for " + name + "." + baz);
                         return new RewriteModuleLoader( name + "." + baz );
                     }
                 }
             }
 
             if( modName.indexOf('.') == -1 ){
-                String firstpart = modName;
+                String toLoad = null;
+                if( ModuleRegistry.getARegistry().getConfig( "py-"+modName ) != null ){
+                    toLoad = "py-"+ modName;
+                }
+                else if( ModuleRegistry.getARegistry().getConfig( modName ) != null ){
+                    toLoad = modName;
+                }
 
-                try {
-                    Object foo = _coreModules.getFromPath( firstpart , true );
+                if( toLoad != null ){
+                    Object foo = _coreModules.getFromPath( toLoad , true );
                     if( foo instanceof JSLibrary ){
                         JSLibrary lib = (JSLibrary)foo;
                         _loaded.put( lib , modName );
                         return new LibraryModuleLoader( lib );
                     }
-                }
-                catch(Exception e){
-                    // This sucks -- this is probably "core module xxx doesn't exist"
-                    // No way to check for it specifically, or check whether it will
-                    // happen, since we have to do a git clone
                 }
             }
             if( DEBUG ){

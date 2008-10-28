@@ -29,8 +29,7 @@ public class RunningApplication extends Thread {
 
     public RunningApplication( Manager manager , Application app ){
         super( "RunningApplication:" + app.getType() + ":" + app.getId() );
-        setDaemon( true ); // not sure about this
-        
+
         _manager = manager;
         _app = app;
         
@@ -58,18 +57,28 @@ public class RunningApplication extends Thread {
                 _logger.error( "error running" , ioe );
                 exitValue = -1;
             }
-            
+            finally {
+                _pid = -1;
+                _process = null;
+            }
+
             _logger.info( "exited : " + exitValue );
 
-            if ( ! _app.restart( exitValue ) ){
+            if ( ! ( _inRestart || _app.restart( exitValue ) ) ){
                 _logger.info( "DONE" );
                 break;
             }
+
+            _inRestart = false;
+            
+            if ( _shutdown || _manager.isShutDown() )
+                break;
             
             _logger.info( "RESTARTING.  exitValue : " + exitValue  );
         }
         
         _done = true;
+        _process = null;
         _manager.interrupt();
     }
 
@@ -84,8 +93,12 @@ public class RunningApplication extends Thread {
         OutputStream log = new FileOutputStream( logFile );
         
         String[] command = app.getCommand();
-        if ( command[0].startsWith( "./" ) )
-            command[0] = (new File( app.getExecDir() , command[0] ) ).getAbsolutePath();
+        if ( command[0].startsWith( "./" ) ){
+            String[] temp = new String[command.length];
+            System.arraycopy( command , 0 , temp , 0 , command.length );
+            temp[0] = (new File( app.getExecDir() , command[0] ) ).getAbsolutePath();
+            command = temp;
+        }
         
         _logger.debug( "full command " + Arrays.toString( command ) );
 
@@ -104,14 +117,90 @@ public class RunningApplication extends Thread {
             
         stdout.join();
         stderr.join();
-            
+        
         log.close();
             
         return _process.waitFor();
     }
 
+    void restart(){
+        restart( null );
+    }
+
+    void restart( Application app ){
+        if ( _done )
+            throw new RuntimeException( "can't restart because done" );
+
+        if ( _shutdown )
+            throw new RuntimeException( "can't restart because shutdown" );
+        
+        if ( app != null )
+            _app = app;
+        
+        _kill();
+        _inRestart = true;
+    }
+    
     public void shutdown(){
-        throw new RuntimeException( "don't know how to shutdown an app" );
+        
+        _shutdown = true;
+
+        if ( _done )
+            return;
+        
+        _kill();
+
+        try {
+            Thread.sleep( 2 );
+        }
+        catch ( InterruptedException ie ){}
+        
+        assert( _done );
+        assert( _process == null );
+    }
+    
+    private void _kill(){
+        final Process p = _process;
+
+        if ( p == null )
+            return;
+        
+        if ( _pid <= 0 ){
+            _logger.error( "no pid, so just destroying" );
+            _destroy();
+            return;
+        }
+        
+        try {
+            SysExec.exec( "kill " + _pid );
+        }
+        catch ( Exception e ){
+            _logger.error( "couldn't kill" );
+            _destroy();
+            return;
+        }
+        
+        if ( SysExec.waitFor( p , _app.timeToShutDown() + 300 ) ){
+            _logger.info( "shutdown cleanly" );
+            return;
+        }
+
+        _logger.error( "didn't shutdown.  destroying" );
+        _destroy();
+
+    }
+    
+    private void _destroy(){
+        if ( _process == null )
+            return;
+        
+        try {
+            _process.destroy();
+        }
+        catch ( Exception e ){
+            _logger.error( "destory had an error" , e );
+        }
+        _process = null;
     }
 
     public int hashCode(){
@@ -124,6 +213,10 @@ public class RunningApplication extends Thread {
 
     public int getUptimeMinutes(){
         return (int)( ( System.currentTimeMillis() - _lastStart ) / ( 1000 * 60 ) );
+    }
+
+    public long getLastStart(){
+        return _lastStart;
     }
 
     public int timesStarted(){
@@ -167,7 +260,8 @@ public class RunningApplication extends Thread {
 
     private boolean _shutdown = false;
     private boolean _done = false;
-    
+    private boolean _inRestart = false;
+
     private int _pid = -1;
     private Process _process;
     private long _lastStart;

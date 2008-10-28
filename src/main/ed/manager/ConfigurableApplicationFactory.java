@@ -21,6 +21,7 @@ package ed.manager;
 import java.io.*;
 import java.util.*;
 
+import ed.io.*;
 import ed.log.*;
 import ed.util.*;
 
@@ -52,6 +53,28 @@ public abstract class ConfigurableApplicationFactory implements ApplicationFacto
         
         for ( String id : config.getNames( "db" ) )
             apps.add( new DBApp( id , config.getMap( "db" , id ) ) );
+        
+        for ( String id : config.getNames( "appserver" ) )
+            apps.add( new AppServerApp( id , config.getMap( "appserver" , id ) ) );
+
+        for ( String id : config.getNames( "lb" ) )
+            apps.add( new LBApp( id , config.getMap( "lb" , id ) ) );
+
+        for ( String id : config.getNames( "java" ) ){
+            
+            Map<String,String> options = config.getMap( "java" , id );
+            
+
+            apps.add( new JavaApplication( "java" , id , 
+                                           options.get( "class" ) , 
+                                           StringParseUtil.parseIfInt( options.get( "memory" ) , -1 ) ,
+                                           SysExec.fix( options.get( "args" ) ) , 
+                                           SysExec.fix( options.get( "jvmArgs" ) ) , 
+                                           StringParseUtil.parseBoolean( options.get( "gc" ) , false )
+                                           )
+                      );
+            
+        }
 
         _previousApps = apps;
         return apps;

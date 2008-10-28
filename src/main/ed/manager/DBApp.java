@@ -21,6 +21,8 @@ package ed.manager;
 import java.io.*;
 import java.util.*;
 
+import ed.util.*;
+
 public class DBApp extends SimpleApplication {
 
     DBApp( String id ){
@@ -93,7 +95,7 @@ public class DBApp extends SimpleApplication {
         }
 
         for ( String b : _booleans ){
-            if ( m.containsKey( b ) ){
+            if ( m.containsKey( b ) && StringParseUtil.parseBoolean( m.get(b) , false ) ){
                 args.add( "--" + b );
             }
         }
