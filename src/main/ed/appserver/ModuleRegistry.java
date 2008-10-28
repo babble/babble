@@ -40,7 +40,6 @@ public class ModuleRegistry {
     }
 
     public ModuleConfig getConfig( String name ){
-        
 	ModuleConfig mc = _find( name );
 	if ( mc != null )
 	    return mc;
@@ -52,7 +51,6 @@ public class ModuleRegistry {
         if ( _parent != null )
             return _parent.getConfig( name );
         
-        System.out.println( "can't find config for module [" + name + "] from " + _repositories );
         return null;
     }
 
