@@ -210,6 +210,10 @@ public class TextSimpleConfig implements SimpleConfig {
         return outputToString( this );
     }
     
+    public String toString(){
+        return outputToString( this );
+    }
+
     // ---
 
     Type getType( String type , boolean create ){

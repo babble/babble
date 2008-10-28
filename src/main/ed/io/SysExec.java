@@ -65,7 +65,39 @@ public class SysExec extends ed.js.func.JSFunctionCalls5 {
         
         return arr;
     }
+    
+    public static boolean waitFor( final Process p , final long timeout ){
+        final boolean[] going = new boolean[]{ true };
+        final Thread main = Thread.currentThread();
+    
+        final Thread t = new Thread(){
+                public void run(){
+                    try {
+                        sleep( timeout );
+                    }
+                    catch ( InterruptedException ie ){
+                    }
 
+                    if ( going[0] )
+                        main.interrupt();
+                }
+            };
+        t.setDaemon( true );
+        t.start();
+        
+        try {
+            p.waitFor();
+            return true;
+        }
+        catch ( InterruptedException ie ){
+            return false;
+        }
+        finally {
+            going[0] = false;
+        }
+                
+    }
+    
 
 
     /**

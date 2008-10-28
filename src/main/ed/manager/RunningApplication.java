@@ -64,19 +64,18 @@ public class RunningApplication extends Thread {
 
             _logger.info( "exited : " + exitValue );
 
-            if ( ! _app.restart( exitValue ) ){
+            if ( ! ( _inRestart || _app.restart( exitValue ) ) ){
                 _logger.info( "DONE" );
                 break;
             }
+
+            _inRestart = false;
             
             if ( _shutdown || _manager.isShutDown() )
                 break;
             
             _logger.info( "RESTARTING.  exitValue : " + exitValue  );
         }
-        
-        if ( _shuttingDownThread != null )
-            _shuttingDownThread.interrupt();
         
         _done = true;
         _process = null;
@@ -124,8 +123,22 @@ public class RunningApplication extends Thread {
         return _process.waitFor();
     }
 
+    void restart(){
+        restart( null );
+    }
+
     void restart( Application app ){
-        throw new RuntimeException( "don't know how to restart" );
+        if ( _done )
+            throw new RuntimeException( "can't restart because done" );
+
+        if ( _shutdown )
+            throw new RuntimeException( "can't restart because shutdown" );
+        
+        if ( app != null )
+            _app = app;
+        
+        _kill();
+        _inRestart = true;
     }
     
     public void shutdown(){
@@ -134,47 +147,47 @@ public class RunningApplication extends Thread {
 
         if ( _done )
             return;
+        
+        _kill();
 
-        while ( _shuttingDownThread != null )
-            throw new RuntimeException( "someone got here first" );
+        try {
+            Thread.sleep( 2 );
+        }
+        catch ( InterruptedException ie ){}
+        
+        assert( _done );
+        assert( _process == null );
+    }
+    
+    private void _kill(){
+        final Process p = _process;
+
+        if ( p == null )
+            return;
+        
+        if ( _pid <= 0 ){
+            _logger.error( "no pid, so just destroying" );
+            _destroy();
+            return;
+        }
         
         try {
-            
-            if ( _process == null )
-                return;
-            
-            if ( _pid <= 0 ){
-                _logger.error( "no pid, so just killing" );
-                _destroy();
-                return;
-            }
-            
-            try {
-                SysExec.exec( "kill " + _pid );
-            }
-            catch ( Exception e ){
-                _logger.error( "couldn't kill" );
-                _destroy();
-                return;
-            }
-            
-            _shuttingDownThread = Thread.currentThread();
-            try {
-                Thread.sleep( _app.timeToShutDown() + 300 );
-            }
-            catch ( InterruptedException ie ){}
-            _shuttingDownThread = null;
-
-            if ( ! _done ){
-                _logger.error( "not shutdown after waiting.  killing" );
-                _destroy();
-            }
-
+            SysExec.exec( "kill " + _pid );
         }
-        finally {
-            _shuttingDownThread = null;
+        catch ( Exception e ){
+            _logger.error( "couldn't kill" );
+            _destroy();
+            return;
         }
         
+        if ( SysExec.waitFor( p , _app.timeToShutDown() + 300 ) ){
+            _logger.info( "shutdown cleanly" );
+            return;
+        }
+
+        _logger.error( "didn't shutdown.  destroying" );
+        _destroy();
+
     }
     
     private void _destroy(){
@@ -247,7 +260,7 @@ public class RunningApplication extends Thread {
 
     private boolean _shutdown = false;
     private boolean _done = false;
-    private Thread _shuttingDownThread;
+    private boolean _inRestart = false;
 
     private int _pid = -1;
     private Process _process;

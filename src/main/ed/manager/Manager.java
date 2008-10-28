@@ -133,6 +133,13 @@ public class Manager extends Thread {
         return _shutdown;
     }
 
+    public Application findApplication( String fullId ){
+        for ( Application app : getApplications() )
+            if ( app.getFullId().equals( fullId ) )
+                return app;
+        return null;
+    }
+
     public List<Application> getApplications(){
         return new ArrayList<Application>( _running.keySet() );
     }
