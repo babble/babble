@@ -500,7 +500,6 @@ public class SiteSystemState {
                 return new JSLibraryLoader( _core, path );
             }
 
-            /*
             int period = modName.indexOf('.');
             if( __path__ != null && period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
                 // look for foo.bar.baz in core-module foo and try foo.baz
@@ -522,12 +521,19 @@ public class SiteSystemState {
 
             if( modName.indexOf('.') == -1 ){
                 String toLoad = null;
+
                 if( ModuleRegistry.getARegistry().getConfig( "py-"+modName ) != null ){
                     toLoad = "py-"+ modName;
                 }
                 else if( ModuleRegistry.getARegistry().getConfig( modName ) != null ){
                     toLoad = modName;
                 }
+
+                // Explicit de-include for things that exist in the site
+                // HACK -- FIXME -- use a sys.path_hooks file which creates a
+                // new loader
+                if( _context != null && ( new File(_context.getRoot(), modName ).exists() || new File(_context.getRoot(), modName+".py").exists() ) )
+                    toLoad = null;
 
                 if( toLoad != null ){
                     Object foo = _coreModules.getFromPath( toLoad , true );
@@ -538,7 +544,6 @@ public class SiteSystemState {
                     }
                 }
             }
-            */
 
             if( DEBUG ){
                 System.out.println( "meta_path hook didn't match " + modName );
