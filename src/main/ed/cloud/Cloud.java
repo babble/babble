@@ -35,9 +35,13 @@ public class Cloud extends JSObjectBase {
      * how often should things that read from this refresh their data
      */
     public static final long CLOUD_REFRESH_RATE = 1000 * 30; 
-
+    
     static final boolean FORCE_GRID = ed.util.Config.get().getBoolean( "FORCE-GRID" );
     
+    public static int getGridDBPort(){
+        return 27016;
+    }
+
     static Logger _log = Logger.getLogger( "cloud" );
     static {
         _log.setLevel( Level.INFO );
@@ -315,7 +319,7 @@ public class Cloud extends JSObjectBase {
         return ! JSInternalFunctions.JS_evalToBool( me.get( "bad" ) );
     }
 
-    JSObject getMe(){
+    public JSObject getMe(){
         JSObject o = (JSObject)_scope.get( "me" );
         if ( o == null )
             throw new RuntimeException( "why is me null" );

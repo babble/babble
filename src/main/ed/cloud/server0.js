@@ -64,5 +64,9 @@ Cloud.Server._fixHostName = function( host ){
 me = new Cloud.Server( SERVER_NAME );
 log.info( "SERVER_NAME : " + SERVER_NAME );
 log.info( "me : " + me );
-log.info( "grid server : " + me.gridServer() );
-db = connect( "grid" , me.gridServer() );
+
+db = connect( "grid" , ( me.gridServer() || "localhost" ) + ":" + javaStatic( "ed.cloud.Cloud" , "getGridDBPort" ) );
+
+me.isGridServer = me.real && javaStatic( "ed.net.DNSUtil" , "isLocalAddress" , me.gridServer() );
+
+log.info( "grid server : " + me.gridServer() + " amIGrid:" + me.isGridServer );
