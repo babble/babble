@@ -728,7 +728,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             final JxpWriter jxpWriter = getJxpWriter();
             _outputStream = new ServletOutputStream(){
                     public void write( int b ){
-                        jxpWriter.print( String.valueOf( (char)b ) );
+                        jxpWriter.write( b );
                     }
                 };
         }
@@ -1002,6 +1002,26 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             return this;
         }
 
+	public void write( int b ){
+	    
+	    if ( _done )
+		throw new RuntimeException( "already done" );
+	    
+	    if ( b < Byte.MIN_VALUE || b  > Byte.MAX_VALUE )
+		throw new RuntimeException( "what?" );
+	    
+	    if ( _cur.remaining() == 0 )
+		_push();
+
+	    if ( _mode == OutputMode.STRING ){
+		_push();
+		_mode = OutputMode.BYTES;
+		_push();
+	    }
+
+	    byte real = (byte)( b & 0xFF );
+	    _raw.put( real );
+	}
 
         public JxpWriter print( int i ){
             return print( String.valueOf( i ) );
@@ -1026,6 +1046,11 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         public JxpWriter print( String s ){
             if ( _done )
                 throw new RuntimeException( "already done" );
+	    
+	    if ( _mode == OutputMode.BYTES ){
+		_push();
+		_mode = OutputMode.STRING;
+	    }
 
             if ( s == null )
                 s = "null";
@@ -1054,6 +1079,19 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         }
 
         void _push(){
+	    
+	    if ( _mode == OutputMode.BYTES ){
+		if ( _raw != null ){
+		    if ( _raw.position() == 0 )
+			return;
+		    
+		    _raw.flip();
+		    _myStringContent.add( _raw );
+		}
+		_raw = USE_POOL ? _bbPool.get() : ByteBuffer.wrap( new byte[ _cur.limit() * 2 ] );
+		return;
+	    }
+
             if ( _cur.position() == 0 )
                 return;
 
@@ -1137,12 +1175,17 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         }
 
         private CharBuffer _cur;
+	private ByteBuffer _raw;
         private int _mark = 0;
 
         private int _spot = -1;
         private boolean _inSpot = false;
+
+	private OutputMode _mode = OutputMode.STRING;
     }
 
+    enum OutputMode { STRING, BYTES };
+    
     static final int CHAR_BUFFER_SIZE = 1024 * 128;
     static final int MAX_STRING_SIZE = CHAR_BUFFER_SIZE / 4;
     static SimplePool<CharBuffer> _charBufPool = new SimplePool<CharBuffer>( "Response.CharBufferPool" , 50 , -1 ){
