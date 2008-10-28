@@ -66,7 +66,7 @@ public abstract class JSFile extends JSObjectBase {
         set( "filename" , filename );
         set( "contentType" , contentType );
         set( "length" , length );
-    }
+     }
 
     /** Returns the first chunk for this file.
      * @return The first chunk for this file or null if this file has 0 length.
@@ -82,7 +82,7 @@ public abstract class JSFile extends JSObjectBase {
         return chunk;
     }
 
-    /** Write a stream to this file.
+    /** Write this file to a stream.
      * @param out Stream to write.
      * @throws IOException
      */
