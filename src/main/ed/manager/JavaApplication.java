@@ -33,6 +33,10 @@ public class JavaApplication extends SimpleApplication {
         this( type , id , className , maxMemory , args , jvmArgs , true );
     }
     
+    public JavaApplication( String type , String id , String className , int maxMemory , List<String> args , List<String> jvmArgs , boolean gc ){
+        this( type , id , className , maxMemory , toArray( args ) , toArray( jvmArgs ) , gc );
+    }
+
     public JavaApplication( String type , String id , String className , int maxMemory , String[] args , String[] jvmArgs , boolean gc ){
         super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , gc ) );
     }
@@ -89,4 +93,13 @@ public class JavaApplication extends SimpleApplication {
             return "\"" + s + "\"";
         return s;
     }
+
+    public static String[] toArray( List<String> lst ){
+        if ( lst == null || lst.size() == 0 )
+            return EMPTY_ARR;
+
+        String[] arr = new String[lst.size()];
+        return lst.toArray( arr );
+    }
+    private static final String[] EMPTY_ARR = new String[0];
 }
