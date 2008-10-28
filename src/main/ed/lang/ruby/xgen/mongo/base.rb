@@ -179,19 +179,23 @@ module XGen
         #   Person.find("48e5307114f4abdf00dfeb86")     # returns the object for this ID
         #   Person.find(["a_hex_id", "another_hex_id"]) # returns a Cursor over these two objects
         #   Person.find(["a_hex_id"])                   # returns a Cursor over the object with this ID
-        #   Person.find("a_hex_id", :conditions => {admin: 1}, :order => "created_on DESC")
+        #   Person.find("a_hex_id", :conditions => "admin = 1", :order => "created_on DESC")
         #
         # Examples for find first:
         #   Person.find(:first) # returns the first object in the collection
-        #   Person.find(:first, :conditions => {user_name: user_name})
+        #   Person.find(:first, :conditions => ["user_name = ?", user_name])
         #   Person.find(:first, :order => "created_on DESC", :offset => 5)
         #   Person.find(:first, :order => {:created_on => -1}, :offset => 5) # same as previous example
         #
         # Examples for find all:
         #   Person.find(:all) # returns a Cursor over all objects in the collection
-        #   Person.find(:all, :conditions => {category: category}, :limit => 50)
+        #   Person.find(:all, :conditions => ["category = ?, category], :limit => 50)
         #   Person.find(:all, :offset => 10, :limit => 10)
         #   Person.find(:all, :select => :name) # Only returns name (and _id) fields
+        #
+        # Find_by_*
+        #   Person.find_by_name_and_age("Spongebob", 42)
+        #   Person.find_all_by_name("Fred")
         #
         # Mongo-specific example:
         #   Person.find(:all, :where => "function() { return obj.song == 'Song Title'; }")
