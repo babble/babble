@@ -162,6 +162,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             return AdapterType.DIRECT_10GEN;
         }
 
+        /*
+         * cheap hack - prevent any _init.* file from getting run as anythign but DIRECT_10GEN
+         */
+
+        if (file != null && file.getName().indexOf("_init.") != -1) {
+            return AdapterType.DIRECT_10GEN;
+        }
+
         if (_adapterSelector == null) {
             return _staticAdapterType;
         }
