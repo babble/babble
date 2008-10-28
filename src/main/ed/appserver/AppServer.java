@@ -677,7 +677,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
     private final HttpLoadTracker.GraphOptions _displayOptions = new HttpLoadTracker.GraphOptions( 400 , 100 , true , true , true );
     private final IdentitySet<AppRequest> _currentRequests = new IdentitySet<AppRequest>();
 
-    protected final static String _X10GEN_DEBUG = "X10gen-Debug"; // private header - if set, user/profile/timing info won't be appended to response
+    protected final static String _X10GEN_DEBUG = "X-10gen-Debug"; // private header - if set, user/profile/timing info won't be appended to response
     
     // ---------
 
