@@ -30,7 +30,6 @@ import ed.net.*;
 import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
-import ed.security.*;
 
 /** The server to handle HTTP requests.
  */
@@ -120,7 +119,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
     /** Handles an HTTP request and puts the response in the given HTTP response object.
      * @param request HTTP request to handle
-     * @param HTTP response to fill in
+     * @param response to fill in
      */
     public boolean handle( HttpRequest request , HttpResponse response ){
         try {
@@ -321,6 +320,10 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
         if ( response.getHeader( "Content-Type" ).indexOf( "text/html" ) < 0 )
             return;
+
+        if (request.getHeader(_X10GEN_DEBUG) != null) {
+            return;
+        }
 
         // TODO: Eliot, be smarter about this
         if ( response.getHeader( "Content-Length" ) != null )
@@ -674,6 +677,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
     private final HttpLoadTracker.GraphOptions _displayOptions = new HttpLoadTracker.GraphOptions( 400 , 100 , true , true , true );
     private final IdentitySet<AppRequest> _currentRequests = new IdentitySet<AppRequest>();
 
+    protected final static String _X10GEN_DEBUG = "X10gen-Debug"; // private header - if set, user/profile/timing info won't be appended to response
+    
     // ---------
 
     /** @unexpose */
