@@ -69,7 +69,7 @@ public class GridMapping extends MappingBase {
         }
         
         public long refreshRate(){
-            return 1000 * 30;
+            return Cloud.CLOUD_REFRESH_RATE;
         }
         
         void writeToCache( GridMapping mapping ){

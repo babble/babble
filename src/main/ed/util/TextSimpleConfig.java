@@ -162,7 +162,7 @@ public class TextSimpleConfig implements SimpleConfig {
         getType( type , true ).addValue( name , value );
     }
 
-    public Map<String,String> getMap( String type , String name ){
+    public OptionMap getMap( String type , String name ){
         Type t = getType( type , false );
         if ( t == null )
             return EMPTY_MAP;
@@ -210,6 +210,10 @@ public class TextSimpleConfig implements SimpleConfig {
         return outputToString( this );
     }
     
+    public String toString(){
+        return outputToString( this );
+    }
+
     // ---
 
     Type getType( String type , boolean create ){
@@ -228,13 +232,13 @@ public class TextSimpleConfig implements SimpleConfig {
             _type = type;
         }
 
-        Map<String,String> getMap( String name ){
+        OptionMap getMap( String name ){
             Object foo = get( name );
             if ( foo == null )
                 return EMPTY_MAP;
 
             if ( foo instanceof Map )
-                return (Map<String,String>)foo;
+                return (OptionMap)foo;
 
             throw new RuntimeException( _type + "." + name + " is not a map" );
         }
@@ -264,7 +268,7 @@ public class TextSimpleConfig implements SimpleConfig {
                 throw new IllegalArgumentException( _type + "." +  name + " not in map mode" );
 
             if ( foo == null ){
-                foo = new TreeMap<String,String>();
+                foo = new OptionMap();
                 put( name , foo );
             }
 
@@ -291,6 +295,6 @@ public class TextSimpleConfig implements SimpleConfig {
     private Map<String,Type> _types = new TreeMap<String,Type>();
     
     private static final List<String> EMPTY_LIST = Collections.unmodifiableList( new LinkedList<String>() );
-    private static final Map<String,String> EMPTY_MAP = Collections.unmodifiableMap( new TreeMap<String,String>() );
+    private static final OptionMap EMPTY_MAP = new OptionMap();
     
 }

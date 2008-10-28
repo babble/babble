@@ -24,14 +24,20 @@ import java.util.*;
 import java.util.regex.*;
 
 import ed.db.DBAddress;
+import ed.db.DBBase;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
 
 public class Cloud extends JSObjectBase {
+    
+    /**
+     * how often should things that read from this refresh their data
+     */
+    public static final long CLOUD_REFRESH_RATE = 1000 * 30; 
 
     static final boolean FORCE_GRID = ed.util.Config.get().getBoolean( "FORCE-GRID" );
-
+    
     static Logger _log = Logger.getLogger( "cloud" );
     static {
         _log.setLevel( Level.INFO );
@@ -272,6 +278,32 @@ public class Cloud extends JSObjectBase {
         return _scope;
     }
     
+    public DBBase getDB(){
+        return (DBBase)(getScope().get( "db" ));
+    }
+
+    public String getServerName(){
+        return getScope().get( "SERVER_NAME" ).toString();
+    }
+
+    public boolean isMyServerName( final String name ){
+        final String myName = getServerName();
+        if ( myName.equalsIgnoreCase( name ) )
+            return true;
+        
+        if ( myName.contains( "." ) && name.contains( "." ) )
+            return false;
+
+        return _shortHostName( name ).equalsIgnoreCase( myName );
+    }
+
+    private String _shortHostName( String name ){
+        int idx = name.indexOf( "." );
+        if ( idx < 0 )
+            return name;
+        return name.substring( 0 , idx );
+    }
+
     public boolean isOnGrid(){
         if ( FORCE_GRID )
             return true;
