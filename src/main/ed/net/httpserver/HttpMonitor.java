@@ -349,8 +349,24 @@ public abstract class HttpMonitor implements HttpHandler {
             }
 	}
 
-	// RAW HTML API
+        public void addMessage( String message ){
+            if ( html() ){
+                _out.print( "<B>" );
+                _out.print( message );
+                _out.print( "</B>" );
+            }
+            else {
+                JSObject o = _cur.peek();
+                if ( o.get( "messages" ) == null )
+                    o.set( "messages" , new JSArray() );
+                ((JSArray)o).add( new JSString( message ) );
+            }
+        }
 
+
+
+	// RAW HTML API
+        
 	public void addHeader( String header ){
 	    if ( html() ){
 		_out.print( "<h3>" );
