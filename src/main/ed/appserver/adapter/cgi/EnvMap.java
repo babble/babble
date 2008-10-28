@@ -21,7 +21,7 @@ import java.util.HashMap;
 /**
  *  Simple extension of HashMap to prevent null values
  */
-public class EnvMap extends HashMap<String, String> {
+public class EnvMap extends HashMap<String, Object> {
 
     public EnvMap() {
     }
@@ -29,6 +29,17 @@ public class EnvMap extends HashMap<String, String> {
     public void set(String name, String value)
     {
         put(name, nonNull(value));
+    }
+
+    /**
+     * Mainly for WSGI, which can pass pythong thingies (e.g. tupeles) for values
+     * 
+     * @param name name of var
+     * @param value value of var
+     */
+    public void set(String name, Object value)
+    {
+        put(name, value);
     }
 
     public String nonNull(String s)

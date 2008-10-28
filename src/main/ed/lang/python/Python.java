@@ -46,7 +46,7 @@ public class Python extends Language {
     public Python(){
         super( "python" );
     }
-
+    
     static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
 
     static {
@@ -291,6 +291,7 @@ public class Python extends Language {
             case DIRECT_10GEN :
                 return new PythonJxpSource(f, lib);
             case WSGI :
+                return new PythonWSGIAdapter(context, f, lib);
             default :
                 throw new RuntimeException("ERROR : unsupported AdapterType : " + type);
         }

@@ -83,7 +83,7 @@ public class PythonCGIAdapter extends CGIAdapter {
         PyObject environ = ss.getPyState().getEnviron();
 
         for (String key : env.keySet()) {
-            environ.__setitem__(key.intern(), Py.newString(env.get(key)));
+            environ.__setitem__(key.intern(), Py.newString((String) env.get(key)));
         }
 
         /*

@@ -99,7 +99,7 @@ public class AECGISource  {
         for(MapEntry m : _handlerList) {
             Pattern p = m.uriPattern;
 
-            Matcher matcher = p.matcher(env.get("PATH_INFO"));
+            Matcher matcher = p.matcher((String) env.get("PATH_INFO"));
 
             if (matcher.matches()) {
 
