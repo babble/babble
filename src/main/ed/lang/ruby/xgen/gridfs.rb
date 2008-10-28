@@ -39,7 +39,10 @@ class GridFS < StringIO
             else
               raise "illegal GridFS mode #{mode}"
             end
-    write($db['_files'].findOne({:filename => name}).asString()) if @mode == :read || @mode == :append
+    if @mode == :read || @mode == :append
+      f = $db['_files'].findOne({:filename => name})
+      write(f.asString()) if f
+    end
     rewind() if @mode == :read
   end
 
@@ -47,7 +50,7 @@ class GridFS < StringIO
 
   def close
     rewind()
-    $db['_files'].save(javaCreate("ed.js.JSInputFile", @name, nil, read())) if @mode == :write || @mode == :append
+    $db['_files'].save(Java::EdJs::JSInputFile.new(@name, nil, read())) if @mode == :write || @mode == :append
     super
   end
 
