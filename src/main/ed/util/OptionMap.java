@@ -1,4 +1,4 @@
-// SimpleConfig.java
+// OptionMap.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -20,17 +20,6 @@ package ed.util;
 
 import java.util.*;
 
-public interface SimpleConfig {
-
-    public void addEntry( String type , String name , String key , String value );
-    public void addValue( String type , String name , String value );
-
-    public OptionMap getMap( String type , String name );
-    public List<String> getValues( String type , String name );
-
-    public List<String> getTypes();
-    public List<String> getNames( String type );
+public class OptionMap extends TreeMap<String,String> {
     
-    public boolean isMap( String type , String name );
-    public boolean isValue( String type , String name );
 }
