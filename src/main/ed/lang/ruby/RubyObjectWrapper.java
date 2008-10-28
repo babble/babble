@@ -23,6 +23,7 @@ import java.util.*;
 
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
+import org.jruby.java.proxies.JavaProxy;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.parser.ReOptions;
 import org.jruby.runtime.*;
@@ -226,13 +227,15 @@ public abstract class RubyObjectWrapper extends RubyObject {
             cacheWrapper(r.getRuntime(), o, r);
             return o;
         }
+        if (r instanceof JavaProxy)
+            return ((JavaProxy)r).unwrap();
         if (r instanceof RubyObject) {
             Object o = new ed.lang.ruby.JSObjectWrapper(scope, (RubyObject)r);
             cacheWrapper(r.getRuntime(), o, r);
             return o;
         }
-        else
-            return JavaUtil.convertRubyToJava(r); // punt
+
+        return JavaUtil.convertRubyToJava(r); // punt
     }
 
     public static Object[] toJSFunctionArgs(Scope s, Ruby r, IRubyObject[] args, int offset, Block block) {

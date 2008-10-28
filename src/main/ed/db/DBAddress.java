@@ -143,11 +143,11 @@ public class DBAddress {
         return host;
     }
 
-    static String defaultHost(){
+    public static String defaultHost(){
         return Config.get().getTryEnvFirst( "db_ip" , "127.0.0.1" );
     }
 
-    static int defaultPort(){
+    public static int defaultPort(){
         return Integer.parseInt(Config.get().getTryEnvFirst("db_port", Integer.toString(DBPort.PORT)));
     }
     

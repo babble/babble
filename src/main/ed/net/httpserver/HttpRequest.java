@@ -377,7 +377,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     /**
      * Gets a raw HTTP header specified by the parameter.
      * @param h the name of an HTTP header. Case insensitive.
-     * @return the header as a string
+     * @return the header as a string or null
      */
     public String getHeader( String h ){
         return _headers.get( h );

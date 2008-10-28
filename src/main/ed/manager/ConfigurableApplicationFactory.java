@@ -54,8 +54,14 @@ public abstract class ConfigurableApplicationFactory implements ApplicationFacto
         for ( String id : config.getNames( "db" ) )
             apps.add( new DBApp( id , config.getMap( "db" , id ) ) );
         
-        for ( String id : config.getNames( "java" ) ){
+        for ( String id : config.getNames( "appserver" ) )
+            apps.add( new AppServerApp( id , config.getMap( "appserver" , id ) ) );
 
+        for ( String id : config.getNames( "lb" ) )
+            apps.add( new LBApp( id , config.getMap( "lb" , id ) ) );
+
+        for ( String id : config.getNames( "java" ) ){
+            
             Map<String,String> options = config.getMap( "java" , id );
             
 
@@ -69,7 +75,7 @@ public abstract class ConfigurableApplicationFactory implements ApplicationFacto
                       );
             
         }
-        
+
         _previousApps = apps;
         return apps;
     }

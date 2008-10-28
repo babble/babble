@@ -27,6 +27,13 @@ public interface JxpWriter extends Appendable {
     public JxpWriter print( double d );
     public JxpWriter print( long l );
     public JxpWriter print( boolean b );
+
+    /**
+     * this has the same semantics as OutputStream.write( int b )
+     * so b is a byte, not an int
+     */
+    public void write( int b );
+		      
     
     public void flush()
         throws java.io.IOException ;
@@ -92,7 +99,11 @@ public interface JxpWriter extends Appendable {
             _buf.append( b );
             return this;
         }
-        
+
+	public void write( int b ){
+	    _buf.append( (char)( (byte)( b & 0xFF ) ) );
+	}
+	
         public void flush()
             throws java.io.IOException {
         }

@@ -125,6 +125,28 @@ public class DNSUtil {
         return lst;
     }
 
+    public static boolean isLocalAddress( String address )
+        throws IOException {
+        if ( address == null )
+            return false;
+        return isLocalAddress( getByName( address ) );
+    }
+    
+    public static boolean isLocalAddress( InetAddress ia )
+        throws IOException {
+        
+        for ( NetworkInterface nic : getNetworkInterfaces() ){
+            Enumeration<InetAddress> e = nic.getInetAddresses();
+            while ( e.hasMoreElements() ){
+                InetAddress mine = e.nextElement();            
+                if ( mine.getHostAddress().equals( ia.getHostAddress() ) )
+                    return true;
+            }
+        }
+        
+        return false;
+    }
+
     public static List<NetworkInterface> getNetworkInterfaces()
         throws java.io.IOException {
         List<NetworkInterface> lst = new ArrayList<NetworkInterface>();

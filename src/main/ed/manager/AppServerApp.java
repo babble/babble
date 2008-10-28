@@ -1,4 +1,4 @@
-// SimpleConfig.java
+// AppServerApp.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,21 +16,29 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.util;
+package ed.manager;
 
+import java.io.*;
 import java.util.*;
 
-public interface SimpleConfig {
+import ed.util.*;
 
-    public void addEntry( String type , String name , String key , String value );
-    public void addValue( String type , String name , String value );
+public class AppServerApp extends JavaApplication {
 
-    public OptionMap getMap( String type , String name );
-    public List<String> getValues( String type , String name );
-
-    public List<String> getTypes();
-    public List<String> getNames( String type );
+    AppServerApp( String name , OptionMap options ){
+        super( "appserver" , name , "ed.appserver.AppServer" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
+    }
     
-    public boolean isMap( String type , String name );
-    public boolean isValue( String type , String name );
+    static int _howMuchMemory( OptionMap options ){
+        return options.getInt( "memory" , 1200 );
+    }
+    
+    static String[] _getArgs( OptionMap options ){
+        return new String[]{};
+    }
+
+    static String[] _getJvmArgs( OptionMap options ){
+        return new String[]{};
+    }
+
 }
