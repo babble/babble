@@ -134,7 +134,7 @@ public class ImageUtil {
 
         BufferedImage ret = (BufferedImage)img;
         int w, h;
-        if (higherQuality) {
+        if (higherQuality && targetWidth < img.getWidth() && targetHeight < img.getHeight()) {
             // Use multi-step technique: start with original size, then
             // scale down in multiple passes with drawImage()
             // until the target size is reached
