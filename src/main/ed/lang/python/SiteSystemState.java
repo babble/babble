@@ -653,15 +653,8 @@ public class SiteSystemState {
          */
         @ExposedMethod(names={"load_module"})
         public PyObject load_module( String name ){
-            PyObject m = __builtin__.__import__(_realName);
-            String components = _realName.substring( _realName.indexOf('.') + 1 );
-            while( components.indexOf('.') != -1 ){
-                String component = components.substring( 0 , components.indexOf('.') );
-                m = m.__findattr__( component.intern() );
-                components = components.substring( components.indexOf('.') + 1 );
-            }
-            m = m.__findattr__( components.intern() );
-            return m;
+            PyObject m = __builtin__.__import__(_realName );
+            return pyState.modules.__finditem__( _realName );
         }
     }
 
@@ -733,16 +726,16 @@ public class SiteSystemState {
                 return Py.None;
             }
 
-            modName = packageSpec.toString();
+            String packageName = packageSpec.toString();
 
-            if( modName.indexOf('.') == -1 ){
+            if( packageName.indexOf('.') == -1 ){
                 String toLoad = null;
 
-                if( ModuleRegistry.getARegistry().getConfig( "py-"+modName ) != null ){
-                    toLoad = "py-"+ modName;
+                if( ModuleRegistry.getARegistry().getConfig( "py-"+packageName ) != null ){
+                    toLoad = "py-"+ packageName;
                 }
-                else if( ModuleRegistry.getARegistry().getConfig( modName ) != null ){
-                    toLoad = modName;
+                else if( ModuleRegistry.getARegistry().getConfig( packageName ) != null ){
+                    toLoad = packageName;
                 }
 
                 if( toLoad != null ){
@@ -756,7 +749,7 @@ public class SiteSystemState {
             }
 
             if( DEBUG ){
-                System.out.println( "core-modules finder didn't match " + modName);
+                System.out.println( "core-modules finder didn't match " + modName );
             }
             return Py.None;
         }

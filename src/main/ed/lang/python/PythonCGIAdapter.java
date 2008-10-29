@@ -23,19 +23,12 @@ import ed.appserver.adapter.cgi.CGIAdapter;
 import ed.util.Dependency;
 import ed.log.Logger;
 import org.python.Version;
-import org.python.core.PySystemState;
-import org.python.core.Py;
-import org.python.core.PyObject;
-import org.python.core.PyFile;
-import org.python.core.PyModule;
-import org.python.core.PyCode;
-import org.python.core.PyDictionary;
+import org.python.core.*;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Set;
 
 public class PythonCGIAdapter extends CGIAdapter {
@@ -80,17 +73,38 @@ public class PythonCGIAdapter extends CGIAdapter {
 
         PyObject oldFile = globals.__finditem__("__file__");
 
-        PyObject environ = ss.getPyState().getEnviron();
+        /*
+         * /avert eyes in shame
+         * need to replace the environ dictionary with a TLS one because....
+         *
+         *  Sung to the tune of "Every Sperm is Sacred" :
+         *
+         *  All the world's singleton,
+         *  All, the word is good!
+         *  There is only one copy,
+         *  In every neigborhood...
+         *
+         *  When the threads asked for theirs,
+         *  Hopeing for unique
+         *  Never could we provide
+         *  A result that wasn't weak...
+         */
 
-        for (String key : env.keySet()) {
-            environ.__setitem__(key.intern(), Py.newString((String) env.get(key)));
+        PyDictionary pd = new PyDictionary();
+
+        for(String s : env.keySet()) {            
+            pd.__setitem__(s, Py.newString((String) env.get(s)));
         }
+
+        PyObject os = PySystemState.builtins.__finditem__("__import__").__call__( new PyObject[] { Py.newString("os"), null, null, null});
+        os.__setattr__("environ", new PyTLSProxyDict());
+
 
         /*
          *  create a threadlocal writer for the output stream
          *  TODO - need to do for input stream as it will suffer the same problem
          */
-        CGIStreamHolder cgiosw = new CGIStreamHolder(stdout);
+        CGIStreamHolder cgiosw = new CGIStreamHolder(stdout, pd);
 
         ss.getPyState().stdout = new PythonCGIOutFile();
         ss.getPyState().stdin = new PyFile(stdin);
@@ -167,12 +181,14 @@ public class PythonCGIAdapter extends CGIAdapter {
      */
     public static class CGIStreamHolder {
 
-        protected OutputStream _out;
+        protected final OutputStream _out;
+        protected final PyDictionary _pyDict;
 
         static ThreadLocal<CGIStreamHolder> _tl = new ThreadLocal<CGIStreamHolder>();
 
-        public CGIStreamHolder(OutputStream o) {
+        public CGIStreamHolder(OutputStream o, PyDictionary dict) {
             _out = o;
+            _pyDict = dict;
             _tl.set(this);
         }
 
@@ -180,12 +196,32 @@ public class PythonCGIAdapter extends CGIAdapter {
             return _out;
         }
 
+        public PyDictionary getPyDict() {
+            return _pyDict;
+        }
+        
         public static CGIStreamHolder getThreadLocal() {
             return _tl.get();
         }
 
         public void unset() {
             _tl.remove();   // note added in Java 5
+        }
+    }
+
+    /**
+     *  Mimimalist implementation of a TLS PyDict - we are only implementing
+     *  specific methods to be sure we have everything covered.  So expect  to
+     *   revisit this as we figure out what real apps need
+     */
+    public static class PyTLSProxyDict extends PyObject {
+
+        public PyObject __findattr_ex__(String key) {
+            return CGIStreamHolder.getThreadLocal().getPyDict().__findattr__(key);
+        }
+        
+        public PyObject __finditem__(PyObject key) {
+            return CGIStreamHolder.getThreadLocal().getPyDict().__finditem__(key);
         }
     }
 }
