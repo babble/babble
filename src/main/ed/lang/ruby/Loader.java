@@ -128,7 +128,8 @@ public class Loader {
      */
     public JSFileLibrary getLibFromPath(String path) {
         String libName = libNameFromPath(path);
-        return (JSFileLibrary)_scope.get(libName);
+        Object o = _scope.get(libName);
+        return (o instanceof JSFileLibrary) ? (JSFileLibrary)o : null;
     }
 
     public String libNameFromPath(String path) {
