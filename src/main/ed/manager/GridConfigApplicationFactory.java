@@ -49,6 +49,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
         try {
             _doDBs( config );
             _doAppServers( config );
+            _doLoadBalancers( config );
         }
         catch ( Exception e ){
             _logger.error( "couldn't load config from grid" , e );
@@ -97,6 +98,18 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                 config.addEntry( "appserver" , name , "ACTIVE" , "true" );
                 return; // only 1 appserver per machine
             }
+        }
+    }
+
+    void _doLoadBalancers( SimpleConfig config ){ 
+        for ( Iterator<JSObject> i = _db.getCollection( "lbs" ).find(); i.hasNext(); ){
+            final JSObject lb = i.next();
+            final String machine = lb.get( "machine" ).toString();
+            
+            if ( ! _cloud.isMyServerName( machine ) )
+                continue;
+                
+            config.addEntry( "lb" , machine , "ACTIVE" , "true" );
         }
     }
 

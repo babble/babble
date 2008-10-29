@@ -191,7 +191,6 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                 }
             }
             final long mySize = JSObjectSize.size( _cur , _totalObjectSizeSeen );
-            System.out.println( "mySize : " + mySize );
             _totalObjectSize += mySize;
 
             if ( _totalObjectSize > MAX_OBJ_BYTES )

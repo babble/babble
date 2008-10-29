@@ -228,7 +228,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _logger.info("corejs : " + _core.getRoot());
         _scope.put("core", _core, true);
 
-        _external = Module.getModule("external").getLibrary(null, this, null, true);
+        _external = Module.getModule("external").getLibrary( getVersionForLibrary( "external" ) , this, null, true);
         _scope.put("external", _external, true);
 
         _scope.put("__instance__", this, true);

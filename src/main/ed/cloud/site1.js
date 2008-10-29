@@ -211,41 +211,45 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
     }
 
     if ( e ){
-        var changed = false;
+        var changeDescription = "";
 
         if ( e.branch != branch ){
+            changeDescription += "changed branch from[" + e.branch + "] to [" + branch + "]";
             e.branch = branch;
-            changed = true;
         }
-
+        
         if ( e.db != db ){
+            changeDescription += "changed db from[" + e.db + "] to [" + db + "]";
             e.db = db;
-            changed = true;
         }
 
         if ( e.pool != pool ){
+            changeDescription += "changed pool from[" + e.pool + "] to [" + pool + "]";
             e.pool = pool;
-            changed = true;
         }
-
+        
         if ( e.aliases != aliases ){
             var old = e.aliases;
             e.aliases = aliases;
             if ( old == null || old.hashCode() != e.aliases.hashCode() )
-                changed = true;
+                changeDescription += "changed aliases from[" + old + "] to [" + aliases + "]";
         }
 
         if ( e.comment != comment ){
+            changeDescription += "changed description";
             e.comment = comment;
-            changed = true;
         }
+        
+        if ( changeDescription.length > 0 )
+            this.addChange( "env" , name , changeDescription );
 
-        return changed;
+        return changeDescription.length > 0;
     }
     
     e = new Cloud.Environment( name , branch , db , pool );
     e.aliases = aliases;
     this.environments.add( e );
+    this.addChange( "env" , name , "created environment" );
     return true;
 };
 
@@ -389,12 +393,14 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
         if ( db.server == server )
             return false;
         
+        this.addChange( "db" , name , "changed db from [" + db.server + "] to [" + server + "]" );
         db.server = server;
         return true;
     }
 
     log( "creating new db [" + name + "] for [" + this.name + "]" );
     
+    this.addChange( "db" , name , "create new db [" + name + "]" );
     var db = new Cloud.SiteDB( name , server );
     db.envParition = true;
     
@@ -411,7 +417,7 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
         }
 
         if ( userToInsert ){
-	    if ( ! db.users.findOne( { email : userToInsert.email } ) ){
+	    if ( ! ( db && db.users && db.users.findOne( { email : userToInsert.email } ) ) ){
 	        conn.users.save( this._copyUser( userToInsert ) );
             }
         }
@@ -435,7 +441,20 @@ Cloud.Site.prototype._copyUser = function( u ){
 
 // -----  Util Stuff -----------
 
-Cloud.Site.prototype.getGitBranchNames = function( force ){
+Cloud.Site.prototype.addChange = function( type , what , description ){
+    if ( ! this.changes )
+        this.changes = [];
+    
+    this.changes.add( { type : type , 
+                        what : what , 
+                        description : description , 
+                        when: ( new Date() ) , 
+                        who : ( user ? ( user.name + " " + user.email ) : "unknown" )
+                      }
+                    );
+}
+
+Cloud.Site.prototype.getGitBranchNames = function( force , sortFunc ){
 
     if ( ! this.giturl || this.giturl.startsWith( "ssh://git.10gen.com/data/gitroot/" ) ){
         var g = db.git.findOne( { name : "sites/" + this.name } );
@@ -488,7 +507,7 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
         ts.setLastModified( now.getTime() );
     }
     
-    return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root );
+    return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root ).sort( sortFunc || Cloud.Git.tagNameSortFunc );
 };
 
 Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun ){

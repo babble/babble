@@ -134,7 +134,7 @@ public class ImageUtil {
 
         BufferedImage ret = (BufferedImage)img;
         int w, h;
-        if (higherQuality) {
+        if (higherQuality && targetWidth < img.getWidth() && targetHeight < img.getHeight()) {
             // Use multi-step technique: start with original size, then
             // scale down in multiple passes with drawImage()
             // until the target size is reached
@@ -190,6 +190,9 @@ public class ImageUtil {
             throw new IllegalArgumentException("can only rotate images in multiples of 90 degrees");
         }
         int turns = (degrees / 90) % 4;
+        if (turns < 0) {
+            turns = turns + 4;
+        }
 
         // TODO maybe we should short-circuit here if turns is 0 => just return a copy of img.
 
@@ -207,6 +210,7 @@ public class ImageUtil {
                 case 0:
                     target_x = i;
                     target_y = j;
+                    break;
                 case 1:
                     target_x = j;
                     target_y = result_width - i - 1;
