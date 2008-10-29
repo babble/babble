@@ -1248,6 +1248,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         return new CollectionEnumeration(_initParams.keySet());
     }
 
+    public Object getConfigObject( String name ){
+        return _scope.get( name );
+    }
+
     public String getContextPath() {
         return "";
     }
