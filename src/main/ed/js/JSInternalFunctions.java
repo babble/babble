@@ -686,6 +686,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( o instanceof Boolean )
             return new JSBoolean( o );
 
+        if ( o instanceof String )
+            return new JSString( o.toString() );
+
         throw new RuntimeException( "can't convert [" + o.getClass() + "] to a JSObject" );
     }
 
