@@ -90,6 +90,12 @@ public class PythonCGIAdapter extends CGIAdapter {
          *  A result that wasn't weak...
          */
 
+        PyDictionary pd = new PyDictionary();
+
+        for(String s : env.keySet()) {            
+            pd.__setitem__(s, Py.newString((String) env.get(s)));
+        }
+
         PyObject os = PySystemState.builtins.__finditem__("__import__").__call__( new PyObject[] { Py.newString("os"), null, null, null});
         os.__setattr__("environ", new PyTLSProxyDict());
 
@@ -98,7 +104,7 @@ public class PythonCGIAdapter extends CGIAdapter {
          *  create a threadlocal writer for the output stream
          *  TODO - need to do for input stream as it will suffer the same problem
          */
-        CGIStreamHolder cgiosw = new CGIStreamHolder(stdout, env);
+        CGIStreamHolder cgiosw = new CGIStreamHolder(stdout, pd);
 
         ss.getPyState().stdout = new PythonCGIOutFile();
         ss.getPyState().stdin = new PyFile(stdin);
@@ -176,13 +182,13 @@ public class PythonCGIAdapter extends CGIAdapter {
     public static class CGIStreamHolder {
 
         protected final OutputStream _out;
-        protected final  EnvMap _envMap;
+        protected final PyDictionary _pyDict;
 
         static ThreadLocal<CGIStreamHolder> _tl = new ThreadLocal<CGIStreamHolder>();
 
-        public CGIStreamHolder(OutputStream o, EnvMap map) {
+        public CGIStreamHolder(OutputStream o, PyDictionary dict) {
             _out = o;
-            _envMap = map;
+            _pyDict = dict;
             _tl.set(this);
         }
 
@@ -190,10 +196,10 @@ public class PythonCGIAdapter extends CGIAdapter {
             return _out;
         }
 
-        public Object getFromEnv(String key) {
-            return  _envMap.get(key);
+        public PyDictionary getPyDict() {
+            return _pyDict;
         }
-
+        
         public static CGIStreamHolder getThreadLocal() {
             return _tl.get();
         }
@@ -210,24 +216,12 @@ public class PythonCGIAdapter extends CGIAdapter {
      */
     public static class PyTLSProxyDict extends PyObject {
 
+        public PyObject __findattr_ex__(String key) {
+            return CGIStreamHolder.getThreadLocal().getPyDict().__findattr__(key);
+        }
+        
         public PyObject __finditem__(PyObject key) {
-
-            /*
-             *  We expect that any object will be request s/ a string.  We may be able to
-             *  relax this
-             */
-            if (key instanceof PyString) {
-
-                Object o = CGIStreamHolder.getThreadLocal().getFromEnv(key.toString());
-
-                if (o != null) {
-                    return Py.newString((String)o);
-                }
-
-                return null;
-            }
-
-            throw new RuntimeException("Programmer error ? : __finditem__ called with non-string key => " + key);
+            return CGIStreamHolder.getThreadLocal().getPyDict().__finditem__(key);
         }
     }
 }
