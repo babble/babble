@@ -14,5 +14,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import google.atom.service
-assert google.atom.service.AtomService
+try:
+    import google.atom.service
+except ImportError, e:
+    # This is OK -- can't import from outside a site with a _config packages map
+    pass
+else:
+    raise AssertionError
