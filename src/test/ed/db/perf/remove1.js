@@ -27,8 +27,8 @@ function testSetup(dbConn) {
  */
 function testRemoveWithMultiField(dbConn) {
 
-    // remove once XXX fixed
-    print("ed/db/remove1.js:testRemoveWithMultiField() - not run - BUG XXX");
+    // remove once 984 fixed
+    print("ed/db/remove1.js:testRemoveWithMultiField() - not run - BUG 984");
     return;
 
     var results = {};
