@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.Properties;
 
-import org.python.core.PyTuple;
-import org.python.core.PyInteger;
 import org.python.core.Py;
 import org.python.core.PyObject;
 import org.python.core.PySystemState;
@@ -68,9 +66,10 @@ public class PythonWSGIAdapter extends WSGIAdapter {
         try {
             Py.setSystemState(sys);
 
-            String code = StreamUtil.readFully(new File("/tmp/10gen_wsgi.py"));  // TODO = put in a module
-            _interp.exec(code);
-            _run_with_cgi = _interp.get("run_with_cgi");
+            // just use the standard wsgiref package that comes w/ python
+            
+            _interp.exec("import wsgiref.handlers\ndef invoke_wsgi(application):\n    wsgiref.handlers.CGIHandler().run(application)\n");
+            _run_with_cgi = _interp.get("invoke_wsgi");
 
             _getAppCode();
         }
@@ -126,7 +125,7 @@ public class PythonWSGIAdapter extends WSGIAdapter {
             }
         }
         
-        PythonCGIAdapter.CGIOutputStreamWriter cgiosw = new PythonCGIAdapter.CGIOutputStreamWriter(stdout);
+        PythonCGIAdapter.CGIStreamHolder cgiosw = new PythonCGIAdapter.CGIStreamHolder(stdout);
 
         ss.getPyState().stdout = new PythonCGIOutFile();
         ss.getPyState().stdin = new PyFile(stdin);
@@ -145,21 +144,6 @@ public class PythonWSGIAdapter extends WSGIAdapter {
     }
 
     public void handleCGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
-
-        /*
-        * agument the CGI dict with the WSGI requirements
-        */
-
-        env.set("wsgi.version", new PyTuple(new PyInteger(1), new PyInteger(0)));
-        env.set("wsgi.url_scheme", ar.getRequest().getScheme());
-
-        env.set("wsgi.multithread", Py.True);
-        env.set("wsgi.multiprocess", Py.True);
-        env.set("wsgi.run_once", Py.False);
-
-        env.set("wsgi.input", new PythonCGIOutFile());  // TODO - fix me (same w/ CGI input problem)
-        env.set("wsgi.errors", null); // TODO - fix me
-
         handleWSGI(env, stdin, stdout, ar);
     }
 

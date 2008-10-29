@@ -91,9 +91,11 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
             final String name = pool.get( "name" ).toString();
             
             for ( Object machine : (List)(pool.get( "machines" )) ){
-                if ( _cloud.isMyServerName( machine.toString() ) ){
-                    config.addEntry( "appserver" , name , "ACTIVE" , "true" );
-                }
+                if ( ! _cloud.isMyServerName( machine.toString() ) )
+                    continue;
+                
+                config.addEntry( "appserver" , name , "ACTIVE" , "true" );
+                return; // only 1 appserver per machine
             }
         }
     }

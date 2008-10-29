@@ -90,7 +90,7 @@ public class PythonCGIAdapter extends CGIAdapter {
          *  create a threadlocal writer for the output stream
          *  TODO - need to do for input stream as it will suffer the same problem
          */
-        CGIOutputStreamWriter cgiosw = new CGIOutputStreamWriter(stdout);
+        CGIStreamHolder cgiosw = new CGIStreamHolder(stdout);
 
         ss.getPyState().stdout = new PythonCGIOutFile();
         ss.getPyState().stdin = new PyFile(stdin);
@@ -165,19 +165,22 @@ public class PythonCGIAdapter extends CGIAdapter {
      * because concurrent usage of the jython runtime apparently
      * never occurred to the jython designers
      */
-    public static class CGIOutputStreamWriter extends OutputStreamWriter {
+    public static class CGIStreamHolder {
 
         protected OutputStream _out;
 
-        static ThreadLocal<CGIOutputStreamWriter> _tl = new ThreadLocal<CGIOutputStreamWriter>();
+        static ThreadLocal<CGIStreamHolder> _tl = new ThreadLocal<CGIStreamHolder>();
 
-        public CGIOutputStreamWriter(OutputStream o) {
-            super(o);
+        public CGIStreamHolder(OutputStream o) {
             _out = o;
             _tl.set(this);
         }
 
-        public static CGIOutputStreamWriter getThreadLocal() {
+        public OutputStream getOut() {
+            return _out;
+        }
+
+        public static CGIStreamHolder getThreadLocal() {
             return _tl.get();
         }
 
