@@ -183,9 +183,15 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                 }
             }
 
-            if ( _totalObjectSizeSeen == null )
+            if ( _totalObjectSizeSeen == null ){
                 _totalObjectSizeSeen = new IdentitySet();
+                if ( _constructor != null ){
+                    _totalObjectSizeSeen.add( _constructor );
+                    _totalObjectSizeSeen.add( _constructor.getPrototype() );
+                }
+            }
             final long mySize = JSObjectSize.size( _cur , _totalObjectSizeSeen );
+            System.out.println( "mySize : " + mySize );
             _totalObjectSize += mySize;
 
             if ( _totalObjectSize > MAX_OBJ_BYTES )
