@@ -36,6 +36,7 @@ class GridFS < StringIO
 
     # Reads a GridFS from the database and returns it, or +nil+ if not found.
     def find(name)              # :nodoc:
+      raise "$db not defined" unless $db
       $db['_files'].findOne({:filename => name})
     end
 
@@ -96,6 +97,7 @@ class GridFS < StringIO
   # is called.
   def close
     rewind()
+    raise "$db not defined" unless $db
     $db['_files'].save(Java::EdJs::JSInputFile.new(@name, nil, read())) if @mode == :write || @mode == :append
     super
   end
