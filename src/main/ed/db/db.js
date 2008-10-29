@@ -70,7 +70,7 @@ DB.prototype.dropDatabase = function() {
  
   This is a low level administrative function will is not typically used.
 
- * @param {String} clone Where to clone from (dbhostname[:port]).  May not be this database 
+ * @param {String} from Where to clone from (dbhostname[:port]).  May not be this database 
                    (self) as you cannot clone to yourself.
  * @return Object returned has member ok set to true if operation succeeds, false otherwise.
  * See also: db.copyDatabase()
