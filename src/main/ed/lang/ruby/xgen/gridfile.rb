@@ -23,13 +23,17 @@ require 'stringio'
 #
 #   GridFile.open("myfile", 'w') { |f|
 #     f['contentType'] = 'text/plain'  # or f.contentType = 'text/plain'
+#     f['creator'] = 'Spongebob Squarepants'
 #     f.puts "Hello, GridFS!"
 #   }
 #   GridFile.open("myfile", 'r') { |f|
 #     puts f.read
 #     puts f['contentType']            # or f.contentType
+#     puts f['creator']
 #   }
 #   # => Hello, GridFS!
+#   # => text/plain
+#   # => Spongebob Squarepants
 #   GridFile.exist?("myfile")
 #   # => true
 #   GridFile.delete("myfile")
