@@ -435,7 +435,7 @@ Cloud.Site.prototype._copyUser = function( u ){
 
 // -----  Util Stuff -----------
 
-Cloud.Site.prototype.getGitBranchNames = function( force ){
+Cloud.Site.prototype.getGitBranchNames = function( force , sortFunc ){
 
     if ( ! this.giturl || this.giturl.startsWith( "ssh://git.10gen.com/data/gitroot/" ) ){
         var g = db.git.findOne( { name : "sites/" + this.name } );
@@ -488,7 +488,7 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
         ts.setLastModified( now.getTime() );
     }
     
-    return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root );
+    return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root ).sort( sortFunc || Cloud.Git.tagNameSortFunc );
 };
 
 Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun ){
