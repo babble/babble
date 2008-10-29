@@ -707,6 +707,8 @@ public class SiteSystemState {
             assert args[0] instanceof PyString;
             String modName = args[0].toString();
 
+            if( _context == null ) return Py.None;
+
             Object packages = _context.getConfigObject("packages");
             if( packages == null ){
                 if( DEBUG )
