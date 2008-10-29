@@ -1032,6 +1032,7 @@ public class ENode extends JSObjectBase {
         }
         this.children.add( n );
         ((Attr)n.node).setValue( E4X.escapeAttributeValue( v.toString() ) );
+        n._dummy = false;
         return v;
     }
 
