@@ -14,12 +14,21 @@
 
 require 'stringio'
 
-# A GridFile file lives in the database. You can retrieve it by name.
+# A GridFile file lives in the database. GridFiles can be retrieved by name.
+#
+# GridFiles have attributes. You can read/write them using [] and []=. One
+# interesting one is 'contentType', which tells Babble how to serve the file.
 #
 # Example:
 #
-#   GridFile.open("myfile", 'w') { |f| f.puts "Hello, GridFS!" }
-#   GridFile.open("myfile", 'r') { |f| puts f.read }
+#   GridFile.open("myfile", 'w') { |f|
+#     f['contentType'] = 'text/plain'  # or f.contentType = 'text/plain'
+#     f.puts "Hello, GridFS!"
+#   }
+#   GridFile.open("myfile", 'r') { |f|
+#     puts f.read
+#     puts f['contentType']            # or f.contentType
+#   }
 #   # => Hello, GridFS!
 #   GridFile.exist?("myfile")
 #   # => true
@@ -31,6 +40,8 @@ require 'stringio'
 # TODO: allow retrieval by _id, return _id on close, expose _id, more modes,
 # perhaps use delegation instead of inheritance.
 class GridFile < StringIO
+
+  RESERVED_KEYS = %w(_ns _id filename contentType length chunkSize next uploadDate _save _update)
 
   class << self                 # Class methods
 
@@ -87,20 +98,50 @@ class GridFile < StringIO
             else
               raise "illegal GridFile mode #{mode}"
             end
-    if @mode == :read || @mode == :append
-      f = self.class.find(@name)
-      write(f.asString()) if f
+
+    @f = self.class.find(@name)  # may be nil
+
+    @metadata = {}
+    @f.keySet().each { |key| @metadata[key] = @f.get(key) } if @f
+
+    if @f && (@mode == :read || @mode == :append)
+      write(@f.asString())
     end
     rewind() if @mode == :read
+  end
+
+  def [](key)
+    @metadata[key]
+  end
+
+  def []=(key, value)
+    @metadata[key] = value unless RESERVED_KEYS.include?(key.to_s)
   end
 
   # Closes a GridFile. The data is not saved to the database until this method
   # is called.
   def close
     rewind()
-    raise "$db not defined" unless $db
-    $db['_files'].save(Java::EdJs::JSInputFile.new(@name, nil, read())) if @mode == :write || @mode == :append
+    if @mode == :write || @mode == :append
+      raise "$db not defined" unless $db
+      f = Java::EdJs::JSInputFile.new(@name, nil, read())
+      @metadata.each { |k, v| f.set(k, v) unless RESERVED_KEYS.include?(key.to_s) }
+      $db['_files'].save(f)
+    end
     super
+  end
+
+  # Turn f.foo into f['foo'] and f.foo = bar into f['foo'] = bar.
+  def method_missing(sym, *args)
+    if sym.to_s[-1,1] == "="
+      if args.length == 1       # f.foo = bar
+        self[sym.to_s[0,-2]] = args[0]
+      end
+    elsif args.length == 0      # f.foo
+      self[sym.to_s]
+    else                        # anything else
+      super
+    end
   end
 
 end

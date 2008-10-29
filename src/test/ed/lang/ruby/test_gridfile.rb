@@ -46,4 +46,25 @@ class GridFileTest < RubyTest
     assert !GridFile.exist?('myfile')
   end
 
+  def test_attributes
+    f = GridFile.open('myfile', 'r')
+    assert_equal 'myfile', f['filename']
+
+    f = GridFile.open('another', 'w')
+    f.puts 'content of another file'
+    f['foo'] = 'bar'
+    f.close
+
+    f = GridFile.open('another', 'r')
+    assert_equal 'bar', f['foo']
+  end
+
+  def test_method_missing
+    f = GridFile.open('myfile', 'r')
+    assert_not_nil f.filename
+    assert_equal 'myfile', f.filename
+    assert_not_nil f.chunkSize
+    assert_not_nil f.uploadDate
+  end
+
 end
