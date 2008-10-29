@@ -14,36 +14,37 @@
 
 require 'stringio'
 
-# A GridFS file lives in the database. You can retrieve it by name.
+# A GridFile file lives in the database. You can retrieve it by name.
 #
 # Example:
 #
-#   GridFS.open("myfile", 'w') { |f| f.puts "Hello, GridFS!" }
-#   GridFS.open("myfile", 'r') { |f| puts f.read }
+#   GridFile.open("myfile", 'w') { |f| f.puts "Hello, GridFS!" }
+#   GridFile.open("myfile", 'r') { |f| puts f.read }
 #   # => Hello, GridFS!
-#   GridFS.exist?("myfile")
+#   GridFile.exist?("myfile")
 #   # => true
-#   GridFS.delete("myfile")
+#   GridFile.delete("myfile")
 #
-# A GridFS is a StringIO that reads from the database when it is created and
+# A GridFile is a StringIO that reads from the database when it is created and
 # writes to the database when it is closed.
 #
 # TODO: allow retrieval by _id, return _id on close, expose _id, more modes,
 # perhaps use delegation instead of inheritance.
-class GridFS < StringIO
+class GridFile < StringIO
 
   class << self                 # Class methods
 
-    # Reads a GridFS from the database and returns it, or +nil+ if not found.
+    # Reads a GridFile from the database and returns it, or +nil+ if is not
+    # found.
     def find(name)              # :nodoc:
       raise "$db not defined" unless $db
       $db['_files'].findOne({:filename => name})
     end
 
-    # Opens a GridFS with the given mode. If a block is given then the file is
-    # passed in to the block and is closed at the end of the block.
+    # Opens a GridFile with the given mode. If a block is given then the file
+    # is passed in to the block and is closed at the end of the block.
     def open(name, mode)
-      grid_file = GridFS.new(name, mode)
+      grid_file = GridFile.new(name, mode)
       if block_given?
         begin
           yield grid_file
@@ -55,14 +56,14 @@ class GridFS < StringIO
       end
     end
 
-    # Delete the named GridFS from the database.
+    # Delete the named GridFile from the database.
     def unlink(name)
       f = find(name)
       f.remove() if f
     end
     alias_method :delete, :unlink
 
-    # If the named GridFS exists in the database, returns +true+.
+    # If the named GridFile exists in the database, returns +true+.
     def exist?(name)
       find(name) != nil
     end
@@ -70,7 +71,7 @@ class GridFS < StringIO
 
   end
 
-  # Opens a GridFS with the given mode.
+  # Opens a GridFile with the given mode.
   #
   # Modes:, 'r', 'w', or 'a'.
   def initialize(name, mode='w')
@@ -84,7 +85,7 @@ class GridFS < StringIO
             when /^a/
               :append
             else
-              raise "illegal GridFS mode #{mode}"
+              raise "illegal GridFile mode #{mode}"
             end
     if @mode == :read || @mode == :append
       f = self.class.find(@name)
@@ -93,7 +94,7 @@ class GridFS < StringIO
     rewind() if @mode == :read
   end
 
-  # Closes a GridFS. The data is not saved to the database until this method
+  # Closes a GridFile. The data is not saved to the database until this method
   # is called.
   def close
     rewind()

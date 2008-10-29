@@ -13,16 +13,16 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require 'ruby_test'
-require 'xgen/gridfs'
+require 'xgen/gridfile'
 
-class GridFSTest < RubyTest
+class GridFileTest < RubyTest
 
   def setup
     super
     run_js "db = connect('test'); db._files.remove({});"
 
     @str = "Hello, GridFS!"
-    GridFS.open('myfile', 'w') { |f| f.write @str }
+    GridFile.open('myfile', 'w') { |f| f.write @str }
   end
 
   def teardown
@@ -31,19 +31,19 @@ class GridFSTest < RubyTest
   end
 
   def test_read_write
-    read_str = GridFS.open('myfile', 'r') { |f| f.read }
+    read_str = GridFile.open('myfile', 'r') { |f| f.read }
     assert_equal @str, read_str
   end
 
   def test_exist?
-    assert GridFS.exist?('myfile')
-    assert GridFS.exists?('myfile') # make sure the alias works, too
-    assert !GridFS.exist?('does-not-exist')
+    assert GridFile.exist?('myfile')
+    assert GridFile.exists?('myfile') # make sure the alias works, too
+    assert !GridFile.exist?('does-not-exist')
   end
 
   def test_delete
-    GridFS.delete('myfile')
-    assert !GridFS.exist?('myfile')
+    GridFile.delete('myfile')
+    assert !GridFile.exist?('myfile')
   end
 
 end
