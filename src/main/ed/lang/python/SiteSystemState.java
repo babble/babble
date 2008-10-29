@@ -48,6 +48,7 @@ import ed.util.*;
  */
 public class SiteSystemState {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SITESYSTEMSTATE" );
+    static final String COREMODULES_STRING = "COREMODULES_10GEN";
 
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
@@ -56,6 +57,8 @@ public class SiteSystemState {
         _context = ac;
         setupModules();
         ensureMetaPathHook( pyState , s );
+        ensurePathHook( pyState , s );
+        ensurePath( COREMODULES_STRING );
         replaceOutput();
         ensurePath( Config.get().getProperty("ED_HOME", "/data/ed")+"/src/main/ed/lang/python/lib" , 0 );
 
@@ -164,6 +167,15 @@ public class SiteSystemState {
         ss.meta_path.append( new ModuleFinder( scope ) );
     }
 
+    private void ensurePathHook( PySystemState ss , Scope scope ){
+        boolean foundHook = false;
+        for( Object m : ss.path_hooks ){
+            if( m instanceof ModulePathHook )
+                return;
+        }
+
+        ss.path_hooks.append( new ModulePathHook( scope ) );
+    }
 
     public void addDependency( PyObject to, PyObject importer ){
         _checkModules();
@@ -393,6 +405,7 @@ public class SiteSystemState {
         }
     }
 
+    Map<JSLibrary, String> _loaded = new HashMap<JSLibrary, String>();
 
     /**
      * sys.meta_path hook to deal with core/core-modules and local/local-modules
@@ -412,7 +425,6 @@ public class SiteSystemState {
         JSLibrary _core;
         JSLibrary _local;
         JSLibrary _localModules;
-        Map<JSLibrary, String> _loaded = new HashMap<JSLibrary, String>();
         ModuleFinder( Scope s ){
             _scope = s;
             Object core = s.get( "core" );
@@ -515,32 +527,6 @@ public class SiteSystemState {
                         if( DEBUG )
                             System.out.println("Returning rewrite loader for " + name + "." + baz);
                         return new RewriteModuleLoader( name + "." + baz );
-                    }
-                }
-            }
-
-            if( modName.indexOf('.') == -1 ){
-                String toLoad = null;
-
-                if( ModuleRegistry.getARegistry().getConfig( "py-"+modName ) != null ){
-                    toLoad = "py-"+ modName;
-                }
-                else if( ModuleRegistry.getARegistry().getConfig( modName ) != null ){
-                    toLoad = modName;
-                }
-
-                // Explicit de-include for things that exist in the site
-                // HACK -- FIXME -- use a sys.path_hooks file which creates a
-                // new loader
-                if( _context != null && ( new File(_context.getRoot(), modName ).exists() || new File(_context.getRoot(), modName+".py").exists() ) )
-                    toLoad = null;
-
-                if( toLoad != null ){
-                    Object foo = _coreModules.getFromPath( toLoad , true );
-                    if( foo instanceof JSLibrary ){
-                        JSLibrary lib = (JSLibrary)foo;
-                        _loaded.put( lib , modName );
-                        return new LibraryModuleLoader( lib );
                     }
                 }
             }
@@ -676,6 +662,69 @@ public class SiteSystemState {
             }
             m = m.__findattr__( components.intern() );
             return m;
+        }
+    }
+
+    public class ModulePathHook extends PyObject {
+        Scope _scope;
+        ModulePathHook( Scope s ){
+            _scope = s;
+        }
+
+        @ExposedMethod
+        public PyObject __call__(PyObject s){
+            if( s.toString().equals(COREMODULES_STRING) )
+                return new CoreModuleFinder( _scope );
+            throw Py.ImportError("this isn't my magic cookie");
+        }
+    }
+
+    public class CoreModuleFinder extends PyObject {
+        Scope _scope;
+        JSLibrary _coreModules;
+        CoreModuleFinder( Scope s ){
+            _scope = s;
+            _coreModules = null;
+            Object core = s.get("core");
+            if( core instanceof JSObject ){
+                Object coremodules = ((JSObject)core).get("modules");
+                if( coremodules instanceof JSLibrary ){
+                    _coreModules = (JSLibrary)coremodules;
+                }
+            }
+        }
+
+        @ExposedMethod(names={"find_module"})
+        public PyObject find_module( PyObject args[] , String keywords[] ){
+            int argc = args.length;
+            assert argc >= 1;
+            assert args[0] instanceof PyString;
+            String modName = args[0].toString();
+
+            if( modName.indexOf('.') == -1 ){
+                String toLoad = null;
+
+                if( ModuleRegistry.getARegistry().getConfig( "py-"+modName ) != null ){
+                    toLoad = "py-"+ modName;
+                }
+                else if( ModuleRegistry.getARegistry().getConfig( modName ) != null ){
+                    toLoad = modName;
+                }
+
+                if( toLoad != null ){
+                    Object foo = _coreModules.getFromPath( toLoad , true );
+                    if( foo instanceof JSLibrary ){
+                        JSLibrary lib = (JSLibrary)foo;
+                        _loaded.put( lib , modName );
+                        return new LibraryModuleLoader( lib );
+                    }
+                }
+            }
+
+            if( DEBUG ){
+                System.out.println( "core-modules finder didn't match " + modName);
+            }
+            return Py.None;
         }
     }
 
