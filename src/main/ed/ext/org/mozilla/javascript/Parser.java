@@ -2550,7 +2550,7 @@ public class Parser
             return nf.createLeaf(tt);
 
         case Token.RESERVED:
-            reportError("msg.reserved.id", ts.keyword);
+            reportError("msg.reserved.id", TokenStream.keyword);
             break;
 
         case Token.ERROR:
