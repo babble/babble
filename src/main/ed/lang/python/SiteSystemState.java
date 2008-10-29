@@ -679,6 +679,12 @@ public class SiteSystemState {
         }
     }
 
+    /**
+     * Finder which checks in core.modules to satisfy imports.
+     *
+     * FIXME: Just get the root file from the module config, don't bother with
+     * casting through JSLibrary.
+     */
     public class CoreModuleFinder extends PyObject {
         Scope _scope;
         JSLibrary _coreModules;
@@ -700,6 +706,32 @@ public class SiteSystemState {
             assert argc >= 1;
             assert args[0] instanceof PyString;
             String modName = args[0].toString();
+
+            Object packages = _context.getConfigObject("packages");
+            if( packages == null ){
+                if( DEBUG )
+                    System.out.println("No packages specified in _config!");
+                return Py.None;
+            }
+
+            if( ! ( packages instanceof JSObject ) ){
+                System.out.println("Warning: Couldn't parse packages specification in _config!");
+                return Py.None;
+            }
+
+            Object packageSpec = ((JSObject)packages).get( modName );
+            if( packageSpec == null ){
+                if( DEBUG )
+                    System.out.println("Package " + modName + " is not defined in package spec!");
+                return Py.None;
+            }
+
+            if( ! ( packageSpec instanceof String || packageSpec instanceof JSString ) ){
+                System.out.println("Package " + modName + " was mapped to " + packageSpec + " and I don't know what that means!");
+                return Py.None;
+            }
+
+            modName = packageSpec.toString();
 
             if( modName.indexOf('.') == -1 ){
                 String toLoad = null;
