@@ -167,6 +167,12 @@ public class Parser
         throw new ParserException();
     }
 
+    RuntimeException reportError(String messageId, String messageArg)
+    {
+        addError(messageId, messageArg);
+        throw new ParserException();
+    }
+
     private int peekToken()
         throws IOException
     {
@@ -2544,7 +2550,7 @@ public class Parser
             return nf.createLeaf(tt);
 
         case Token.RESERVED:
-            reportError("msg.reserved.id");
+            reportError("msg.reserved.id", ts.keyword);
             break;
 
         case Token.ERROR:
