@@ -653,15 +653,8 @@ public class SiteSystemState {
          */
         @ExposedMethod(names={"load_module"})
         public PyObject load_module( String name ){
-            PyObject m = __builtin__.__import__(_realName);
-            String components = _realName.substring( _realName.indexOf('.') + 1 );
-            while( components.indexOf('.') != -1 ){
-                String component = components.substring( 0 , components.indexOf('.') );
-                m = m.__findattr__( component.intern() );
-                components = components.substring( components.indexOf('.') + 1 );
-            }
-            m = m.__findattr__( components.intern() );
-            return m;
+            PyObject m = __builtin__.__import__(_realName );
+            return pyState.modules.__finditem__( _realName );
         }
     }
 
