@@ -203,6 +203,11 @@ public class Drivers {
 
 	    public Object setInt( int i, Object v ){
 		v = NativeBridge.toJavaObject( v );
+
+                
+                if ( v instanceof java.util.Date )
+                    v = new java.sql.Date( ((java.util.Date)v).getTime() );
+
 		try {
 		    _ps.setObject( i , v );
 		    return v;
