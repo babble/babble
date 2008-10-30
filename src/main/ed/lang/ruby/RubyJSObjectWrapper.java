@@ -230,9 +230,16 @@ public class RubyJSObjectWrapper extends RubyHash {
         return this;
     }
 
-    /* Superclass implementation is OK. */
-//     public RubyHash to_hash() {
-//     }
+    public RubyHash to_hash() {
+        final RubyHash rh = new RubyHash(getRuntime());
+        final ThreadContext context = getRuntime().getCurrentContext();
+        visitAll(new Visitor() {
+                public void visit(IRubyObject key, IRubyObject value) { rh.op_aset(context, key, value); }
+            });
+        return rh;
+    }
+
+    public RubyHash convertToHash() { return to_hash(); }
 
     public IRubyObject op_aset(ThreadContext context, IRubyObject key, IRubyObject value) {
         Object jsKey = toJS(_scope, key);

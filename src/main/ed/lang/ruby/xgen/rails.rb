@@ -48,6 +48,9 @@ require 'xgen/mongo'
 require File.join($local.getRoot.getPath, "config/environment") unless defined?(RAILS_ROOT)
 require 'dispatcher'
 
+# Patch Rails
+require 'xgen/rails/active_record'
+
 # Session
 require 'xgen/rails/mongo_session'
 ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] = XGen::Rails::MongoSession
