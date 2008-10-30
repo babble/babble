@@ -225,7 +225,8 @@ public class JSInternalFunctions extends JSNumericFunctions {
      */
     public JSString JS_typeof( Object obj ){
 
-        if ( obj == null )
+        if ( obj == null ||
+             obj instanceof JSBuiltInFunctions.Void )
             return TYPE_UNDEFINED;
 
         if ( obj instanceof JSString )
@@ -383,7 +384,8 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @return If <tt>a</tt> is equal to <tt>b</tt>
      */
     public static Boolean JS_sheq( Object a , Object b ){
-        if ( a == null && b == null )
+        if ( ( a == null && b == null ) ||
+             ( a instanceof JSBuiltInFunctions.Void && b instanceof JSBuiltInFunctions.Void ) )
             return true;
 
         if ( a == null || b == null )
@@ -436,6 +438,10 @@ public class JSInternalFunctions extends JSNumericFunctions {
      */
     public static Boolean JS_eq( Object a , Object b ){
         if ( JS_sheq( a , b ) )
+            return true;
+
+        if( ( a instanceof JSBuiltInFunctions.Void && b == null ) ||
+            ( b instanceof JSBuiltInFunctions.Void && a == null ) )
             return true;
 
 	if ( a == null || b == null )

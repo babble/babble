@@ -217,8 +217,10 @@ public final class StringParseUtil {
                 return Double.POSITIVE_INFINITY;
             }
         }
-        else if( s.indexOf('.') != -1 )
+        else if( s.indexOf('.') != -1 || 
+                 s.equals( "-0" ) ) {
             return Double.parseDouble(s);
+        }
         else if( s.length() > 2 && s.charAt( 0 ) == '0' && 
                  ( s.charAt( 1 ) == 'x' || s.charAt( 1 ) == 'X' ) )
             return Integer.parseInt( s.substring( 2, s.length() ) , 16 );

@@ -517,9 +517,10 @@ public class Convert {
         case Token.NUMBER:
             double d = n.getDouble();
             String temp = String.valueOf( d );
-            if( ( temp.endsWith( ".0" ) ||
-                  JSNumericFunctions.couldBeInt( d ) ) &&
-                !temp.equals( "-0.0" ) ) {
+            if( ( ( temp.endsWith( ".0" ) ||
+                    JSNumericFunctions.couldBeInt( d ) ) &&
+                  !temp.equals( "-0.0" ) ) && 
+                !temp.equals( "-0" ) ) {
                 temp = String.valueOf( (int)d );
             }
             _append( "JSNumber.self( " + temp + ")" , n );
