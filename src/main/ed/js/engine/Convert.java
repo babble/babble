@@ -535,8 +535,10 @@ public class Convert {
             _append( " false " , n );
             break;
         case Token.NULL:
-        case Token.VOID:
             _append( " null " , n );
+            break;
+        case Token.VOID:
+            _append( " ed.js.engine.JSBuiltInFunctions.Void.getInstance() ", n );
             break;
 
         case Token.VAR:
