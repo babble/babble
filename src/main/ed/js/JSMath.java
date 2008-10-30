@@ -42,7 +42,7 @@ public class JSMath extends JSObjectBase {
         set( "max" ,
              new JSFunctionCalls2(){
                  public Object call( Scope s , Object foo[] ) {
-                     return Double.POSITIVE_INFINITY;
+                     return Double.NEGATIVE_INFINITY;
                  }
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
                      double d1 = JSNumber.getDouble( a );
@@ -84,7 +84,7 @@ public class JSMath extends JSObjectBase {
                      if( Double.isNaN( d ) || Double.isInfinite( d ) ) {
                          return d;
                      }
-                     return (int)Math.floor( d );
+                     return Math.floor( d );
                  }
              } );
 
@@ -95,10 +95,11 @@ public class JSMath extends JSObjectBase {
                  }
                  public Object call( Scope s , Object a , Object foo[] ){
                      double d = JSNumber.getDouble( a );
-                     if( Double.isNaN( d ) || Double.isInfinite( d ) ) {
+                     if( Double.isNaN( d ) || Double.isInfinite( d ) ||
+                         String.valueOf( d ).equals( "-0.0" ) ) {
                          return d;
                      }
-                     return (int)Math.ceil( d );
+                     return Math.ceil( d );
                  }
              } );
 
@@ -123,8 +124,9 @@ public class JSMath extends JSObjectBase {
                              return Double.NaN;
                          }
                      }
-                     // Java returns 0 for Math.round(NaN), MIN_VALUE for
-                     // Math.round( -inf ), and MAX_VALUE for Math.round( inf )
+                     // Java returns 0 for Math.round(NaN) and Math.round( -0 ), 
+                     // MIN_VALUE for Math.round( -inf ), and MAX_VALUE for 
+                     // Math.round( inf )
                      // JavaScript returns:
                      if( a.equals( Double.NaN ) )
                          return Double.NaN;
@@ -132,7 +134,12 @@ public class JSMath extends JSObjectBase {
                          return Double.POSITIVE_INFINITY;
                      if( a.equals( Double.NEGATIVE_INFINITY ) ) 
                          return Double.NEGATIVE_INFINITY;
-                     return (int)Math.round(((Number)a).doubleValue());
+                     if( a.toString().equals( "-0" ) || 
+                         a.toString().equals( "-0.0" ) ||
+                         ( ((Number)a).doubleValue() >= -.5 &&
+                           ((Number)a).doubleValue() < 0 ) )
+                         return -0.0;
+                     return Math.round(((Number)a).doubleValue());
                  }
              } );
 
