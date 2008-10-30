@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.regex.*;
 import java.util.concurrent.*;
 import java.io.*;
+import javax.net.*;
+import javax.net.ssl.*;
 
 import org.apache.commons.httpclient.ChunkedInputStream;
 
@@ -213,10 +215,9 @@ class HttpConnection{
 
             if ( _currentUrl.getProtocol().equalsIgnoreCase("https") ){
                 try {
-                    //_sock = SSL.getSocketFactory().createSocket( _sock , _currentUrl.getHost() , port , true );
+                    _sock = getDefaultSSLSocketFactory().createSocket( _sock , _currentUrl.getHost() , port , true );
                     _usingSLL = true;
                     doIWantKeepAlive = false; // don't trust this with SSL yet
-                    throw new IOException( "ssl not supported yet" );
                 }
                 catch ( Exception e ){
                     throw new RuntimeException(e);
@@ -807,4 +808,8 @@ class HttpConnection{
         private boolean _closed = false;
     }
 
+    public static SSLSocketFactory getDefaultSSLSocketFactory(){
+        SocketFactory f = SSLSocketFactory.getDefault();
+        return (SSLSocketFactory)f;
+    }
 }

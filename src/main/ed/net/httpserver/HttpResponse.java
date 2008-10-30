@@ -104,6 +104,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         setResponseCode( rc );
     }
 
+    public void setStatusCode( int rc ){
+        setResponseCode( rc );
+    }
+
     /**
      * @deprecated
      */
@@ -157,12 +161,73 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     }
 
     /**
+     * API copied from appjet
+     * Set a cookie in the response.
+     * @param cookieObject 
+     * fields
+     *    name (required): The name of the cookie
+     *    value (required): The value of the cookie. (Note: this value will be escaped).
+     *    expires (optional): If an integer, means number of days until it expires; if a Date object, means exact date on which to expire.
+     *    domain (optional): The cookie domain
+     *    path (optional): To restrict the cookie to a specific path.
+     *    secure (optional): Whether this cookie should only be sent securely.
+     *                                          
+     
+response.setCookie({
+  name: "SessionID",
+  value: "25",
+  secure: true,
+  expires: 14 // 14 days
+});
+    */
+
+    public void setCookie( JSObject o ){
+        addCookie( objectToCookie( o ) );
+    }
+
+    public static Cookie objectToCookie( JSObject o ){
+        if ( o.get( "name" ) == null )
+            throw new IllegalArgumentException( "name is required" );
+
+        if ( o.get( "value" ) == null )
+            throw new IllegalArgumentException( "value is required" );
+        
+        Cookie c = new Cookie( o.get( "name" ).toString() , o.get( "value" ).toString() );
+        
+        { 
+            Object expires = o.get( "expires" );
+            
+            if ( expires instanceof Number )
+                c.setMaxAge( (int)( ((Number)expires).doubleValue() * 86400 ) );
+            else if ( expires instanceof Date )
+                c.setMaxAge( (int)( ( ((Date)expires).getTime() - System.currentTimeMillis() ) / 1000 ) );
+            else if ( expires instanceof JSDate )
+                c.setMaxAge( (int)( ( ((JSDate)expires).getTime() - System.currentTimeMillis() ) / 1000 ) );
+
+        }
+        if ( o.get( "domain" ) != null )
+            c.setDomain( o.get( "domain" ).toString() );
+
+        if ( o.get( "path" ) != null )
+            c.setPath( o.get( "path" ).toString() );
+
+        if ( JSInternalFunctions.JS_evalToBool( o.get( "secure" ) ) )
+            c.setSecure( true );
+        
+        return c;
+    }
+     
+    /**
      * Equivalent to "addCookie( name , null , 0 )". Tells the browser
      * that the cookie with this name is already expired.
      * @param name cookie name
      */
     public void removeCookie( String name ){
         addCookie( name , "none" , 0 );
+    }
+
+    public void deleteCookie( String name ){
+        removeCookie( name );
     }
 
     public void addCookie( Cookie cookie ){
@@ -177,6 +242,20 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     public void setCacheTime( int seconds ){
         setHeader("Cache-Control" , "max-age=" + seconds );
         setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
+    }
+
+    public void setCacheable( boolean cacheable ){
+        if ( cacheable ){
+            setCacheTime( 3600 );
+        }
+        else {
+            removeHeader( "Expires" );
+            setHeader( "Cache-Control" , "no-cache" );
+        }
+    }
+
+    public void setCacheable( Object o ){
+        setCacheable( JSInternalFunctions.JS_evalToBool( o ) );
     }
 
     /**
@@ -325,6 +404,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         return lst;
     }
 
+    public void removeHeader( String name ){
+        _headers.remove( name );
+    }
+
     /**
      * @unexpose
      */
@@ -413,6 +496,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     public String encodeURL( String loc ){
         return loc;
+    }
+
+    public void redirect( String loc ){
+        sendRedirectTemporary( loc );
     }
 
     /**
@@ -688,6 +775,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         catch ( Exception e ){
             throw new RuntimeException( e );
         }
+    }
+
+    public void write( String s ){
+        getJxpWriter().print( s );
     }
 
     /**
