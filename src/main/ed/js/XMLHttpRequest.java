@@ -109,6 +109,14 @@ public class XMLHttpRequest extends JSObjectBase {
     /** Create an XML HTTP request, setting the handler, url, and if it is asynchronous
      * @param method Method to handle the response.
      * @param url URL to which to send HTTP request.
+     */
+    public XMLHttpRequest( String method , String url ){
+        this( method , url , false );
+    }
+
+    /** Create an XML HTTP request, setting the handler, url, and if it is asynchronous
+     * @param method Method to handle the response.
+     * @param url URL to which to send HTTP request.
      * @param aysnc If the request should be asynchronous.
      */
     public XMLHttpRequest( String method , String url , boolean async ){
@@ -344,6 +352,13 @@ public class XMLHttpRequest extends JSObjectBase {
         if ( r == null )
             throw new JSException( "no 'responseText' " );
         return JSON.parse( r.toString() );
+    }
+
+    public String getResponseText(){
+        Object r = get( "responseText" );
+        if ( r == null )
+            return null;
+        return r.toString();
     }
 
     private URL _checkURL(){
