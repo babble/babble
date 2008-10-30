@@ -177,9 +177,9 @@ public class E4X {
     }
 
     public static String escapeElementValue( String s ) {
+        s = s.replaceAll( "&", "&amp;" );
         s = s.replaceAll( "<", "&lt;" );
         s = s.replaceAll( ">", "&gt;" );
-        s = s.replaceAll( "&", "&amp;" );
         return s;
     }
 
