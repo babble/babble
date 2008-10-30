@@ -447,14 +447,21 @@ public class XMLHttpRequest extends JSObjectBase {
             set( "contentEncoding" , contentEncoding );
         }
 
-        public void gotCookie( Cookie c ){}
+        public void gotCookie( Cookie c ){
+            JSObject cookies = (JSObject)get( "cookies" );
+            if ( cookies == null ){
+                cookies = new JSObjectBase();
+                set( "cookies" , cookies );
+            }
+            cookies.set( c.getName() , new JSString( c.getValue() ) );            
+        }
 
         public void setFinalUrl( URL url ){
             set( "finalURL" , url.toString() );
         }
 
         public boolean followRedirect( URL url ){
-            return true;
+            return ! JSInternalFunctions.JS_evalToBool( get( "nofollow" ) );
         }
 
         public boolean wantHttpErrorExceptions () {
