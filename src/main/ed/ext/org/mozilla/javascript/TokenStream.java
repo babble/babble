@@ -412,6 +412,7 @@ class TokenStream
                         } else if (!parser.compilerEnv.
                                         isReservedKeywordAsIdentifier())
                         {
+                            keyword = str;
                             return result;
                         } else {
                             // If implementation permits to use future reserved
@@ -1369,6 +1370,9 @@ class TokenStream
         sourceEnd += n;
         return true;
     }
+
+    // so we know what reserved work was used
+    static String keyword = "";
 
     // stuff other than whitespace since start of line
     private boolean dirtyLine;

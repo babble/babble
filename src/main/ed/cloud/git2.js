@@ -109,6 +109,63 @@ Cloud.getModuleSymLink = function( moduleName , version ){
     return git.symlinks[ version ];
 }
 
+var _sortHelpPrefix = function( full ){
+    var prefix = "";
+    for ( var i=0; i<full.length; i++ ){
+        if ( isDigit( full[i] ) )
+            break;
+        prefix += full[i];
+    }
+    return prefix;
+}
+
+var _sortHelpNum = function( full ){
+    var prefix = _sortHelpPrefix( full );
+    full = full.substring( prefix.length );
+    if ( full.length == 0 )
+        return 0;
+    
+    var num = "";
+    while ( full.length && isDigit( full[0] ) ){
+        num += full[0];
+        full = full.substring(1);
+    }
+    
+    return parseNumber( num );
+}
+
+var _sortHelpPost = function( full ){
+    var prefix = _sortHelpPrefix( full );
+    full = full.substring( prefix.length )
+    while ( full.length && isDigit( full[0] ) )
+        full = full.substring(1);
+    return full;
+}
+
+Cloud.Git.tagNameSortFunc = function( a , b ){
+    if ( a.length == 0 || b.length == 0 )
+        return a.length - b.length;
+    
+    var ap = _sortHelpPrefix( a );
+    var bp = _sortHelpPrefix( b );
+
+    var c = ap.compareTo( bp );
+    if ( c != 0 )
+        return c;
+    
+    var c = _sortHelpNum( a ) - _sortHelpNum( b );
+    if ( c != 0 )
+        return c * 10000;
+
+    return Cloud.Git.tagNameSortFunc( _sortHelpPost( a ) , _sortHelpPost( b ) );
+    a = _sortHelpPost( a );
+    b = _sortHelpPost( b );
+
+    return Cloud.Git.tagNameSortFunc( a , b );
+}
+
+
+
 db.git.setConstructor( Cloud.Git.Repository );
 if ( me.real ){
     try {

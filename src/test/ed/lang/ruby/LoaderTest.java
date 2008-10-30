@@ -56,6 +56,11 @@ public class LoaderTest extends SourceRunner {
         assertNull(loader.getLibFromPath("no/such/lib/name"));
     }
 
+    public void testGetNotLib() {
+        s.put("db", new Object()); // Something that is not a JSFileLibrary
+        assertNull(loader.getLibFromPath("db/schema.rb"));
+    }
+
 //     public void testLibPathAdditions() {
 //         s.put("local", new JSFileLibrary(new File("/foo/bar/local"), null, s));
 //         s.put("core", new JSFileLibrary(new File("/foo/bar/core"), null, s));

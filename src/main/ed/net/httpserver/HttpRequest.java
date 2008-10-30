@@ -374,6 +374,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         throw new RuntimeException( "no getRequestDispatcher()" );
     }
 
+    public JSObject getHeadersObject(){
+        return new JSDict( _headers );
+    }
+
     /**
      * Gets a raw HTTP header specified by the parameter.
      * @param h the name of an HTTP header. Case insensitive.
@@ -606,6 +610,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
      */
     public String getParameter( String name ){
         return getParameter( name , null );
+    }
+
+    public String param( String name ){
+        return getParameter( name );
     }
 
     /**

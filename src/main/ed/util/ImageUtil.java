@@ -118,6 +118,16 @@ public class ImageUtil {
         }
     }
 
+    private static int getType (BufferedImage img) {
+        int type = img.getType();
+        if (type == BufferedImage.TYPE_CUSTOM) {
+            type = (img.getTransparency() == Transparency.OPAQUE) ?
+                BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        }
+        return type;
+    }
+
+
     public static BufferedImage getScaledInstance(BufferedImage img ,
                                            double targetWidth ,
                                                   double targetHeight ){
@@ -129,12 +139,11 @@ public class ImageUtil {
                                                   int targetHeight,
                                                   boolean higherQuality){
 
-        int type = (img.getTransparency() == Transparency.OPAQUE) ?
-            BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        int type = getType(img);
 
         BufferedImage ret = (BufferedImage)img;
         int w, h;
-        if (higherQuality) {
+        if (higherQuality && targetWidth < img.getWidth() && targetHeight < img.getHeight()) {
             // Use multi-step technique: start with original size, then
             // scale down in multiple passes with drawImage()
             // until the target size is reached
@@ -190,13 +199,17 @@ public class ImageUtil {
             throw new IllegalArgumentException("can only rotate images in multiples of 90 degrees");
         }
         int turns = (degrees / 90) % 4;
+        if (turns < 0) {
+            turns = turns + 4;
+        }
 
         // TODO maybe we should short-circuit here if turns is 0 => just return a copy of img.
 
         int result_width = (turns % 2 == 0) ? img.getWidth() : img.getHeight();
         int result_height = (turns % 2 == 0) ? img.getHeight() : img.getWidth();
 
-        BufferedImage result = new BufferedImage(result_width, result_height, img.getType());
+        int type = getType(img);
+        BufferedImage result = new BufferedImage(result_width, result_height, type);
 
         for (int i = 0; i < result_width; i++) {
             for (int j = 0; j < result_height; j++) {
@@ -207,6 +220,7 @@ public class ImageUtil {
                 case 0:
                     target_x = i;
                     target_y = j;
+                    break;
                 case 1:
                     target_x = j;
                     target_y = result_width - i - 1;
@@ -240,7 +254,7 @@ public class ImageUtil {
             throw new IllegalArgumentException("img must not be null");
         }
 
-        BufferedImage result = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
+        BufferedImage result = new BufferedImage(img.getWidth(), img.getHeight(), getType(img));
 
         for (int i = 0; i < img.getWidth(); i++) {
             for (int j = 0; j < img.getHeight(); j++) {
@@ -261,7 +275,7 @@ public class ImageUtil {
             throw new IllegalArgumentException("img must not be null");
         }
 
-        BufferedImage result = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
+        BufferedImage result = new BufferedImage(img.getWidth(), img.getHeight(), getType(img));
 
         for (int i = 0; i < img.getWidth(); i++) {
             for (int j = 0; j < img.getHeight(); j++) {
@@ -300,7 +314,7 @@ public class ImageUtil {
         int top = (int)(top_y * img.getHeight());
         int height = (int)(bottom_y * img.getHeight()) - top;
 
-        BufferedImage result = new BufferedImage(width, height, img.getType());
+        BufferedImage result = new BufferedImage(width, height, getType(img));
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 result.setRGB(i, j, img.getRGB(left + i, top + j));
