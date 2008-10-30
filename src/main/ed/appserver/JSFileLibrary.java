@@ -585,8 +585,12 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         int idx = topjs.indexOf( "$" );
         if ( idx > 0 )
             topjs = topjs.substring( 0 , idx );
+        idx = topjs.lastIndexOf( "/" );
+        if ( idx > 0 )
+            topjs = topjs.substring( 0 , idx );
         if ( DP ) System.out.println( "looking or path : " + topjs );
-        JSFileLibrary lib = _classToPath.get( topjs );
+
+        JSFileLibrary lib = _fileToPath.get( topjs );
         return lib;
     }
 
@@ -596,9 +600,9 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
     public static void addPath( Class c , JSFileLibrary lib ){
         if ( DP ) System.out.println( "adding to path : " + c );
-        _classToPath.put( c.getName() , lib );
+        _fileToPath.put( lib.getRoot().toString() , lib );
     }
 
-    private static WeakValueMap<String,JSFileLibrary> _classToPath = new WeakValueMap<String,JSFileLibrary>();
+    private static WeakValueMap<String,JSFileLibrary> _fileToPath = new WeakValueMap<String,JSFileLibrary>();
 
 }
