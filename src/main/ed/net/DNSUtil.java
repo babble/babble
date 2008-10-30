@@ -125,6 +125,15 @@ public class DNSUtil {
         return lst;
     }
 
+    public static boolean isLocalAddressSafe( String address ){
+        try {
+            return isLocalAddress( address );
+        }
+        catch ( IOException ioe ){
+            return false;
+        }
+    }
+
     public static boolean isLocalAddress( String address )
         throws IOException {
         if ( address == null )
