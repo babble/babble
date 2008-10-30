@@ -19,3 +19,5 @@ tempFunc = Math.max;
 Math.max = "foo";
 print( Math.max );
 Math.max = tempFunc;
+
+print( Infinity/(-0) );

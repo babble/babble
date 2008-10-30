@@ -146,8 +146,6 @@ public class JSNumber extends Number implements JSObject {
         return x;
     }
 
-    public final static JSNumber NEGATIVE_ZERO = new JSNumber( 0 );
-
     /** Function to parse a number using a given base.  */
     public static class Cons extends JSFunctionCalls1{
             
