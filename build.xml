@@ -182,12 +182,4 @@
   </testng>
  </target>
 
- <target  name="test-moz" depends="init, compile">
-   <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
-     <jvmarg value="-Xmx512M" />
-     <xmlfileset dir="." includes="testng-moz.xml"/>
-    <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
-   </testng>
- </target>
-
 </project>
