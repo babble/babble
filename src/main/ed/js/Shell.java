@@ -255,9 +255,11 @@ public class Shell {
                 }
             }
             else if ( a.endsWith( ".py" ) ){
-                PythonJxpSource py = new PythonJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
+                File f = new File( a );
+                JSFileLibrary fl = new JSFileLibrary( f.getParentFile() == null ? new File( "." ) : f.getParentFile() , "blah" , s );
                 try {
-                    py.getFunction().call( s );
+                    JSFunction py = (JSFunction)fl.get( f.getName().replaceAll( ".py$" , "" ));
+                    py.call( s );
                 }
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
