@@ -183,19 +183,12 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                 }
             }
 
-            if ( _totalObjectSizeSeen == null ){
-                _totalObjectSizeSeen = new IdentitySet();
-                if ( _constructor != null ){
-                    _totalObjectSizeSeen.add( _constructor );
-                    _totalObjectSizeSeen.add( _constructor.getPrototype() );
-                }
-            }
-            final long mySize = JSObjectSize.size( _cur , _totalObjectSizeSeen );
+            final long mySize = _size( _cur );
             _totalObjectSize += mySize;
 
             if ( _totalObjectSize > MAX_OBJ_BYTES )
                 throw new RuntimeException( "database cursor in array mode and total object size is too big  object size(" + _totalObjectSize + ") raw size(" + tb + ")" );
-
+            
             _nums.add( String.valueOf( _all.size() ) );
             _all.add( _cur );
         }
@@ -204,6 +197,42 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             ((JSObjectBase)_cur).markClean();
 
         return _cur;
+    }
+    
+    private long _size( JSObject cur ){
+    
+        if ( _objectsSeenSoFar == null ){
+            _objectsSeenSoFar = new IdentitySet();
+            if ( _constructor != null ){
+                _objectsSeenSoFar.add( _constructor );
+                _objectsSeenSoFar.add( _constructor.getPrototype() );
+            }
+        }
+
+        long size = 20;
+
+        for ( String s : cur.keySet( false ) ){
+            Object o = cur.get( s );
+            size += 16;
+            
+            if ( o == null )
+                continue;
+            
+            if ( o instanceof JSFunction )
+                continue;
+            
+            long me = 0;
+            if ( o instanceof JSObject && ! JS.isPrimitive( o ) )
+                me = _size( (JSObject)o );
+            else 
+                me = JSObjectSize.size( o , _objectsSeenSoFar );
+            
+            if ( me > 100000 )
+                System.out.println( "\t" + s + "\t" + me );
+            size += me;
+        }
+
+        return size;
     }
 
     private boolean _hasNext(){
@@ -393,7 +422,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private int _num = 0;
 
     private long _totalObjectSize = 0;
-    private IdentitySet _totalObjectSizeSeen;
+    private IdentitySet _objectsSeenSoFar;
 
     private final List<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();
