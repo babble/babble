@@ -117,7 +117,7 @@
  </taskdef>
 
 
-  <target name="test" depends="compile, test-basic, test-django, test-corejs, test-db, test-ruby, test-moz"/>
+  <target name="test" depends="compile, test-basic, test-django, test-corejs, test-db, test-ruby" />
 
   <target name="test-no-db" depends="compile, test-basic, test-django, test-corejs"/>
 
