@@ -226,9 +226,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                 me = _size( (JSObject)o );
             else 
                 me = JSObjectSize.size( o , _objectsSeenSoFar );
-            
-            if ( me > 100000 )
-                System.out.println( "\t" + s + "\t" + me );
+
             size += me;
         }
 
