@@ -612,6 +612,30 @@ public class JSBuiltInFunctions {
         }
     }
 
+    public static class CreatePackage extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object funcObject , Object [] args){
+            if ( ! ( funcObject instanceof JSFunction ) )
+                throw new RuntimeException( "createPackage needs to take a function" );
+            
+            Scope global = scope.child();
+            global.setGlobal( true );
+            
+            Scope toPass = global.child();
+
+            JSFunction func = (JSFunction)funcObject;
+
+            func.setUsePassedInScopeTL( true );
+            func.call( toPass , args );
+            func.setUsePassedInScopeTL( false );
+
+            JSObject thePackage = new JSObjectBase();
+            for ( String s : global.keySet() )
+                thePackage.set( s , global.get( s ) );
+
+            return thePackage;
+        }
+    }
+
 
     /**
      * everything that gets put into the scope that is a JSObjetBase gets locked
@@ -794,6 +818,8 @@ public class JSBuiltInFunctions {
 
         // mail stuff till i'm done
         s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
+
+        s.put( "createPackage" , new CreatePackage() );
 
         JSON.init( s );
         Encoding.install( s );
