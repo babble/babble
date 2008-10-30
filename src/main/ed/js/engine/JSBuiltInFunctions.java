@@ -110,6 +110,9 @@ public class JSBuiltInFunctions {
                 instance = new Void();
             return instance;
         }
+        public String toString() {
+            return "null";
+        }
     }
 
     public static class jsassert extends JSFunctionCalls1 {
