@@ -102,6 +102,16 @@ public class JSBuiltInFunctions {
         return s;
     }
 
+    public static class Void {
+        private static Void instance = null;
+        private Void() {}
+        public static Void getInstance() {
+            if( instance == null )
+                instance = new Void();
+            return instance;
+        }
+    }
+
     public static class jsassert extends JSFunctionCalls1 {
         public jsassert(){
             JSFunction myThrows = new JSFunctionCalls2(){
