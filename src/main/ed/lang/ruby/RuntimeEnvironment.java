@@ -53,8 +53,8 @@ class RuntimeEnvironment {
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
-        /* Don't pre-load XGen::Mongo::Base because it uses /core/js/sql, and
-         * that isn't on the path this early in the game. Since Base was the
+        /* Don't pre-load XGen::Mongo::Base. It used to require /core/js/sql,
+         * which isn't on the path this early in the game. Since Base was the
          * only thing that we pre-loaded here, I've commented this out.
          * Uncomment and re-add xgen.rb if there's anything we always want
          * required. */

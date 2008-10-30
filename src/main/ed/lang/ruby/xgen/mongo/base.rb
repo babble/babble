@@ -14,7 +14,7 @@
 
 require 'xgen/mongo/oid'
 require 'xgen/mongo/cursor'
-require '/core/db/sql.js'
+require 'xgen/sql'
 
 class Object
   def to_mongo_value
@@ -381,7 +381,7 @@ module XGen
 
         # Turns a string into a Mongo search condition hash.
         def criteria_from_string(sql) # :nodoc:
-          $SQL.parse_where(sql)
+          XGen::SQL::Parser.parse_where(sql)
         end
 
         # Turns a hash that ActiveRecord would expect into one for Mongo.
