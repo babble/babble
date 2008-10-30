@@ -90,7 +90,6 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     // -----
 
     protected abstract String getContent() throws IOException;
-    protected abstract InputStream getInputStream() throws IOException ;
     public abstract long lastUpdated(Set<Dependency> visitedDeps);
     public abstract String getName();
 
