@@ -166,6 +166,9 @@ public class NativeBridge {
         if ( o instanceof JSString )
             return o.toString();
         
+	if ( o instanceof JSDate )
+	    return ((JSDate)o).toJavaDate();
+
         return o;
     }
 

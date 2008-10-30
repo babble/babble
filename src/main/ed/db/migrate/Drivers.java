@@ -71,6 +71,11 @@ public class Drivers {
                 stmt = _conn.createStatement();
             return stmt.executeUpdate( s );
         }
+	
+	public MyPreparedStatement prepareStatement( String sql )
+	    throws SQLException {
+	    return new MyPreparedStatement( _conn.prepareStatement( sql ) );
+	}
 
         public String toString(){
             return _url;
@@ -101,7 +106,8 @@ public class Drivers {
                 if ( ! b ){
                     _res.close();
                     _addedBack = true;
-                    _stmts.add( _stmt );
+		    if ( _stmt != null )
+			_stmts.add( _stmt );
                 }
 
                 return b;
@@ -163,7 +169,8 @@ public class Drivers {
                 throws SQLException {
                 _res.close();
                 if ( ! _addedBack )
-                    _stmts.add( _stmt );
+		    if ( _stmt != null )
+			_stmts.add( _stmt );
                 _addedBack = true;
             }
 
@@ -178,5 +185,60 @@ public class Drivers {
             private boolean _addedBack = false;
             private boolean _doneAnything = false;
         }
+
+	class MyPreparedStatement extends JSObjectLame {
+	    MyPreparedStatement( PreparedStatement ps ){
+		_ps = ps;
+	    }
+
+	    public Object get( Object key ){
+		return null;
+	    }
+
+	    public Object set( Object key , Object v ){
+		if ( key instanceof Number )
+		    return setInt( ((Number)key).intValue() , v );
+		throw new RuntimeException( "can't set things on a prepared statement except for numbers" );
+	    }
+
+	    public Object setInt( int i, Object v ){
+		v = NativeBridge.toJavaObject( v );
+		try {
+		    _ps.setObject( i , v );
+		    return v;
+		}
+		catch ( SQLException se ){
+		    throw new RuntimeException( "can't set something.  num:" + i + " value:" + ( v == null ? null : v.getClass() ) , se );
+		}
+	    }
+	    
+	    public int exec()
+		throws SQLException {
+		_checkClose();
+		return _ps.executeUpdate();
+	    }
+	    
+	    public MyResult query()
+		throws SQLException {
+		_checkClose();
+		return new MyResult( null , _ps.executeQuery() );
+	    }
+
+	    public void close()
+		throws SQLException {
+		if ( _closed )
+		    return;
+		_closed = true;
+		_ps.close();
+	    }
+
+	    void _checkClose(){
+		if ( _closed )
+		    throw new RuntimeException( "already closed" );
+	    }
+
+	    final PreparedStatement _ps;
+	    private boolean _closed = false;
+	}
     }
 }

@@ -700,6 +700,10 @@ public class JSDate extends JSObjectBase implements Comparable {
         return new JSDate( _roundHour() );
     }
 
+    public Date toJavaDate(){
+	return new Date( _time );
+    }
+
     /** @unexpose */
     public Calendar _roundMonth(){
         Calendar c = _roundDay();
