@@ -33,7 +33,8 @@ Cloud.Server = function( name ){
     this.location = r[1];
     this.provider = r[2];
     this.number = parseInt( r[3] );
-    
+
+    this.name = this.location + "-" + this.provider + "." + this.number;
 };
 
 Cloud.Server.prototype.gridServer = function(){

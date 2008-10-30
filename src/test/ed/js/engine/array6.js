@@ -45,3 +45,10 @@ print( a.shift() );
 print( a );
 print( a.shift() == null );
 print( a );
+
+
+a = [ 100 , 9 ]
+print( a.sort() );
+
+a = [ 9 , 100 ]
+print( a.sort() );

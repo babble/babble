@@ -205,7 +205,10 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
     }
 
     public final Iterator<JSObject> find(){
-        return find( new JSObjectBase() , null , 0 , 0 );
+        Iterator<JSObject> i = find( new JSObjectBase() , null , 0 , 0 );
+        if ( i == null )
+            return (new LinkedList<JSObject>()).iterator();
+        return i;
     }
 
     public final JSObject findOne(){

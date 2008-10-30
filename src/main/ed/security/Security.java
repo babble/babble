@@ -24,6 +24,7 @@ import java.io.*;
 import ed.appserver.*;
 import ed.js.engine.*;
 import ed.util.Config;
+import ed.lang.StackTraceHolder;
 
 public class Security {
 
@@ -44,20 +45,21 @@ public class Security {
 	return allowedSites.contains( siteName );
     }
 
-    final static String SECURE[] = new String[]{ 
-        Convert.DEFAULT_PACKAGE + "." + _baseClass + "corejs_" , 
-        Convert.DEFAULT_PACKAGE + "." + _baseClass + "core_modules_admin_" , 
-        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_admin_" , 
-        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_www_" , 
-        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_grid_" , 
-        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_modules_" , 
-        Convert.DEFAULT_PACKAGE + ".lastline" ,
-        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "src/main/ed/" ) , 
-        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "/home/yellow/code_for_hudson" ) ,
-        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_'  ) ),
-        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed")
+    final static String SECURE[] = new String[]{
+        "/data/corejs/" ,
+        "/data/core-modules/admin/",
+        "/data/sites/admin/",
+        "/data/sites/www/",
+        "/data/sites/grid/",
+        "/data/sites/modules/",
+        "lastline",
+        "src/main/ed/",
+        "/home/yellow/code_for_hudson/",
+        new File( "src/test/ed/" ).getAbsolutePath(),
+        "./src/test/ed/lang/python/", // FIXME?
+        Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed"
     };
-    
+
     public static boolean isCoreJS(){
         if ( OFF )
             return true;
@@ -75,13 +77,22 @@ public class Security {
     }
 
     public static String getTopJS(){
+        return getTopDynamicStackFrame().getFileName();
+    }
 
+    public static StackTraceElement getTopDynamicStackFrame(){
         StackTraceElement[] st = Thread.currentThread().getStackTrace();
-        
+        StackTraceHolder holder = StackTraceHolder.getInstance();
+
         for ( int i=0; i<st.length; i++ ){
             StackTraceElement e = st[i];
-            if ( e.getClassName().startsWith( Convert.DEFAULT_PACKAGE + "." ) )
-                return e.getClassName();
+            StackTraceElement n = holder.fix( e );
+            // if n == null, this was removed, which means this was internal.
+            // if n is different, e was replaced, which means e was dynamic code
+            // that someone knew how to handle.
+            if ( n == null || n == e ) continue;
+
+            return n;
         }
 
         return null;

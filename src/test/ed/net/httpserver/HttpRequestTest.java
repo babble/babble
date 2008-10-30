@@ -28,6 +28,7 @@ public class HttpRequestTest extends TestCase {
     public static void testGetParams(){
         HttpRequest r = HttpRequest.getDummy( "/crazy/me?a=1&b=2&b=3" );
         assertEquals( "1" , r.getParameter( "a" ) );
+        assertEquals( "1" , r.param( "a" ) );
         assertEquals( "1" , r.getURLParameter( "a" ) );
         assertEquals( "1" , r.getURLParameter( "a" , "asdsad" ) );
         assertEquals( "Z" , r.getURLParameter( "c" , "Z" ) );
@@ -86,10 +87,13 @@ public class HttpRequestTest extends TestCase {
         HttpRequest r = HttpRequest.getDummy( "/?f=data" , "Referer: http://blah.com/asda" );
         assertEquals( "http://blah.com/asda" , r.getReferer() );
         assertEquals( "/asda" , r.getRefererNoHost() );
-
+        
         r = HttpRequest.getDummy( "/?f=data" , "Referer: /asda" );
+        assertEquals( "/asda" , r.getHeader( "Referer" ) );
+        assertEquals( "/asda" , r.getHeadersObject().get( "Referer" ).toString() );
         assertEquals( "/asda" , r.getReferer() );
         assertEquals( "/asda" , r.getRefererNoHost() );
+
     }
 
     @Test(groups = {"basic"})

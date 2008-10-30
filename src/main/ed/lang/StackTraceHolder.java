@@ -20,6 +20,14 @@ package ed.lang;
 
 import java.util.*;
 
+/**
+ * Class to clean up a stack trace for presentation to user.
+ *
+ * Comprises a set of StackTraceFixers which are applied to Throwables or
+ * individual StackTraceElements. The idea is to remove "internal" stack frames
+ * that the user isn't likely to care about, and replace filenames and class
+ * names with information that actually applies to user code.
+ */
 public class StackTraceHolder {
 
     public static interface NoFix{}
@@ -81,6 +89,12 @@ public class StackTraceHolder {
     }
     
     /**
+     * Fixes a given stack trace element.
+     *
+     * Returns null if this stack trace should be removed -- ie it's internal.
+     * Return a new stack trace element if this element should be replaced
+     * with a different/more informative element.
+     *
      * @return null if should be removed, or the correct thing
     */
     public StackTraceElement fix( StackTraceElement element ){

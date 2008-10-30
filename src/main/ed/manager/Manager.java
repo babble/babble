@@ -169,7 +169,7 @@ public class Manager extends Thread {
         if ( cl.hasOption( "config" ) )
             factory = new TextConfigApplicationFactory( new File( cl.getOptionValue( "config" , null ) ) );
         else 
-            throw new RuntimeException( "don't know how to create default factory" );
+            factory = new GridConfigApplicationFactory();
 
         Manager m = new Manager( factory , cl.hasOption( "v" ) );
         m.start();

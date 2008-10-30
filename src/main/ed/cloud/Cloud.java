@@ -28,6 +28,7 @@ import ed.db.DBBase;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
+import ed.net.*;
 
 public class Cloud extends JSObjectBase {
     
@@ -296,9 +297,11 @@ public class Cloud extends JSObjectBase {
             return true;
         
         if ( myName.contains( "." ) && name.contains( "." ) )
-            return false;
+            return DNSUtil.isLocalAddressSafe( name );
 
-        return _shortHostName( name ).equalsIgnoreCase( myName );
+        return 
+            _shortHostName( name ).equalsIgnoreCase( myName ) || 
+            DNSUtil.isLocalAddressSafe( name );
     }
 
     private String _shortHostName( String name ){

@@ -30,6 +30,8 @@ import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.jxp.JxpSource;
 import ed.log.Logger;
+import ed.lang.StackTraceFixer;
+import ed.lang.StackTraceHolder;
 
 public class PythonJxpSource extends JxpSource {
 
@@ -62,11 +64,34 @@ public class PythonJxpSource extends JxpSource {
         return _file;
     }
 
+    public static class PyStackTraceFixer implements StackTraceFixer {
+        public StackTraceElement fixSTElement( StackTraceElement element ){
+            String cn = element.getClassName();
+            String mn = element.getMethodName();
+            String fn = element.getFileName();
+            int ln = element.getLineNumber();
+
+            if( cn.startsWith("org.python.pycode._pyx") )
+                return new StackTraceElement(fn, "___", fn, ln);
+            return element;
+        }
+
+        public boolean removeSTElement( StackTraceElement element ){
+            return false;
+        }
+    }
+
+    private static final PyStackTraceFixer _stackFixer = new PyStackTraceFixer();
+
     public synchronized JSFunction getFunction()
         throws IOException {
         
         final PyCode code = _getCode();
-        
+
+        StackTraceHolder h = StackTraceHolder.getInstance();
+        h.setPackage( "org.python.pycode" , _stackFixer );
+        h.setPackage( "org.python.core" , _stackFixer );
+
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
 

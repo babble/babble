@@ -114,6 +114,17 @@ public class JS extends Language {
     public static boolean isBaseObject( Class c ){
         return c == JSObjectBase.class || c == JSDict.class;
     }
+
+    public static boolean isPrimitive( Object o ){
+        return 
+            o instanceof Number ||
+            o instanceof JSNumber ||
+            o instanceof Boolean ||
+            o instanceof JSBoolean ||
+            o instanceof String ||
+            o instanceof JSString;
+        
+    }
     
     public static void main( String args[] )
         throws Exception {
