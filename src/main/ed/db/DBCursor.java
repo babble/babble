@@ -209,10 +209,18 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             }
         }
 
+	if ( _objectsSeenSoFar.contains( cur ) )
+	    return 0;
+	_objectsSeenSoFar.add( cur );
+
         long size = 20;
 
         for ( String s : cur.keySet( false ) ){
-            Object o = cur.get( s );
+            final Object o;
+	    if ( cur instanceof JSObjectBase )
+		o = ((JSObjectBase)cur)._simpleGet( s );
+	    else 
+		o = cur.get( s );
             size += 16;
             
             if ( o == null )
@@ -221,6 +229,9 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             if ( o instanceof JSFunction )
                 continue;
             
+	    if ( o instanceof DBRef )
+		continue;
+
             long me = 0;
             if ( o instanceof JSObject && ! JS.isPrimitive( o ) )
                 me = _size( (JSObject)o );
