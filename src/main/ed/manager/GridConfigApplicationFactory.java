@@ -74,7 +74,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     }
     
     void _doDBs( SimpleConfig config ){ 
-        for ( Iterator<JSObject> i = _db.getCollection( "dbs" ).find(); i.hasNext(); ){
+        for ( Iterator<JSObject> i = _find( "dbs" ); i.hasNext(); ){
             final JSObject db = i.next();
             final String name = db.get( "name" ).toString();
             
@@ -87,7 +87,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     }
 
     void _doAppServers( SimpleConfig config ){ 
-        for ( Iterator<JSObject> i = _db.getCollection( "pools" ).find(); i.hasNext(); ){
+        for ( Iterator<JSObject> i = _find( "pools" ); i.hasNext(); ){
             final JSObject pool = i.next();
             final String name = pool.get( "name" ).toString();
             
@@ -102,7 +102,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     }
 
     void _doLoadBalancers( SimpleConfig config ){ 
-        for ( Iterator<JSObject> i = _db.getCollection( "lbs" ).find(); i.hasNext(); ){
+        for ( Iterator<JSObject> i = _find( "lbs" ); i.hasNext(); ){
             final JSObject lb = i.next();
             final String machine = lb.get( "machine" ).toString();
             
@@ -111,6 +111,13 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                 
             config.addEntry( "lb" , machine , "ACTIVE" , "true" );
         }
+    }
+
+    Iterator<JSObject> _find( String type ){
+        Iterator<JSObject> i = _db.getCollection( type ).find();
+        if ( i == null )
+            i = (new LinkedList<JSObject>()).iterator();
+        return i;
     }
 
     void _addDefaultsIfAny( SimpleConfig config ){
