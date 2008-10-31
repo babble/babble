@@ -254,6 +254,10 @@ public class XMLHttpRequest extends JSObjectBase {
         return new IOException( "weird XMLHttpRequest error : " + err );
     }
 
+    public int getResponseCode(){
+        return ((Number)(get("status"))).intValue();
+    }
+
     /** Gets the length of the header.
      * @param Buffer containing this request string.
      * @return The number of characters in first line of the request.
@@ -454,8 +458,9 @@ public class XMLHttpRequest extends JSObjectBase {
                 set( "cookies" , cookies );
             }
             cookies.set( c.getName() , new JSString( c.getValue() ) );            
+            _cookies.put( c.getName() , c );
         }
-
+        
         public void setFinalUrl( URL url ){
             set( "finalURL" , url.toString() );
         }
@@ -463,17 +468,17 @@ public class XMLHttpRequest extends JSObjectBase {
         public boolean followRedirect( URL url ){
             return ! JSInternalFunctions.JS_evalToBool( get( "nofollow" ) );
         }
-
+        
         public boolean wantHttpErrorExceptions () {
             return false;
         }
-
+        
         public Map<String,String> getHeadersToSend(){
             return _headersToSend;
         }
 
         public Map<String,Cookie> getCookiesToSend(){
-            return null;
+            return _cookies;
         }
 
         public byte[] getPostDataToSend(){
@@ -495,6 +500,7 @@ public class XMLHttpRequest extends JSObjectBase {
         int _contentLength = 0;
         String _contentEncoding = "UTF8";
         StringBuilder _header = new StringBuilder();
+        Map<String,Cookie> _cookies = new TreeMap<String,Cookie>();
     }
 
 
