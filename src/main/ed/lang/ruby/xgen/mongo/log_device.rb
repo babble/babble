@@ -61,9 +61,14 @@ module XGen
         # does not have normal keys and returns collection objects as the
         # value of all unknown names.
         $db.createCollection(@collection_name, options)
+
+        # If we are running outside of the cloud, echo all log messages to
+        # $stderr.
+        @console = $scope['__instance__'].getEnvironmentName() == nil
       end
 
       def write(str)
+        $stderr.puts str if @console
         $db[@collection_name].save({:time => Time.now.to_i, :msg => str})
       end
 
