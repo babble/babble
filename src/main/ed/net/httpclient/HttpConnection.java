@@ -421,9 +421,10 @@ class HttpConnection{
         */
 
         if( !_requestMethod.equals("HEAD") ) {
-            if ( chunked ) {
+            if ( chunked ){
                 _userIn = new ChunkedInputStream( _in );
-            } else if ( _keepAlive ){
+            } 
+            else if ( _keepAlive || _usingSLL ){
                 _userIn = new MaxReadInputStream( _in , getContentLength() );
             }
             else {
