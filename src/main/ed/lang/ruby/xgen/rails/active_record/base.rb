@@ -15,12 +15,17 @@
 require 'xgen/sql'
 require 'xgen/mongo/cursor'
 
+class JSObject
+  def to_ar_hash
+    # Remove keys with underscores, except for _id, before passing on to the model
+    to_hash.delete_if { |k,v| k.to_s[0,1] == '_' && k.to_s != '_id' }
+  end
+end
+
 class XGen::Mongo::Cursor
   def each
     @cursor.forEach { |row|
-      # Remove keys with underscores, except for _id, before passing on to the model
-      h = row.to_hash.delete_if { |k,v| k.to_s[0,1] == '_' && k.to_s != '_id' }
-      yield @model_class.new(h)
+      yield @model_class.new(row.to_ar_hash)
     }
   end
 end
@@ -184,7 +189,7 @@ module ActiveRecord
         criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
         fields = fields_from(options[:select])
         row = collection.find_one(criteria, fields)
-        (row.nil? || row['_id'] == nil) ? nil : self.new(row)
+        (row.nil? || row['_id'] == nil) ? nil : self.new(row.to_ar_hash)
       end
 
       def find_every(options)
@@ -213,7 +218,7 @@ module ActiveRecord
         sort_by = sort_by_from(options[:order]) if options[:order]
         db_cursor.sort(sort_by) if sort_by
         cursor = XGen::Mongo::Cursor.new(db_cursor, self)
-        ids.length == 1 ? self.new(cursor[0]) : cursor
+        ids.length == 1 ? self.new(cursor[0].to_ar_hash) : cursor
       end
 
       # Turns array, string, or hash conditions into something useable by Mongo.
