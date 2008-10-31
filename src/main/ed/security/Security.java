@@ -57,7 +57,8 @@ public class Security {
         "/home/yellow/code_for_hudson/",
         new File( "src/test/ed/" ).getAbsolutePath(),
         "./src/test/ed/lang/python/", // FIXME?
-        Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed"
+        Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed",
+            "./libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
     };
 
     public static boolean isCoreJS(){
