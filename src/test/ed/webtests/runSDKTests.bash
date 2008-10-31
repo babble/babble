@@ -1,3 +1,4 @@
+#! /bin/bash
 # Print usage info if necessary.
 if [ -z "$1" ]
     then
