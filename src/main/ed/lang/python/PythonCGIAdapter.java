@@ -52,7 +52,7 @@ public class PythonCGIAdapter extends CGIAdapter {
     public void handleCGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
 
         if (env == null) {
-            throw new RuntimeException("Error : PythonCGIAdapater.handleCGI() invoked w/ null EnvPam");
+            throw new RuntimeException("Error : PythonCGIAdapater.handleCGI() invoked w/ null EnvMap");
         }
 
         final AppContext ac = getAppContext();
