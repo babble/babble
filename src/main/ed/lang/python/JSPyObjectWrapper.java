@@ -322,7 +322,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public String toString(){
-        return _p.invoke( "__str__" ).toString();
+        return _p.toString();
     }
     
     public PyCode getPyCode(){

@@ -76,6 +76,6 @@ UTF8Class.prototype.toString = function() {
 
 function from_now(sec_offset) {
     var now = new Date();
-    now.setSeconds(now.getSeconds() + sec_offset);
+    now.setTime( now.getTime() + (sec_offset * 1000) );
     return now;
 };
