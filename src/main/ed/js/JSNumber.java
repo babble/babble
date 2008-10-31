@@ -394,4 +394,18 @@ public class JSNumber extends Number implements JSObject {
             return Double.NaN;
         }
     }
+
+    public static int toInt32( final Object o ) {
+        double d = getDouble( o );
+        if( d == 0 ||
+            Double.isNaN( d ) ||
+            Double.isInfinite( d ) ) 
+            return 0;
+
+        int sign = o.toString().startsWith( "-" ) ? -1 : 1;
+        long preint = ( sign * (long)Math.floor( Math.abs( d ) ) ) % (long)Math.pow(2,32);
+        if( preint < (long)Math.pow(2,31) ) 
+            return (int)preint;
+        return (int)(preint - (long)Math.pow(2,32));
+    }
 }

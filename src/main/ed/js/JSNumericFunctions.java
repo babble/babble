@@ -243,29 +243,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return their or-ed value, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public static Number JS_bitor( Object a , Object b ){
-
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a instanceof Boolean )
-            if ( ((Boolean)a) )
-                a = 1;
-
-        if ( b instanceof Boolean )
-            if ( ((Boolean)b) )
-                b = 1;
-
-        if ( a != null && a instanceof Number &&
-             b != null && b instanceof Number )
-            return ((Number)a).intValue() | ((Number)b).intValue();
-
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-
-        return 0;
+        return JSNumber.toInt32( a ) | JSNumber.toInt32( b );
     }
 
     /** Performs a bitwise and on two objects.
@@ -274,15 +252,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return their and-ed value, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public Number JS_bitand( Object a , Object b ){
-
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number &&
-             b != null && b instanceof Number )
-            return ((Number)a).intValue() & ((Number)b).intValue();
-
-        return 0;
+        return JSNumber.toInt32( a ) & JSNumber.toInt32( b );
     }
 
     /** Performs a bitwise exculsive or on two objects.
@@ -291,21 +261,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return their xor-ed value, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public Number JS_bitxor( Object a , Object b ){
-
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number &&
-             b != null && b instanceof Number )
-            return ((Number)a).intValue() ^ ((Number)b).intValue();
-
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-
-        return 0;
+        return JSNumber.toInt32( a ) ^ JSNumber.toInt32( b );
     }
 
     /** Given an object, finds its equivalent modulo a second object.
@@ -314,8 +270,8 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return <tt>a</tt> mod <tt>b</tt>, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public Number JS_mod( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
+        a = JSNumber.getNumber( a );
+        b = JSNumber.getNumber( b );
 
         if ( Double.isNaN( ((Number)a).doubleValue() ) ||
              Double.isNaN( ((Number)b).doubleValue() ) || 
@@ -323,7 +279,7 @@ public class JSNumericFunctions extends JSObjectBase {
              ((Number)b).intValue() == 0 )
             return Double.NaN;
 
-        return ((Number)a).intValue() % ((Number)b).intValue();
+        return ((Number)a).longValue() % ((Number)b).longValue();
     }
 
     /** Performs a left shift on an object a given number of bits.
