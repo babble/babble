@@ -208,7 +208,7 @@ public class JSON {
 
             try {
                 if ( something == null ||
-                     something instanceof JSBuiltInFunctions.Void ){
+                     something instanceof JSInternalFunctions.Void ){
                     a.append( "null" );
                     return;
                 }
