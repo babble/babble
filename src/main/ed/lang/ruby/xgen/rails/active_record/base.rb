@@ -69,7 +69,7 @@ module ActiveRecord
       # ================ relational database connection handling ================
 
       # Return an object that does nothing, no matter what is passed to it
-      def connection;
+      def connection
         @@mongo_connection ||= ActiveRecord::ConnectionAdapters::MongoPseudoConnection.new
       end
 
@@ -320,6 +320,12 @@ module ActiveRecord
         else
           arg ? 1 : -1
         end
+      end
+
+      # Default implementation doesn't work for "_id".
+      def all_attributes_exists?(attribute_names)
+        attribute_names.collect! {|n| n == 'id' ? '_id' : n}
+        attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
       end
 
     end                         # End of class methods
