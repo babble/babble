@@ -30,8 +30,6 @@ import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.jxp.JxpSource;
 import ed.log.Logger;
-import ed.lang.StackTraceFixer;
-import ed.lang.StackTraceHolder;
 
 public class PythonJxpSource extends JxpSource {
 
@@ -39,58 +37,10 @@ public class PythonJxpSource extends JxpSource {
         System.setProperty( "python.cachedir", ed.io.WorkingFiles.TMP_DIR + "/jython-cache/" + Version.PY_VERSION );
     }
 
-    public PythonJxpSource( File f , JSFileLibrary lib ){
-        _file = f;
-        _lib = lib;
-    }
-    
-    protected String getContent(){
-        throw new RuntimeException( "you can't do this" );
-    }
-       
-    protected InputStream getInputStream(){
-        throw new RuntimeException( "you can't do this" );
-    }
-    
-    public long lastUpdated(Set<Dependency> visitedDeps){
-        return _file.lastModified();
-    }
-    
-    public String getName(){
-        return _file.toString();
-    }
-
-    public File getFile(){
-        return _file;
-    }
-
-    public static class PyStackTraceFixer implements StackTraceFixer {
-        public StackTraceElement fixSTElement( StackTraceElement element ){
-            String cn = element.getClassName();
-            String mn = element.getMethodName();
-            String fn = element.getFileName();
-            int ln = element.getLineNumber();
-
-            if( cn.startsWith("org.python.pycode._pyx") )
-                return new StackTraceElement(fn, "___", fn, ln);
-            return element;
-        }
-
-        public boolean removeSTElement( StackTraceElement element ){
-            return false;
-        }
-    }
-
-    private static final PyStackTraceFixer _stackFixer = new PyStackTraceFixer();
-
     public synchronized JSFunction getFunction()
         throws IOException {
         
         final PyCode code = _getCode();
-
-        StackTraceHolder h = StackTraceHolder.getInstance();
-        h.setPackage( "org.python.pycode" , _stackFixer );
-        h.setPackage( "org.python.core" , _stackFixer );
 
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
@@ -98,49 +48,19 @@ public class PythonJxpSource extends JxpSource {
                 final AppContext ac = getAppContext();
 
                 Scope siteScope;
-                if( ac != null ) siteScope = ac.getScope();
-                else siteScope = s.getGlobal( true );
+
+                if ( ac != null )
+                    siteScope = ac.getScope();
+                else 
+                    siteScope = s.getGlobal( true );
+
                 SiteSystemState ss = Python.getSiteSystemState( ac , siteScope );
-                PySystemState pyOld = Py.getSystemState();
-
-                ss.flushOld();
-
-                ss.ensurePath( _file.getParent().toString() );
-                ss.ensurePath( _lib.getRoot().toString() );
-                ss.ensurePath( _lib.getTopParent().getRoot().toString() );
 
                 PyObject globals = ss.globals;
-                PyObject oldFile = globals.__finditem__( "__file__" );
-                PyObject oldName = globals.__finditem__( "__name__" );
 
-                PyObject result = null;
-                try {
-                    Py.setSystemState( ss.getPyState() );
+                PyObject result = runPythonCode(code, ac, ss, globals, siteScope, _lib, _file);
 
-
-                    //Py.initClassExceptions( globals );
-                    globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
-                    // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
-                    // Right now I only want this for _init.py
-                    String name = _file.getName();
-                    if( name.endsWith( ".py" ) )
-                        name = name.substring( 0 , name.length() - 3 );
-                    //globals.__setitem__( "__name__", Py.newString( name ) );
-
-                    PyModule module = new PyModule( name , globals );
-
-                    PyObject locals = module.__dict__;
-                    result = Py.runCode( code, locals, globals );
-                    if( ac != null ) ss.addRecursive( "_init" , ac );
-                }
-                finally {
-                    globalRestore( globals , siteScope , "__file__" , oldFile );
-                    globalRestore( globals , siteScope , "__name__" , oldName );
-
-                    Py.setSystemState( pyOld );
-                }
-
-                if( usePassedInScope() ){
+                if (usePassedInScope()){
                     PyObject keys = globals.invoke("keys");
                     if( ! ( keys instanceof PyList ) ){
                         throw new RuntimeException("couldn't use passed in scope: keys not dictionary [" + keys.getClass() + "]");
@@ -162,7 +82,54 @@ public class PythonJxpSource extends JxpSource {
         };
     }
 
-    private void globalRestore( PyObject globals , Scope siteScope , String name , PyObject value ){
+    public static PyObject runPythonCode(PyCode code, AppContext ac, SiteSystemState ss, PyObject globals,
+                                  Scope siteScope, JSFileLibrary lib, File file) {
+
+        PySystemState pyOld = Py.getSystemState();
+
+        ss.flushOld();
+
+        ss.ensurePath( file.getParent());
+        ss.ensurePath( lib.getRoot().toString() );
+        ss.ensurePath( lib.getTopParent().getRoot().toString() );
+
+        PyObject oldFile = globals.__finditem__( "__file__" );
+        PyObject oldName = globals.__finditem__( "__name__" );
+
+        PyObject result = null;
+        
+        try {
+            Py.setSystemState( ss.getPyState() );
+
+            //Py.initClassExceptions( globals );
+            globals.__setitem__( "__file__", Py.newString( file.toString() ) );
+            // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
+            // Right now I only want this for _init.py
+            String name = file.getName();
+            if( name.endsWith( ".py" ) )
+                name = name.substring( 0 , name.length() - 3 );
+            //globals.__setitem__( "__name__", Py.newString( name ) );
+
+            /*
+             * In order to track dependencies, we need to know what module is doing imports
+             * We just care that _init doing imports is registered at all.
+             */
+            PyModule module = new PyModule( name , globals );
+
+            PyObject locals = module.__dict__;
+            result = Py.runCode( code, locals, globals );
+            if( ac != null ) ss.addRecursive( "_init" , ac );
+        }
+        finally {
+            _globalRestore( globals , siteScope , "__file__" , oldFile );
+            _globalRestore( globals , siteScope , "__name__" , oldName );
+
+            Py.setSystemState( pyOld );
+        }
+        return result;
+    }
+
+    private static void _globalRestore( PyObject globals , Scope siteScope , String name , PyObject value ){
         if( value != null ){
             globals.__setitem__( name , value  );
         }
@@ -195,6 +162,30 @@ public class PythonJxpSource extends JxpSource {
         super.addDependency( new FileDependency( new File( to ) ) );
     }
 
+    public PythonJxpSource( File f , JSFileLibrary lib ){
+        _file = f;
+        _lib = lib;
+    }
+
+    protected String getContent(){
+        throw new RuntimeException( "you can't do this" );
+    }
+
+    protected InputStream getInputStream(){
+        throw new RuntimeException( "you can't do this" );
+    }
+
+    public long lastUpdated(Set<Dependency> visitedDeps){
+        return _file.lastModified();
+    }
+
+    public String getName(){
+        return _file.toString();
+    }
+
+    public File getFile(){
+        return _file;
+    }
     // static b/c it has to use ThreadLocal anyway
     final static Logger _log = Logger.getLogger( "python" );
 }

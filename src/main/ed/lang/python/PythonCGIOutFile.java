@@ -25,8 +25,6 @@ import org.python.core.PyString;
 import org.python.core.Py;
 
 import java.io.IOException;
-import java.io.FileOutputStream;
-import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CharacterCodingException;
@@ -54,7 +52,7 @@ public class PythonCGIOutFile extends PyFile {
     @ExposedMethod
     public void flush() {
         try {
-            PythonCGIAdapter.CGIStreamHolder osw = PythonCGIAdapter.CGIStreamHolder.getThreadLocal();
+            PythonCGIAdapter.CGITLSData osw = PythonCGIAdapter.CGITLSData.getThreadLocal();
             osw.getOut().flush();
         }
         catch (IOException e) {
@@ -85,7 +83,7 @@ public class PythonCGIOutFile extends PyFile {
 
     final public void _10gen_cgiout_write(String s) {
 
-        PythonCGIAdapter.CGIStreamHolder osw = PythonCGIAdapter.CGIStreamHolder.getThreadLocal();
+        PythonCGIAdapter.CGITLSData osw = PythonCGIAdapter.CGITLSData.getThreadLocal();
 
         try {
             // decode to bytes - python seems to do iso-8859-1

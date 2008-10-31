@@ -125,7 +125,7 @@ public class PythonWSGIAdapter extends WSGIAdapter {
             }
         }
         
-        PythonCGIAdapter.CGIStreamHolder cgiosw = new PythonCGIAdapter.CGIStreamHolder(stdout, null);
+        PythonCGIAdapter.CGITLSData cgiosw = new PythonCGIAdapter.CGITLSData(stdout, null);
 
         ss.getPyState().stdout = new PythonCGIOutFile();
         ss.getPyState().stdin = new PyFile(stdin);
