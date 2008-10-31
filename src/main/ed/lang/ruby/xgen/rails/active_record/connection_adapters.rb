@@ -34,7 +34,6 @@ module ActiveRecord
 
       def method_missing(sym, *args)
         $stderr.puts "#{sym}(#{args.inspect}) sent to conn" # DEBUG
-        $stderr.puts caller.join("\n") # DEBUG
       end
 
       def quote(val, column=nil)
