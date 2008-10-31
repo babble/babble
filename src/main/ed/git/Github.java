@@ -25,14 +25,14 @@ import ed.js.*;
 
 public class Github implements GitHost {
     
-    public GitIdentity createAccount( String username , String email , char[] password )
+    public GitIdentity createAccount( String username , String email , String password )
         throws GitException {
 
         XMLHttpRequest req = _go( null , true , "users" , false ,
                                   "user[login]" , username ,
                                   "user[email]" , email , 
-                                  "user[password]" , new String( password ) , 
-                                  "user[password_confirmation]" , new String( password ) 
+                                  "user[password]" , password , 
+                                  "user[password_confirmation]" , password  
                                   );
 
         String txt = req.getResponseText();
@@ -46,12 +46,12 @@ public class Github implements GitHost {
         return getIdent( username , password );
     }
     
-    public GithubIdent getIdent( String username , char[] password )
+    public GithubIdent getIdent( String username , String password )
         throws GitException {
         
         XMLHttpRequest req = _go( null , true , "session" , false ,
                                   "login" , username , 
-                                  "password" , new String( password )
+                                  "password" ,  password
                                   );
 
         
@@ -62,8 +62,6 @@ public class Github implements GitHost {
                 cookieHeader.append( name ).append( "=" ).append( cookies.get( name ).toString() ).append( "; " );
         }
         
-        System.out.println( req.getResponseText() );
-
         req = new XMLHttpRequest( "GET" , "https://github.com/account" );
         req.setRequestHeader( "Cookie" , cookieHeader.toString() );
         _dl( req , null );
@@ -91,7 +89,7 @@ public class Github implements GitHost {
 
     public void renameRepository( GitIdentity who , String from , String to )
         throws GitException {
-        _go( who , true , who._usernane + "/" + from + "/edit/rename" , true , "name" , "blah" );
+        _go( who , true , who._usernane + "/" + from + "/edit/rename" , true , "name" , to );
     }
     
     
