@@ -90,8 +90,8 @@ public class PythonJxpSource extends JxpSource {
         ss.flushOld();
 
         ss.ensurePath( file.getParent());
-        ss.ensurePath( lib.getRoot().toString() );
-        ss.ensurePath( lib.getTopParent().getRoot().toString() );
+        ss.ensurePath( lib.getRoot().getAbsolutePath() );
+        ss.ensurePath( lib.getTopParent().getRoot().getAbsolutePath() );
 
         PyObject oldFile = globals.__finditem__( "__file__" );
         PyObject oldName = globals.__finditem__( "__name__" );
