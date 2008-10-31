@@ -651,6 +651,13 @@ public class Scope implements JSObject , Bindings {
                 return func;
             }
         }
+        else if ( obj instanceof Boolean ) {
+            JSFunction func = ((JSFunction)(getFunctionFromScope( "Boolean" ).get( name )));
+            if( func != null ){
+                _this.push( new This( obj ) );
+                return func;
+            }
+        }
 
         if ( obj instanceof JSObject ){
             JSObject jsobj = (JSObject)obj;
