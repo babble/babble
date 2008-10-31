@@ -73,6 +73,10 @@ public class SiteSystemState {
 
         if( ac != null ){
             try {
+                // chdir!
+                // We do this because I didn't want to hack open() to find the
+                // right location to put a file in.
+                // Long term it should be eliminated.
                 pyState.setCurrentWorkingDir( ac.getFile(".").getAbsolutePath() );
             }
             catch(FileNotFoundException e){
