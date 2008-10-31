@@ -58,7 +58,7 @@ public class Security {
         new File( "src/test/ed/" ).getAbsolutePath(),
         "./src/test/ed/lang/python/", // FIXME?
         Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed",
-            "./libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
+            "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
     };
 
     public static boolean isCoreJS(){
