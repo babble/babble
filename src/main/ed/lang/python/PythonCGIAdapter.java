@@ -52,44 +52,22 @@ public class PythonCGIAdapter extends CGIAdapter {
     public void handleCGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
 
         if (env == null) {
-            throw new RuntimeException("Error : PythonCGIAdapater.handleCGI() invoked w/ null EnvPam");
+            throw new RuntimeException("Error : PythonCGIAdapater.handleCGI() invoked w/ null EnvMap");
         }
 
         final AppContext ac = getAppContext();
 
         SiteSystemState ss = Python.getSiteSystemState(ac, null);
-        PySystemState pyOld = Py.getSystemState();
-
-        ss.flushOld();
-
-        ss.ensurePath(_lib.getRoot().toString());
-        ss.ensurePath(_lib.getTopParent().getRoot().toString());
 
         /*
-        * "un-welded" scopes - if you need to weld, restore the commented out line (gmj)
-        */
-        PyObject globals = new PyDictionary();
-        // PyObject globals = ss.globals;
-
-        PyObject oldFile = globals.__finditem__("__file__");
-
-        /*
-         * /avert eyes in shame
-         * need to replace the environ dictionary with a TLS one because....
-         *
-         *  Sung to the tune of "Every Sperm is Sacred" :
-         *
-         *  All the world's singleton,
-         *  All, the word is good!
-         *  There is only one copy,
-         *  In every neigborhood...
-         *
-         *  When the threads asked for theirs,
-         *  Hopeing for unique
-         *  Never could we provide
-         *  A result that wasn't weak...
+         * "un-welded" scopes
          */
+        PyObject globals = new PyDictionary();
 
+        /*
+         * create a standard Py dictionary to hold the env data.  Give it to the
+         * CGITLSData
+         */
         PyDictionary pd = new PyDictionary();
 
         for(String s : env.keySet()) {            
@@ -99,41 +77,26 @@ public class PythonCGIAdapter extends CGIAdapter {
         PyObject os = PySystemState.builtins.__finditem__("__import__").__call__( new PyObject[] { Py.newString("os"), null, null, null});
         os.__setattr__("environ", new PyTLSProxyDict());
 
-
         /*
          *  create a threadlocal writer for the output stream
          *  TODO - need to do for input stream as it will suffer the same problem
          */
-        CGIStreamHolder cgiosw = new CGIStreamHolder(stdout, pd);
+        CGITLSData cgiosw = new CGITLSData(stdout, pd);
+
+        // TODO - these don't change ever for a site..
 
         ss.getPyState().stdout = new PythonCGIOutFile();
         ss.getPyState().stdin = new PyFile(stdin);
 
         try {
-            Py.setSystemState(ss.getPyState());
-
-            globals.__setitem__("__file__", Py.newString(_file.toString()));
-            PyModule module = new PyModule("__main__", globals);
-
-            PyObject locals = module.__dict__;
-            Py.runCode(_getCode(), locals, globals);
+            PythonJxpSource.runPythonCode(_getCode(), ac, ss, globals, ac.getScope(), _lib, _file);
         }
         catch (IOException e) {
             // TODO - fix
             e.printStackTrace();
         }
         finally {
-
             cgiosw.unset();
-
-            if (oldFile != null) {
-                globals.__setitem__("__file__", oldFile);
-            } else {
-                // FIXME -- delitem should really be deleting from siteScope
-                globals.__delitem__("__file__");
-                //siteScope.set( "__file__", null );
-            }
-            Py.setSystemState(pyOld);
         }
     }
 
@@ -179,14 +142,14 @@ public class PythonCGIAdapter extends CGIAdapter {
      * because concurrent usage of the jython runtime apparently
      * never occurred to the jython designers
      */
-    public static class CGIStreamHolder {
+    public static class CGITLSData {
 
         protected final OutputStream _out;
         protected final PyDictionary _pyDict;
 
-        static ThreadLocal<CGIStreamHolder> _tl = new ThreadLocal<CGIStreamHolder>();
+        static ThreadLocal<CGITLSData> _tl = new ThreadLocal<CGITLSData>();
 
-        public CGIStreamHolder(OutputStream o, PyDictionary dict) {
+        public CGITLSData(OutputStream o, PyDictionary dict) {
             _out = o;
             _pyDict = dict;
             _tl.set(this);
@@ -200,7 +163,7 @@ public class PythonCGIAdapter extends CGIAdapter {
             return _pyDict;
         }
         
-        public static CGIStreamHolder getThreadLocal() {
+        public static CGITLSData getThreadLocal() {
             return _tl.get();
         }
 
@@ -217,11 +180,11 @@ public class PythonCGIAdapter extends CGIAdapter {
     public static class PyTLSProxyDict extends PyObject {
 
         public PyObject __findattr_ex__(String key) {
-            return CGIStreamHolder.getThreadLocal().getPyDict().__findattr__(key);
+            return CGITLSData.getThreadLocal().getPyDict().__findattr__(key);
         }
         
         public PyObject __finditem__(PyObject key) {
-            return CGIStreamHolder.getThreadLocal().getPyDict().__finditem__(key);
+            return CGITLSData.getThreadLocal().getPyDict().__finditem__(key);
         }
     }
 }

@@ -61,9 +61,17 @@ module XGen
         # does not have normal keys and returns collection objects as the
         # value of all unknown names.
         $db.createCollection(@collection_name, options)
+
+        # If we are running outside of the cloud, echo all log messages to
+        # $stderr. If app_context is nil we are outside the cloud, too, but we
+        # don't write to the console because if app_context is null then we
+        # are probably running unit tests.
+        app_context = $scope['__instance__']
+        @console = app_context != nil && app_context.getEnvironmentName() == nil
       end
 
       def write(str)
+        $stderr.puts str if @console
         $db[@collection_name].save({:time => Time.now.to_i, :msg => str})
       end
 

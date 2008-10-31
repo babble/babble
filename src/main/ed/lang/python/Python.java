@@ -52,6 +52,12 @@ public class Python extends Language {
     static {
         Options.includeJavaStackInExceptions = true;
         PySystemState.initialize();
+
+        PyStackTraceFixer _stackFixer = new PyStackTraceFixer();
+
+        StackTraceHolder h = StackTraceHolder.getInstance();
+        h.setPackage( "org.python.pycode" , _stackFixer );
+        h.setPackage( "org.python.core" , _stackFixer );
     }
 
     public static PyCode compile( File f )
@@ -304,8 +310,7 @@ public class Python extends Language {
     public boolean isComplete( String code ){
         // Be careful! Right now ed.js.Shell doesn't leave \n at the EOL, so we
         // signify the user having typed a blank line by just one \n!
-        if( Py.compile_command_flags( code, "<input>", "single", Py.getCompilerFlags(), false) == Py.None ) return false;
-        return true;
+        return Py.compile_command_flags( code, "<input>", "single", Py.getCompilerFlags(), false) != Py.None;
     }
 
     public Object eval( Scope s , String code , boolean[] hasReturn ){
@@ -557,5 +562,20 @@ public class Python extends Language {
     private static Scope _extractGlobals;
     private static Map<PySystemState, SiteSystemState> _rmap;
     private static Set<String> _seenClasses = Collections.synchronizedSet( new HashSet<String>() );
-}
 
+    public static class PyStackTraceFixer implements StackTraceFixer {
+        public StackTraceElement fixSTElement( StackTraceElement element ){
+            String cn = element.getClassName();
+            String fn = element.getFileName();
+            int ln = element.getLineNumber();
+
+            if( cn.startsWith("org.python.pycode._pyx") )
+                return new StackTraceElement(fn, "___", fn, ln);
+            return element;
+        }
+
+        public boolean removeSTElement( StackTraceElement element ){
+            return false;
+        }
+    }
+}
