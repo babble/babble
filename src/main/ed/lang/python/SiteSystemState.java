@@ -73,14 +73,17 @@ public class SiteSystemState {
 
         if( ac != null ){
             try {
-                // chdir!
-                // We do this because I didn't want to hack open() to find the
-                // right location to put a file in.
-                // Long term it should be eliminated.
+                /*
+                 * NOTE : chdir!
+                 *
+                 * We do this because I didn't want to hack open() to find the
+                 * right location to put a file in.
+                 * Long term it should be eliminated.
+                 */
                 pyState.setCurrentWorkingDir( ac.getFile(".").getAbsolutePath() );
             }
             catch(FileNotFoundException e){
-                throw new RuntimeException("java sucks");
+                throw new RuntimeException("Error : can't find '.' for app contextto set CWD in python");
             }
         }
     }
@@ -467,8 +470,8 @@ public class SiteSystemState {
          *
          * find_module returns a "loader", as specified by PEP 302.
          *
-         * @param fullname {PyString} name of the module to find
-         * @param path {PyList} optional; the __path__ of the module
+         * @param args {PyString} name of the module to find
+         * @param keywords {PyList} optional; the __path__ of the module
          */
         @ExposedMethod(names={"find_module"})
         public PyObject find_module( PyObject args[] , String keywords[] ){
@@ -567,7 +570,7 @@ public class SiteSystemState {
         /**
          * The load_module method specified in PEP 302.
          *
-         * @param fullname {PyString} the full name of the module
+         * @param name {PyString} the full name of the module
          * @return PyModule
          */
         @ExposedMethod(names={"load_module"})
@@ -652,7 +655,7 @@ public class SiteSystemState {
         /**
          * The load_module method specified in PEP 302.
          *
-         * @param fullname {PyString} the full name of the module
+         * @param name {PyString} the full name of the module
          * @return PyModule
          */
         @ExposedMethod(names={"load_module"})
