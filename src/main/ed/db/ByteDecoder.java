@@ -160,7 +160,10 @@ public class ByteDecoder extends Bytes {
             int stringSize = _buf.getInt();
             String ns = readCStr();
             ObjectId theOID = new ObjectId( _buf.getLong() , _buf.getInt() );
-            o.set( name , new DBRef( o , name , _base , ns , theOID ) );
+            if ( theOID.equals( Bytes.COLLECTION_REF_ID ) )
+                o.set( name , _base.getCollectionFromFull( ns ) );
+            else 
+                o.set( name , new DBRef( o , name , _base , ns , theOID ) );
             break;
             
         case DATE:

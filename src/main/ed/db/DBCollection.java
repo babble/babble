@@ -615,6 +615,8 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                      || foo instanceof JSDate )
 		    continue;
                 
+                if ( foo instanceof DBCollection )
+                    continue;
                 
                 JSObject e = (JSObject)foo;
                 if ( e instanceof JSObjectBase )
@@ -656,7 +658,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                     if ( e instanceof DBRef )
                         continue;
 
-                    throw new RuntimeException( "_update is null.  keyset : " + e.keySet( false ) + " ns:" + e.get( "_ns" ) );
+                    throw new RuntimeException( "_update is null class: " + e.getClass().getName() + "  keyset : " + e.keySet( false ) + " ns:" + e.get( "_ns" ) );
                 }
 
                 if ( e instanceof JSObjectBase && ! ((JSObjectBase)e).isDirty() )
