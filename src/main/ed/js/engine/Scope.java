@@ -244,7 +244,7 @@ public class Scope implements JSObject , Bindings {
         }
         
         if ( _parent == null )
-            return null;
+            return false;
         
         return _parent._removeField( name , hash );
     }
