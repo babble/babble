@@ -86,11 +86,15 @@ class SQLTest < RubyTest
   end
 
   def test_strip_table_name
-    w = Parser.parse_where("user.name = 'foo'")
+    w = Parser.parse_where("user.name = 'foo'", true)
     assert_equal 'foo', w['name']
-
-    w = Parser.parse_where("schema.table.column = 'foo'")
+    w = Parser.parse_where("schema.table.column = 'foo'", true)
     assert_equal 'foo', w['column']
+
+    w = Parser.parse_where("user.name = 'foo'")
+    assert_equal 'foo', w['user.name']
+    w = Parser.parse_where("schema.table.column = 'foo'")
+    assert_equal 'foo', w['schema.table.column']
   end
 
   def test_arrays

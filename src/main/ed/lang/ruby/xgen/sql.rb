@@ -118,8 +118,8 @@ module XGen
     # returns a hash suitable for use by Mongo.
     class Parser
 
-      def self.parse_where(sql)
-        Parser.new(Tokenizer.new(sql)).parse_where
+      def self.parse_where(sql, remove_table_names=false)
+        Parser.new(Tokenizer.new(sql)).parse_where(remove_table_names)
       end
 
       def initialize(tokenizer)
@@ -154,13 +154,13 @@ module XGen
         Regexp.new(str, Regexp::IGNORECASE)
       end
 
-      def parse_where
+      def parse_where(remove_table_names=false)
         filters = {}
         done = false
         while !done && @tokenizer.more?
           name = @tokenizer.next_token
           raise "sql parser can't handle nested stuff yet: #{@tokenizer.sql}" if name == '('
-          name.sub!(/.*\./, '') # Remove "schema.table." from "schema.table.col"
+          name.sub!(/.*\./, '') if remove_table_names # Remove "schema.table." from "schema.table.col"
 
           op = @tokenizer.next_token
           op += (' ' + @tokenizer.next_token) if op.downcase == 'not'
