@@ -738,10 +738,10 @@ public class SiteSystemState {
             if( packageName.indexOf('.') == -1 ){
                 String toLoad = null;
 
-                if( ModuleRegistry.getARegistry().getConfig( "py-"+packageName ) != null ){
+                if( ModuleRegistry.getARegistry( _context ).getConfig( "py-"+packageName ) != null ){
                     toLoad = "py-"+ packageName;
                 }
-                else if( ModuleRegistry.getARegistry().getConfig( packageName ) != null ){
+                else if( ModuleRegistry.getARegistry( _context ).getConfig( packageName ) != null ){
                     toLoad = packageName;
                 }
 

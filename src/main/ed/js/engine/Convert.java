@@ -539,7 +539,7 @@ public class Convert {
             _append( " null " , n );
             break;
         case Token.VOID:
-            _append( " ed.js.engine.JSBuiltInFunctions.Void.getInstance() ", n );
+            _append( " VOID ", n );
             break;
 
         case Token.VAR:
