@@ -27,6 +27,10 @@ import ed.js.*;
 import ed.log.*;
 import ed.util.*;
 
+/**
+ * the ModuleRepository contains a list of modules and their configs
+ * the configs tell the AppServer where to get the code nand what version to use
+ */
 public abstract class ModuleRepository {
     
     static final long RESYNC_TIME = 1000 * 60 * 5;
@@ -151,7 +155,11 @@ public abstract class ModuleRepository {
     final File _cacheFile;
     private long _lastSyncTime = 0;
     private Map<String,ModuleConfig> _configs;
-
+    
+    /**
+     * a Web implementation of a ModuleRepository
+     * this gets the list of modules and configs from a webserver
+     */
     public static class Web extends ModuleRepository {
         public Web( String url ){
             super( url );
