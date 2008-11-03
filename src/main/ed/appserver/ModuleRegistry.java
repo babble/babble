@@ -25,8 +25,14 @@ import ed.util.*;
 
 public class ModuleRegistry {
 
-    public static ModuleRegistry getARegistry(){
-        return DEFAULT;
+    public static ModuleRegistry getARegistry( AppContext context ){
+        if ( context == null )
+            return DEFAULT;
+        return context.getModuleRegistry();
+    }
+
+    public static ModuleRegistry getNewGlobalChild(){
+        return new ModuleRegistry( DEFAULT );
     }
 
     private static final ModuleRegistry DEFAULT;
@@ -34,13 +40,17 @@ public class ModuleRegistry {
         DEFAULT = new ModuleRegistry( null );
         DEFAULT.addRepository( new ModuleRepository.Web( Config.get().getProperty( "moduleRoot" , "http://modules.10gen.com/api/" ) ) );
     }
-    
+
     public ModuleRegistry( ModuleRegistry parent ){
         _parent = parent;
     }
 
     public ModuleConfig getConfig( String name ){
-	ModuleConfig mc = _find( name );
+        ModuleConfig mc = _specialModules.get( name );
+	if ( mc != null )
+	    return mc;        
+
+        mc = _find( name );
 	if ( mc != null )
 	    return mc;
 	
@@ -52,6 +62,14 @@ public class ModuleRegistry {
             return _parent.getConfig( name );
         
         return null;
+    }
+
+    public void addModule( String name , ModuleConfig config ){
+        _specialModules.put( name , config );
+    }
+
+    public void addModule( String name , String giturl ){
+        addModule( name , new ModuleConfig( name , giturl ) );
     }
 
     public void addRepository( ModuleRepository repository ){
@@ -86,5 +104,6 @@ public class ModuleRegistry {
     private boolean _locked = false;
 
     final List<ModuleRepository> _repositories = new LinkedList<ModuleRepository>();
+    final Map<String,ModuleConfig> _specialModules = new TreeMap<String,ModuleConfig>();
     final ModuleRegistry _parent;
 }

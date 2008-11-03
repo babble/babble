@@ -125,9 +125,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _nonAdminParent = nonAdminParent;
         _admin = _nonAdminParent != null;
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
+        _moduleRegistry = ModuleRegistry.getNewGlobalChild();
 
         _gitBranch = GitUtils.hasGit(_rootFile) ? GitUtils.getBranchOrTagName(_rootFile) : null;
-
+        
         _isGrid = name.equals("grid");
 
         _scope = new Scope("AppContext:" + root + (_admin ? ":admin" : ""), _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal(), null, Language.JS, _rootFile);
@@ -1322,6 +1323,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         return _logger.getChild(sub);
     }
 
+    public ModuleRegistry getModuleRegistry(){
+        return _moduleRegistry;
+    }
+
     // ----  START JSObject INTERFACE
 
     public Object get(Object n) {
@@ -1395,6 +1400,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     final IdentitySet _contextReachable;
     final Scope _initScope;
     final UsageTracker _usage;
+    final ModuleRegistry _moduleRegistry;
 
     final JSArray _globalHead = new JSArray();
 
