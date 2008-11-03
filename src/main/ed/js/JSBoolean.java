@@ -68,7 +68,7 @@ public class JSBoolean extends JSObjectBase {
     }
 
     public JSBoolean() {
-        this( JSBuiltInFunctions.Void.getInstance() );
+        this( JSInternalFunctions.VOID );
     }
 
     public JSBoolean( Object o ) {
@@ -88,7 +88,7 @@ public class JSBoolean extends JSObjectBase {
 
     public static boolean booleanValue( Object o ) {
         if( o == null ||
-            o instanceof JSBuiltInFunctions.Void )
+            o instanceof JSInternalFunctions.Void )
             return false;
 
         if( o instanceof JSBoolean ) {

@@ -81,10 +81,12 @@ public class JSMath extends JSObjectBase {
                  }
                  public Object call( Scope s , Object a , Object foo[] ){
                      double d = JSNumber.getDouble( a );
-                     if( Double.isNaN( d ) || Double.isInfinite( d ) ) {
+                     if( Double.isNaN( d ) || 
+                         Double.isInfinite( d ) || 
+                         d == 0 ) {
                          return d;
                      }
-                     return Math.floor( d );
+                     return (long)Math.floor( d );
                  }
              } );
 
@@ -95,8 +97,9 @@ public class JSMath extends JSObjectBase {
                  }
                  public Object call( Scope s , Object a , Object foo[] ){
                      double d = JSNumber.getDouble( a );
-                     if( Double.isNaN( d ) || Double.isInfinite( d ) ||
-                         String.valueOf( d ).equals( "-0.0" ) ) {
+                     if( Double.isNaN( d ) || 
+                         Double.isInfinite( d ) ||
+                         d == 0 ) {
                          return d;
                      }
                      return Math.ceil( d );
@@ -214,7 +217,12 @@ public class JSMath extends JSObjectBase {
                 public Object call( Scope s , Object baseArg , Object expArg , Object foo[] ){
                     double base = JSNumber.getDouble( baseArg );
                     double exp = JSNumber.getDouble( expArg );
-                    return Math.pow(base, exp);
+                    double r = Math.pow(base, exp);
+                    if( r != 0 &&
+                        !Double.isInfinite( r ) &&
+                        Math.floor( r ) == r )
+                        return (long)r;
+                    return r;
                 }
             } );
         set( "exp" , new JSFunctionCalls1(){

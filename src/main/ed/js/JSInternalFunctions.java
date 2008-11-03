@@ -226,7 +226,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public JSString JS_typeof( Object obj ){
 
         if ( obj == null ||
-             obj instanceof JSBuiltInFunctions.Void )
+             obj instanceof Void )
             return TYPE_UNDEFINED;
 
         if ( obj instanceof JSString )
@@ -385,7 +385,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
      */
     public static Boolean JS_sheq( Object a , Object b ){
         if ( ( a == null && b == null ) ||
-             ( a instanceof JSBuiltInFunctions.Void && b instanceof JSBuiltInFunctions.Void ) )
+             ( a instanceof Void && b instanceof Void ) )
             return true;
 
         if ( a == null || b == null )
@@ -440,8 +440,8 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( JS_sheq( a , b ) )
             return true;
 
-        if( ( a instanceof JSBuiltInFunctions.Void && b == null ) ||
-            ( b instanceof JSBuiltInFunctions.Void && a == null ) )
+        if( ( a instanceof Void && b == null ) ||
+            ( b instanceof Void && a == null ) )
             return true;
 
 	if ( a == null || b == null )
@@ -711,4 +711,19 @@ public class JSInternalFunctions extends JSNumericFunctions {
     }
     
     static final List<String> EMPTY_STRING_LIST = Collections.synchronizedList( new LinkedList<String>() );
+
+    public static class Void {
+        private static Void instance = null;
+        private Void() {}
+        public static Void getInstance() {
+            if( instance == null )
+                instance = new Void();
+            return instance;
+        }
+        public String toString() {
+            return "null";
+        }
+    }
+
+    public static final Void VOID = Void.getInstance();
 }
