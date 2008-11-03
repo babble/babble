@@ -254,7 +254,7 @@ public class Python extends Language {
         if ( o instanceof JSDate ){
             String datetimeS = "datetime".intern();
             PyModule mod = (PyModule)__builtin__.__import__( datetimeS );
-            PyObject datetime = mod.__finditem__( datetimeS );
+            PyObject datetime = mod.__findattr__( datetimeS );
             PyObject fromtimestamp = datetime.__finditem__( "fromtimestamp".intern() );
             return fromtimestamp.__call__( Py.newInteger( ((JSDate)o).getTime() ) );
         }
