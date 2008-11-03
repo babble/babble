@@ -118,14 +118,14 @@ module ActiveRecord
       # calling the destroy method). Example:
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       def delete_all(conditions = {})
-        collection.remove(XGen::SQL::Parser.parse_where(conditions) || {})
+        collection.remove(XGen::SQL::Parser.parse_where(conditions, true) || {})
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
       #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
         sql =~ /.*\bwhere\b(.*)/i
-        collection.find(XGEN::SQL::Parser.parse_where(conditions) || {}).count()
+        collection.find(XGEN::SQL::Parser.parse_where(conditions, true) || {}).count()
       end
 
       # Increments the specified counter by one. So <tt>DiscussionBoard.increment_counter("post_count",
@@ -255,7 +255,7 @@ module ActiveRecord
 
       # Turns a string into a Mongo search condition hash.
       def criteria_from_string(sql) # :nodoc:
-        XGen::SQL::Parser.parse_where(sql)
+        XGen::SQL::Parser.parse_where(sql, true)
       end
 
       # Turns a hash that ActiveRecord would expect into one for Mongo.
