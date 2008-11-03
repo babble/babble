@@ -20,7 +20,7 @@ package ed.git;
 
 public interface GitHost {
 
-    public GitIdentity createAccount( String username , String email , char[] password )
+    public GitIdentity createAccount( String username , String email , String password )
         throws GitException;
     
     public void forkRepository( GitIdentity who , String whatToFork )

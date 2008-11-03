@@ -111,4 +111,5 @@ public class Bytes {
     }
 
     static final String NO_REF_HACK = "_____nodbref_____";
+    static final ObjectId COLLECTION_REF_ID = new ObjectId( -1 , -1 );
 }

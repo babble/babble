@@ -227,6 +227,12 @@ public class ByteEncoder extends Bytes {
             return true;
         }
 
+        if ( o instanceof DBCollection ){
+            DBCollection c = (DBCollection)o;
+            putDBRef( name , c.getName() , Bytes.COLLECTION_REF_ID );
+            return true;
+        }
+
         if ( o instanceof JSRegex ){
             JSRegex r = (JSRegex)o;
             _put( REGEX , name );
@@ -234,7 +240,7 @@ public class ByteEncoder extends Bytes {
             _put( r.getFlags() );
             return true;
         }
-
+        
         if ( ! _dontRefContains( o ) && name != null && o instanceof DBRef ){
             DBRef r = (DBRef)o;
             putDBRef( name , r._ns , r._id );
