@@ -128,6 +128,8 @@ public class ByteEncoder extends Bytes {
         if ( possibleId != null ){
             if ( possibleId instanceof ObjectId )
 		putObjectId( "_id" , (ObjectId)possibleId );
+            else if ( possibleId instanceof String || possibleId instanceof JSString )
+                putObjectId( "_id" , new ObjectId( possibleId.toString() ) );
             else
                 skipId = false;
         }
