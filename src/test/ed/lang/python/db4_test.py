@@ -15,9 +15,9 @@
 '''
 import _10gen
 
-db = _10gen.connect( "test" );
-t = db.pydb4;
-t.drop();
+db = _10gen.connect( "test" )
+t = db.pydb4
+t.drop()
 
 class Test(object):
     def __init__(self, name='not set'):
@@ -37,3 +37,7 @@ _10gen.assert( not j2.gpa , '_transientFields broken' )
 
 j3 = t.findOne({'_id': str(j._id)})
 #_10gen.assert( j3 , '_id not working yet')
+
+import re
+j4 = t.findOne({'name': re.compile('.*')})
+_10gen.assert( j4 )
