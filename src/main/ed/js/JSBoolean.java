@@ -52,10 +52,17 @@ public class JSBoolean extends JSObjectBase {
             _prototype.set( "valueOf" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
                         Object o = s.getThis();
+                        if( o instanceof Boolean ) 
+                            return o;
                         if( !(o instanceof JSBoolean ) )
                             throw new JSException( "error" );
 
                         return ((JSBoolean)o).value;
+                    }
+                } );
+            _prototype.set( "toString", new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        return new JSString( s.getThis().toString() );
                     }
                 } );
             _prototype.dontEnumExisting();
