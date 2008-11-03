@@ -418,7 +418,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         return p.matcher( tag );
     }
 
-    static final Pattern _tagPattern = Pattern.compile( "<(/?\\w+)[ >]" , Pattern.CASE_INSENSITIVE );
+    static final Pattern _tagPattern = Pattern.compile( "<(/?\\w+)[ >]" );
     static final Map<String,Pattern> _attPatternCache = Collections.synchronizedMap( new HashMap<String,Pattern>() );
     final Matcher _matcher = _tagPattern.matcher("");
     final Matcher _closeScriptMatcher = Pattern.compile("</\\s*script\\s*>", Pattern.CASE_INSENSITIVE).matcher("");
