@@ -48,5 +48,10 @@ public class JSPyClassWrapper extends JSPyObjectWrapper {
         return this;
     }
 
+    public JSFunction getFunction( String name , boolean tryLower ){
+        PyObject foo = _p.__findattr__( name );
+        if ( foo == null ) return null;
+        return new JSPyObjectWrapper( foo , true );
+    }
 }
-    
+
