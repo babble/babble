@@ -443,7 +443,7 @@ public class Python extends Language {
         if( s == null ){ // but ac != null, or we'd throw above
             s = ac.getScope();
         }
-        Object __python__ = s.get( "__python__" );
+        Object __python__ = s.getAttribute( "__python__" , true );
         if( __python__ != null && __python__ instanceof SiteSystemState ){
             return (SiteSystemState)__python__;
         }
@@ -452,7 +452,7 @@ public class Python extends Language {
         if( D )
             System.out.println("Making a new PySystemState "+ __python__ + " in " + s + " " + __builtin__.id( state.getPyState() ));
 
-        s.putExplicit( "__python__" , state );
+        s.setAttribute( "__python__" , state );
 
         if( _rmap == null ){
             _rmap = new HashMap<PySystemState, SiteSystemState>();
