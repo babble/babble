@@ -67,4 +67,17 @@ class GridFileTest < RubyTest
     assert_not_nil f.uploadDate
   end
 
+  def test_rails_if_no_db
+    old_db = $db
+    begin
+      $db = nil
+      f = GridFile.open('myfile', 'r')
+      fail 'should have raised an error'
+    rescue => ex
+      assert_equal '$db not defined', ex.to_s
+    ensure
+      $db = old_db
+    end
+  end
+
 end

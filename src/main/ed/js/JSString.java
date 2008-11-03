@@ -587,7 +587,7 @@ public class JSString extends JSObjectBase implements Comparable {
                             if(! (o instanceof Number) )
                                 throw new RuntimeException( "fromCharCode only takes numbers" );
                             Number n = (Number)o;
-                            char c = (char)(n.intValue());
+                            char c = (char)JSNumber.toUint16( o );
                             buf.append(c);
                         }
                         return new JSString( buf.toString() );

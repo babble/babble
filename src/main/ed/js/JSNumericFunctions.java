@@ -276,7 +276,7 @@ public class JSNumericFunctions extends JSObjectBase {
         if ( Double.isNaN( ((Number)a).doubleValue() ) ||
              Double.isNaN( ((Number)b).doubleValue() ) || 
              Double.isInfinite( ((Number)a).doubleValue() ) ||
-             ((Number)b).intValue() == 0 )
+             ((Number)b).longValue() == 0 )
             return Double.NaN;
 
         return ((Number)a).longValue() % ((Number)b).longValue();

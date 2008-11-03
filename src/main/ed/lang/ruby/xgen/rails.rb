@@ -29,7 +29,8 @@ Next, add public/xgen_dispatch.rb:
 
 # RAILS_ENV is set to the name of your cloud environment. If none is specified
 # (for example, you are running locally), then 'development' is used.
-ENV['RAILS_ENV'] = $scope['__instance__'].getEnvironmentName() || 'development'
+app_context = $scope['__instance__']
+ENV['RAILS_ENV'] = (app_context && app_context.getEnvironmentName()) || 'development'
 
 # The default production cloud environment name is "www". If we see that, use
 # "production" instead.

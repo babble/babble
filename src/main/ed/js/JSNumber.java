@@ -408,4 +408,16 @@ public class JSNumber extends Number implements JSObject {
             return (int)preint;
         return (int)(preint - (long)Math.pow(2,32));
     }
+
+    public static short toUint16( final Object o ) {
+        double d = getDouble( o );
+        if( d == 0 ||
+            Double.isNaN( d ) ||
+            Double.isInfinite( d ) ) 
+            return 0;
+
+        int sign = o.toString().startsWith( "-" ) ? -1 : 1;
+        return (short)(( sign * (long)Math.floor( Math.abs( d ) ) ) % (long)Math.pow(2,16));
+    }
+
 }
