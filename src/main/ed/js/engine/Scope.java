@@ -244,7 +244,7 @@ public class Scope implements JSObject , Bindings {
         }
         
         if ( _parent == null )
-            return null;
+            return false;
         
         return _parent._removeField( name , hash );
     }
@@ -1100,9 +1100,29 @@ public class Scope implements JSObject , Bindings {
     public void markLoaded( String thing , Object res ){
 	put( _loadedMarker + thing , true );
     }
-
+    
     public void setPath( JSFileLibrary path ){
 	_path = path;
+    }
+
+    public Object getAttribute( String name , boolean lookUpTree ){
+        if ( _attributes != null )
+            if ( _attributes.containsKey( name ) )
+                return _attributes.get( name );
+        
+        if ( _parent == null || ! lookUpTree )
+            return null;
+        
+        return _parent.getAttribute( name , lookUpTree );
+    }
+
+    /**
+     * always sets on this scope
+     */
+    public void setAttribute( String name , Object val ){
+        if ( _attributes == null )
+            _attributes = new TreeMap<String,Object>();
+        _attributes.put( name , val );
     }
 
     final String _name;
@@ -1125,6 +1145,7 @@ public class Scope implements JSObject , Bindings {
     Set<String> _lockedObject;
     Set<String> _warnedObject;
     private ThreadLocal<Scope> _tlPreferred = null;
+    Map<String,Object> _attributes;
 
     SimpleStack<This> _this = new SimpleStack<This>();
     SimpleStack<Throwable> _exceptions;
@@ -1132,7 +1153,7 @@ public class Scope implements JSObject , Bindings {
     Object _orSave;
     Object _andSave;
     JSObject _globalThis;
-
+    
     RuntimeException _toThrow;
     Error _toThrowError;
     

@@ -97,6 +97,10 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public JSPyObjectWrapper( PyObject o , boolean passThis ){
+        super( Scope.getAScope() ,
+               o.__findattr__( "func_name" ) != null ?
+                 o.__findattr__( "func_name" ).toString() :
+                 null );
         setConstructor( _cons );
         _p = o;
         if ( _p == null )
@@ -250,7 +254,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         else{
             pykeys = new String[0];
         }
-        
+
         return _p.__call__( pParams , pykeys );
     }
 
@@ -335,8 +339,12 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public PyCode getPyCode(){
-        if ( _p instanceof PyFunction )
-            return ((PyFunction)_p).func_code;
+        PyObject p = _p;
+        if ( p instanceof PyMethod )
+            p = ((PyMethod)p).im_func;
+
+        if ( p instanceof PyFunction )
+            return ((PyFunction)p).func_code;
         return null;
     }
 

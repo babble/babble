@@ -16,25 +16,20 @@
 import _10gen
 
 db = _10gen.connect( "test" )
-t = db.pydb4
+t = db.pydb5
 t.drop()
 
 class Test(object):
     def __init__(self, name='not set'):
-        self.name = name
-        self.gpa = 0
-    _transientFields = ['gpa']
+        self.a = 1
+    def postLoad(self):
+        self.c = 3
 
-j = Test('Jim')
-j.gpa = 4.0
+j = Test()
 
 t.setConstructor(Test)
 t.save(j)
 j2 = t.findOne()
-_10gen.assert( j2 )
+_10gen.assert.eq( j2.a , 1 )
+_10gen.assert.eq( j2.c , 3 )
 
-_10gen.assert( not j2.gpa , '_transientFields broken' )
-
-import re
-j4 = t.findOne({'name': re.compile('.*')})
-_10gen.assert( j4 )
