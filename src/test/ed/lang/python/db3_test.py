@@ -1,3 +1,18 @@
+'''
+    Copyright (C) 2008 10gen Inc.
+
+    This program is free software: you can redistribute it and/or  modify
+    it under the terms of the GNU Affero General Public License, version 3,
+    as published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
 
 import _10gen
 
@@ -26,3 +41,17 @@ _10gen.assert.eq( sum(after['things']), 17.1 )
 
 _10gen.assert.eq( str(after['things']), str([1, 9, 3.1, 4]) )
 _10gen.assert.eq( repr(after['things']), repr([1, 9, 3.1, 4]) )
+
+
+# id test
+
+t.drop();
+a = { "num" : 5 };
+t.save( a );
+_10gen.assert( a["_id"] );
+
+_10gen.assert( t.findOne( a["_id"] ) );
+_10gen.assert( t.findOne( { "_id" : a["_id"] } ) );
+_10gen.assert( t.findOne( { "_id" : str( a["_id"] ) } ) );
+
+

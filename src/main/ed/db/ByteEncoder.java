@@ -124,19 +124,25 @@ public class ByteEncoder extends Bytes {
         _buf.putInt( 0 ); // leaving space for this.  set it at the end
 
 	boolean skipId = true;
-        Object possibleId = o.get( "_id" );
-        if ( possibleId != null ){
-            if ( possibleId instanceof ObjectId )
-		putObjectId( "_id" , (ObjectId)possibleId );
+        if ( o.containsKey( "_id" ) ){
+            
+            Object possibleId = o.get( "_id" );
+            
+            if ( possibleId == null )
+                putNull( "_id" );
+            else if ( possibleId instanceof ObjectId )
+                putObjectId( "_id" , (ObjectId)possibleId );
+            else if ( possibleId instanceof String || possibleId instanceof JSString )
+                putObjectId( "_id" , new ObjectId( possibleId.toString() ) );
             else
                 skipId = false;
         }
             
-        JSArray transientFields = null;
+        List transientFields = null;
         {
             Object temp = o.get( "_transientFields" );
-            if ( temp instanceof JSArray )
-                transientFields = (JSArray)temp;
+            if ( temp instanceof List )
+                transientFields = (List)temp;
         }
         
 
