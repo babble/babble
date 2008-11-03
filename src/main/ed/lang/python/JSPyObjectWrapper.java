@@ -65,6 +65,12 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         };
 
 
+    static JSFunction _toString = new ed.js.func.JSFunctionCalls0(){
+            public Object call( Scope s , Object[] extra ){
+                return s.getThis().toString();
+            }
+        };
+
     public static class JSPyObjectWrapperCons extends JSFunctionCalls1 {
         public JSObject _throwException(){
             throw new RuntimeException("you shouldn't be able to instantiate an object wrapper from JS");
@@ -81,6 +87,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         protected void init(){
             JSFunction._init( this );
             _prototype.set( "apply" , _apply );
+            _prototype.set( "toString" , _toString );
         }
     }
 
