@@ -25,7 +25,7 @@ end
 class XGen::Mongo::Cursor
   def each
     @cursor.forEach { |row|
-      yield @model_class.new(row.to_ar_hash)
+      yield @model_class.instantiate(row.to_ar_hash)
     }
   end
 end
@@ -189,7 +189,7 @@ module ActiveRecord
         criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
         fields = fields_from(options[:select])
         row = collection.find_one(criteria, fields)
-        (row.nil? || row['_id'] == nil) ? nil : self.new(row.to_ar_hash)
+        (row.nil? || row['_id'] == nil) ? nil : self.instantiate(row.to_ar_hash)
       end
 
       def find_every(options)
@@ -218,7 +218,7 @@ module ActiveRecord
         sort_by = sort_by_from(options[:order]) if options[:order]
         db_cursor.sort(sort_by) if sort_by
         cursor = XGen::Mongo::Cursor.new(db_cursor, self)
-        ids.length == 1 ? self.new(cursor[0].to_ar_hash) : cursor
+        ids.length == 1 ? self.instantiate(cursor[0].to_ar_hash) : cursor
       end
 
       # Turns array, string, or hash conditions into something useable by Mongo.
