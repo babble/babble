@@ -355,6 +355,31 @@ public class JxpServletTest extends ed.TestCase {
         assertClose("<script>abc 123 /* ' */</script><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
     }
 
+    @Test(groups = {"basic"})
+    public void testBrokenUp(){
+        
+        final String correct = "<img src=\"SSSS/1.jpg?lm=" + one.lastModified() + "\" >";
+
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        p.print( "<img src=\"/1.jpg\" >" );
+        assertClose( correct , w.getContent() );
+
+        w = new JxpWriter.Basic();
+        p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        p.print( "<img src=\"" );
+        p.print( "/1.jpg" );
+        p.print( "\" >" );
+        assertClose( correct , w.getContent() );
+
+        w = new JxpWriter.Basic();
+        p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        p.print( "<img src=" );
+        p.print( "\"/1.jpg\"" );
+        p.print( " >" );
+        assertClose( correct , w.getContent() );
+    }
+
     public static void main( String args[] ){
         (new JxpServletTest()).runConsole();
     }
