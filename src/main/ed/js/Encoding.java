@@ -34,21 +34,21 @@ public class Encoding {
     /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '@', '*', '-', '_', '+', '/', or '.'. This is an implementation of the JavaScript builtin method.  */
     public static JSFunction escape = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
-                return _escape( o.toString() , _noEscaping );
+                return new JSString( _escape( o.toString() , _noEscaping ) );
             }
         };
 
     /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '~', '!', '@', '#', '$', '&', '*', '(', ')', '-', '_', '+', '=', ';', ':', '/', ''', '?', ',', or '.'.  This is an implementation of the JavaScript builtin method. */
     public static JSFunction encodeURI = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
-                return _escape( o.toString() , _noEncoding );
+                return new JSString( _escape( o.toString() , _noEncoding ) );
             }
         };
 
     /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '~', '!', '*', '(', ')', '-', '_', ''', or '.'.  This is an implementation of the JavaScript builtin method. */
     public static JSFunction encodeURIComponent = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
-                return _escape( o.toString() , _noEncodingComonent );
+                return new JSString( _escape( o.toString() , _noEncodingComonent ) );
             }
         };
 
@@ -60,24 +60,20 @@ public class Encoding {
         for ( int i=0; i<len; i++ ){
             char c = str.charAt( i );
             int val = (int)c;
-
-            if ( Character.isLetterOrDigit( c ) & i < 128 )
+            // a lot of strange unicode characters count as letters, so 
+            // Character.isLetterOrDigit doesn't work
+            if ( ( c + "" ).matches( "\\w" ) ||
+                 skip.contains( c ) )  {
                 buf.append( c );
-            else if ( c == ' ' )
-                buf.append( "%20" );
-            else if ( skip.contains( c ) )
-                buf.append( c );
+            }
+            else if ( val >= 256 ) {
+                buf.append( "%u" );
+                toHex( c , 4 ,buf );
+            }
             else {
-                int end = i + 1;
-                if ( Character.charCount( c ) == 2 ){
-                    end++;
-                    i++;
-                }
-                
-                // TODO: stop using URLEncoder
-                buf.append( URLEncoder.encode( str.substring( i , end ) ) );
-            } 
-
+                buf.append( "%" );
+                toHex( c , 2 , buf );
+            }
         }
 
         return buf.toString();
@@ -94,7 +90,7 @@ public class Encoding {
     /** Function to unescape an escaped string. */
     public static JSFunction unescape = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
-                return _unescape( o.toString() );
+                return new JSString( _unescape( o.toString() ) );
             }
         };
 
@@ -103,51 +99,37 @@ public class Encoding {
         final StringBuilder buf = new StringBuilder( str.length() );
 
         final int len = str.length();
-        final int max = len - 2;
 
         int i=0;
-        for ( ; i<max; i++ ){
+        while ( i<len ){
             char c = str.charAt( i );
 
-            if ( c != '%' ){
-                buf.append( c );
-            }
-            else {
-                final String foo = str.substring( i + 1 , i + 3 );
-                if ( ! _isHex( foo ) ){
-                    buf.append( c );
-                }
-                else {
-                    int end = i + 3;
-
-                    while ( end < max && 
-                            str.charAt( end ) == '%' &&
-                            _isHex( str.charAt( end + 1 ) ) && _isHex( str.charAt( end + 2 ) ) )
-                        end += 3;
-
-                    if ( end == i + 3 ){
-                        final int val = Integer.parseInt( foo , 16 );
-                        buf.append( (char)val );
-                        i += 2;
+            if ( c == '%' ){ 
+                // unicode
+                if( i <= len - 6 && str.charAt( i+1 ) == 'u' ) {
+                    final String toDecode = str.substring( i + 2 , i + 6 );
+                    if ( _isHex( toDecode ) ){
+                        buf.append( Character.toChars( Integer.parseInt( toDecode, 16 ) )[0] );
+                        i += 6;
+                        continue;
                     }
-                    else {
-                        // TODO: don't user URLDecoder 
-                        String toDecode = str.substring( i , end );
-                        try {
-                            buf.append( URLDecoder.decode( toDecode , "utf8" ) );
-                        }
-                        catch ( java.io.UnsupportedEncodingException uee ){
-                            buf.append( URLDecoder.decode( toDecode ) );
-                        }
-                        i = end - 1;
+                }
+
+                // low unicode ( %uxx == \\u00xx )
+                if( i <= len - 3 ) {
+                    final String toDecode = str.substring( i + 1 , i + 3 );
+                    if( _isHex( toDecode ) ) {
+                        buf.append( Character.toChars( Integer.parseInt( toDecode, 16 ) )[0] );
+                        i += 3;
+                        continue;
                     }
                 }
             }
-            
+
+            buf.append( c );
+            i++;
+            continue;            
         }
-
-        for ( ; i<len; i++ )
-            buf.append( str.charAt( i ) );
 
         return buf.toString();
     }
@@ -175,6 +157,38 @@ public class Encoding {
         return false;
     }
 
+    static void toHex( char c, int size, StringBuilder buf ) {
+        int s = (int)c;
+        size--;
+        while( size >= 0 ) {
+            int num = s / (int)Math.pow( 16, size );
+            switch( num ) {
+            case 15:
+                buf.append( 'F' );
+                break;
+            case 14:
+                buf.append( 'E' );
+                break;
+            case 13:
+                buf.append( 'D' );
+                break;
+            case 12:
+                buf.append( 'C' );
+                break;
+            case 11:
+                buf.append( 'B' );
+                break;
+            case 10:
+                buf.append( 'A' );
+                break;
+            default:
+                buf.append( num );
+            }
+            s = s % (int)Math.pow( 16, size );
+            size--;
+        }
+    }
+
     /** @unexpose */
     static final int _upperDiff = 'A' - 'a';
 
@@ -189,7 +203,6 @@ public class Encoding {
         _noEscaping.add( '@' );
         _noEscaping.add( '*' );
         _noEscaping.add( '-' );
-        _noEscaping.add( '_' );
         _noEscaping.add( '+' );
         _noEscaping.add( '/' );
         _noEscaping.add( '.' );
@@ -204,7 +217,6 @@ public class Encoding {
         _noEncoding.add( '(' );
         _noEncoding.add( ')' );
         _noEncoding.add( '-' );
-        _noEncoding.add( '_' );
         _noEncoding.add( '+' );
         _noEncoding.add( '=' );
         _noEncoding.add( ';' );
@@ -222,7 +234,6 @@ public class Encoding {
         _noEncodingComonent.add( '(' );
         _noEncodingComonent.add( ')' );
         _noEncodingComonent.add( '-' );
-        _noEncodingComonent.add( '_' );
         _noEncodingComonent.add( '\'' );
         _noEncodingComonent.add( '.' );
     }
