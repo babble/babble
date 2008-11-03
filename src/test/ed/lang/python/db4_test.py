@@ -35,9 +35,6 @@ _10gen.assert( j2 )
 
 _10gen.assert( not j2.gpa , '_transientFields broken' )
 
-j3 = t.findOne({'_id': str(j._id)})
-#_10gen.assert( j3 , '_id not working yet')
-
 import re
 j4 = t.findOne({'name': re.compile('.*')})
 _10gen.assert( j4 )
