@@ -255,8 +255,8 @@ public class Python extends Language {
             String datetimeS = "datetime".intern();
             PyModule mod = (PyModule)__builtin__.__import__( datetimeS );
             PyObject datetime = mod.__findattr__( datetimeS );
-            PyObject fromtimestamp = datetime.__finditem__( "fromtimestamp".intern() );
-            return fromtimestamp.__call__( Py.newInteger( ((JSDate)o).getTime() ) );
+            PyObject fromtimestamp = datetime.__findattr__( "fromtimestamp".intern() );
+            return fromtimestamp.__call__( Py.newLong( ((JSDate)o).getTime() / 1000 ) );
         }
 
         // these should be at the bottom

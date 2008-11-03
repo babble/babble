@@ -17,5 +17,5 @@
 import datetime
 import _10gen
 
-#assert isinstance(_10gen.jsDate, datetime.datetime)
+assert isinstance(_10gen.jsDate, datetime.datetime)
 _10gen.pyDate = datetime.datetime.now()
