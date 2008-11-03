@@ -76,10 +76,10 @@ public class HttpResponseTest extends TestCase {
             long ma = c.getMaxAge();
             assertTrue( ma >= 4 && ma <= 6 );
         }
-
+        
         o = 
             JS_buildLiteralObject( new String[]{ "name" , "value" , "expires" } , 
-                                   new Object[]{ "eliot" , "hello" , new JSDate( System.currentTimeMillis() + 5000 ) } );
+                                   new Object[]{ "eliot" , "hello" , new JSDate( System.currentTimeMillis() + 5500 ) } );
         
         c = HttpResponse.objectToCookie( o );
         assertEquals( 5 , c.getMaxAge() );
