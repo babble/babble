@@ -262,7 +262,15 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
 
     // java.util.List API
     public boolean contains( Object o ){
-        return _pSeq.contains( toPython( o ) );
+        int n = _pSeq.size();
+        PyObject p = toPython( o );
+        for( int i = 0; i < n; ++i ){
+            if( _pSeq.pyget( i ).equals( p ) ){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public boolean containsAll( Collection c ){

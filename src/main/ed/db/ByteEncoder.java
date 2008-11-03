@@ -132,11 +132,11 @@ public class ByteEncoder extends Bytes {
                 skipId = false;
         }
             
-        JSArray transientFields = null;
+        List transientFields = null;
         {
             Object temp = o.get( "_transientFields" );
-            if ( temp instanceof JSArray )
-                transientFields = (JSArray)temp;
+            if ( temp instanceof List )
+                transientFields = (List)temp;
         }
         
 
