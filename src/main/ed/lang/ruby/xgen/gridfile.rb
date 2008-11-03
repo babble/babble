@@ -73,8 +73,8 @@ class GridFile < StringIO
 
     # Delete the named GridFile from the database.
     def unlink(name)
-      f = find(name)
-      f.remove() if f
+      raise "$db not defined" unless $db
+      $db['_files'].remove({:filename => name})
     end
     alias_method :delete, :unlink
 
