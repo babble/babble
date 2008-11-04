@@ -143,77 +143,23 @@ public class ServletWriter extends JSFunctionCalls1 {
                 s = _extra.toString();
                 _extra.setLength( 0 );
             }
-
+            
             // if it's in a script tag just print it.
             // to find the end of the script tag we have to
             // ignore anything in quotes
             if (this._inScript) {
-                if (this._inDoubleQuote) {
-                    int dq = findDoubleQuote(s);
-                    if (dq == -1) {
-                        _writer.print(s);
-                        return;
-                    }
-                    this._inDoubleQuote = false;
-                    _writer.print(s.substring(0, dq));
-                    s = s.substring(dq);
-                } else if (this._inSingleQuote) {
-                    int sq = findSingleQuote(s);
-                    if (sq == -1) {
-                        _writer.print(s);
-                        return;
-                    }
-                    this._inSingleQuote = false;
-                    _writer.print(s.substring(0, sq));
-                    s = s.substring(sq);
-                } else if (this._inComment) {
-                    int c = findCloseComment(s);
-                    if (c == -1) {
-                        _writer.print(s);
-                        return;
-                    }
-                    this._inComment = false;
-                    _writer.print(s.substring(0, c));
-                    s = s.substring(c);
-                }
-
-                int doubleQuote = s.indexOf('"');
-                int singleQuote = s.indexOf('\'');
-                int longComment = s.indexOf("/*");
-                int shortComment = s.indexOf("//");
-
-                int stateMin = singleQuote;
-                if (doubleQuote != -1) {
-                    stateMin = (stateMin == -1 || doubleQuote < stateMin) ? doubleQuote : stateMin;
-                }
-                if (longComment != -1) {
-                    stateMin = (stateMin == -1 || longComment < stateMin) ? longComment : stateMin;
-                }
-                if (shortComment != -1) {
-                    stateMin = (stateMin == -1 || shortComment < stateMin) ? shortComment : stateMin;
-                }
-
-                _closeScriptMatcher.reset(s);
-
-                if (_closeScriptMatcher.find() && (_closeScriptMatcher.start() < stateMin || stateMin == -1)) {
-                    this._inScript = false;
-
-                    _writer.print(s.substring(0, _closeScriptMatcher.start()));
-                    s = s.substring(_closeScriptMatcher.start());
-                } else {
-                    if (stateMin != -1 && stateMin != shortComment) {
-                        this.setState(doubleQuote, singleQuote, longComment);
-                        _writer.print(s.substring(0, stateMin + 1));
-                        s = s.substring(stateMin + 1);
-                        continue;
-                    }
-                    _writer.print(s);
+                s = readThroughScript( s );
+                if ( s == null )
                     return;
-                }
+                continue;
             }
-
+            
             _matcher.reset( s );
             if ( ! _matcher.find() ){
+                if ( s.endsWith( "<" ) ){
+                    _extra.append( s );
+                    return;
+                }
                 _writer.print( s );
                 return;
             }
@@ -237,6 +183,78 @@ public class ServletWriter extends JSFunctionCalls1 {
             s = s.substring( end + 1 );
         }
 
+    }
+
+    /**
+     * @return null if the entire thing is in script, or the rest
+     */
+    private String readThroughScript( String s ){
+        assert( this._inScript );
+        
+        if (this._inDoubleQuote) {
+            int dq = findDoubleQuote(s);
+            if (dq == -1) {
+                _writer.print(s);
+                return null;
+            }
+            this._inDoubleQuote = false;
+            _writer.print(s.substring(0, dq));
+            s = s.substring(dq);
+        } else if (this._inSingleQuote) {
+            int sq = findSingleQuote(s);
+            if (sq == -1) {
+                _writer.print(s);
+                return null;
+            }
+            this._inSingleQuote = false;
+            _writer.print(s.substring(0, sq));
+            s = s.substring(sq);
+        } else if (this._inComment) {
+            int c = findCloseComment(s);
+            if (c == -1) {
+                _writer.print(s);
+                return null;
+            }
+            this._inComment = false;
+            _writer.print(s.substring(0, c));
+            s = s.substring(c);
+        }
+        
+        int doubleQuote = s.indexOf('"');
+        int singleQuote = s.indexOf('\'');
+        int longComment = s.indexOf("/*");
+        int shortComment = s.indexOf("//");
+        
+        int stateMin = singleQuote;
+        if (doubleQuote != -1) {
+            stateMin = (stateMin == -1 || doubleQuote < stateMin) ? doubleQuote : stateMin;
+        }
+        if (longComment != -1) {
+            stateMin = (stateMin == -1 || longComment < stateMin) ? longComment : stateMin;
+        }
+        if (shortComment != -1) {
+            stateMin = (stateMin == -1 || shortComment < stateMin) ? shortComment : stateMin;
+        }
+        
+        _closeScriptMatcher.reset(s);
+        
+        if (_closeScriptMatcher.find() && (_closeScriptMatcher.start() < stateMin || stateMin == -1)) {
+            this._inScript = false;
+            
+            _writer.print(s.substring(0, _closeScriptMatcher.start()));
+            s = s.substring(_closeScriptMatcher.start());
+            return s;
+        } 
+
+        
+        if (stateMin != -1 && stateMin != shortComment) {
+            this.setState(doubleQuote, singleQuote, longComment);
+            _writer.print(s.substring(0, stateMin + 1));
+            s = s.substring(stateMin + 1);
+            return s;
+        }
+        _writer.print(s);
+        return null;
     }
 
     private void setState (int doubleQuote, int singleQuote, int comment) {
@@ -276,10 +294,6 @@ public class ServletWriter extends JSFunctionCalls1 {
 
     private int findCloseComment (String s) {
         return s.indexOf("*/");
-    }
-
-    boolean printTag(String tag, String s, boolean allowTagHandlers) {
-        return printTag(tag, s, allowTagHandlers, false);
     }
 
     /**
