@@ -240,9 +240,15 @@ public class Shell {
                 replLang = Language.find( a.substring( 2 ) , true );
                 continue;
             }
-
+            
             if ( a.endsWith( ".js" ) ){
                 File f = new File( a );
+                if ( ! f.exists() ){
+                    System.out.println( a + " does not exist" );
+                    System.exit(1);
+                    return;
+                }
+
                 JSFileLibrary fl = new JSFileLibrary( f.getParentFile() == null ? new File( "." ) : f.getParentFile()  , "blah" , s );
                 try {
                     ((JSFunction)(fl.get( f.getName().replaceAll( ".js$" , "" ) ))).call( s );
@@ -256,6 +262,12 @@ public class Shell {
             }
             else if ( a.endsWith( ".py" ) ){
                 File f = new File( a );
+                if ( ! f.exists() ){
+                    System.out.println( a + " does not exist" );
+                    System.exit(1);
+                    return;
+                }
+                    
                 JSFileLibrary fl = new JSFileLibrary( f.getParentFile() == null ? new File( "." ) : f.getParentFile() , "blah" , s );
                 try {
                     JSFunction py = (JSFunction)fl.get( f.getName().replaceAll( ".py$" , "" ));
