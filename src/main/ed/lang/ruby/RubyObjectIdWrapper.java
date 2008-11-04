@@ -31,11 +31,18 @@ import ed.db.ObjectId;
 public class RubyObjectIdWrapper extends RubyObject {
 
     static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
+    static final ObjectAllocator OBJECT_ID_ALLOCATOR = new ObjectAllocator() {
+            public IRubyObject allocate(Ruby runtime, RubyClass klass) {
+                /* Allocates but sets _oid to null. Assumes initialize will set ObjectId value. */
+                return new RubyObjectIdWrapper(runtime, null);
+            }
+        };
 
     public static synchronized RubyClass getObjectIdClass(final Ruby runtime) {
         WeakReference<RubyClass> ref = klassDefs.get(runtime);
         if (ref == null) {
-            RubyClass klazz = runtime.defineClass("ObjectId", runtime.getObject(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+            RubyClass klazz = runtime.defineClass("ObjectId", runtime.getObject(), OBJECT_ID_ALLOCATOR);
+            klazz.defineAnnotatedMethods(RubyObjectIdWrapper.class);
             klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyObjectIdWrapper;
@@ -62,11 +69,18 @@ public class RubyObjectIdWrapper extends RubyObject {
         _oid = oid;
     }
 
-    public ObjectId getObjectId() { return _oid; }
-
-    protected RubyArray notImplemented(String what) {
-        throw getRuntime().newNotImplementedError("Can not call " + what + " on database cursors");
+    @JRubyMethod(name = "initialize", required = 1)
+    public IRubyObject initialize(IRubyObject oidString) {
+        if (_oid == null) {                       // Never stomp on existing value
+            String javaOidString = oidString.convertToString().toString();
+            if (!ObjectId.isValid(javaOidString))
+                throw getRuntime().newArgumentError("bad object id: " + javaOidString);
+            _oid = new ObjectId(javaOidString);
+        }
+        return this;
     }
+
+    public ObjectId getObjectId() { return _oid; }
 
     public IRubyObject to_s() {
         return getRuntime().newString(_oid.toString());
