@@ -90,6 +90,6 @@ public class RubyObjectIdWrapper extends RubyObject {
     public ObjectId getObjectId() { return _oid; }
 
     public IRubyObject to_s() {
-        return getRuntime().newString(_oid.toString());
+        return getRuntime().newString(_oid == null ? "ObjectId(null)" : _oid.toString());
     }
 }
