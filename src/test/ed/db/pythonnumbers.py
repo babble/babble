@@ -1,6 +1,7 @@
 
 import _10gen
 import types
+import _10gen
 
 db = _10gen.connect( "test" );
 t = db.pythonnumbers
