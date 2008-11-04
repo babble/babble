@@ -529,10 +529,12 @@ public class SiteSystemState {
                     if( location.startsWith( key.getRoot().toString() ) ){
                         String name = _loaded.get( key );
                         Object foo = key.getFromPath( baz , true );
-                        if( foo == null ) continue;
+                        if( !( foo instanceof JSFileLibrary ) ) continue;
 
-                        if( DEBUG )
+                        if( DEBUG ){
+                            System.out.println("Got " + foo + " from " + _loaded + " " + foo.getClass());
                             System.out.println("Returning rewrite loader for " + name + "." + baz);
+                        }
                         return new RewriteModuleLoader( name + "." + baz );
                     }
                 }
