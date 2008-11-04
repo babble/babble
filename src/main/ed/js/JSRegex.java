@@ -85,6 +85,8 @@ public class JSRegex extends JSObjectBase {
         }
 
         protected void init(){
+            final JSObject proto = _prototype;
+
             _prototype.set( "lastIndex" , 0 );
 
             _prototype.set( "toString" , new JSFunctionCalls0() {
@@ -93,7 +95,14 @@ public class JSRegex extends JSObjectBase {
                         if( !(o instanceof JSRegex ) ){
                             return null;
                         }
-                        return new JSString( s.getThis().toString() );
+                        String source = proto.get( "source" ).toString();
+                        // default source
+                        if( source.equals( "" ) )
+                            source = "(?:)";
+                        String g = Boolean.valueOf( proto.get( "global" ).toString() ) ? "g" : "";
+                        String i = Boolean.valueOf( proto.get( "ignoreCase" ).toString() ) ? "i" : "";
+                        String m = Boolean.valueOf( proto.get( "multiline" ).toString() ) ? "m" : "";
+                        return new JSString( "/" + source + "/" + g + i + m );
                     }
                 } );
             _prototype.set( "test" , new JSFunctionCalls1(){
@@ -314,10 +323,6 @@ public class JSRegex extends JSObjectBase {
      * @return /expression/flags
      */
     public String toString(){
-        /*        Object source = getConstructor()._prototype.get( "source" );
-        if( source == null || source.toString().equals( "" ) ) {
-            source = "(?:)";
-            }*/
         if( _p == null )
             _p = "(?:)";
         if( _f == null )
