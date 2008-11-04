@@ -1,7 +1,8 @@
 
+import _10gen
 import types
 
-db = connect( "test" );
+db = _10gen.connect( "test" );
 t = db.pythonnumbers
 t.drop()
 
