@@ -22,6 +22,9 @@ import java.io.*;
 
 import org.testng.annotations.Test;
 
+import ed.js.*;
+import ed.js.func.*;
+import ed.js.engine.*;
 import ed.appserver.*;
 import ed.net.httpserver.*;
 
@@ -252,7 +255,7 @@ public class JxpServletTest extends ed.TestCase {
     }
 
     @Test(groups = {"basic"})
-    public void testPerformance () {
+    public void _testPerformance() {
         double ratio = 0;
         for (int h = 0; h < 20; h += 1) {
             JxpWriter w = new JxpWriter.Basic();
@@ -359,7 +362,7 @@ public class JxpServletTest extends ed.TestCase {
     public void testBrokenUp(){
         
         final String correct = "<img src=\"SSSS/1.jpg?lm=" + one.lastModified() + "\" >";
-
+        
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
         p.print( "<img src=\"/1.jpg\" >" );
@@ -378,6 +381,48 @@ public class JxpServletTest extends ed.TestCase {
         p.print( "\"/1.jpg\"" );
         p.print( " >" );
         assertClose( correct , w.getContent() );
+    }
+
+
+    @Test(groups = {"basic"})
+    public void testTagHandler1(){    
+        _countTags( 1 , "a" , "blah <a href='asd'></a>" );
+        _countTags( 2 , "a" , "blah <a href='asd'></a><a>" );
+        _countTags( 1 , "A" , "blah <a href='asd'></a>" );
+        _countTags( 1 , "a" , "blah <A href='asd'></a>" );
+        _countTags( 1 , "A" , "blah <A href='asd'></a>" );
+    }
+
+    @Test(groups = {"basic"})
+    public void testTagHandler2(){    
+        _countTags( 1 , "a" , "<a href=\"/_blah\"></a>" );
+        _countTags( 1 , "a" , "<a href=\"/" , "_blah" , "\"></a>" );
+        _countTags( 1 , "a" , "<a href=\"/" , "_blah" , "\"></a>" );
+        _countTags( 1 , "a" , "goofy" , "<a href=\"/" , "_blah" , "\"></a>" );
+        _countTags( 1 , "a" , "goofy" , "<" , "a href=\"/" , "_blah" , "\"></a>" );
+
+        // TODO: mike
+        //_countTags( 1 , "a" , "goofy" , "<script>\n//\"\n</script>\n" , "<" , "a href=\"/" , "_blah" , "\"></a>" );
+    }
+    
+    private void _countTags( int number , String tag , String ... segments ){
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+
+        final int count[] = new int[]{ 0 };
+
+        p.addTagHandler( tag , new JSFunctionCalls1(){
+                public Object call( Scope s , Object tag , Object[] extra ){
+                    count[0]++;
+                    return null;
+                }
+            }
+            );
+        
+        for ( int i=0; i<segments.length; i++ )
+            p.print( segments[i] );
+        
+        assertEquals( number , count[0] );
     }
 
     public static void main( String args[] ){
