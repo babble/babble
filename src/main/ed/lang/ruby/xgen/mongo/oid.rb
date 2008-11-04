@@ -18,6 +18,7 @@ class Object
   end
 end
 
+# The ObjectId class constructor is defined in Java.
 class ObjectId
   def to_oid
     self
