@@ -334,6 +334,7 @@ module XGen
 
         # Returns true if all field_names are in @field_names.
         def all_fields_exist?(field_names)
+          field_names.collect! {|f| f == 'id' ? '_id' : f}
           (field_names - @field_names.collect{|f| f.to_s}).empty?
         end
 
