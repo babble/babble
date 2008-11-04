@@ -360,9 +360,9 @@ public class JxpServletTest extends ed.TestCase {
 
     @Test(groups = {"basic"})
     public void testBrokenUp(){
-        
+
         final String correct = "<img src=\"SSSS/1.jpg?lm=" + one.lastModified() + "\" >";
-        
+
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
         p.print( "<img src=\"/1.jpg\" >" );
@@ -385,7 +385,7 @@ public class JxpServletTest extends ed.TestCase {
 
 
     @Test(groups = {"basic"})
-    public void testTagHandler1(){    
+    public void testTagHandler1(){
         _countTags( 1 , "a" , "blah <a href='asd'></a>" );
         _countTags( 2 , "a" , "blah <a href='asd'></a><a>" );
         _countTags( 1 , "A" , "blah <a href='asd'></a>" );
@@ -394,17 +394,16 @@ public class JxpServletTest extends ed.TestCase {
     }
 
     @Test(groups = {"basic"})
-    public void testTagHandler2(){    
+    public void testTagHandler2(){
         _countTags( 1 , "a" , "<a href=\"/_blah\"></a>" );
         _countTags( 1 , "a" , "<a href=\"/" , "_blah" , "\"></a>" );
         _countTags( 1 , "a" , "<a href=\"/" , "_blah" , "\"></a>" );
         _countTags( 1 , "a" , "goofy" , "<a href=\"/" , "_blah" , "\"></a>" );
         _countTags( 1 , "a" , "goofy" , "<" , "a href=\"/" , "_blah" , "\"></a>" );
-
-        // TODO: mike
-        //_countTags( 1 , "a" , "goofy" , "<script>\n//\"\n</script>\n" , "<" , "a href=\"/" , "_blah" , "\"></a>" );
+        _countTags( 1 , "a" , "goofy<script>\n//\"\n</script>\n<a href=\"/_blah\"></a>" );
+        _countTags( 1 , "a" , "goofy" , "<script>\n//\"\n</script>\n" , "<" , "a href=\"/" , "_blah" , "\"></a>" );
     }
-    
+
     private void _countTags( int number , String tag , String ... segments ){
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
@@ -418,10 +417,10 @@ public class JxpServletTest extends ed.TestCase {
                 }
             }
             );
-        
+
         for ( int i=0; i<segments.length; i++ )
             p.print( segments[i] );
-        
+
         assertEquals( number , count[0] );
     }
 

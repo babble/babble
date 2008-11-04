@@ -1532,7 +1532,7 @@ public class Convert {
     private void _addCall( Node n , State state , boolean isClass ){
         Node name = n.getFirstChild();
 
-        boolean useThis = name.getType() == Token.GETPROP && ! isClass;
+        boolean useThis = (name.getType() == Token.GETPROP || name.getType() == Token.GETELEM) && ! isClass;
 
         if ( useThis )
             _append( "scope.clearThisNormal( " , n );
@@ -1700,7 +1700,7 @@ public class Convert {
     }
     private String getFunc( Node n , State state , boolean isClass , Boolean inc[] ){
         if ( n.getClass().getName().indexOf( "StringNode" ) < 0 ){
-            if ( n.getType() == Token.GETPROP && ! isClass ){
+            if ( ( n.getType() == Token.GETPROP || n.getType() == Token.GETELEM ) && ! isClass ) {
                 _append( "scope.getFunctionAndSetThis( " , n );
                 _add( n.getFirstChild() , state );
                 _append( " , " , n );
