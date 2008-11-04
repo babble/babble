@@ -645,15 +645,15 @@ public class Scope implements JSObject , Bindings {
         if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
         
         if ( obj instanceof Number ){
-            JSFunction func = ((JSFunction)(getFunctionFromScope( "Number" ).get( name )));
+            JSFunction func = ((JSFunction)(getFunctionFromScope( "Number" ).getPrototype().get( name )));
             if ( func != null ){
                 _this.push( new This( obj ) );
                 return func;
             }
         }
         else if ( obj instanceof Boolean ) {
-            JSFunction func = ((JSFunction)(getFunctionFromScope( "Boolean" ).get( name )));
-            if( func != null ){
+            JSFunction func = ((JSFunction)(getFunctionFromScope( "Boolean" ).getPrototype().get( name )));
+            if ( func != null ){
                 _this.push( new This( obj ) );
                 return func;
             }
