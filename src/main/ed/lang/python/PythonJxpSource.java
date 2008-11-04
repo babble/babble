@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -39,7 +39,7 @@ public class PythonJxpSource extends JxpSource {
 
     public synchronized JSFunction getFunction()
         throws IOException {
-        
+
         final PyCode code = _getCode();
 
         return new ed.js.func.JSFunctionCalls0(){
@@ -51,7 +51,7 @@ public class PythonJxpSource extends JxpSource {
 
                 if ( ac != null )
                     siteScope = ac.getScope();
-                else 
+                else
                     siteScope = s.getGlobal( true );
 
                 SiteSystemState ss = Python.getSiteSystemState( ac , siteScope );
@@ -90,6 +90,11 @@ public class PythonJxpSource extends JxpSource {
      */
     public static PyObject runPythonCode(PyCode code, AppContext ac, SiteSystemState ss, PyObject globals,
                                          JSFileLibrary lib, File file) {
+        return runPythonCode(code, ac, ss, globals, lib, file, false);
+    }
+
+    public static PyObject runPythonCode(PyCode code, AppContext ac, SiteSystemState ss, PyObject globals,
+                                         JSFileLibrary lib, File file, boolean main) {
 
         PySystemState pyOld = Py.getSystemState();
 
@@ -100,17 +105,22 @@ public class PythonJxpSource extends JxpSource {
         ss.ensurePath( lib.getTopParent().getRoot().getAbsolutePath() );
 
         PyObject result = null;
-        
+
         try {
             Py.setSystemState( ss.getPyState() );
 
             globals.__setitem__( "__file__", Py.newString( file.toString() ) );
 
-            // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
-            // Right now I only want this for _init.py
-            String name = file.getName();
-            if( name.endsWith( ".py" ) )
-                name = name.substring( 0 , name.length() - 3 );
+            String name;
+            if (main) {
+                name = "__main__";
+            } else {
+                // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
+                // Right now I only want this for _init.py
+                name = file.getName();
+                if( name.endsWith( ".py" ) )
+                    name = name.substring( 0 , name.length() - 3 );
+            }
 
             /*
              * In order to track dependencies, we need to know what module is doing imports
@@ -140,7 +150,7 @@ public class PythonJxpSource extends JxpSource {
     private PyCode _getCode()
         throws IOException {
         PyCode c = _code;
-	final long lastModified = _file.lastModified();
+        final long lastModified = _file.lastModified();
         if ( c == null || _lastCompile < lastModified ){
             c = Python.compile( _file );
             _code = c;
@@ -154,7 +164,7 @@ public class PythonJxpSource extends JxpSource {
 
     private PyCode _code;
     private long _lastCompile;
-    
+
     void addDependency( String to ){
         super.addDependency( new FileDependency( new File( to ) ) );
     }
