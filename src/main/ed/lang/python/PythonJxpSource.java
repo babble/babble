@@ -82,6 +82,12 @@ public class PythonJxpSource extends JxpSource {
         };
     }
 
+    /**
+     * Provides a sensible environment to run Python code. This includes
+     * providing a globals dictionary, a module to run in (for import tracking),
+     * setting __name__ and __file__, making sure the path includes some
+     * important directories, etc.
+     */
     public static PyObject runPythonCode(PyCode code, AppContext ac, SiteSystemState ss, PyObject globals,
                                          JSFileLibrary lib, File file) {
 
@@ -93,22 +99,18 @@ public class PythonJxpSource extends JxpSource {
         ss.ensurePath( lib.getRoot().getAbsolutePath() );
         ss.ensurePath( lib.getTopParent().getRoot().getAbsolutePath() );
 
-        PyObject oldFile = globals.__finditem__( "__file__" );
-        PyObject oldName = globals.__finditem__( "__name__" );
-
         PyObject result = null;
         
         try {
             Py.setSystemState( ss.getPyState() );
 
-            //Py.initClassExceptions( globals );
             globals.__setitem__( "__file__", Py.newString( file.toString() ) );
+
             // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
             // Right now I only want this for _init.py
             String name = file.getName();
             if( name.endsWith( ".py" ) )
                 name = name.substring( 0 , name.length() - 3 );
-            //globals.__setitem__( "__name__", Py.newString( name ) );
 
             /*
              * In order to track dependencies, we need to know what module is doing imports
@@ -116,14 +118,11 @@ public class PythonJxpSource extends JxpSource {
              */
             PyModule module = new PyModule( name , globals );
 
-            PyObject locals = module.__dict__;
+            PyObject locals = module.__dict__; // FIXME: locals == globals ?
             result = Py.runCode( code, locals, globals );
             if( ac != null ) ss.addRecursive( "_init" , ac );
         }
         finally {
-            _globalRestore( globals , "__file__" , oldFile );
-            _globalRestore( globals , "__name__" , oldName );
-
             Py.setSystemState( pyOld );
         }
         return result;

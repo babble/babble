@@ -20,7 +20,6 @@ getglobal = function(x){
     return someData[x];
 };
 
-
 local.src.test.ed.lang.python.expose1_helper();
 
 assert( pyX == someData.x );
