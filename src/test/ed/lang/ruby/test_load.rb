@@ -68,7 +68,7 @@ print("foo = " + foo);
 print("foo.bar = " + foo.bar);
 print("new_thing = " + new_thing);
 EOS
-    assert_equal("foo = Object\nfoo.bar = bletch\nnew_thing = null\n", out)
+    assert_equal("foo = [object Object]\nfoo.bar = bletch\nnew_thing = null\n", out)
 
     $foo.bar = 'xyzzy'
     $new_thing = 'hello'
@@ -78,7 +78,7 @@ print("foo.bar = " + foo.bar);
 print("new_thing = " + new_thing);
 EOS
 
-    assert_equal("foo = Object\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
+    assert_equal("foo = [object Object]\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
   end
 
   def test_load_js

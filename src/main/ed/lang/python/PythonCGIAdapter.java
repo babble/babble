@@ -89,7 +89,7 @@ public class PythonCGIAdapter extends CGIAdapter {
         ss.getPyState().stdin = new PyFile(stdin);
 
         try {
-            PythonJxpSource.runPythonCode(_getCode(), ac, ss, globals, ac.getScope(), _lib, _file);
+            PythonJxpSource.runPythonCode(_getCode(), ac, ss, globals, _lib, _file);
         }
         catch (IOException e) {
             // TODO - fix
