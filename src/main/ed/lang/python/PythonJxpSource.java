@@ -56,9 +56,9 @@ public class PythonJxpSource extends JxpSource {
 
                 SiteSystemState ss = Python.getSiteSystemState( ac , siteScope );
 
-                PyObject globals = ss.globals;
+                PyObject globals = new PyDictionary();
 
-                PyObject result = runPythonCode(code, ac, ss, globals, siteScope, _lib, _file);
+                PyObject result = runPythonCode(code, ac, ss, globals, _lib, _file);
 
                 if (usePassedInScope()){
                     PyObject keys = globals.invoke("keys");
@@ -83,7 +83,7 @@ public class PythonJxpSource extends JxpSource {
     }
 
     public static PyObject runPythonCode(PyCode code, AppContext ac, SiteSystemState ss, PyObject globals,
-                                  Scope siteScope, JSFileLibrary lib, File file) {
+                                         JSFileLibrary lib, File file) {
 
         PySystemState pyOld = Py.getSystemState();
 
@@ -121,22 +121,20 @@ public class PythonJxpSource extends JxpSource {
             if( ac != null ) ss.addRecursive( "_init" , ac );
         }
         finally {
-            _globalRestore( globals , siteScope , "__file__" , oldFile );
-            _globalRestore( globals , siteScope , "__name__" , oldName );
+            _globalRestore( globals , "__file__" , oldFile );
+            _globalRestore( globals , "__name__" , oldName );
 
             Py.setSystemState( pyOld );
         }
         return result;
     }
 
-    private static void _globalRestore( PyObject globals , Scope siteScope , String name , PyObject value ){
+    private static void _globalRestore( PyObject globals , String name , PyObject value ){
         if( value != null ){
             globals.__setitem__( name , value  );
         }
         else{
-            // FIXME -- delitem should really be deleting from siteScope
             globals.__delitem__( name );
-            siteScope.set( name , null );
         }
     }
 

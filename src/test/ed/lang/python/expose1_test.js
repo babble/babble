@@ -27,3 +27,4 @@ local.src.test.ed.lang.python.expose1_helper();
 assert( called.x );
 assert( called.y );
 assert.eq( jsObj.pyBool , true );
+assert.eq( __name__ , null );
