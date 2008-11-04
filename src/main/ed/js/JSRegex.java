@@ -87,6 +87,15 @@ public class JSRegex extends JSObjectBase {
         protected void init(){
             _prototype.set( "lastIndex" , 0 );
 
+            _prototype.set( "toString" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        Object o = s.getThis();
+                        if( !(o instanceof JSRegex ) ){
+                            return null;
+                        }
+                        return new JSString( s.getThis().toString() );
+                    }
+                } );
             _prototype.set( "test" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object o , Object foo[] ){
                         if ( o == null )
