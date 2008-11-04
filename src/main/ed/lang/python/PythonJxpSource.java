@@ -134,9 +134,7 @@ public class PythonJxpSource extends JxpSource {
             globals.__setitem__( name , value  );
         }
         else{
-            // FIXME -- delitem should really be deleting from siteScope
             globals.__delitem__( name );
-            siteScope.set( name , null );
         }
     }
 
