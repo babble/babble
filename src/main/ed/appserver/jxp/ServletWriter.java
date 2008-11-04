@@ -143,7 +143,7 @@ public class ServletWriter extends JSFunctionCalls1 {
                 s = _extra.toString();
                 _extra.setLength( 0 );
             }
-            
+
             // if it's in a script tag just print it.
             // to find the end of the script tag we have to
             // ignore anything in quotes
@@ -153,7 +153,7 @@ public class ServletWriter extends JSFunctionCalls1 {
                     return;
                 continue;
             }
-            
+
             _matcher.reset( s );
             if ( ! _matcher.find() ){
                 if ( s.endsWith( "<" ) ){
@@ -190,7 +190,7 @@ public class ServletWriter extends JSFunctionCalls1 {
      */
     private String readThroughScript( String s ){
         assert( this._inScript );
-        
+
         if (this._inDoubleQuote) {
             int dq = findDoubleQuote(s);
             if (dq == -1) {
@@ -219,12 +219,12 @@ public class ServletWriter extends JSFunctionCalls1 {
             _writer.print(s.substring(0, c));
             s = s.substring(c);
         }
-        
+
         int doubleQuote = s.indexOf('"');
         int singleQuote = s.indexOf('\'');
         int longComment = s.indexOf("/*");
         int shortComment = s.indexOf("//");
-        
+
         int stateMin = singleQuote;
         if (doubleQuote != -1) {
             stateMin = (stateMin == -1 || doubleQuote < stateMin) ? doubleQuote : stateMin;
@@ -235,24 +235,34 @@ public class ServletWriter extends JSFunctionCalls1 {
         if (shortComment != -1) {
             stateMin = (stateMin == -1 || shortComment < stateMin) ? shortComment : stateMin;
         }
-        
+
         _closeScriptMatcher.reset(s);
-        
+
         if (_closeScriptMatcher.find() && (_closeScriptMatcher.start() < stateMin || stateMin == -1)) {
             this._inScript = false;
-            
+
             _writer.print(s.substring(0, _closeScriptMatcher.start()));
             s = s.substring(_closeScriptMatcher.start());
             return s;
-        } 
+        }
 
-        
+
         if (stateMin != -1 && stateMin != shortComment) {
             this.setState(doubleQuote, singleQuote, longComment);
             _writer.print(s.substring(0, stateMin + 1));
             s = s.substring(stateMin + 1);
             return s;
+        } else if (stateMin != -1) {
+            _writer.print(s.substring(0, stateMin + 1));
+            s = s.substring(stateMin + 1);
+            int nl = s.indexOf('\n');
+            if (nl != -1) {
+                _writer.print(s.substring(0, nl + 1));
+                s = s.substring(nl + 1);
+                return s;
+            }
         }
+
         _writer.print(s);
         return null;
     }

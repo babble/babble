@@ -142,17 +142,18 @@ EOS
     assert !track.track?
   end
 
-  def test_find_by__id
-    assert_equal(@mayor_str, Track.find_by__id(@mayor_id).to_s)
+  def test_find_by_id
+    assert_equal(@mayor_str, Track.find_by_id(@mayor_id).to_s)
   end
 
   def test_find_by_song
     assert_equal("artist: Thomas Dolby, album: Aliens Ate My Buick, song: Budapest by Blimp, track: ", Track.find_by_song('Budapest by Blimp').to_s)
   end
 
-  def test_collection_name_using_class_name
-    assert_equal(@mayor_str, Rubytest.find_by__id(@mayor_id).to_s)
-  end
+# TODO Delete? Commented out because lack of collection_name means lack of _id
+#   def test_collection_name_using_class_name
+#     assert_equal(@mayor_str, Rubytest.find_by_id(@mayor_id).to_s)
+#   end
 
   def test_update
     t = Track.find_by_track(2)

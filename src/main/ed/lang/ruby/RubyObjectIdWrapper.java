@@ -34,7 +34,7 @@ public class RubyObjectIdWrapper extends RubyObject {
     static final ObjectAllocator OBJECT_ID_ALLOCATOR = new ObjectAllocator() {
             public IRubyObject allocate(Ruby runtime, RubyClass klass) {
                 /* Allocates but sets _oid to null. Assumes initialize will set ObjectId value. */
-                return new RubyObjectIdWrapper(runtime, null);
+                return new RubyObjectIdWrapper(runtime);
             }
         };
 
@@ -62,10 +62,17 @@ public class RubyObjectIdWrapper extends RubyObject {
         return new RubyObjectIdWrapper(context.getRuntime(), oid);
     }
 
+    private RubyObjectIdWrapper(Ruby runtime) {
+        super(runtime, getObjectIdClass(runtime));
+        _oid = null;
+    }
+
     RubyObjectIdWrapper(Ruby runtime, ObjectId oid) {
         super(runtime, getObjectIdClass(runtime));
         if (RubyObjectWrapper.DEBUG_CREATE)
             System.err.println("creating RubyObjectIdWrapper");
+        if (oid == null)
+            throw new IllegalArgumentException("RubyObjectIdWrapper: oid must not be null");
         _oid = oid;
     }
 
@@ -83,6 +90,6 @@ public class RubyObjectIdWrapper extends RubyObject {
     public ObjectId getObjectId() { return _oid; }
 
     public IRubyObject to_s() {
-        return getRuntime().newString(_oid.toString());
+        return getRuntime().newString(_oid == null ? "ObjectId(null)" : _oid.toString());
     }
 }

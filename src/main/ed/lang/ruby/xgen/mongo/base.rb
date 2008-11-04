@@ -26,6 +26,11 @@ class Array
     self.collect {|v| v.to_mongo_value}
   end
 end
+class JSFunction
+  def to_mongo_value
+    self
+  end
+end
 class Hash
   def to_mongo_value
     h = {}
@@ -59,12 +64,17 @@ module XGen
 
       class << self # Class methods
 
+        # This method only exists so that XGen::Mongo::Base and
+        # ActiveRecord::Base can live side by side.
+        def instantiate(row={})
+          new(row)
+        end
+
         def inherited(subclass)
           subclass.instance_variable_set("@coll_name", class_name_to_field_name(subclass.name)) # default name
           subclass.instance_variable_set("@field_names", []) # array of scalars names (symbols)
           subclass.instance_variable_set("@subobjects", {}) # key = name (symbol), value = class
           subclass.instance_variable_set("@arrays", {})     # key = name (symbol), value = class
-          subclass.field(:_id)
         end
 
         # Call this method to set the Mongo collection name for this class.
@@ -72,10 +82,11 @@ module XGen
         # lower_case_with_underscores.
         def collection_name(coll_name)
           @coll_name = coll_name
+          field(:_id, :_ns, :_update)
         end
 
         # Creates one or more collection fields. Each field will be saved to
-        # and loaded from the database. Then field named "_id" is
+        # and loaded from the database. The fields named "_id" and "_ns" are
         # automatically saved and loaded.
         #
         # The method "field" is also called "fields"; you can use either one.
@@ -160,7 +171,7 @@ module XGen
         #
         # :select:: Single field name or list of field names. If not
         #           specified, all fields are returned. Names may be symbols
-        #           or strings. The database always returns _id field.
+        #           or strings. The database always returns _id and _ns fields.
         #
         # :order:: If a symbol, orders by that field in ascending order. If a
         #          string like "field1 asc, field2 desc, field3", then sorts
@@ -323,6 +334,7 @@ module XGen
 
         # Returns true if all field_names are in @field_names.
         def all_fields_exist?(field_names)
+          field_names.collect! {|f| f == 'id' ? '_id' : f}
           (field_names - @field_names.collect{|f| f.to_s}).empty?
         end
 
@@ -476,7 +488,7 @@ module XGen
           end
         end
 
-      end
+      end                       # End of class methods
 
       public
 
@@ -526,8 +538,8 @@ module XGen
         row = self.class.coll.save(to_mongo_value)
         if @_id == nil
           @_id = row._id
-        elsif row._id != @_id
-          raise "Error: after save, database id changed"
+        elsif row._id.to_s != @_id.to_s
+          raise "Error: after save, database id changed: old = #{row._id}, new = #{@_id}"
         end
         self
       end
