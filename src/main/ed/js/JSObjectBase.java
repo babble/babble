@@ -1446,9 +1446,15 @@ public class JSObjectBase implements JSObject {
                         }
                         return new JSString( buf.toString() );
                     }
-                }
-                );
+                });
 
+            set( "toString", new JSFunctionCalls0() {
+                    public Object call( Scope s, Object extra[] ) {
+                        String className = JS_typeof( s.getThis() ).toString();
+                        className = className.substring(0,1).toUpperCase() + className.substring(1);
+                        return new JSString( "[object " + className +"]");
+                    }
+                } );
         }
 
         public Set<String> keySet( boolean includePrototype ){
