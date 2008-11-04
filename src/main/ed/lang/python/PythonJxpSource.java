@@ -56,7 +56,7 @@ public class PythonJxpSource extends JxpSource {
 
                 SiteSystemState ss = Python.getSiteSystemState( ac , siteScope );
 
-                PyObject globals = ss.globals;
+                PyObject globals = new PyDictionary();
 
                 PyObject result = runPythonCode(code, ac, ss, globals, siteScope, _lib, _file);
 
