@@ -142,8 +142,8 @@ EOS
     assert !track.track?
   end
 
-  def test_find_by__id
-    assert_equal(@mayor_str, Track.find_by__id(@mayor_id).to_s)
+  def test_find_by_id
+    assert_equal(@mayor_str, Track.find_by_id(@mayor_id).to_s)
   end
 
   def test_find_by_song
@@ -151,7 +151,7 @@ EOS
   end
 
   def test_collection_name_using_class_name
-    assert_equal(@mayor_str, Rubytest.find_by__id(@mayor_id).to_s)
+    assert_equal(@mayor_str, Rubytest.find_by_id(@mayor_id).to_s)
   end
 
   def test_update
