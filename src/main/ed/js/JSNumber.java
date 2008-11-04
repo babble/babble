@@ -346,10 +346,18 @@ public class JSNumber extends Number implements JSObject {
                         ((JSObjectBase)o).getConstructor() instanceof Cons )
                         return ((Cons)((JSObjectBase)o).getConstructor())._parse( null, null );
                     
-                    if( o instanceof JSNumber )
+                    if( o instanceof Number )
+                        return o;
+
+                    if( !(o instanceof JSNumber ) )
                         throw new JSException( "TypeError: valueOf must be called on a Number" );
                     
                     return ((JSNumber)o)._val;
+                }
+            } );
+        _functions.set( "toString" , new JSFunctionCalls0() {
+                public Object call( Scope s, Object foo[] ) {
+                    return new JSString( s.getThis().toString() );
                 }
             } );
 

@@ -126,6 +126,12 @@ public class JSDate extends JSObjectBase implements Comparable {
                     }
                 } );
 
+                _prototype.set( "toString" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){
+                        return new JSString( ((JSDate)s.getThis()).toString() );
+                    }
+                } );
+
 
                 // -----------
 

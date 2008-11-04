@@ -70,7 +70,7 @@ public class PythonCGIAdapter extends CGIAdapter {
          */
         PyDictionary pd = new PyDictionary();
 
-        for(String s : env.keySet()) {            
+        for(String s : env.keySet()) {
             pd.__setitem__(s, Py.newString((String) env.get(s)));
         }
 
@@ -89,7 +89,7 @@ public class PythonCGIAdapter extends CGIAdapter {
         ss.getPyState().stdin = new PyFile(stdin);
 
         try {
-            PythonJxpSource.runPythonCode(_getCode(), ac, ss, globals, ac.getScope(), _lib, _file);
+            PythonJxpSource.runPythonCode(_getCode(), ac, ss, globals, _lib, _file, true);
         }
         catch (IOException e) {
             // TODO - fix
@@ -104,7 +104,7 @@ public class PythonCGIAdapter extends CGIAdapter {
 
         PyCode c = _code;
         final long lastModified = _file.lastModified();
-        
+
         if (c == null || _lastCompile < lastModified) {
             c = Python.compile(_file);
             _code = c;
@@ -132,7 +132,7 @@ public class PythonCGIAdapter extends CGIAdapter {
     public File getFile() {
         return _file;
     }
-    
+
     void addDependency(String to) {
         super.addDependency(new FileDependency(new File(to)));
     }
@@ -162,7 +162,7 @@ public class PythonCGIAdapter extends CGIAdapter {
         public PyDictionary getPyDict() {
             return _pyDict;
         }
-        
+
         public static CGITLSData getThreadLocal() {
             return _tl.get();
         }
@@ -182,7 +182,7 @@ public class PythonCGIAdapter extends CGIAdapter {
         public PyObject __findattr_ex__(String key) {
             return CGITLSData.getThreadLocal().getPyDict().__findattr__(key);
         }
-        
+
         public PyObject __finditem__(PyObject key) {
             return CGITLSData.getThreadLocal().getPyDict().__finditem__(key);
         }
