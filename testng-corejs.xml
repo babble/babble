@@ -101,5 +101,14 @@
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
   </test>    
+
+  <test name="testing">
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/testing/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
 </suite>
 
