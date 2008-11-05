@@ -47,6 +47,15 @@
     </classes>
   </test>
 
+  <test name="io-encode">
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/io/encode/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
+
   <test name="net">
     <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
     <parameter name="dir-name"  value="corejs/master/net/test"/>
@@ -68,6 +77,24 @@
   <test name="ui-chart">
     <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
     <parameter name="dir-name"  value="corejs/master/ui/chart/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
+
+  <test name="user">
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/user/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
+
+  <test name="user-perm">
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/user/perm/test"/>
     <parameter name="file-ending"  value=".js"/>
     <classes>
       <class name="ed.util.ScriptTestFactory"/>
