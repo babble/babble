@@ -66,11 +66,13 @@ public class SimpleApplication implements Application {
         return exitCode != 0;
     }
 
-    public boolean gotOutputLine( String line ){
+    public boolean gotOutputLine( String line )
+        throws RestartApp {
         return true;
     }
 
-    public boolean gotErrorLine( String line ){
+    public boolean gotErrorLine( String line )
+        throws RestartApp {
         return true;
     }
 

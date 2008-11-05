@@ -297,13 +297,19 @@ public class RunningApplication extends Thread {
             try {
                 while ( ( line = _in.readLine() ) != null ){
                     
-                    if ( _stdout ){
-                        if ( ! _app.gotOutputLine( line ) )
-                            continue;
+                    try {
+                        if ( _stdout ){
+                            if ( ! _app.gotOutputLine( line ) )
+                                continue;
+                        }
+                        else {
+                            if ( ! _app.gotErrorLine( line ) )
+                                continue;
+                        }
                     }
-                    else {
-                        if ( ! _app.gotErrorLine( line ) )
-                            continue;
+                    catch ( Application.RestartApp ra ){
+                        _logger.error( "got app restart because of line [" + line + "] beacuse of [" + ra._why + "]" );
+                        restart();
                     }
                     
                     synchronized ( _out ){

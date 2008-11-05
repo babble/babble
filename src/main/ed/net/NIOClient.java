@@ -40,9 +40,9 @@ public abstract class NIOClient extends Thread {
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
-    static final long CONNECT_TIMEOUT = 1000 * 30;
+    static final long CONNECT_TIMEOUT = 1000 * 30; // timeout for opening a socket to a server
     static final long CLIENT_CONNECT_WAIT_TIMEOUT = 1000 * 15;
-    static final long CONN_TIMEOUT = 1000 * 60 * 4;
+    static final long CONN_TIMEOUT = 1000 * 60 * 4; // timeout for idle connections to server
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
@@ -302,7 +302,7 @@ public abstract class NIOClient extends Thread {
                 return false;
             }
             
-            if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
+            if ( ! _ready && System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
                 _loggerLostConnection.info( "connect timeout" );
                 return false;
             }
