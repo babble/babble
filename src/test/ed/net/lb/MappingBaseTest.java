@@ -119,18 +119,47 @@ public class MappingBaseTest extends TestCase {
 
     }
 
+    @Test(groups = {"basic"})
+    public void testAlias()
+        throws IOException {
+        String s = 
+            "site foo\n" + 
+            "   www : prod1\n" + 
+            "   dev : prod2\n" + 
+
+            "site-alias foo\n" + 
+            "   real : www\n" +
+            "   play : dev\n" + 
+            "   me.play : dev\n" + 
+
+            "pool prod1\n" + 
+            "   n1\n" + 
+            "pool prod2\n" + 
+            "   n2\n";       
+        
+        TextMapping tm = create( s );
+
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
+
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
+
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: dev.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: me.play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo.com" );
+
+    }
+
+    void assertEquals( Environment e , String site , String env , String host , String useHost ){
+        assertEquals( e , site , env , host );
+        assertEquals( e.getExtraHeaderString().trim() , "X-Host: " + useHost );
+    }
+
     void assertEquals( Environment e , String site , String env , String host ){
         assertEquals( site , e.site );
         assertEquals( env , e.env );
         assertEquals( host , e.host );
-    }
-    
-    @Test(groups = {"basic"})
-    public void testEnv(){
-        Environment e = new Environment( "a" , "b" , "c" );
-        assertEquals( "c" , e.replaceHeaderValue( "host" , null ) );
-        assertEquals( "c" , e.replaceHeaderValue( "host" , "c" ) );
-        assertEquals( "c:8080" , e.replaceHeaderValue( "host" , "c:8080" ) );
     }
     
     TextMapping create( String content )

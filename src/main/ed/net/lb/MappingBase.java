@@ -63,7 +63,7 @@ public abstract class MappingBase implements Mapping {
             String real = si.getAlias( env );
             if ( real != null ){
                 if ( useHost.startsWith( env + "." ) ){
-                    int idx = useHost.indexOf( "." );
+                    int idx = useHost.indexOf( "." , env.length() );
                     
                     useHost = real + useHost.substring( idx );
                     env = real;
