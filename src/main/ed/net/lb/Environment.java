@@ -58,14 +58,15 @@ public class Environment {
         return site.equals( e.site ) && env.equals( e.env );
     }
     
-    public String replaceHeaderValue( String name , String value ){
-        if ( name.equalsIgnoreCase( "host" ) && host != null ){
-            int idx = value == null ? -1 : value.indexOf( ":" );
-            if ( idx > 0 )
-                return this.host + value.substring( idx );
-            return this.host;
-        }
-        return value;
+    public String getExtraHeaderString(){
+        StringBuilder buf = new StringBuilder();
+        getExtraHeaderString( buf );
+        return buf.toString();
+    }
+    
+    public void getExtraHeaderString( StringBuilder buf ){
+        if ( host != null )
+            buf.append( "X-Host: " ).append( this.host ).append( "\r\n" );
     }
     
     public String toString(){

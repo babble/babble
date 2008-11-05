@@ -295,19 +295,20 @@ public class LB extends NIOClient {
             buf.append( "X-fromlb: " ).append( LBIDENT ).append( "\r\n" );
 
             for ( String n : _request.getHeaderNameKeySet() ){
-
+                
 		if ( n.equalsIgnoreCase( "Connection" ) || 
 		     n.equalsIgnoreCase( HttpRequest.REAL_IP_HEADER ) )
 		    continue;
                 
-                final String ov = _request.getHeader( n );
-                final String v = _environemnt.replaceHeaderValue( n , ov );
+                final String v = _request.getHeader( n );
+                //final String v = _environemnt.replaceHeaderValue( n , ov );
                 
                 buf.append( n ).append( ": " ).append( v ).append( "\r\n" );
 
-                if ( ! ov.equalsIgnoreCase( v ) )
-                    buf.append( "X-Orig-" ).append( n ).append( ": " ).append( ov ).append( "\r\n" );
             }
+            
+            _environemnt.getExtraHeaderString( buf );
+
             buf.append( "\r\n" );
 
             _logger.debug( 3 , "request\n" , buf );
