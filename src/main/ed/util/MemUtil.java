@@ -151,6 +151,13 @@ public class MemUtil {
             
         }
 
+        public GCLine( long when , boolean full , long howLong ){
+            _line = null;
+            _when = when;
+            _full = full;
+            _howLong = howLong;
+        }
+
         public static boolean isGCLine( String line ){
             int idx = line.indexOf( "[GC " );
             if ( idx < 0 )
@@ -191,5 +198,49 @@ public class MemUtil {
             Pattern.compile( "(\\d+\\.\\d+)\\s*secs" ) ,
         };
     }
+    
+    public static class GCStream {
+    
+        /**
+         * @return true if line is a real gc line
+         */
+        public boolean add( String line ){
+            GCLine l = GCLine.parse( line );
+            if ( l == null )
+                return false;
+            
+            add( l );
+            return true;
+        }
 
+        public void add( GCLine line ){
+            _last.add( line );
+        }
+
+        public double fullGCPercentage(){
+            final int size = _last.size();
+
+            if ( size < _last.capacity() )
+                return 0;
+
+            double start = Double.MAX_VALUE;
+            double end = Double.MIN_VALUE;
+
+            double time = 0;
+
+            for ( int i=0; i<size; i++ ){
+                GCLine l = _last.get( i );
+                
+                start = Math.min( start , l.when() );
+                end = Math.max( end , l.when() );
+                
+                if ( l.full() )
+                    time += l.howLong();
+            }
+
+            return time / ( end - start );
+        }
+
+        final CircularList<GCLine> _last = new CircularList<GCLine>( 6 , true );
+    }
 }

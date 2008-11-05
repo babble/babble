@@ -98,6 +98,53 @@ public class MemUtilTest extends ed.TestCase {
         assertEquals( howLong , l.howLong() );
     }
 
+    @Test
+    public void testGCStream1(){
+        GCStream s = new GCStream();
+        assertEquals( 0 , s.fullGCPercentage() );
+        
+        s.add( new GCLine( 0000 , false , 5 ) );
+        s.add( new GCLine( 1000 , false , 5 ) );
+        s.add( new GCLine( 2000 , false , 5 ) );
+        s.add( new GCLine( 3000 , false , 5 ) );
+        s.add( new GCLine( 4000 , false , 5 ) );
+        s.add( new GCLine( 5000 , false , 5 ) );
+
+        assertEquals( 0.0 , s.fullGCPercentage() );
+    }
+
+    @Test
+    public void testGCStream2(){
+        GCStream s = new GCStream();
+        assertEquals( 0 , s.fullGCPercentage() );
+        
+        s.add( new GCLine( 0000 , true , 500 ) );
+        s.add( new GCLine( 1000 , true , 500 ) );
+        s.add( new GCLine( 2000 , true , 500 ) );
+        s.add( new GCLine( 3000 , true , 500 ) );
+        s.add( new GCLine( 4000 , true , 500 ) );
+        assertEquals( 0.0 , s.fullGCPercentage() , 0 );
+        s.add( new GCLine( 5000 , true , 500 ) );
+
+        assertEquals( .6 , s.fullGCPercentage() , 0 );
+    }
+
+    @Test
+    public void testGCStream3(){
+        GCStream s = new GCStream();
+        assertEquals( 0 , s.fullGCPercentage() );
+        
+        s.add( new GCLine( 0000 , true , 500 ) );
+        s.add( new GCLine( 1000 , false , 500 ) );
+        s.add( new GCLine( 2000 , true , 500 ) );
+        s.add( new GCLine( 3000 , false , 500 ) );
+        s.add( new GCLine( 4000 , true , 500 ) );
+        assertEquals( 0.0 , s.fullGCPercentage() , 0 );
+        s.add( new GCLine( 5000 , true , 500 ) );
+
+        assertEquals( .4 , s.fullGCPercentage() , 0 );
+    }
+
     public static void main( String args[] ){
         (new MemUtilTest()).runConsole();
     }

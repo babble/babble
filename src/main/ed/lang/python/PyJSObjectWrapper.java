@@ -34,7 +34,7 @@ public class PyJSObjectWrapper extends PyDictionary {
     static PyType TYPE = Python.exposeClass(PyJSObjectWrapper.class);
 
     public PyJSObjectWrapper( JSObject jsObject ){
-        this( jsObject , true );
+        this( jsObject , false );
     }
 
     public PyJSObjectWrapper( JSObject jsObject , boolean returnPyNone ){
@@ -149,6 +149,10 @@ public class PyJSObjectWrapper extends PyDictionary {
         Object res = _js.get( name );
         if ( res == null )
             res = NativeBridge.getNativeFunc( _js , name );
+
+        if( res == null && _js.containsKey( name , true ) ){
+            return Py.None;
+        }
 
         return _fixReturn( res );
     }
