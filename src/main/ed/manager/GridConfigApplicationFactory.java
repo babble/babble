@@ -29,6 +29,8 @@ import ed.cloud.*;
 
 public class GridConfigApplicationFactory extends ConfigurableApplicationFactory {
 
+    static final File EXTRA_GRID_CONFIG = new File( "conf/extraGridApps" );
+
     GridConfigApplicationFactory(){
         super( Cloud.CLOUD_REFRESH_RATE );
 
@@ -43,7 +45,12 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     protected SimpleConfig getConfig()
         throws IOException {
         
-        TextSimpleConfig config = new TextSimpleConfig();
+        final TextSimpleConfig config;
+        if ( EXTRA_GRID_CONFIG.exists() )
+            config = TextSimpleConfig.read( EXTRA_GRID_CONFIG );
+        else 
+            config = new TextSimpleConfig();
+        
         _addDefaultsIfAny( config );
         
         try {
