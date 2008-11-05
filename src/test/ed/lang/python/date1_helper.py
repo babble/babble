@@ -19,3 +19,5 @@ import _10gen
 
 assert isinstance(_10gen.jsDate, datetime.datetime)
 _10gen.pyDate = datetime.datetime.now()
+_10gen.pyDateFormatted = _10gen.pyDate.strftime("%Y%m%d %H%M%S")
+_10gen.pyMicros = _10gen.pyDate.microsecond

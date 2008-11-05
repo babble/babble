@@ -22,3 +22,7 @@ assert( pyDate instanceof Date );
 assert( Math.abs(jsDate.getTime() - pyDate.getTime()) < 2000 ,
         'time zone changed' );
 
+assert.eq( pyDate.getMilliseconds() , Math.floor ( pyMicros / 1000 ) );
+assert.eq( pyDate.format("yyyyMMdd HHmmss") , pyDateFormatted );
+
+

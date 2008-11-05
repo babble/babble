@@ -35,6 +35,8 @@ _10gen.assert.eq(d['a'], jsMap['a'])
 _10gen.assert.eq(d['n'], jsMap.n)
 _10gen.assert.eq(d['n'], jsMap['n'])
 
+_10gen.assert.throws(lambda: jsMap.foo)
+
 def compare_list_methods_by_sorted(d, j, meth):
     d_result = list(getattr(d, meth)())
     j_result = list(getattr(j, meth)())
