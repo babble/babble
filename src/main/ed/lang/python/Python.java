@@ -215,8 +215,11 @@ public class Python extends Language {
         if ( o instanceof JSString )
             return new PyJSStringWrapper( (JSString)o );
 
-        if ( o instanceof ed.db.ObjectId )
-            return new PyObjectId( (ed.db.ObjectId)o );
+        if ( o instanceof ObjectId )
+            return new PyObjectId( (ObjectId)o );
+
+        if ( o instanceof DBCursor )
+            return new PyDBCursor( (DBCursor)o );
 
         // FILL IN MORE HERE
 

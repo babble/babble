@@ -22,3 +22,12 @@ local.src.test.ed.lang.python.dbcursor1_template({
             'search_results' : cursor.toArray()
             }
         })
+
+cursor = db.coll.find()
+
+i = 0
+for obj in cursor:
+    assert obj.funny == 1
+    i += 1
+
+assert( i != 0 )

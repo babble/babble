@@ -37,8 +37,16 @@ public class PyJSObjectWrapper extends PyDictionary {
         this( jsObject , false );
     }
 
+    public PyJSObjectWrapper( PyType type , JSObject jsObject ){
+        this( type , jsObject , false );
+    }
+
     public PyJSObjectWrapper( JSObject jsObject , boolean returnPyNone ){
-        super( TYPE );
+        this( TYPE , jsObject , returnPyNone );
+    }
+
+    public PyJSObjectWrapper( PyType type , JSObject jsObject , boolean returnPyNone ){
+        super( type );
         _js = jsObject;
         _returnPyNone = returnPyNone;
         if ( _js == null )
