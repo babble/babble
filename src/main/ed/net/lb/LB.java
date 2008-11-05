@@ -300,10 +300,13 @@ public class LB extends NIOClient {
 		     n.equalsIgnoreCase( HttpRequest.REAL_IP_HEADER ) )
 		    continue;
                 
-                String v = _request.getHeader( n );
-                v = _environemnt.replaceHeaderValue( n , v );
+                final String ov = _request.getHeader( n );
+                final String v = _environemnt.replaceHeaderValue( n , ov );
                 
                 buf.append( n ).append( ": " ).append( v ).append( "\r\n" );
+
+                if ( ! ov.equalsIgnoreCase( v ) )
+                    buf.append( "X-Orig-" ).append( n ).append( ": " ).append( ov ).append( "\r\n" );
             }
             buf.append( "\r\n" );
 
