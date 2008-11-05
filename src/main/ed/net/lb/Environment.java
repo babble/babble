@@ -69,7 +69,7 @@ public class Environment {
     }
     
     public String toString(){
-        return "site: [" + site + "] env: [" + env + "]";
+        return "site: [" + site + "] env: [" + env + "] host: [" + this.host + "]";
     }
     
     public final String site;
