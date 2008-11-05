@@ -2,104 +2,103 @@
 
 <suite name="corejs" >
 
-<!--  <test name="app-wiki">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/app/wiki/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
-      <class name="ed.util.ScriptTestFactory"/>
-    </classes>
-  </test>    
--->
-
   <test name="content">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/content/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/content/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="core">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/core/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/core/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="db">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/db/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/db/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="ext">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/ext/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/ext/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="io">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/io/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/io/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="net">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/net/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/net/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="sandbox">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/sandbox/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/sandbox/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="ui-chart">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/ui/chart/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/ui/chart/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="util">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/util/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/util/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
 
   <test name="git">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/master/git/test"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/git/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
-  </test>    
+  </test>
+
+  <test name="testing">
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="corejs/master/testing/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
 </suite>
 
