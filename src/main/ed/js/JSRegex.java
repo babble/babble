@@ -50,6 +50,7 @@ public class JSRegex extends JSObjectBase {
                 return new JSRegex( p , f );
             
             JSRegex r = (JSRegex)o;
+            setProps( p , f );
             r.init( p , f );
             return r;
         }
@@ -82,6 +83,13 @@ public class JSRegex extends JSObjectBase {
                 return v;
             }
             return super.set( n,v );
+        }
+
+        public void setProps( String p, String f) {
+            _prototype.set( "source" , p );
+            _prototype.set( "global" , f.indexOf( "g" ) >= 0 );
+            _prototype.set( "ignoreCase" , f.indexOf( "i" ) >= 0 );
+            _prototype.set( "multiline" , f.indexOf( "m" ) >= 0 );
         }
 
         protected void init(){
@@ -196,11 +204,8 @@ public class JSRegex extends JSObjectBase {
         super( Scope.getThreadLocalFunction( "RegExp" , _cons ) );
         init( p , f );
 
-        getConstructor()._prototype.set( "source" , p );
-        getConstructor()._prototype.set( "global" , _f.indexOf( "g" ) >= 0 );
-        getConstructor()._prototype.set( "ignoreCase" , _f.indexOf( "i" ) >= 0 );
-        getConstructor()._prototype.set( "multiline" , _f.indexOf( "m" ) >= 0 );
-        getConstructor()._prototype.dontEnumExisting();
+        ((Cons)getConstructor()).setProps( _p, _f ); 
+        ((Cons)getConstructor()).init(); 
     }
 
     private static final boolean isHex( char c ) {

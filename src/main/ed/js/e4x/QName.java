@@ -80,6 +80,11 @@ public class QName extends JSObjectBase {
                         return propFunc( foo.toString() );
                     }
                 });
+            _prototype.set( "toString", new JSFunctionCalls0() {
+                    public Object call( Scope s, Object extra[] ) {
+                        return new JSString( s.getThis().toString() ); 
+                    }
+                });
         }
 
         private boolean propFunc( String foo ) {
