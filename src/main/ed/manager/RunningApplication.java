@@ -223,7 +223,7 @@ public class RunningApplication extends Thread {
         return _timesStarted;
     }
     
-    public String outputLine( int back ){
+    public OutputLine outputLine( int back ){
         return _lastOutput.get( back );
     }
 
@@ -256,7 +256,7 @@ public class RunningApplication extends Thread {
     final String _fullId;
     final Logger _logger;
     
-    final CircularList<String> _lastOutput = new CircularList<String>( 100 , true );
+    final CircularList<OutputLine> _lastOutput = new CircularList<OutputLine>( 100 , true );
 
     private boolean _shutdown = false;
     private boolean _done = false;
@@ -267,6 +267,19 @@ public class RunningApplication extends Thread {
     private long _lastStart;
     private int _timesStarted = 0;
 
+    class OutputLine {
+        OutputLine( String line , boolean out ){
+            _line = line;
+            _out = out;
+        }
+        
+        public String toString(){
+            return ( _out ? "OUT" : "ERR" ) + ": " + _line;
+        }
+
+        final String _line;
+        final boolean _out;
+    }
 
     class OutputPiper extends Thread {
             
@@ -283,19 +296,21 @@ public class RunningApplication extends Thread {
             String line;
             try {
                 while ( ( line = _in.readLine() ) != null ){
-
-                    if ( _stdout )
+                    
+                    if ( _stdout ){
                         if ( ! _app.gotOutputLine( line ) )
                             continue;
-                        else 
-                            if ( ! _app.gotErrorLine( line ) )
-                                continue;
+                    }
+                    else {
+                        if ( ! _app.gotErrorLine( line ) )
+                            continue;
+                    }
                     
                     synchronized ( _out ){
                         _out.write( line.getBytes() );
                         _out.write( NEWLINE );
                             
-                        _lastOutput.add( line );
+                        _lastOutput.add( new OutputLine( line , _stdout ) );
                     }
                         
                 }            

@@ -29,7 +29,7 @@ public class ManagerTest extends ed.TestCase {
         
         public List<Application> getApplications(){
             List<Application> l = new LinkedList<Application>();
-            l.add( new JavaApplication( "test" , "test1" , "ed.manager.TestApp" , -1 , new String[0] , new String[0] , false ) );
+            l.add( new JavaApplication( "test" , "test1" , "ed.manager.TestApp" , -1 , new String[0] , new String[0] , true ) );
             return l;
         }
 
@@ -68,8 +68,11 @@ public class ManagerTest extends ed.TestCase {
         RunningApplication ra = m.getRunning( m.getApplications().get( 0 ) );
         assertEquals( 1 , ra.timesStarted() );
         m.join();
-        assertEquals( "hello" , ra.outputLine( 1 ) );
-        assertEquals( "goodbye" , ra.outputLine( 0 ) );
+
+        assertEquals( "OUT: hello" , ra.outputLine( 2 ) );
+        assertEquals( "OUT: goodbye" , ra.outputLine( 1 ) );
+        assertEquals( "ERR: done" , ra.outputLine( 0 ) );
+
 
     }
     

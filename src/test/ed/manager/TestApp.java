@@ -25,6 +25,15 @@ public class TestApp {
         System.out.println( "hello" );
         Thread.sleep( 1000 );
         System.out.println( "goodbye" );
+        System.out.flush();
+        
+        String s = "asdsaD";
+        for ( int i=0; i<10; i++ ){
+            s += s + s;
+            System.gc();
+        }
+
+        System.err.println( "done" ); 
     }
     
 }

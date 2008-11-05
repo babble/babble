@@ -21,6 +21,8 @@ package ed.manager;
 import java.io.*;
 import java.util.*;
 
+import ed.util.*;
+
 public class JavaApplication extends SimpleApplication {
 
     public final static String JAVA = "./runLight.bash";
@@ -42,16 +44,19 @@ public class JavaApplication extends SimpleApplication {
     }
 
     public boolean gotOutputLine( String line ){
-        return ! isGCLine( line );
+        return ! handleGCLine( line );
     }
 
     public boolean gotErrorLine( String line ){
-        return ! isGCLine( line );
+        return ! handleGCLine( line );
     }
+    
+    boolean handleGCLine( String line ){
+        MemUtil.GCLine gc = MemUtil.GCLine.parse( line );
+        if ( gc == null )
+            return false;
 
-    boolean isGCLine( String line ){
-        // TODO:
-        return false;
+        return true;
     }
 
     static String[] _getCommands( String type , String className , String[] args , String[] jvmArgs , int maxMemory , boolean gc ){
