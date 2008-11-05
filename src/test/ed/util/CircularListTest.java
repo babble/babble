@@ -37,6 +37,8 @@ public class CircularListTest extends ed.TestCase {
         assertEquals( 2 , l.size() );
         assertEquals( "a" , l.get( 0 ) );
         assertEquals( "b" , l.get( 1 ) );
+
+        assertEquals( 3 , l.capacity() );
         
         l.add( "c" );
         assertEquals( 3 , l.size() );
@@ -60,6 +62,8 @@ public class CircularListTest extends ed.TestCase {
         assertEquals( "h" , l.get( 2 ) );
         assertEquals( "g" , l.get( 1 ) );
         assertEquals( "f" , l.get( 0 ) );   
+
+        assertEquals( 3 , l.capacity() );
     }
     
     @Test(groups = {"basic"})

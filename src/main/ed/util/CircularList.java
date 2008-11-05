@@ -24,8 +24,8 @@ public class CircularList<T> {
      * @param stack if true, this list operates like a stack.  so get(0) will always return that last thing put in
                     if false, it acts like a list, so get(0) will return the oldest entry still in the list
      */
-    public CircularList( int capactiy , boolean stack ){
-        _array = (T[])(new Object[capactiy]);
+    public CircularList( int capacity , boolean stack ){
+        _array = (T[])(new Object[capacity]);
         _pos = 0;
         _size = 0;
         _stack = stack;
@@ -53,6 +53,10 @@ public class CircularList<T> {
     
     public int size(){
         return _size;
+    }
+
+    public int capacity(){
+        return _array.length;
     }
 
     public String toString(){
