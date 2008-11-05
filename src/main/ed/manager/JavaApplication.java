@@ -22,6 +22,7 @@ import java.io.*;
 import java.util.*;
 
 import ed.util.*;
+import static ed.util.MemUtil.*;
 
 public class JavaApplication extends SimpleApplication {
 
@@ -52,13 +53,18 @@ public class JavaApplication extends SimpleApplication {
     }
     
     boolean handleGCLine( String line ){
-        MemUtil.GCLine gc = MemUtil.GCLine.parse( line );
-        if ( gc == null )
+        if ( ! _gcStream.add( line ) )
             return false;
+        
+        if ( _gcStream.fullGCPercentage() > .8 ){
+            System.err.println( "TODO: die!" );    
+        }
 
         return true;
     }
 
+    final GCStream _gcStream = new GCStream();
+    
     static String[] _getCommands( String type , String className , String[] args , String[] jvmArgs , int maxMemory , boolean gc ){
 
         if ( className == null )

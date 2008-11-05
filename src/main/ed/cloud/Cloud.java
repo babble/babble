@@ -300,7 +300,7 @@ public class Cloud extends JSObjectBase {
             return DNSUtil.isLocalAddressSafe( name );
 
         return 
-            _shortHostName( name ).equalsIgnoreCase( myName ) || 
+            _shortHostName( name ).equalsIgnoreCase( _shortHostName( myName ) ) || 
             DNSUtil.isLocalAddressSafe( name );
     }
 

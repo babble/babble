@@ -184,7 +184,7 @@ public class JSRegex extends JSObjectBase {
         };
 
     /** Create a new regular expression. */
-    public JSRegex(){
+    private JSRegex(){
         super( Scope.getThreadLocalFunction( "RegExp" , _cons ) );
     }
 
@@ -286,7 +286,7 @@ public class JSRegex extends JSObjectBase {
      * @param p Regular expression
      * @param f Flags
      */
-    void init( String p , String f ){
+    private void init( String p , String f ){
         _p = _jsToJava( p );
         _f = f == null ? "" : f;
 

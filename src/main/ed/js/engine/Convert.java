@@ -1703,9 +1703,9 @@ public class Convert {
             if ( ( n.getType() == Token.GETPROP || n.getType() == Token.GETELEM ) && ! isClass ) {
                 _append( "scope.getFunctionAndSetThis( " , n );
                 _add( n.getFirstChild() , state );
-                _append( " , " , n );
+                _append( " , String.valueOf( " , n );
                 _add( n.getFirstChild().getNext() , state );
-                _append( ".toString() ) " , n );
+                _append( " ) ) " , n );
                 return "";
             }
 
