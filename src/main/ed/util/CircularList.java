@@ -19,11 +19,16 @@
 package ed.util;
 
 public class CircularList<T> {
-    public CircularList( int capactiy , boolean fifo ){
+
+    /**
+     * @param stack if true, this list operates like a stack.  so get(0) will always return that last thing put in
+                    if false, it acts like a list, so get(0) will return the oldest entry still in the list
+     */
+    public CircularList( int capactiy , boolean stack ){
         _array = (T[])(new Object[capactiy]);
         _pos = 0;
         _size = 0;
-        _fifo = fifo;
+        _stack = stack;
     }
     
     public void add( T t ){
@@ -38,7 +43,7 @@ public class CircularList<T> {
 
     public T get( int i ){
         int pos = 
-            _fifo ? 
+            _stack ? 
             ( _pos - ( 1 + i ) ) :
             ( ( _pos - _size ) + i );
         if ( pos < 0 )
@@ -67,7 +72,7 @@ public class CircularList<T> {
     }
 
     final T[] _array;
-    final boolean _fifo;
+    final boolean _stack;
 
     private int _pos;
     private int _size;
