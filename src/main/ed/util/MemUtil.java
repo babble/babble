@@ -18,7 +18,8 @@
 
 package ed.util;
 
-/** @expose */
+import java.util.regex.*;
+
 public class MemUtil {
 
     /** Value is 1 */
@@ -108,6 +109,87 @@ public class MemUtil {
         System.gc();
         long after = MemUtil.bytesAvailable();
         return "before "+before+", after "+after+", break "+Runtime.getRuntime().totalMemory();
+    }
+
+    public static class GCLine {
+        
+        private GCLine( String line ){
+            _line = line;
+            _full = line.indexOf( "[Full GC " ) >= 0;
+
+            if ( Character.isDigit( line.charAt( 0 ) ) ){
+                StringBuilder num = new StringBuilder();
+                while ( true ){
+                    char c = line.charAt(0);
+                    line = line.substring(1);
+                    if ( c == ':' || c == ' ' )
+                        break;
+                    num.append( c );
+                }
+                
+                _when = (long)(Double.parseDouble( num.toString() ) * 1000);
+                line = line.trim();
+            }
+            else {
+                _when = -1;
+            }
+
+            String howLongString = null;
+
+            for ( int i=0; i< _howLongPatterns.length; i++ ){
+                Matcher m = _howLongPatterns[i].matcher( line );
+                if ( ! m.find() )
+                    continue;
+                howLongString = m.group(1);
+                break;
+            }
+
+            if ( howLongString == null )
+                _howLong = -1;
+            else
+                _howLong = (long)(Double.parseDouble( howLongString ) * 1000);
+            
+        }
+
+        public static boolean isGCLine( String line ){
+            int idx = line.indexOf( "[GC " );
+            if ( idx < 0 )
+                idx = line.indexOf("[Full GC " );
+            
+            if ( idx < 0 || idx > 50 )
+                return false;
+            
+            return true;
+        }
+
+        public static GCLine parse( String line ){
+            if ( ! isGCLine( line ) )
+                return null;
+            
+            return new GCLine( line );
+        }
+        
+        public long when(){
+            return _when;
+        }
+
+        public long howLong(){
+            return _howLong;
+        }
+
+        public boolean full(){
+            return _full;
+        }
+        
+        final String _line;
+        final long _when;
+        final boolean _full;
+        final long _howLong;
+
+        static final Pattern[] _howLongPatterns = new Pattern[]{
+            Pattern.compile( "real=(\\d+\\.\\d+)\\s*secs" ) ,
+            Pattern.compile( "(\\d+\\.\\d+)\\s*secs" ) ,
+        };
     }
 
 }
