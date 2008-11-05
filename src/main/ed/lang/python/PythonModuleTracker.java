@@ -71,8 +71,14 @@ public class PythonModuleTracker extends PyStringMap {
         String clsPath = filename.replace( ".py" , "$py.class" );
         // Compiled class file -- might not exist
         File clsFile = new File( clsPath );
-        
-        if( clsFile.exists() && 
+
+        if( ! pyFile.exists() ){
+            if( DEBUG )
+                System.out.println("File was deleted: " + pyFile);
+            return true;
+        }
+
+        if( clsFile.exists() &&
             pyFile.lastModified() > clsFile.lastModified() ){
             if( DEBUG )
                 System.out.println("Newer " + pyFile + " " + clsFile);
