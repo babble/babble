@@ -44,21 +44,25 @@ public class JavaApplication extends SimpleApplication {
         super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , gc ) );
     }
 
-    public boolean gotOutputLine( String line ){
+    public boolean gotOutputLine( String line )
+        throws RestartApp {
         return ! handleGCLine( line );
     }
 
-    public boolean gotErrorLine( String line ){
+    public boolean gotErrorLine( String line )
+        throws RestartApp {
         return ! handleGCLine( line );
     }
     
-    boolean handleGCLine( String line ){
+    boolean handleGCLine( String line )
+        throws RestartApp {
         if ( ! _gcStream.add( line ) )
             return false;
         
-        if ( _gcStream.fullGCPercentage() > .8 ){
-            System.err.println( "TODO: die!" );    
-        }
+        final double fullGCPer = _gcStream.fullGCPercentage();
+
+        if ( fullGCPer > .8 )
+            throw new RestartApp( "too much full gc: " + fullGCPer );
 
         return true;
     }
