@@ -45,6 +45,9 @@ import ed.log.Logger;
  */
 public class JSON {
 
+    static boolean PRETTY = true; // could be configurable, or parameter
+    static int INDENT_AMOUNT = 4; // could be configurable, or parameter
+
     /** Hidden fields to ignore.  Includes _save, _ns, and _update. */
     public static Set<String> IGNORE_NAMES = new HashSet<String>();
     static {
@@ -200,9 +203,6 @@ public class JSON {
                 if ( a instanceof StringBuilder ){
                     StringBuilder sb = (StringBuilder)a;
                     int lastNL = sb.lastIndexOf( nl );
-                    if ( sb.length() - lastNL > 60 ){
-                        a.append( nl );
-                    }
                 }
             }
 
@@ -287,13 +287,19 @@ public class JSON {
 
                 if ( something instanceof JSArray ){
                     JSArray arr = (JSArray)something;
-                    a.append( "[ " );
+                    a.append( "[" );
+                    a.append( nl );
                     for ( int i=0; i<arr._array.size(); i++ ){
-                        if ( i > 0 )
-                            a.append( " , " );
-                        go( a , arr._array.get( i ) , trusted, strict , indent , nl , seen );
+                        if ( i > 0 ){
+                            a.append( " ," );
+                            a.append( nl );
+                        }
+                        a.append( _i( indent + INDENT_AMOUNT ) );
+                        go( a , arr._array.get( i ) , trusted, strict , indent + INDENT_AMOUNT , nl , seen );
                     }
-                    a.append( " ]" );
+                    a.append( nl );
+                    a.append( _i( indent ) );
+                    a.append( "]" );
                     return;
                 }
 
@@ -312,8 +318,8 @@ public class JSON {
                     }
                 }
 
-                a.append( _i( indent ) );
                 a.append( "{" );
+                a.append( nl );
 
                 boolean first = true;
 
@@ -328,23 +334,26 @@ public class JSON {
                         if ( o.get( s ) == null )
                             continue;
                     }
-                    
+
                     if ( strict && val instanceof JSFunction )
                         continue;
 
                     if ( first )
                         first = false;
-                    else
+                    else{
                         a.append( " ,"  );
+                        a.append( nl );
+                    }
 
-                    a.append( _i( indent + 1 ) );
+                    a.append( _i( indent + INDENT_AMOUNT ) );
                     string( a , s );
                     a.append( " : " );
-                    go( a , val , trusted , strict , indent + 1 , nl , seen );
+                    go( a , val , trusted , strict , indent + INDENT_AMOUNT , nl , seen );
                 }
 
-                a.append( _i( indent + 1 ) );
-                a.append( " }\n"  );
+                a.append( nl );
+                a.append( _i( indent ) );
+                a.append( "}"  );
             }
             finally {
                 if( _loopable( something ) )
