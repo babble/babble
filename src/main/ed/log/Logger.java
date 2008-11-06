@@ -159,13 +159,20 @@ public class Logger extends JSFunctionCalls2 {
         log( Level.ERROR , msg , t );
     }
 
+    public void alert( Object msg ){
+        log( Level.ALERT , msg , null );
+    }
+    public void alert( Object msg , Throwable t ){
+        log( Level.ALERT , msg , t );
+    }
+
     public void fatal( Object msg ){
         log( Level.FATAL , msg , null );
     }
     public void fatal( Object msg , Throwable t ){
         log( Level.FATAL , msg , t );
     }
-
+    
     // --------------------
 
     public Object call( Scope s , Object oName , Object oT , Object foo[] ){
@@ -186,6 +193,7 @@ public class Logger extends JSFunctionCalls2 {
         if ( s.equals( "debug" )
              || s.equals( "info" )
              || s.equals( "error" )
+             || s.equals( "alert" )
              || s.equals( "fatal" ) ){
             return _getLevelLogger( s );
         }
