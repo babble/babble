@@ -50,7 +50,6 @@ public class JSRegex extends JSObjectBase {
                 return new JSRegex( p , f );
             
             JSRegex r = (JSRegex)o;
-            setProps( p , f );
             r.init( p , f );
             return r;
         }
@@ -85,17 +84,8 @@ public class JSRegex extends JSObjectBase {
             return super.set( n,v );
         }
 
-        public void setProps( String p, String f) {
-            _prototype.set( "source" , p );
-            _prototype.set( "global" , f.indexOf( "g" ) >= 0 );
-            _prototype.set( "ignoreCase" , f.indexOf( "i" ) >= 0 );
-            _prototype.set( "multiline" , f.indexOf( "m" ) >= 0 );
-        }
-
         protected void init(){
             final JSObject proto = _prototype;
-
-            _prototype.set( "lastIndex" , 0 );
 
             _prototype.set( "toString" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
@@ -103,13 +93,14 @@ public class JSRegex extends JSObjectBase {
                         if( !(o instanceof JSRegex ) ){
                             return null;
                         }
-                        String source = proto.get( "source" ).toString();
+                        JSRegex r = (JSRegex)o;
+                        String source = r.source;
                         // default source
                         if( source.equals( "" ) )
                             source = "(?:)";
-                        String g = Boolean.valueOf( proto.get( "global" ).toString() ) ? "g" : "";
-                        String i = Boolean.valueOf( proto.get( "ignoreCase" ).toString() ) ? "i" : "";
-                        String m = Boolean.valueOf( proto.get( "multiline" ).toString() ) ? "m" : "";
+                        String g = r.global ? "g" : "";
+                        String i = r.ignoreCase ? "i" : "";
+                        String m = r.multiline ? "m" : "";
                         return new JSString( "/" + source + "/" + g + i + m );
                     }
                 } );
@@ -203,10 +194,15 @@ public class JSRegex extends JSObjectBase {
     public JSRegex( String p , String f ){
         super( Scope.getThreadLocalFunction( "RegExp" , _cons ) );
         init( p , f );
-
-        ((Cons)getConstructor()).setProps( _p, _f ); 
-        ((Cons)getConstructor()).init(); 
     }
+
+    public void setProps( String p, String f) {
+        source = p;
+        global = f.indexOf( "g" ) >= 0;
+        ignoreCase = f.indexOf( "i" ) >= 0;
+        multiline = f.indexOf( "m" ) >= 0;
+    }
+
 
     private static final boolean isHex( char c ) {
         return (c >= '0' && c <= '9') || 
@@ -287,6 +283,7 @@ public class JSRegex extends JSObjectBase {
      * @param f Flags
      */
     private void init( String p , String f ){
+        setProps( p, f );
         _p = _jsToJava( p );
         _f = f == null ? "" : f;
 
@@ -476,6 +473,12 @@ public class JSRegex extends JSObjectBase {
     String _p;
     /** @unexpose */
     String _f;
+
+    private String source = null;
+    private boolean global = false;
+    private boolean multiline = false;
+    private boolean ignoreCase = false;
+    private int lastIndex = 0;
 
     /** @unexpose */
     int _compilePatterns;
