@@ -121,16 +121,26 @@ public class JSObjectSize {
             }
             return temp;
         }
-
+        
         if ( o instanceof PyObject ){
             return Python.size( (PyObject)o , seen );
         }
 	
         if ( o instanceof JSObjectBase )
             return ((JSObjectBase)o).approxSize( seen );
-
+        
 	if ( o instanceof Sizable )
 	    return ((Sizable)o).approxSize( seen );
+        
+        if ( o instanceof Map ){
+            Map m = (Map)o;
+            long temp = 32;
+            
+            for ( Map.Entry e : (Set<Map.Entry>)m.entrySet() )
+                temp += 32 + _size( e.getKey() , seen ) + _size( e.getValue() , seen );
+
+            return temp;
+        }
 
         String blah = o.getClass().toString();
         if ( ! _seenClasses.contains( blah ) ){
