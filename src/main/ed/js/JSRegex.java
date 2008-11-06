@@ -43,7 +43,10 @@ public class JSRegex extends JSObjectBase {
             Object o = s.getThis();
             if( a instanceof JSRegex ) {
                 // can't pass flags to an existing regex
-                if( args != null && args.length > 0 ) {
+                if( args != null && 
+                    args.length > 0 && 
+                    args[0] != null &&
+                    args[0] != VOID ) {
                     throw new JSException( "can't supply flags when constructing one RegExp from another " );
                 }
 
@@ -92,13 +95,13 @@ public class JSRegex extends JSObjectBase {
                 return null;
             
             String s = o.toString();
+            if( s.equals( "$_" ) || s.equals( "input" ) ) {
+                return JSRegex.input;
+            }
             if( s.startsWith( "$" ) ) {
                 int m = Integer.parseInt( s.substring( 1 ) );
                 Object obj = matchArray.get( m );
                 return obj == null ? "" : obj.toString();
-            }
-            else if( o.equals( "input" ) ) {
-                return JSRegex.input;
             }
 
             return super.get( o );
@@ -110,7 +113,8 @@ public class JSRegex extends JSObjectBase {
             if( v == null )
                 v = "";
 
-            if( n.toString().equals( "input" ) ) {
+            String s = n.toString();
+            if( s.equals( "$_" ) || s.equals( "input" ) ) {
                 JSRegex.input = v.toString();
                 return v;
             }
