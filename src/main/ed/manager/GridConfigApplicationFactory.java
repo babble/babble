@@ -29,6 +29,8 @@ import ed.cloud.*;
 
 public class GridConfigApplicationFactory extends ConfigurableApplicationFactory {
 
+    static final File EXTRA_GRID_CONFIG = new File( "conf/extraGridApps" );
+
     GridConfigApplicationFactory(){
         super( Cloud.CLOUD_REFRESH_RATE );
 
@@ -43,7 +45,12 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     protected SimpleConfig getConfig()
         throws IOException {
         
-        TextSimpleConfig config = new TextSimpleConfig();
+        final TextSimpleConfig config;
+        if ( EXTRA_GRID_CONFIG.exists() )
+            config = TextSimpleConfig.read( EXTRA_GRID_CONFIG );
+        else 
+            config = new TextSimpleConfig();
+        
         _addDefaultsIfAny( config );
         
         try {
@@ -74,13 +81,22 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     }
     
     void _doDBs( SimpleConfig config ){ 
+        
+        boolean added = false;
+
         for ( Iterator<JSObject> i = _find( "dbs" ); i.hasNext(); ){
             final JSObject db = i.next();
             final String name = db.get( "name" ).toString();
             
             if ( _cloud.isMyServerName( db.get( "machine" ).toString() ) ){
+
+                if ( added )
+                    throw new RuntimeException( "have multiple databases configured for this node!" );
+
                 config.addEntry( "db" , name , "ACTIVE" , "true" );
                 config.addEntry( "db" , name , "master" , "true" );
+
+                added = true;
             }
         }
         
@@ -92,6 +108,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
             final String name = pool.get( "name" ).toString();
             
             for ( Object machine : (List)(pool.get( "machines" )) ){
+                
                 if ( ! _cloud.isMyServerName( machine.toString() ) )
                     continue;
                 
@@ -100,7 +117,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
             }
         }
     }
-
+    
     void _doLoadBalancers( SimpleConfig config ){ 
         for ( Iterator<JSObject> i = _find( "lbs" ); i.hasNext(); ){
             final JSObject lb = i.next();

@@ -22,6 +22,7 @@ import java.io.*;
 import java.util.*;
 
 import ed.util.*;
+import static ed.util.MemUtil.*;
 
 public class JavaApplication extends SimpleApplication {
 
@@ -43,22 +44,31 @@ public class JavaApplication extends SimpleApplication {
         super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , gc ) );
     }
 
-    public boolean gotOutputLine( String line ){
+    public boolean gotOutputLine( String line )
+        throws RestartApp {
         return ! handleGCLine( line );
     }
 
-    public boolean gotErrorLine( String line ){
+    public boolean gotErrorLine( String line )
+        throws RestartApp {
         return ! handleGCLine( line );
     }
     
-    boolean handleGCLine( String line ){
-        MemUtil.GCLine gc = MemUtil.GCLine.parse( line );
-        if ( gc == null )
+    boolean handleGCLine( String line )
+        throws RestartApp {
+        if ( ! _gcStream.add( line ) )
             return false;
+        
+        final double fullGCPer = _gcStream.fullGCPercentage();
+
+        if ( fullGCPer > .8 )
+            throw new RestartApp( "too much full gc: " + fullGCPer );
 
         return true;
     }
 
+    final GCStream _gcStream = new GCStream();
+    
     static String[] _getCommands( String type , String className , String[] args , String[] jvmArgs , int maxMemory , boolean gc ){
 
         if ( className == null )

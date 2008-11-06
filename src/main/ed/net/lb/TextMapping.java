@@ -65,7 +65,7 @@ public class TextMapping extends MappingBase {
         final TextMapping _mapping;
     }
 
-    TextMapping( File f )
+    public TextMapping( File f )
         throws IOException {
         this( new LineReader( f ) );
     }

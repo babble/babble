@@ -52,3 +52,16 @@ print( a.sort() );
 
 a = [ 9 , 100 ]
 print( a.sort() );
+
+print( a[0] );
+print( a[0.0] );
+
+z = .5;
+z += .5;
+print( a[z] );
+print( a[z-1] );
+print( a[0.0] );
+print( a[z/1.0] );
+print( a["0"] );
+print( a["0.0"] ? "yes" : "no" );
+

@@ -40,9 +40,9 @@ public abstract class NIOClient extends Thread {
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
-    static final long CONNECT_TIMEOUT = 1000 * 30;
+    static final long CONNECT_TIMEOUT = 1000 * 30; // timeout for opening a socket to a server
     static final long CLIENT_CONNECT_WAIT_TIMEOUT = 1000 * 15;
-    static final long CONN_TIMEOUT = 1000 * 60 * 4;
+    static final long CONN_TIMEOUT = 1000 * 60 * 4; // timeout for idle connections to server
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
@@ -242,6 +242,7 @@ public abstract class NIOClient extends Thread {
         Connection( ConnectionPool pool , InetSocketAddress addr ){
             _pool = pool;
             _addr = addr;
+            _myLostConnectionLogger = _loggerLostConnection.getChild( _addr.toString() );
             try {
                 _sock = SocketChannel.open();
                 _sock.configureBlocking( false );
@@ -293,22 +294,22 @@ public abstract class NIOClient extends Thread {
         
         boolean ok(){
             if ( _error != null ){
-                _loggerLostConnection.info( "error" );
+                _myLostConnectionLogger.info( "error" );
                 return false;
             }
 
             if ( _closed ){
-                _loggerLostConnection.info( "closed" );
+                _myLostConnectionLogger.debug( "closed " );
                 return false;
             }
             
-            if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
-                _loggerLostConnection.info( "connect timeout" );
+            if ( ! _ready && System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
+                _myLostConnectionLogger.info( "connect timeout" );
                 return false;
             }
             
             if ( _current != null && _current._done ){
-                _loggerLostConnection.info( "have call but its done" );
+                _myLostConnectionLogger.info( "have call but its done" );
                 return false;
             }
             
@@ -355,7 +356,7 @@ public abstract class NIOClient extends Thread {
             //   - done - add yourself back to the pool
             //   - error, close connection
             
-            if ( doRead( true ) < 0 )
+            if ( doRead( _current != null ) < 0 )
                 return;
             
             WhatToDo next = null;
@@ -553,6 +554,7 @@ public abstract class NIOClient extends Thread {
         final ConnectionPool _pool;
         final InetSocketAddress _addr;
         final long _opened = System.currentTimeMillis();
+        final Logger _myLostConnectionLogger ;
 
         final ByteBuffer _toServer = ByteBuffer.allocateDirect( 1024 * 32 );
         final ByteBuffer _fromServer = ByteBuffer.allocateDirect( 1024 * 32 );
@@ -568,7 +570,7 @@ public abstract class NIOClient extends Thread {
         private Call _current = null;
         
         private long _lastEvent = _opened;
-    }
+    } // end of Connection
     
     class ConnectionPool extends SimplePool<Connection> {
         ConnectionPool( InetSocketAddress addr ){

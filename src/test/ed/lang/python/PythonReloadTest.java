@@ -165,6 +165,17 @@ public class PythonReloadTest extends PythonTestCase {
             shouldRun3(globalScope);
             shouldRun1(globalScope);
 
+            new File(testDirSub, "file3.py").delete();
+            new File(testDirSub, "file3$py.class").delete();
+            boolean reload = false;
+            try {
+                globalScope.eval("local.file1();");
+            }
+            catch(Exception e){
+                // Great -- module's gone, couldn't re-import, threw exception
+                reload = true;
+            }
+            assert reload;
         }
         finally {
             if(oldScope != null)

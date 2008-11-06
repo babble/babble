@@ -50,15 +50,25 @@ public interface Application {
     /**
      * @return true if it should be logged
      */
-    public boolean gotOutputLine( String line );
+    public boolean gotOutputLine( String line ) throws RestartApp;
 
     /**
      * @return true if it should be logged
      */
-    public boolean gotErrorLine( String line );
+    public boolean gotErrorLine( String line ) throws RestartApp ;
 
     public boolean sameConfig( Application other );
 
 
     public long timeToShutDown();
+
+    public static class RestartApp extends Exception {
+        RestartApp( String why ){
+            super( "AppRestart : " + why );
+            _why = why;
+        }
+
+        final String _why;
+    }
+
 }

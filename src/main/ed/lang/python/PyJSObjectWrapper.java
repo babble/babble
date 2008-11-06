@@ -34,11 +34,19 @@ public class PyJSObjectWrapper extends PyDictionary {
     static PyType TYPE = Python.exposeClass(PyJSObjectWrapper.class);
 
     public PyJSObjectWrapper( JSObject jsObject ){
-        this( jsObject , false );
+        this( jsObject , true );
+    }
+
+    public PyJSObjectWrapper( PyType type , JSObject jsObject ){
+        this( type , jsObject , false );
     }
 
     public PyJSObjectWrapper( JSObject jsObject , boolean returnPyNone ){
-        super( TYPE );
+        this( TYPE , jsObject , returnPyNone );
+    }
+
+    public PyJSObjectWrapper( PyType type , JSObject jsObject , boolean returnPyNone ){
+        super( type );
         _js = jsObject;
         _returnPyNone = returnPyNone;
         if ( _js == null )
@@ -149,10 +157,6 @@ public class PyJSObjectWrapper extends PyDictionary {
         Object res = _js.get( name );
         if ( res == null )
             res = NativeBridge.getNativeFunc( _js , name );
-
-        if( res == null && _js.containsKey( name , true ) ){
-            return Py.None;
-        }
 
         return _fixReturn( res );
     }
