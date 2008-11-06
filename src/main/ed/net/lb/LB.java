@@ -301,7 +301,6 @@ public class LB extends NIOClient {
 		    continue;
                 
                 final String v = _request.getHeader( n );
-                //final String v = _environemnt.replaceHeaderValue( n , ov );
                 
                 buf.append( n ).append( ": " ).append( v ).append( "\r\n" );
 
