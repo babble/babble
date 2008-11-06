@@ -291,6 +291,15 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                 _handleEndOfServlet( request , response , ar );
             }
         }
+        catch ( StackOverflowError internal ){
+            handleError( request , response , internal , ar.getContext() );
+        }
+        catch ( AssertionError internal ){
+            handleError( request , response , internal , ar.getContext() );
+        }
+        catch ( NoClassDefFoundError internal ){
+            handleError( request , response , internal , ar.getContext() );
+        }
         catch ( OutOfMemoryError oom ){
             handleOutOfMemoryError( oom , response );
         }
