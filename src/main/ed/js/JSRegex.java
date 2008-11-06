@@ -283,6 +283,7 @@ public class JSRegex extends JSObjectBase {
      * @param f Flags
      */
     private void init( String p , String f ){
+        setProps( p, f );
         _p = _jsToJava( p );
         _f = f == null ? "" : f;
 
