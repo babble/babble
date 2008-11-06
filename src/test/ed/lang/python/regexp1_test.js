@@ -38,6 +38,9 @@ assert(!re4.test("baaaab"));
 
 assert(re5.exec("")[1] == "");
 assert(re5.exec("/")[1] == "");
+re5.lastIndex = 0;
 assert(re5.exec("aa")[1] == "aa");
+re5.lastIndex = 0;
 assert(re5.exec("/aoeu")[1] == "aoeu");
+re5.lastIndex = 0;
 assert(re5.exec("/hello/world/")[1] == "hello/world/");
