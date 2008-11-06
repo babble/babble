@@ -338,13 +338,9 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public String toString(){
-        PyObject str = _p.__findattr__("__str__".intern());
-        if( str != null ){
-            return str.__call__().toString();
-        }
-        return _p.toString();
+        return _p.__str__().toString();
     }
-    
+
     public PyCode getPyCode(){
         PyObject p = _p;
         if ( p instanceof PyMethod )
@@ -423,4 +419,3 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     protected PyObject _p;
     final boolean _passThis;
 }
-    

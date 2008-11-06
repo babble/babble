@@ -26,12 +26,69 @@ public class WebViews {
 	    out.print( "</div>" );
 
 	    displayLast( mr , _lb , 15 );
+            
+            out.print( "<hr>" );
+            
+            out.print( "<table><tr>" );
+            
+            { // servers
+                out.print( "<td valign='top' >" );
+                
+                out.print( "Servers" );
+                out.print( "<ul>" );
+                for ( Server s : sortedServers() ){
+                    
+                    String css = "";
+                    
+                    if ( s.inErrorState() )
+                        css = "error";
+                    else if ( s.timeSinceLastError() < 1000 * 60 )
+                        css ="warn";
+                    
+                    out.print( "<li class='" + css + "'>" + s + "</li>" );
+                }
+                out.print( "<ul>" );
+                
+                out.print( "</td>" );
+            }
 
-            out.print( "<hr>logs<br>" );
-            HttpMonitor.printLastLogMessages( mr , 10 );
+            { // logs
+                out.print( "<td>" );
+                
+                out.print( "logs<br>" );
+                HttpMonitor.printLastLogMessages( mr , 10 );
+
+                out.print( "</td>" );
+            }
+
+            out.print( "</tr></table>" );
         }
-        
+
+        List<Server> sortedServers(){
+            List<Server> l = new ArrayList<Server>( _lb._router.getServers() );
+            Collections.sort( l , _serverComparator );
+            return l;
+        }
+
         final LB _lb;
+        final Comparator<Server> _serverComparator = new Comparator<Server>(){
+
+            public int compare( Server a , Server b ){
+                boolean aError = a.inErrorState();
+                boolean bError = b.inErrorState();
+                
+                if ( aError ){
+                    if ( bError )
+                        return 0;
+                    return -1;
+                }
+
+                if ( bError )
+                    return 1;
+                
+                return (int)(a.timeSinceLastError() - b.timeSinceLastError());
+            }
+        };
     }
 
     static class MappingView extends HttpMonitor {
