@@ -355,7 +355,7 @@ public abstract class NIOClient extends Thread {
             //   - done - add yourself back to the pool
             //   - error, close connection
             
-            if ( doRead( true ) < 0 )
+            if ( doRead( _current != null ) < 0 )
                 return;
             
             WhatToDo next = null;
