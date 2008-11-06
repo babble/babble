@@ -98,10 +98,19 @@ public class JSRegex extends JSObjectBase {
             if( s.equals( "$_" ) || s.equals( "input" ) ) {
                 return JSRegex.input;
             }
-            if( s.startsWith( "$" ) ) {
+            else if( s.equals( "$&" ) ) {
+                return JSRegex.lastMatch;
+            }
+            else if( s.startsWith( "$" ) ) {
                 int m = Integer.parseInt( s.substring( 1 ) );
                 Object obj = matchArray.get( m );
                 return obj == null ? "" : obj.toString();
+            }
+            else if( s.equals( "lastMatch" ) ) {
+                return JSRegex.lastMatch;
+            }
+            else if( s.equals( "lastParen" ) ) {
+                return JSRegex.lastParen;
             }
 
             return super.get( o );
@@ -375,6 +384,22 @@ public class JSRegex extends JSObjectBase {
         }
     }
 
+    public Object set( Object n, Object v ) {
+        String s = n.toString();
+        if( s.equals( "lastIndex" ) ) {
+            lastIndex = Integer.parseInt( v.toString() );
+        }
+        return v;
+    }
+
+    public Object get( Object n ) {
+        String s = n.toString();
+        if( s.equals( "lastIndex" ) ) {
+            return lastIndex;
+        }
+        return null;
+    }
+
     /** Returns this regular expression.
      * @return This regular expression.
      */
@@ -471,8 +496,12 @@ public class JSRegex extends JSObjectBase {
             m = _patt.matcher( s );
         }
 
-        if ( ! m.find() )
+        if ( lastIndex >= s.length() || !m.find( lastIndex ) ) {
+            lastIndex = 0;
+            lastMatch = null;
+            lastParen = "";
             return null;
+        }
 
         a = new JSArray();
         for ( int i=0; i<=m.groupCount(); i++ ){
@@ -482,10 +511,13 @@ public class JSRegex extends JSObjectBase {
             else
                 a.add( new JSString( temp ) );
         }
+        lastMatch = m.group(0);
+        lastParen = m.groupCount() > 0 ? m.group( m.groupCount() ) : "";
 
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
         a.set( "index" , m.start() );
+        lastIndex = m.end();
 
         if ( _replaceAll )
             _last.set( a );
@@ -537,6 +569,8 @@ public class JSRegex extends JSObjectBase {
 
     static JSArray matchArray = new JSArray();
     static String input = "";
+    static String lastMatch = null;
+    static String lastParen = "";
 
     /** @unexpose */
     String _p;
