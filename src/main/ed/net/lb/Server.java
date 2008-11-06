@@ -81,7 +81,7 @@ public class Server implements Comparable<Server> {
 	}
 	
         if ( _inErrorState )
-            _logger.error( "out of error state beacuse status not null" );
+            _logger.alert( "out of error state beacuse status not null" );
         _inErrorState = false;
 
 	// TODO
