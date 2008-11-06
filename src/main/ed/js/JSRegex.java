@@ -526,7 +526,7 @@ public class JSRegex extends JSObjectBase {
             m = _patt.matcher( s );
         }
 
-        if ( lastIndex >= s.length() || !m.find( lastIndex ) ) {
+        if ( lastIndex > s.length() || !m.find( lastIndex ) ) {
             lastIndex = 0;
             lastMatch = null;
             lastParen = "";
