@@ -98,19 +98,25 @@ public class JSRegex extends JSObjectBase {
             if( s.equals( "$_" ) || s.equals( "input" ) ) {
                 return JSRegex.input;
             }
-            else if( s.equals( "$&" ) ) {
+            else if( s.equals( "$&" ) || s.equals( "lastMatch" ) ) {
                 return JSRegex.lastMatch;
+            }
+            else if( s.equals( "$+" ) || s.equals( "lastParen" ) ) {
+                return JSRegex.lastParen;
+            }
+            else if( s.equals( "$`" ) || s.equals( "leftContext" ) ) {
+                return JSRegex.leftContext;
+            }
+            else if( s.equals( "$'" ) || s.equals( "rightContext" ) ) {
+                return JSRegex.rightContext;
+            }
+            else if( s.equals( "$*" ) || s.equals( "multiline" ) ) {
+                return JSRegex.globalMultiline;
             }
             else if( s.startsWith( "$" ) ) {
                 int m = Integer.parseInt( s.substring( 1 ) );
                 Object obj = matchArray.get( m );
                 return obj == null ? "" : obj.toString();
-            }
-            else if( s.equals( "lastMatch" ) ) {
-                return JSRegex.lastMatch;
-            }
-            else if( s.equals( "lastParen" ) ) {
-                return JSRegex.lastParen;
             }
 
             return super.get( o );
@@ -125,6 +131,10 @@ public class JSRegex extends JSObjectBase {
             String s = n.toString();
             if( s.equals( "$_" ) || s.equals( "input" ) ) {
                 JSRegex.input = v.toString();
+                return v;
+            }
+            else if( s.equals( "$*" ) || s.equals( "multiline" ) ) {
+                JSRegex.globalMultiline = Boolean.parseBoolean( v.toString() );
                 return v;
             }
             return super.set( n,v );
@@ -165,7 +175,15 @@ public class JSRegex extends JSObjectBase {
                         return ((JSRegex)s.getThis()).exec( o.toString() );
                     }
                 } );
-
+            _prototype.set( "compile", new JSFunctionCalls1() {
+                    public Object call( Scope s, Object o , Object foo[] ) {
+                        if( foo == null || foo.length == 0 ) 
+                            ((JSRegex)s.getThis()).init( o.toString(), (String)null );
+                        else
+                            ((JSRegex)s.getThis()).init( o.toString(), foo[0].toString());
+                        return null;
+                    }
+                } );
             _prototype.set( "__rmatch" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object o , Object foo[] ){
                         
@@ -243,10 +261,10 @@ public class JSRegex extends JSObjectBase {
     }
 
     public void setProps( String p, String f) {
-        source = p;
-        global = f.indexOf( "g" ) >= 0;
-        ignoreCase = f.indexOf( "i" ) >= 0;
-        multiline = f.indexOf( "m" ) >= 0;
+        this.source = p;
+        this.global = f.indexOf( "g" ) >= 0;
+        this.ignoreCase = f.indexOf( "i" ) >= 0;
+        this.multiline = f.indexOf( "m" ) >= 0;
     }
 
 
@@ -368,7 +386,7 @@ public class JSRegex extends JSObjectBase {
             int compilePatterns = 0;
             if ( f.contains( "i" ) )
                 compilePatterns |= Pattern.CASE_INSENSITIVE;
-            if ( f.contains( "m" ) ){
+            if ( f.contains( "m" ) || globalMultiline ){
                 compilePatterns |= Pattern.MULTILINE;
 	    }
             _compilePatterns = compilePatterns;
@@ -397,7 +415,19 @@ public class JSRegex extends JSObjectBase {
         if( s.equals( "lastIndex" ) ) {
             return lastIndex;
         }
-        return null;
+        if( s.equals( "source" ) ) {
+            return source;
+        }
+        if( s.equals( "global" ) ) {
+            return global;
+        }
+        if( s.equals( "ignoreCase" ) ) {
+            return ignoreCase;
+        }
+        if( s.equals( "multiline" ) ) {
+            return multiline;
+        }
+        return super.get( n );
     }
 
     /** Returns this regular expression.
@@ -500,6 +530,8 @@ public class JSRegex extends JSObjectBase {
             lastIndex = 0;
             lastMatch = null;
             lastParen = "";
+            leftContext = "";
+            rightContext = "";
             return null;
         }
 
@@ -513,6 +545,8 @@ public class JSRegex extends JSObjectBase {
         }
         lastMatch = m.group(0);
         lastParen = m.groupCount() > 0 ? m.group( m.groupCount() ) : "";
+        leftContext = s.substring( 0, m.start(0) );
+        rightContext = s.substring( m.end(0) );
 
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
@@ -571,6 +605,9 @@ public class JSRegex extends JSObjectBase {
     static String input = "";
     static String lastMatch = null;
     static String lastParen = "";
+    static String leftContext = "";
+    static String rightContext = "";
+    static boolean globalMultiline = false;
 
     /** @unexpose */
     String _p;
