@@ -165,7 +165,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 	    
 	    JSFunction postLoad = _constructor.getFunction( "postLoad" , true );
 	    if ( postLoad != null ){
-		Scope s = postLoad.getScope().child();
+		Scope s = postLoad.getAScopeForThis();
 		s.setThis( _cur );
 		postLoad.call( s );
 	    }
