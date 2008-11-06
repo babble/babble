@@ -96,6 +96,10 @@ public class JSObjectSize {
         
         seen.add( o );
         
+        if ( o instanceof PyObject ){
+            return Python.size( (PyObject)o , seen );
+        }
+
         if ( o instanceof Scope ){
             return ((Scope)o).approxSize( seen );
         }
@@ -120,10 +124,6 @@ public class JSObjectSize {
                 temp += _size( foo , seen );
             }
             return temp;
-        }
-        
-        if ( o instanceof PyObject ){
-            return Python.size( (PyObject)o , seen );
         }
 	
         if ( o instanceof JSObjectBase )

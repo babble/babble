@@ -41,3 +41,7 @@ def pyModifyDict2():
 @_10gen.exposePy
 def pyModifyDict3():
     _10gen.pyDict2[_10gen.pyString2] = _10gen.pyString2
+
+@_10gen.exposePy
+def pyModifyDict4():
+    _10gen.pyDict2[_10gen.pyString2] = _10gen.pyString
