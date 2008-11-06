@@ -65,8 +65,8 @@ public class JSRegex extends JSObjectBase {
             // null turns into "null"
             String p = a + "";
             String f = "";
-            if( args != null && args.length > 0 && args[0] != null )
-                f = args[0].toString();
+            if( args != null && args.length > 0 )
+                f = getFlags( args[0] );
 
             if ( o == null || ! ( o instanceof JSRegex ) )
                 return new JSRegex( p , f );
@@ -74,6 +74,16 @@ public class JSRegex extends JSObjectBase {
             JSRegex r = (JSRegex)o;
             r.init( p , f );
             return r;
+        }
+
+        private String getFlags( Object o ) {
+            if( o == null ) {
+                return "";
+            }
+            if( !(o instanceof String) || !Pattern.matches( "[gim]*", o.toString() ) ) {
+                throw new RuntimeException( "Syntax Error: illegal flags" );
+            }
+            return o.toString();
         }
 
         public Object get( Object o ) {
