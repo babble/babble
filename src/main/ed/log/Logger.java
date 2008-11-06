@@ -379,6 +379,17 @@ public class Logger extends JSFunctionCalls2 {
         return e;
     }
 
+    public long approxSize( ed.util.IdentitySet seen ){
+
+        seen.add( this );
+
+        long size = super.approxSize( seen );
+        size += JSObjectSize.size( _appenders , seen );
+        size += JSObjectSize.size( _levelLoggers , seen );
+
+        return size;
+    }
+
     final Logger _parent;
     final String _name;
     final String _fullName;
