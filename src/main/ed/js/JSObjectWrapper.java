@@ -20,8 +20,10 @@ package ed.js;
 
 import java.util.*;
 
+import ed.util.*;
+
 /** @expose */
-public class JSObjectWrapper implements JSObject {
+public class JSObjectWrapper implements JSObject , Sizable {
     /** Initializes a new wrapper for an object
      * @param wrap The object to wrap
      */
@@ -111,6 +113,18 @@ public class JSObjectWrapper implements JSObject {
     
     public JSFunction getFunction( String name ){
         return _wrap.getFunction( name );
+    }
+
+    public long approxSize( ed.util.IdentitySet seen ){
+        if ( seen.contains( _wrap ) )
+            return 0;
+        
+        final long size = 16 + JSObjectSize.size( _wrap , seen );
+
+        seen.add( this );
+        seen.add( _wrap );
+        
+        return size;
     }
 
     /** @unexpose */

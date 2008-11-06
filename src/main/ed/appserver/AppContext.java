@@ -1280,7 +1280,12 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     public long approxSize(IdentitySet seen) {
+        if ( seen.contains( this ) )
+            return 0;
+
         long size = 0;
+
+        seen.add( this );
 
         size += _scope.approxSize(seen, false, true);
         size += _initScope.approxSize(seen, true, false);
@@ -1288,9 +1293,11 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         size += JSObjectSize.size(_localObject, seen);
         size += JSObjectSize.size(_core, seen);
         size += JSObjectSize.size(_external, seen);
-
+        
         if (_adminContext != null)
             size += _adminContext.approxSize(seen);
+        
+        size += JSObjectSize.size( _logger );
 
         return size;
     }
