@@ -32,3 +32,4 @@ _10gen.pythonAddFoo = pythonAddFoo
 
 if hasattr(_10gen, 'jsObj'):
     _10gen.jsObj.pyBool = True
+    _10gen.jsObj.pyLong = 123L

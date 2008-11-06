@@ -28,3 +28,4 @@ assert( called.x );
 assert( called.y );
 assert.eq( jsObj.pyBool , true );
 assert.eq( __name__ , null );
+assert.eq( jsObj.pyLong , 123 );
