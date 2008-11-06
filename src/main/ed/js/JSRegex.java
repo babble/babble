@@ -80,8 +80,9 @@ public class JSRegex extends JSObjectBase {
             if( o == null ) {
                 return "";
             }
-            if( !(o instanceof String) || !Pattern.matches( "[gim]*", o.toString() ) ) {
-                throw new RuntimeException( "Syntax Error: illegal flags" );
+            if( !(o instanceof String || o instanceof JSString) || 
+                !Pattern.matches( "[gim]*", o.toString() ) ) {
+                throw new JSException( "Syntax Error: illegal flags " + o );
             }
             return o.toString();
         }
