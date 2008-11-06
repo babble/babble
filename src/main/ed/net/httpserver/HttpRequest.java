@@ -858,9 +858,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     public boolean containsKey( String s ){
-	return 
-	    _urlParameters.containsKey( s ) || 
-	    _postParameters.containsKey( s );
+        return
+            _attributes.containsKey( s ) ||
+            _urlParameters.containsKey( s ) ||
+            _postParameters.containsKey( s );
     }
 
     public boolean containsKey( String s , boolean includePrototype ){
