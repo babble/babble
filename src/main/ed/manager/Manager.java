@@ -31,7 +31,7 @@ import ed.net.httpserver.*;
  * a Manager lives on a machine and makes sure all the processes that should be running are
  * also can do log management, etc...
  *
- * See http://www.10gen.com/wiki/cloud.ApplicationManager
+ * See http://www.10gen.com/wiki/cloud.SystemAppManager
  */
 public class Manager extends Thread {
 

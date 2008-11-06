@@ -1078,6 +1078,10 @@ public class JSObjectBase implements JSObject {
             _jitCache.clear();
     }
 
+    public long approxSize(){
+        return approxSize( new IdentitySet() );
+    }
+    
     /** Returns the size of this object (approximately) in bytes.
      * @return The approximate size of this object.
      */

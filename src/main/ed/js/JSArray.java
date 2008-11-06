@@ -564,9 +564,12 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                 } );
 
             _prototype.set( "length", 0 );
-
+            
             this.set( "createLinkedList", new JSFunctionCalls0(){
                     public Object call(Scope s, Object [] extra){
+                        // TODO: this doesn't really work anymore...
+                        //       it just creates a new list
+                        //       because JSArray requires an ArrayList now
                         return new JSArray(new LinkedList());
                     }
                 } );
@@ -641,19 +644,23 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     /** Create an array from an existing Java List object.
      * @param lst A Java List object
      */
-    public JSArray( List lst ){
-        super( _getCons() );
-        _array = 
-	    lst == null ? 
-	    new ArrayList() : 
-	    ( lst instanceof ArrayList ? (ArrayList)lst : new ArrayList( lst ) );
-    }
-
     public JSArray( Collection coll ){
         super( _getCons() );
-        _array = new ArrayList();
-        if ( coll != null )
-            _array.addAll( coll );
+        _array = 
+	    coll == null ? 
+	    new ArrayList() : 
+            new ArrayList( coll );
+    }
+
+    private JSArray( ArrayList lst ){
+        super( _getCons() );
+        if ( lst == null )
+            throw new NullPointerException( "can't pass a null lst to this special constructor" );
+        _array = lst;
+    }
+
+    public static JSArray wrap( ArrayList lst ){
+        return new JSArray( lst );
     }
 
     /** Set an element at a specified index to a given value.

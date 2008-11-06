@@ -32,3 +32,7 @@ assert.eq( scope.myApproxSize() , before );
 
 s = scope.child();
 assert( scope.myApproxSize() > before , "not bigger" );
+
+
+var foo = function(){};
+assert(foo.approxSize());

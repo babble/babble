@@ -204,7 +204,7 @@ public class Logger extends JSFunctionCalls2 {
         if ( s.equals( "appenders" ) ){
             if ( _appenders == null )
                 _appenders = new ArrayList<Appender>();
-            JSArray a = new JSArray( _appenders );
+            JSArray a = JSArray.wrap( (ArrayList)_appenders );
             super.set( "appenders" , a );
             return a;
         }

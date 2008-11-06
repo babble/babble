@@ -516,6 +516,7 @@ public class Python extends Language {
             long size = 0;
             for( int i = 0; i < n; ++i){
                 PyObject foo = l.pyget(i);
+                size += 4; // pointer to an object?
                 size += JSObjectSize.size( foo, seen );
             }
             return size;
@@ -525,8 +526,13 @@ public class Python extends Language {
         if( o instanceof PyDictionary ){
             long temp = 0;
             temp += 32; // sizeof ConcurrentMap?
-            temp += JSObjectSize.size( ((PyDictionary)o).keys() , seen );
-            temp += JSObjectSize.size( ((PyDictionary)o).values() , seen );
+            PyList list = ((PyDictionary)o).keys();
+            for( int i = 0 ; i < list.size(); ++i ){
+            	temp += JSObjectSize.OBJ_OVERHEAD; // hash table entry
+            	PyObject key = list.pyget(i);
+            	temp += JSObjectSize.size( key , seen );
+            	temp += JSObjectSize.size( ((PyDictionary)o).__finditem__( (PyObject)key ) , seen );
+            }
             return temp;
         }
 
