@@ -74,7 +74,7 @@ public class Module {
 
         _versioned = ! ( _root.exists() && GitUtils.isSourceDirectory( _root ) );
         
-        _config = null;//_versioned ? ModuleRegistry.getARegistry( AppContext.findThreadLocal() ).getConfig( name ) : null;
+        _config = _versioned ? ModuleRegistry.getARegistry( AppContext.findThreadLocal() ).getConfig( name ) : null;
         _giturl = _config == null || ! USE_GIT ? null : _config.getGitUrl();
         
         if ( ! _root.exists() && _giturl != null )
