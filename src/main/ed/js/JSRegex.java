@@ -40,12 +40,34 @@ public class JSRegex extends JSObjectBase {
         }
 
         public Object call( Scope s , Object a , Object[] args ){
-            String p = a.toString();
+            Object o = s.getThis();
+            if( a instanceof JSRegex ) {
+                // can't pass flags to an existing regex
+                if( args != null && args.length > 0 ) {
+                    throw new JSException( "can't supply flags when constructing one RegExp from another " );
+                }
+
+                // calling RegExp( regex ) returns regex
+                if( !(o instanceof JSRegex ) ) {
+                    return a;
+                }
+                // create a new regexp from the parameter
+                else {
+                    JSRegex r = (JSRegex)a;
+                    String flags = ( r.global ? "g" : "" ) + 
+                        ( r.ignoreCase ? "i" : "" ) + 
+                        ( r.multiline ? "m" : "" );
+                    ((JSRegex)o).init( ((JSRegex)a).source, flags );
+                    return o;
+                }
+            }
+
+            // null turns into "null"
+            String p = a + "";
             String f = "";
-            if( args != null && args.length > 0 )
+            if( args != null && args.length > 0 && args[0] != null )
                 f = args[0].toString();
 
-            Object o = s.getThis();
             if ( o == null || ! ( o instanceof JSRegex ) )
                 return new JSRegex( p , f );
             
@@ -213,10 +235,15 @@ public class JSRegex extends JSObjectBase {
     /** @unexpose */
     static String _jsToJava( String p ){
         StringBuilder buf = new StringBuilder( p.length() + 10 );
+        int parenCount = 0;
 
         boolean inCharClass = false;
         for( int i=0; i<p.length(); i++ ){
             char c = p.charAt( i );
+
+            if ( c == '(' ) {
+                parenCount++;
+            }
 
             if ( c == '\\' ) {
                 int end = i+1;
@@ -242,13 +269,25 @@ public class JSRegex extends JSObjectBase {
                 }
                 // to octal
                 // always escape in char classes
-                if( end - (i+1) > 1 || 
-                    ( end - (i+1) == 1 && ( inCharClass || isOctal ) ) ) {
-                    buf.append( (char)Integer.parseInt( p.substring( i+1, end ) , 8 ) );
+                if( end - (i+1) >= 1 && ( inCharClass || isOctal ) ) {
+                    char ch = (char)Integer.parseInt( p.substring( i+1, end ) , 8 );
+                    // if this is a "reserved" character and we aren't in a char class, escape it
+                    if( !inCharClass && Pattern.matches( "[-^$*+()\\[\\]{}?!<>,\\.]", ch+"" ) )
+                        buf.append( "\\" + ch );
+                    else { // octal 
+                        buf.append( ch );
+                    }
                     i = end - 1;
                 }
                 // back ref
                 else {
+                    // ignore back references greater than the number of refs
+                    if( i+1 < p.length() &&
+                        Character.isDigit( p.charAt( i+1 ) ) &&
+                        p.charAt( i+1 ) - '0' > parenCount ) {
+                        i++;
+                        continue;
+                    }
                     buf.append( "\\" );
                 }
                 continue;
@@ -268,9 +307,23 @@ public class JSRegex extends JSObjectBase {
             }
 
             if ( p.charAt( i ) == '[' &&
-                 ( i == 0 || p.charAt( i - 1 ) != '\\' ) )
-                inCharClass = true;
+                 ( i == 0 || p.charAt( i - 1 ) != '\\' ) ) {
+                // HACK
+                // []
+                if( p.charAt( i+1 ) == ']' ) {
+                    buf.append( "[\uFFFF]" );
+                    i++;
+                    continue;
+                }
+                // [^]
+                if( p.charAt( i + 1 ) == '^' && p.charAt( i + 2 ) == ']' ) {
+                    buf.append( "[^\uFFFF]" );
+                    i += 2;
+                    continue;
+                }
 
+                inCharClass = true;
+            }
             buf.append( c );
         }
 
@@ -325,11 +378,12 @@ public class JSRegex extends JSObjectBase {
      * @return /expression/flags
      */
     public String toString(){
-        if( _p == null )
-            _p = "(?:)";
+        String source = this.source;
+        if( this.source == null )
+            source = "(?:)";
         if( _f == null )
             _f = "";
-        return "/" + _p + "/" + _f;
+        return "/" + source + "/" + _f;
     }
 
     /** The hash code value of this regular expression.
