@@ -106,8 +106,13 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         }
 
         protected void init(){
+            final JSObject p = _prototype;
+
             _prototype.set( "toString" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ) {
+                        Object o = s.getThis();
+                        if( o == p )
+                            return new JSString( "" );
                         return new JSString( s.getThis().toString() );
                     }
                 } );

@@ -49,8 +49,7 @@ public class Server implements Comparable<Server> {
     void error( Environment env , NIOClient.ServerErrorType type , Exception what , HttpRequest request , HttpResponse response ){
         if ( what instanceof HttpExceptions.ClientError )
             return;
-        _logger.error( "into error state because of socket error" , what );
-	_inErrorState = true;
+        _intoErrorState( "error state because of socket error" , what );
 	_tracker.networkEvent();
         _tracker.hit( request , response );
     }
@@ -77,8 +76,7 @@ public class Server implements Comparable<Server> {
     
     void update( ServerMonitor.Status status ){
 	if ( status == null ){
-            _logger.error( "into error state because status was null" );
-	    _inErrorState = true;
+            _intoErrorState( "into error state because status was null" , null );
 	    return;
 	}
 	
@@ -114,6 +112,20 @@ public class Server implements Comparable<Server> {
     public String toString(){
 	return _addr.toString();
     }
+
+    public long timeSinceLastError(){
+        return System.currentTimeMillis() - _lastError;
+    }
+
+    public boolean inErrorState(){
+        return _inErrorState;
+    }
+
+    private void _intoErrorState( String msg , Exception e ){
+        _inErrorState = true;
+        _lastError = System.currentTimeMillis();
+        _logger.error( msg , e );
+    }
     
     final InetSocketAddress _addr;
     final ServerMonitor.Monitor _monitor;
@@ -123,4 +135,5 @@ public class Server implements Comparable<Server> {
     final Set<Environment> _environmentsWithTraffic = Collections.synchronizedSet( new HashSet<Environment>() );
     long _serverStart;
     boolean _inErrorState = false;
+    long _lastError = 0;
 }
