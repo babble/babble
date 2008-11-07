@@ -23,6 +23,7 @@ import java.util.regex.*;
 import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.appserver.AppRequest;
 
 /** @expose */
 public class JSRegex extends JSObjectBase {
@@ -194,7 +195,7 @@ public class JSRegex extends JSObjectBase {
                         
                         JSRegex r = (JSRegex)s.getThis();
                         JSArray a = r.exec( str );
-                        r._last.set( a );
+                        r._setLast( a );
                         if ( a == null )
                             return null;
                         return a.get( "index" );
@@ -211,7 +212,7 @@ public class JSRegex extends JSObjectBase {
 
                             JSRegex r = (JSRegex)s.getThis();
                             JSArray a = r.exec( str , false );
-                            r._last.set( a );
+                            r._setLast( a );
                             if ( a == null )
                                 return null;
 
@@ -503,7 +504,7 @@ public class JSRegex extends JSObjectBase {
      * @return Array of matches.
      */
     public JSArray exec( String s ){
-        return exec( s , true );
+        return exec( s == null ? input : s , true );
     }
 
     /** Applies this regular expression to the given string and returns an array of all matching substrings, with the option of using the last matcher if the string is the same as last time.
@@ -511,16 +512,14 @@ public class JSRegex extends JSObjectBase {
      * @param canUseOld If the old matcher can be used, or a new one must be created.
      * @return Array of matches.
      */
-    public JSArray exec( String s , boolean canUseOld ){
-        if( s == null ) {
-            s = input;
-        }
-        JSArray a = _last.get();
-        String oldString = a == null ? null : a.get( "input" ).toString();
-        Matcher m = null;
+    public JSArray exec( final String s , final boolean canUseOld ){
+        
+        CachedResult cr = _last.get();
 
-        if ( canUseOld && a != null && s == oldString && s.equals( oldString ) ){
-            m = (Matcher)a.get( "_matcher" );
+        final Matcher m;
+        
+        if ( canUseOld && cr != null && s == cr._input && s.equals( cr._input ) && cr._request == AppRequest.getThreadLocal() ){
+            m = cr._matcher;
         }
         else {
             m = _patt.matcher( s );
@@ -537,7 +536,7 @@ public class JSRegex extends JSObjectBase {
             return null;
         }
 
-        a = new JSArray();
+        JSArray a = new JSArray();
         for ( int i=0; i<=m.groupCount(); i++ ){
             String temp = m.group(i);
             if ( temp == null )
@@ -556,21 +555,36 @@ public class JSRegex extends JSObjectBase {
         if( this.global )
             lastIndex = m.end();
 
-        if ( _replaceAll )
-            _last.set( a );
-        else
+        if ( _replaceAll ){
+            if ( cr == null ){
+                _last.set( new CachedResult( s , m , AppRequest.getThreadLocal() , a ) );
+            }
+            else {
+                cr._array = a;
+            }
+        }
+        else {
             _last.set( null );
+        }
+        
         _lastRegex.set( this );
         matchArray = new JSArray( a );
 
         return a;
     }
 
+    void _setLast( JSArray arr ){
+        _last.set( new CachedResult( arr.get( "input" ).toString() , (Matcher)arr.get( "_matcher" ) , AppRequest.getThreadLocal() , arr ) );
+    }
+
     /** Get the array of matches generated last.
      * @return An array of matching strings.
      */
     public JSArray getLast(){
-        return _last.get();
+        CachedResult cr = _last.get();
+        if ( cr == null )
+            return null;
+        return cr._array;
     }
 
     /** Escape special RegExp characters in a string. Escapes \, ^, $, *, +, {, }, [, ], (, ), -, ?, and .
@@ -631,8 +645,25 @@ public class JSRegex extends JSObjectBase {
     /** @unexpose */
     boolean _replaceAll;
 
+    class CachedResult {
+        
+        CachedResult( String input , Matcher m , AppRequest req , JSArray arr ){
+            _input = input;
+            _matcher = m;
+            _request = req;
+            _array = arr;
+        }
+        
+        final String _input;
+        final Matcher _matcher;
+        final AppRequest _request;
+        
+        JSArray _array;
+    }
+
     /** @unexpose */
-    ThreadLocal<JSArray> _last = new ThreadLocal<JSArray>();
+    ThreadLocal<CachedResult> _last = new ThreadLocal<CachedResult>();
+    
     /** @unexpose */
     static ThreadLocal<JSRegex> _lastRegex = new ThreadLocal<JSRegex>();
 }
