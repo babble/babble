@@ -66,3 +66,11 @@ pyList2.push(1);
 var delta = pyList1.approxSize() - before; // cost of an extra node
 assert( delta > 0 );
 assert.eq(pyList1.approxSize() - pyList2.approxSize() , diff); // added to both
+
+var before = pyList1.approxSize();
+pyList1.push(3);
+pyList2.push(3);
+var deltaNew = pyList1.approxSize() - before; // cost of an extra node, plus another integer
+
+assert( deltaNew > delta );
+assert.eq( pyList1.approxSize() - pyList2.approxSize() , diff ); // added to both
