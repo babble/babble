@@ -20,6 +20,7 @@ import ed.appserver.AppContext;
 import ed.appserver.frameworks.Framework;
 import ed.js.JSObject;
 import ed.js.JSDict;
+import ed.js.JSString;
 
 public class AppEngine extends Framework {
     public void install (AppContext context) {
@@ -30,5 +31,8 @@ public class AppEngine extends Framework {
         }
         packages.set("google", "py-google");
         context.setConfigObject("packages", packages);
+
+        // Set up adaptor type.
+        context.setInitObject("adapterType", new JSString("CGI"));
     };
 }
