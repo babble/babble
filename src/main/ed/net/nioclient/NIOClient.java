@@ -153,12 +153,12 @@ public abstract class NIOClient extends Thread {
                 continue;
             }
 
-            if ( c._cancelled ){
+            if ( c.isCancelled() ){
 		pushBach.add( c );
                 continue;
 	    }
             
-            if ( c._paused ){
+            if ( c.isPaused() ){
 		pushBach.add( c );
                 continue;
 	    }
@@ -309,7 +309,7 @@ public abstract class NIOClient extends Thread {
                 return false;
             }
             
-            if ( _current != null && _current._done ){
+            if ( _current != null && _current.isDone() ){
                 _myLostConnectionLogger.info( "have call but its done" );
                 return false;
             }
@@ -590,54 +590,6 @@ public abstract class NIOClient extends Thread {
         final InetSocketAddress _addr;
     }
     
-    
-    public static abstract class Call {
-        
-        protected abstract InetSocketAddress where(); 
-        protected abstract void error( ServerErrorType type , Exception e );
-        
-        protected abstract ByteStream fillInRequest( ByteBuffer buf );
-        protected abstract WhatToDo handleRead( ByteBuffer buf , Connection conn );
-        
-        protected void cancel(){
-            _cancelled = true;
-        }
-
-        protected void pause(){
-            _paused = true;
-        }
-        
-        protected void wakeup(){
-            _paused = false;
-        }
-
-        public long getStartedTime(){
-            return _started;
-        }
-
-        public long getTotalTime(){
-            if ( _done )
-                return _doneTime - _started;
-            return -1;
-        }
-
-        public void done(){
-            _done = true;
-            _doneTime = System.currentTimeMillis();
-        }
-
-        public boolean isDone(){
-            return _done;
-        }
-
-        private boolean _cancelled = false;
-        private boolean _paused = false;
-        private boolean _done = false;
-        
-        protected final long _started = System.currentTimeMillis();
-        private long _doneTime = -1;
-        
-    }
     
     protected abstract class MyMonitor extends HttpMonitor {
         protected MyMonitor( String name ){
