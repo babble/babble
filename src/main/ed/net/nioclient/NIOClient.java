@@ -16,7 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.net;
+package ed.net.nioclient;
 
 import java.io.*;
 import java.net.*;
@@ -29,6 +29,7 @@ import java.util.concurrent.*;
 import ed.io.*;
 import ed.log.*;
 import ed.util.*;
+import ed.net.*;
 import ed.net.httpserver.*;
 import static ed.net.HttpExceptions.*;
 
@@ -193,7 +194,7 @@ public abstract class NIOClient extends Thread {
                 _logger.error( "couldn't open" , co );
                 c.error( ServerErrorType.CONNECT , co );
                 if ( addr != null )
-                    serverError( addr , ServerErrorType.CONNECT , co._ioe );
+                    serverError( addr , ServerErrorType.CONNECT , co.getIOException() );
             }
             catch ( RuntimeException re ){
                 _logger.error( "runtime exception in _doNewRequests" , re );
