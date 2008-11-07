@@ -31,6 +31,7 @@ import ed.io.*;
 import ed.js.*;
 import ed.log.*;
 import ed.net.*;
+import ed.net.nioclient.*;
 import ed.cloud.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
