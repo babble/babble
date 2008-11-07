@@ -527,7 +527,9 @@ public class JSRegex extends JSObjectBase {
         }
 
         if ( lastIndex > s.length() || !m.find( lastIndex ) ) {
-            lastIndex = 0;
+            if( this.global ) {
+                lastIndex = 0;
+            }
             lastMatch = null;
             lastParen = "";
             leftContext = "";
@@ -551,7 +553,8 @@ public class JSRegex extends JSObjectBase {
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
         a.set( "index" , m.start() );
-        lastIndex = m.end();
+        if( this.global )
+            lastIndex = m.end();
 
         if ( _replaceAll )
             _last.set( a );

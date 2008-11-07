@@ -385,7 +385,7 @@ public class AppContextHolder {
         return theCloud.findEnvironment( siteName , envName );
     }
 
-    private static JSObject getSiteFromCloud( String name ){
+    static JSObject getSiteFromCloud( String name ){
         Cloud theCloud = Cloud.getInstanceIfOnGrid();
         if ( theCloud == null )
             return null;
