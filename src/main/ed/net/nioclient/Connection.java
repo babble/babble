@@ -131,8 +131,9 @@ public class Connection {
         }
             
         if ( read < 0 ){
-            if ( errorOnEOF )
-                _error( ServerErrorType.EOF , new IOException( "socket dead" ) );
+            if ( errorOnEOF ){
+                _error( ServerErrorType.EOF , new UnexpectedConnectionClosed( _numCalls - 1 ) );
+            }
             done( true );
             return -1;
         }
@@ -249,6 +250,7 @@ public class Connection {
         }
             
         _current = c;
+        _numCalls++;
         _event();
 
         _toServer.position( 0 );
@@ -367,6 +369,7 @@ public class Connection {
     private boolean _closed = false;
         
     private Call _current = null;
+    private int _numCalls;
         
     private long _lastEvent = _opened;
 } // end of Connection
