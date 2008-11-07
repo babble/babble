@@ -514,10 +514,18 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         return _initScope;
     }
 
-    Object getFromInitScope(String what) {
+    public Object getInitObject(String what) {
+        return getFromInitScope(what);
+    }
+
+    public Object getFromInitScope(String what) {
         if (!_knownInitScopeThings.contains(what))
             System.err.println("*** Unknown thing requested from initScope [" + what + "]");
         return _initScope.get(what);
+    }
+
+    public void setInitObject( String name , Object value ){
+        _initScope.set( name , value );
     }
 
     void setTLPreferredScope(AppRequest req, Scope s) {
@@ -1249,6 +1257,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
     public Object getConfigObject( String name ){
         return _configScope.get( name );
+    }
+
+    public void setConfigObject( String name , Object value ){
+        _configScope.set( name , value );
     }
 
     public String getContextPath() {
