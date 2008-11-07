@@ -330,7 +330,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         if ( response.getHeader( "Content-Type" ).indexOf( "text/html" ) < 0 )
             return;
 
-        if (request.getHeader(_X10GEN_DEBUG) != null) {
+        if (request.getHeader(_X10GEN_DEBUG) != null || request.get( _X10GEN_DEBUG ) != null ){
             return;
         }
 
