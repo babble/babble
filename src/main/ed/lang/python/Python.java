@@ -113,6 +113,9 @@ public class Python extends Language {
         if ( p instanceof PyInteger )
             return ((PyInteger)p).getValue();
 
+        if ( p instanceof PyLong )
+            return ((PyLong)p).getValue();
+
         if ( p instanceof PyFloat )
             return ((PyFloat)p).getValue();
 
@@ -204,7 +207,10 @@ public class Python extends Language {
             return new PyBoolean( (Boolean)o );
 
         if ( o instanceof Integer )
-            return new PyInteger( ((Integer)o) );
+            return Py.newInteger( ((Integer)o) );
+
+        if ( o instanceof Long )
+            return Py.newLong( ((Long)o) );
 
         if ( o instanceof Number )
             return new PyFloat( ((Number)o).doubleValue() );

@@ -139,6 +139,16 @@ public abstract class JSFunction extends JSFunctionBase {
         return _name;
     }
 
+    /**
+     * this returns a Scope that is acceptable for setting this on and passing back
+     * if the function has a Scope, returns a child of it, otherwise just an empty scope
+     */
+    public Scope getAScopeForThis(){
+        if ( _scope == null )
+            return new Scope();
+        return _scope.child();
+    }
+
     /** Returns the scope in which this function is running.
      */
     public Scope getScope(){

@@ -1,3 +1,5 @@
+// Framework.java
+
 /**
 *    Copyright (C) 2008 10gen Inc.
 *  
@@ -14,18 +16,16 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var called = {};
+package ed.appserver.frameworks;
 
-getglobal = function(x){
-    called[x] = true;
-};
+import ed.appserver.*;
 
-jsObj = {};
+public abstract class Framework {
 
-local.src.test.ed.lang.python.expose1_helper();
+    public abstract void install( AppContext context );
 
-assert( called.x );
-assert( called.y );
-assert.eq( jsObj.pyBool , true );
-assert.eq( __name__ , null );
-assert.eq( jsObj.pyLong , 123 );
+    public static Framework forName( String name ){
+        return null;
+    }
+
+}

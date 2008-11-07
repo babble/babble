@@ -25,7 +25,7 @@ import ed.js.engine.*;
 public enum Level {
 
     DEBUG_7 , DEBUG_6 , DEBUG_5 , DEBUG_4 , DEBUG_3 , DEBUG_2 , DEBUG_1 , 
-	DEBUG , INFO , WARN , ERROR , FATAL ;
+	DEBUG , INFO , WARN , ERROR , ALERT , FATAL ;
     
     public static Level forDebugId( int id ){
 	int idx = ( -1 * id ) + DEBUG_LEVELS;
@@ -56,6 +56,9 @@ public enum Level {
         if ( name.equalsIgnoreCase( "error" ) )
             return ERROR;
 
+        if ( name.equalsIgnoreCase( "alert" ) )
+            return ALERT;
+
         if ( name.equalsIgnoreCase( "fatal" ) )
             return FATAL;
 
@@ -70,8 +73,9 @@ public enum Level {
         me.set( "INFO" , INFO );
         me.set( "WARN" , WARN );
         me.set( "ERROR" , ERROR );
+        me.set( "ALERT" , ALERT );
         me.set( "FATAL" , FATAL );
-	
+        
         me.set( "ALL" , DEBUG );
 	
 	LEVELS = Level.values();

@@ -165,7 +165,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 	    
 	    JSFunction postLoad = _constructor.getFunction( "postLoad" , true );
 	    if ( postLoad != null ){
-		Scope s = postLoad.getScope().child();
+		Scope s = postLoad.getAScopeForThis();
 		s.setThis( _cur );
 		postLoad.call( s );
 	    }
@@ -353,7 +353,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     public JSArray toArray( int min ){
         _checkType( CursorType.ARRAY );
         _fill( min );
-        return new JSArray( _all );
+        return JSArray.wrap( _all );
     }
 
     /** Returns this array's keys.
@@ -433,7 +433,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private long _totalObjectSize = 0;
     private IdentitySet _objectsSeenSoFar;
 
-    private final List<JSObject> _all = new ArrayList<JSObject>();
+    private final ArrayList<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();
 
 }

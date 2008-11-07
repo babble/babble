@@ -92,8 +92,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
                 set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
         }
-
-
+        
+        set( "constructor" , null );
     }
 
     private synchronized void _init(){

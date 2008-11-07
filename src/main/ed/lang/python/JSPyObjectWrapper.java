@@ -104,7 +104,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public JSPyObjectWrapper( PyObject o , boolean passThis ){
-        super( Scope.getAScope() ,
+        super( null ,
                o.__findattr__( "func_name" ) != null ?
                  o.__findattr__( "func_name" ).toString() :
                  null );
