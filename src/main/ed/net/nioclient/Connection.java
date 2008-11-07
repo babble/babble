@@ -100,8 +100,10 @@ public class Connection {
             _myLostConnectionLogger.debug( "closed " );
             return false;
         }
-            
-        if ( ! _ready && System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
+        
+        final long now = System.currentTimeMillis();
+    
+        if ( ! _ready && now - _opened > CONNECT_TIMEOUT ){
             _myLostConnectionLogger.info( "connect timeout" );
             return false;
         }
@@ -110,7 +112,12 @@ public class Connection {
             _myLostConnectionLogger.info( "have call but its done" );
             return false;
         }
-            
+        
+        if ( _numCalls > 0 && now - _lastEvent > IDLE_TIMEOUT ){
+            _myLostConnectionLogger.info( "idle for too long" );
+            return false;
+        }
+
         return true;
     }
         
@@ -345,7 +352,7 @@ public class Connection {
         if ( _closed )
             return;
                     
-        if ( System.currentTimeMillis() - _lastEvent < CONN_TIMEOUT )
+        if ( System.currentTimeMillis() - _lastEvent < IDLE_TIMEOUT )
             return;
 
         _close( true );
