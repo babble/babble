@@ -1958,6 +1958,8 @@ public class ENode extends JSObjectBase {
         XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
         Set<String> c = new OrderedSet<String>();
         for( int i=0; list != null && i < list.size(); i++ ) {
+            if( list.get(i).node.getNodeType() == Node.ATTRIBUTE_NODE ) 
+                continue;
             c.add( String.valueOf( i ) );
         }
         return c;
@@ -1967,6 +1969,8 @@ public class ENode extends JSObjectBase {
         XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
         Collection<ENode> c = new ArrayList<ENode>();
         for( ENode n : list ) {
+            if( n.node.getNodeType() == Node.ATTRIBUTE_NODE ) 
+                continue;
             c.add( n );
         }
         return c;
