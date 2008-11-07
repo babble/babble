@@ -1,5 +1,3 @@
-// Framework.java
-
 /**
 *    Copyright (C) 2008 10gen Inc.
 *
@@ -18,17 +16,23 @@
 
 package ed.appserver.frameworks;
 
-import ed.appserver.*;
+import ed.appserver.AppContext;
+import ed.appserver.frameworks.Framework;
+import ed.js.JSObject;
+import ed.js.JSDict;
+import ed.js.JSString;
 
-public abstract class Framework {
-
-    public abstract void install( AppContext context );
-
-    public static Framework forName( String name ){
-        if (name.equalsIgnoreCase("AppEngine")) {
-            return new AppEngine();
+public class AppEngine extends Framework {
+    public void install (AppContext context) {
+        // Set up mapping "import google" => "import core.modules.py-google".
+        JSObject packages = (JSObject)context.getConfigObject("packages");
+        if (packages == null) {
+            packages = new JSDict();
         }
-        return null;
-    }
+        packages.set("google", "py-google");
+        context.setConfigObject("packages", packages);
 
+        // Set up adaptor type.
+        context.setInitObject("adapterType", new JSString("CGI"));
+    };
 }

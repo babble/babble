@@ -89,7 +89,12 @@ class LBCall extends Call {
         _logger.debug( 1 , "backend error" , e );
         _lb._loadMonitor._all.networkEvent();
         _lb._router.error( _request , _response , _lastWent , type , e );
-	    
+	
+        if ( type == ServerErrorType.EOF ){
+            // debugging for a problem i don't understand yet
+            _logger.error( "for EOF debugging.  my state: " + _state );
+        }
+
         if ( ! _response.isCommitted() && 
              type != ServerErrorType.WEIRD && 
              ( _state == State.WAITING || _state == State.IN_HEADER ) && 
@@ -99,7 +104,7 @@ class LBCall extends Call {
             _lb.add( this );
             return;
         }
-            
+        
         try {
             if ( ! _response.isCommitted() ){
                 _response.setResponseCode( 500 );
@@ -127,7 +132,7 @@ class LBCall extends Call {
         error( type , ioe );
     }
 
-    protected WhatToDo handleRead( ByteBuffer buf , NIOClient.Connection conn ){
+    protected WhatToDo handleRead( ByteBuffer buf , Connection conn ){
 
         _logger.debug( 3 , "handleRead  _state:" + _state );
             
@@ -286,7 +291,7 @@ class LBCall extends Call {
     }
 
     class MyChunk extends JSFileChunk {
-        MyChunk( LBCall call , NIOClient.Connection conn , long length , ByteBuffer buf ){
+        MyChunk( LBCall call , Connection conn , long length , ByteBuffer buf ){
             _call = call;
             _conn = conn;
             _length = length;
@@ -325,7 +330,7 @@ class LBCall extends Call {
         long _last = -1;
         
         final LBCall _call;
-        final NIOClient.Connection _conn;
+        final Connection _conn;
         final long _length;
         final ByteBuffer _buf;
         final MyBinaryData _data;
