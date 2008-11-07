@@ -258,7 +258,6 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     private PySequenceList _pSeq; // just to fool the static typing
-    
 
     // java.util.List API
     public boolean contains( Object o ){
