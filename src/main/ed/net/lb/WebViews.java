@@ -227,7 +227,7 @@ public class WebViews {
     }
 
     static void displayLast( HttpMonitor.MonitorRequest mr , LB lb ){
-	displayLast( mr , lb , lb._lastCalls.length );
+	displayLast( mr , lb , lb._lastCalls.size() );
     }
 
     static void displayLast( HttpMonitor.MonitorRequest mr , LB lb , int num ){
@@ -250,32 +250,28 @@ public class WebViews {
 	out.print( "</tr>\n" );
         
 	for ( int i=0; i<num; i++ ){
-	    int pos = ( lb._lastCallsPos - i ) - 1;
-	    if ( pos < 0 )
-		pos += 1000;
-	    
-	    LB.RR rr = lb._lastCalls[pos];
+	    LBCall call = lb._lastCalls.get(i);
             
-	    if ( rr == null )
+	    if ( call == null )
 		break;
 	    
 	    out.print( "<tr>" );
-	    mr.addTableCell( rr._request.getHost() );
-            String url = rr._request.getURL();
+	    mr.addTableCell( call._request.getHost() );
+            String url = call._request.getURL();
             if ( url.length() > 100 )
                 url = url.substring( 0 , 100 ) + "...";
 	    mr.addTableCell( url );
-	    mr.addTableCell( rr.lastWent() );
-	    mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
+	    mr.addTableCell( call.lastWent() );
+	    mr.addTableCell( SHORT_TIME.format( new Date( call.getStartedTime() ) ) );
             
-            mr.addTableCell( rr.getStateString() );
+            mr.addTableCell( call.getStateString() );
             
-	    if ( rr.isDone() ){
-		int rc = rr._response.getResponseCode();
+	    if ( call.isDone() ){
+		int rc = call._response.getResponseCode();
 		mr.addTableCell( rc , rc >= 500 ? "error" : null );
-		mr.addTableCell( rr._response.getContentLength() );
+		mr.addTableCell( call._response.getContentLength() );
                 
-		long tt = rr.getTotalTime();
+		long tt = call.getTotalTime();
 		mr.addTableCell( tt , tt > 2000 ? "error" : ( tt > 300 ? "warn" : null ) );
 	    }
 

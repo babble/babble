@@ -36,8 +36,7 @@ import static ed.net.HttpExceptions.*;
 public abstract class NIOClient extends Thread {
 
     public enum ServerErrorType { WEIRD , INVALID , CONNECT , SOCK_TIMEOUT };
-
-    protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR , CLIENT_ERROR };
+    public enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR , CLIENT_ERROR };
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
@@ -238,7 +237,7 @@ public abstract class NIOClient extends Thread {
         return new LinkedList<InetSocketAddress>( _connectionPools.keySet() );
     }
 
-    protected class Connection {
+    public class Connection {
         
         Connection( ConnectionPool pool , InetSocketAddress addr ){
             _pool = pool;
