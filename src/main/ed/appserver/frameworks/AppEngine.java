@@ -34,10 +34,7 @@ public class AppEngine extends Framework {
         packages.set("google", "py-google");
         context.setConfigObject("packages", packages);
 
-        // Set up adaptor type.
-        context.setInitObject("adapterType", new JSString("CGI"));
-
-        // Set up mapUrlToJxpFile.
+        // Run _init_ae.py (sets up adapterType and mapUrlToJxpFile)
         context.runInitFile("/~~/modules/py-google/_init_ae.py");
     };
 }

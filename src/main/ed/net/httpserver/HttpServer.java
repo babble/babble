@@ -38,7 +38,7 @@ public class HttpServer extends NIOServer {
     public static final int WORKER_THREAD_QUEUE_MAX = 200;
     public static final int ADMIN_THREAD_QUEUE_MAX = 10;
 
-    final static long CLIENT_TIMEOUT = 1000 * 40;
+    public final static long CLIENT_TIMEOUT = 1000 * 40;
     
     public static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     public static final Logger LOGGER = Logger.getLogger( "httpserver" );

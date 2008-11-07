@@ -42,7 +42,7 @@ public abstract class NIOClient extends Thread {
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
     static final long CONNECT_TIMEOUT = 1000 * 30; // timeout for opening a socket to a server
     static final long CLIENT_CONNECT_WAIT_TIMEOUT = 1000 * 15;
-    static final long CONN_TIMEOUT = 1000 * 60 * 4; // timeout for idle connections to server
+    static final long IDLE_TIMEOUT = ed.net.httpserver.HttpServer.CLIENT_TIMEOUT - 1500; // timeout for idle connections to server
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );

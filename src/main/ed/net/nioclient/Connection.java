@@ -100,8 +100,10 @@ public class Connection {
             _myLostConnectionLogger.debug( "closed " );
             return false;
         }
-            
-        if ( ! _ready && System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
+        
+        final long now = System.currentTimeMillis();
+    
+        if ( ! _ready && now - _opened > CONNECT_TIMEOUT ){
             _myLostConnectionLogger.info( "connect timeout" );
             return false;
         }
@@ -110,7 +112,12 @@ public class Connection {
             _myLostConnectionLogger.info( "have call but its done" );
             return false;
         }
-            
+        
+        if ( _numCalls > 0 && now - _lastEvent > IDLE_TIMEOUT ){
+            _myLostConnectionLogger.info( "idle for too long" );
+            return false;
+        }
+
         return true;
     }
         
@@ -131,8 +138,9 @@ public class Connection {
         }
             
         if ( read < 0 ){
-            if ( errorOnEOF )
-                _error( ServerErrorType.EOF , new IOException( "socket dead" ) );
+            if ( errorOnEOF ){
+                _error( ServerErrorType.EOF , new UnexpectedConnectionClosed( _numCalls - 1 ) );
+            }
             done( true );
             return -1;
         }
@@ -249,6 +257,7 @@ public class Connection {
         }
             
         _current = c;
+        _numCalls++;
         _event();
 
         _toServer.position( 0 );
@@ -343,7 +352,7 @@ public class Connection {
         if ( _closed )
             return;
                     
-        if ( System.currentTimeMillis() - _lastEvent < CONN_TIMEOUT )
+        if ( System.currentTimeMillis() - _lastEvent < IDLE_TIMEOUT )
             return;
 
         _close( true );
@@ -367,6 +376,7 @@ public class Connection {
     private boolean _closed = false;
         
     private Call _current = null;
+    private int _numCalls;
         
     private long _lastEvent = _opened;
 } // end of Connection
