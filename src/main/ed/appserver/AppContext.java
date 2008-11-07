@@ -318,8 +318,11 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         try {
 
             File f;
-            if (!_admin)
+            if (!_admin){
                 f = getFileSafe("_config.js");
+                if ( f == null || ! f.exists() )
+                    f = getFileSafe("_config");
+            }
             else
                 f = new File(Module.getModule("core-modules/admin").getRootFile(getVersionForLibrary("admin")), "_config.js");
 
