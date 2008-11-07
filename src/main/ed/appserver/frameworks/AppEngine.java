@@ -16,15 +16,28 @@
 
 package ed.appserver.frameworks;
 
+import java.io.IOException;
+
 import ed.appserver.AppContext;
 import ed.appserver.frameworks.Framework;
-import ed.js.JSObjectBase;
+import ed.js.JSObject;
+import ed.js.JSDict;
+import ed.js.JSString;
 
 public class AppEngine extends Framework {
-    public void install (AppContext context) {
+    public void install (AppContext context) throws IOException {
         // Set up mapping "import google" => "import core.modules.py-google".
-        JSObjectBase packages = new JSObjectBase();
+        JSObject packages = (JSObject)context.getConfigObject("packages");
+        if (packages == null) {
+            packages = new JSDict();
+        }
         packages.set("google", "py-google");
         context.setConfigObject("packages", packages);
+
+        // Set up adaptor type.
+        context.setInitObject("adapterType", new JSString("CGI"));
+
+        // Set up mapUrlToJxpFile.
+        context.runInitFile("/~~/modules/py-google/_init_ae.py");
     };
 }

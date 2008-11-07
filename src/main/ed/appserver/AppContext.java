@@ -129,7 +129,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _moduleRegistry = ModuleRegistry.getNewGlobalChild();
 
         _gitBranch = GitUtils.hasGit(_rootFile) ? GitUtils.getBranchOrTagName(_rootFile) : null;
-        
+
         _isGrid = name.equals("grid");
 
         _scope = new Scope("AppContext:" + root + (_admin ? ":admin" : ""), _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal(), null, Language.JS, _rootFile);
@@ -183,7 +183,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         String fp = file.getAbsolutePath();
         String fullRoot = _rootFile.getAbsolutePath();  // there must be a nicer way to do this?
-        
+
         if (!fp.startsWith(fullRoot)) {
             return AdapterType.DIRECT_10GEN;
         }
@@ -200,7 +200,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         }
 
         AdapterType t = _getAdapterTypeFromString(o.toString());
-        
+
         return (t == null ? _staticAdapterType : t);
     }
 
@@ -314,10 +314,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _scope.lock("user"); // protection against global user object
 
     }
-    
+
     private void _loadConfig() {
         try {
-            
+
             _loadConfigFromCloudObject( getSiteObject() );
             _loadConfigFromCloudObject( getEnvironmentObject() );
 
@@ -334,7 +334,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
             if (f == null || !f.exists())
                 return;
-            
+
             Convert c = new Convert(f);
             JSFunction func = c.get();
             func.setUsePassedInScope( true );
@@ -347,11 +347,11 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         }
 
     }
-    
+
     private void _loadConfigFromCloudObject( JSObject o ){
         if ( o == null )
             return;
-        
+
         _initScope.putAll( (JSObject)o.get( "config" ) );
     }
 
@@ -582,7 +582,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _adapterSelector = (JSFunction) o;
         log("Adapter selector function specified in _init file");
     }
-    
+
     /**
      *  Figure out what kind of static adapter type was specified.
      *  By default it's a 10genDEFAULT app
@@ -978,7 +978,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _inScopeSetup = true;
 
         try {
-            
+
             {
                 final Object fo = getConfigObject( "framework" );
                 if ( fo != null ){
@@ -1029,7 +1029,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             return;
 
         for (int i = 0; i < files.length; i++)
-            _runInitFile(tryOtherExtensions(getFile(files[i].replaceAll("PREFIX", _codePrefix))));
+            runInitFile( files[i].replaceAll("PREFIX", _codePrefix) );
+    }
+
+    /**
+     * @param path (ex: /~~/foo.js  )
+     */
+    public void runInitFile( String path ) throws IOException {
+        _runInitFile(tryOtherExtensions(getFile(path)));
     }
 
     private void _runInitFile(File f)
@@ -1159,11 +1166,11 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         if (_name == null || _environment == null)
             return getCurrentGitBranch();
-        
+
         JSObject env = getEnvironmentObject();
         if (env == null)
             return null;
-        
+
 
         String branch = env.get("branch").toString();
         _logger.info("updating to [" + branch + "]");
@@ -1178,7 +1185,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     private JSObject getEnvironmentObject(){
-        return AppContextHolder.getEnvironmentFromCloud( _name, _environment );        
+        return AppContextHolder.getEnvironmentFromCloud( _name, _environment );
     }
 
     private void _setLocalObject(JSFileLibrary local) {
@@ -1333,10 +1340,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         size += JSObjectSize.size(_localObject, seen);
         size += JSObjectSize.size(_core, seen);
         size += JSObjectSize.size(_external, seen);
-        
+
         if (_adminContext != null)
             size += _adminContext.approxSize(seen);
-        
+
         size += JSObjectSize.size( _logger );
 
         return size;
