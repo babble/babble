@@ -99,9 +99,11 @@ public abstract class JSFunction extends JSFunctionBase {
         if ( foo != null )
             return foo;
 
-        foo = _prototype.get( n );
-        if ( foo != null )
-            return foo;
+        if ( _prototype != null ){
+            foo = _prototype.get( n );
+            if ( foo != null )
+                return foo;
+        }
 
         
         foo = _staticFunctions.get( n );

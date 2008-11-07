@@ -94,6 +94,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         }
         
         set( "constructor" , null );
+        set( "prototype" , null );
     }
 
     private synchronized void _init(){
@@ -425,7 +426,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         Object v = super.get( n );
         if ( v != null )
             return v;
-
+        
         if ( ! ( n instanceof JSString ) &&
              ! ( n instanceof String ) )
             return null;
