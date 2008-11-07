@@ -1,4 +1,4 @@
-// WSGIAdapter.java
+// Framework.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,21 +16,16 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver.adapter.wsgi;
+package ed.appserver.frameworks;
 
-import ed.appserver.adapter.cgi.CGIAdapter;
-import ed.appserver.adapter.cgi.EnvMap;
-import ed.appserver.AppRequest;
+import ed.appserver.*;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+public abstract class Framework {
 
+    public abstract void install( AppContext context );
 
-/**
- * First pass at WSGI adapter.  WSGI mandates as much CGI
- * as possible, so simply leverage the CGI work to date.
- */
-public abstract class WSGIAdapter extends CGIAdapter {
+    public static Framework forName( String name ){
+        return null;
+    }
 
-    public abstract void handleWSGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar);
 }
