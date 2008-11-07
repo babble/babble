@@ -1029,7 +1029,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             return;
 
         for (int i = 0; i < files.length; i++)
-            _runInitFile(tryOtherExtensions(getFile(files[i].replaceAll("PREFIX", _codePrefix))));
+            runInitFile( files[i].replaceAll("PREFIX", _codePrefix) );
+    }
+
+    /**
+     * @param path (ex: /~~/foo.js  )
+     */
+    public void runInitFile( String path ) throws IOException {
+        _runInitFile(tryOtherExtensions(getFile(path)));
     }
 
     private void _runInitFile(File f)
