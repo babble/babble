@@ -27,6 +27,7 @@ import javax.servlet.http.*;
 
 import ed.appserver.jxp.*;
 import ed.appserver.adapter.AdapterType;
+import ed.appserver.frameworks.*;
 import ed.db.*;
 import ed.log.*;
 import ed.js.*;
@@ -967,6 +968,17 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _inScopeSetup = true;
 
         try {
+            
+            {
+                final Object fo = getConfigObject( "framework" );
+                if ( fo != null ){
+                    final Framework f = Framework.forName( fo.toString() );
+                    if ( f == null )
+                        throw new RuntimeException( "can't find framework [" + fo + "]" );
+                    f.install( this );
+                }
+            }
+
             _runInitFiles(INIT_FILES);
 
             if (_adminContext != null) {
