@@ -18,12 +18,16 @@ package ed.appserver.frameworks;
 
 import ed.appserver.AppContext;
 import ed.appserver.frameworks.Framework;
-import ed.js.JSObjectBase;
+import ed.js.JSObject;
+import ed.js.JSDict;
 
 public class AppEngine extends Framework {
     public void install (AppContext context) {
         // Set up mapping "import google" => "import core.modules.py-google".
-        JSObjectBase packages = new JSObjectBase();
+        JSObject packages = (JSObject)context.getConfigObject("packages");
+        if (packages == null) {
+            packages = new JSDict();
+        }
         packages.set("google", "py-google");
         context.setConfigObject("packages", packages);
     };
