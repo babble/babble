@@ -314,9 +314,12 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _scope.lock("user"); // protection against global user object
 
     }
-
+    
     private void _loadConfig() {
         try {
+            
+            _loadConfigFromCloudObject( getSiteObject() );
+            _loadConfigFromCloudObject( getEnvironmentObject() );
 
             File f;
             if (!_admin){
@@ -343,6 +346,13 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             throw new RuntimeException("couldn't load config", e);
         }
 
+    }
+    
+    private void _loadConfigFromCloudObject( JSObject o ){
+        if ( o == null )
+            return;
+        
+        _initScope.putAll( (JSObject)o.get( "config" ) );
     }
 
     /**
@@ -1149,11 +1159,11 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         if (_name == null || _environment == null)
             return getCurrentGitBranch();
-
-        JSObject env = AppContextHolder.getEnvironmentFromCloud(_name, _environment);
+        
+        JSObject env = getEnvironmentObject();
         if (env == null)
             return null;
-
+        
 
         String branch = env.get("branch").toString();
         _logger.info("updating to [" + branch + "]");
@@ -1161,6 +1171,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         Python.deleteCachedJythonFiles(_rootFile);
 
         return getCurrentGitBranch();
+    }
+
+    private JSObject getSiteObject(){
+        return AppContextHolder.getSiteFromCloud( _name );
+    }
+
+    private JSObject getEnvironmentObject(){
+        return AppContextHolder.getEnvironmentFromCloud( _name, _environment );        
     }
 
     private void _setLocalObject(JSFileLibrary local) {
