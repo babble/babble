@@ -574,7 +574,10 @@ public class JSRegex extends JSObjectBase {
     }
 
     void _setLast( JSArray arr ){
-        _last.set( new CachedResult( arr.get( "input" ).toString() , (Matcher)arr.get( "_matcher" ) , AppRequest.getThreadLocal() , arr ) );
+        if ( arr == null )
+            _last.set( null );
+        else
+            _last.set( new CachedResult( arr.get( "input" ).toString() , (Matcher)arr.get( "_matcher" ) , AppRequest.getThreadLocal() , arr ) );
     }
 
     /** Get the array of matches generated last.
