@@ -75,6 +75,10 @@ public class MyAsserts {
         throw new MyAssert( "[" + a + "] != [" + b + "] " );
     }
 
+    public static void assertClose( String a , Object o){
+        assertClose( a , o == null ? "null" : o.toString() );
+    }
+
     public static void assertClose( String a , String b ){
         assertClose(a, b, "");
     }
