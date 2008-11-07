@@ -132,7 +132,7 @@ public class Connection {
             
         if ( read < 0 ){
             if ( errorOnEOF )
-                _error( ServerErrorType.SOCK_TIMEOUT , new IOException( "socket dead" ) );
+                _error( ServerErrorType.EOF , new IOException( "socket dead" ) );
             done( true );
             return -1;
         }

@@ -35,7 +35,7 @@ import static ed.net.HttpExceptions.*;
 
 public abstract class NIOClient extends Thread {
 
-    public enum ServerErrorType { WEIRD , INVALID , CONNECT , SOCK_TIMEOUT };
+    public enum ServerErrorType { WEIRD , INVALID , CONNECT , SOCK_TIMEOUT , EOF };
     public enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR , CLIENT_ERROR };
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
