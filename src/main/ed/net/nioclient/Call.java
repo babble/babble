@@ -32,18 +32,19 @@ import ed.util.*;
 import ed.net.*;
 import ed.net.httpserver.*;
 import static ed.net.HttpExceptions.*;
+import static ed.net.nioclient.NIOClient.*;
 
 public abstract class Call {
     
     protected abstract InetSocketAddress where(); 
-    protected abstract void error( NIOClient.ServerErrorType type , Exception e );
+    protected abstract void error( ServerErrorType type , Exception e );
     
     /**
      * you should put the request in buf
      * if the request doesn't fit, you must return a ByteStream with the rest of the data
      */
     protected abstract ByteStream fillInRequest( ByteBuffer buf );
-    protected abstract NIOClient.WhatToDo handleRead( ByteBuffer buf , NIOClient.Connection conn );
+    protected abstract WhatToDo handleRead( ByteBuffer buf , Connection conn );
     
     protected void cancel(){
         _cancelled = true;
