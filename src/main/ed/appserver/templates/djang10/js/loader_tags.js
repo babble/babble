@@ -152,6 +152,11 @@ ExtendsNode.prototype = {
         var parent_name = this.parent_name_expr.resolve(context);
         var parent = djang10.loadTemplate(parent_name);
 
+        if(parent == null)
+            throw 'Failed to load parent template named "' + parent_name + '"';
+        if(parent.nodelist == null || parent.nodelist.__render == null)
+            throw 'The parent template named "' + parent_name + '" is invalid, it doesn\'t contain a nodelist';
+        
         parent.nodelist.__render(context, printer);
         context.pop();
     }
