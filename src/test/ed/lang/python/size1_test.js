@@ -47,3 +47,30 @@ pyModifyDict4(); // str1: str2, str2: str1
 
 assert.eq(extraNode, pyDict2.approxSize());
 
+
+var start = pyList1.approxSize();
+var before = pyList1.approxSize();
+assert.eq( before , pyList1.approxSize() );
+assert( before >= start );
+assert( before - start < 100 );
+
+var diff = before - pyList2.approxSize();
+assert(diff > 0); // same object reused [1,1]
+
+assert.eq(before , pyList3.approxSize());
+
+var before = pyList1.approxSize();
+
+pyList1.push(1);
+pyList2.push(1);
+var delta = pyList1.approxSize() - before; // cost of an extra node
+assert( delta > 0 );
+assert.eq(pyList1.approxSize() - pyList2.approxSize() , diff); // added to both
+
+var before = pyList1.approxSize();
+pyList1.push(3);
+pyList2.push(3);
+var deltaNew = pyList1.approxSize() - before; // cost of an extra node, plus another integer
+
+assert( deltaNew > delta );
+assert.eq( pyList1.approxSize() - pyList2.approxSize() , diff ); // added to both

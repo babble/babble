@@ -104,6 +104,12 @@ public class JSObjectSize {
             return ((Scope)o).approxSize( seen );
         }
 
+        if ( o instanceof JSObjectBase )
+            return ((JSObjectBase)o).approxSize( seen );
+
+        if ( o instanceof Sizable )
+            return ((Sizable)o).approxSize( seen );
+
         if ( o instanceof Collection ){
 	    Collection c = (Collection)o;
 	    Iterator i = c.iterator();
@@ -125,13 +131,7 @@ public class JSObjectSize {
             }
             return temp;
         }
-	
-        if ( o instanceof JSObjectBase )
-            return ((JSObjectBase)o).approxSize( seen );
-        
-	if ( o instanceof Sizable )
-	    return ((Sizable)o).approxSize( seen );
-        
+
         if ( o instanceof Map ){
             Map m = (Map)o;
             long temp = 32;

@@ -38,11 +38,15 @@ public class HttpExceptions {
             _ioe = ioe;
         }
 
-        IOException _ioe;
+        public IOException getIOException(){
+            return _ioe;
+        }
+
+        final IOException _ioe;
     }
 
     public static class ClientError extends IOException {
-        ClientError( String msg ){
+        public ClientError( String msg ){
             super( "ClientError : " + msg );
         }
     }

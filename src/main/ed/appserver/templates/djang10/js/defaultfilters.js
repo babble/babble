@@ -58,8 +58,23 @@ var stringfilter =
     return f;
 };
 
+
 var re_escape = function(pattern) {
-    return pattern.replace(/\W/, function(c) { return "\\" + c; });
+    return pattern.replace(/\W/g, 
+            function(c) {        
+                switch(c) {
+                case "\n":
+                    return "\\n";
+                case "\t":
+                    return "\\t";
+                default:
+                    if('/.*+?|()[]{}\\'.contains(c))
+                        return "\\" + c;
+                    
+                    return c;
+                } 
+            }
+    );
 };
 ///////////////////////
 // STRINGS           //

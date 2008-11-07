@@ -22,6 +22,7 @@ import java.net.*;
 import java.util.*;
 
 import ed.net.*;
+import ed.net.nioclient.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 import ed.log.*;

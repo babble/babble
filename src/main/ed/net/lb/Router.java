@@ -25,6 +25,7 @@ import java.util.*;
 import ed.log.*;
 import ed.util.*;
 import ed.net.*;
+import ed.net.nioclient.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 
