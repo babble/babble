@@ -81,17 +81,17 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
     }
     
     public String getDesiredVersion( String name ){
+        
+        if ( _context != null )
+            return _context.getVersionForLibrary( name );
 
         if ( _scope != null )
-            return _getDesiredVersion( _scope , name );
-
-        if ( _context != null )
-            return _getDesiredVersion( _context._scope , name ); // its very important this not call getScope().  that would cause an inf. loop
+            return AppContext.getVersionForLibrary( _scope , name );
         
         return null;
     }
 
-    String _getDesiredVersion( Scope s , String name ){
+    private String _getDesiredVersion( Scope s , String name ){
         if ( _context != null )
             return _context.getVersionForLibrary( name );
         return AppContext.getVersionForLibrary( s , name );

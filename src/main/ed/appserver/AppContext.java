@@ -327,20 +327,13 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
             if (f == null || !f.exists())
                 return;
-
-            Set<String> newThings = new HashSet<String>(_scope.keySet());
-
+            
             Convert c = new Convert(f);
-            c.get().call(_scope);
+            JSFunction func = c.get();
+            func.setUsePassedInScope( true );
+            func.call( _configScope );
 
-            newThings.removeAll(_scope.keySet());
-
-            for (String newKey : newThings) {
-                Object val = _scope.get(newKey);
-                if (val instanceof String || val instanceof JSString)
-                    _initParams.put(newKey, val.toString());
-            }
-
+            _logger.debug( "config things " + _configScope.keySet() );
         }
         catch (Exception e) {
             throw new RuntimeException("couldn't load config", e);
@@ -370,7 +363,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
      * @return the version of the library to run as a string.  null if should use default
      */
     public String getVersionForLibrary(String name) {
-        String version = getVersionForLibrary(_scope, name, this);
+        String version = getVersionForLibrary( _configScope, name, this);
         _libraryVersions.set(name, version);
         return version;
     }
@@ -387,11 +380,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         return getVersionForLibrary(s, name, ar == null ? null : ar.getContext());
     }
 
-
     /**
      * @unexpose
      */
-    public static String getVersionForLibrary(Scope s, String name, AppContext ctxt) {
+    private static String getVersionForLibrary(Scope s, String name, AppContext ctxt) {
         final String version = _getVersionForLibrary(s, name, ctxt);
         _libraryLogger.log(ctxt != null && !ctxt._admin ? Level.DEBUG : Level.INFO, ctxt + "\t" + name + "\t" + version);
         return version;
@@ -1242,15 +1234,18 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     public String getInitParameter(String name) {
-        return _initParams.get(name);
+        Object foo = _configScope.get( name );
+        if ( foo == null )
+            return null;
+        return foo.toString();
     }
 
     public Enumeration getInitParameterNames() {
-        return new CollectionEnumeration(_initParams.keySet());
+        return new CollectionEnumeration(_configScope.keySet());
     }
 
     public Object getConfigObject( String name ){
-        return _scope.get( name );
+        return _configScope.get( name );
     }
 
     public String getContextPath() {
@@ -1406,12 +1401,12 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     final Scope _scope;
     final IdentitySet _contextReachable;
     final Scope _initScope;
+    final Scope _configScope = new Scope();
     final UsageTracker _usage;
     final ModuleRegistry _moduleRegistry;
 
     final JSArray _globalHead = new JSArray();
 
-    private final Map<String, String> _initParams = new HashMap<String, String>();
     private final Map<String, File> _files = Collections.synchronizedMap(new HashMap<String, File>());
     private final Set<File> _initFlies = new HashSet<File>();
     private final Map<String, JxpSource> _httpServlets = Collections.synchronizedMap(new HashMap<String, JxpSource>());
