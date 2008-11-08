@@ -519,7 +519,7 @@ public class Python extends Language {
         if( o instanceof PyList ){
             PyList l = (PyList)o;
             int n = l.size();
-            long size = 0;
+            long size = 4*JSObjectSize.OBJ_OVERHEAD;
             for( int i = 0; i < n; ++i){
                 PyObject foo = l.pyget(i);
                 size += 4; // pointer to an object?

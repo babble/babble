@@ -31,7 +31,7 @@ import ed.appserver.*;
 import ed.appserver.jxp.JxpSource;
 import ed.log.Logger;
 
-public class PythonJxpSource extends JxpSource {
+public class PythonJxpSource extends JxpSource implements Sizable {
 
     static {
         System.setProperty( "python.cachedir", ed.io.WorkingFiles.TMP_DIR + "/jython-cache/" + Version.PY_VERSION );
@@ -192,6 +192,15 @@ public class PythonJxpSource extends JxpSource {
 
     public File getFile(){
         return _file;
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return // super.approxSize( seen ) +
+            JSObjectSize.size( _file , seen ) +
+            JSObjectSize.size( _lib , seen ) +
+            JSObjectSize.size( _code , seen ) +
+            JSObjectSize.size( _lastCompile , seen ) +
+            JSObjectSize.size( _log , seen );
     }
     // static b/c it has to use ThreadLocal anyway
     final static Logger _log = Logger.getLogger( "python" );
