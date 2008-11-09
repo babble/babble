@@ -1,0 +1,71 @@
+{
+    docFormat : "1",
+    
+    environments : {
+
+        cgi : {
+            defaultVersion : "1.0",
+            versions : [
+                {
+                    version : "1.0",
+                    adapterType : "CGI"
+                }
+            ]
+        },
+
+        wsgi : {
+            defaultVersion : "1.0",
+            versions : [
+                {
+                    version : "1.0",
+                    adapterType : "WSGI"
+                }
+            ]
+        },
+
+        rake : {
+            defaultVersion : "1.0",
+            versions : [
+                {
+                    version : "1.0",
+                    adapterType : "CGI",
+                    packages : [
+                        {
+                            name : "rake",
+                            module : "rb-rake",
+                            version : "master"
+                        }
+                    ]
+                }
+            ]
+        },
+
+        appengine : {
+            defaultVersion : "1.0",
+            versions : [
+                {
+                    version : "1.0",
+                    adapterType : "CGI",
+                    packages : [
+                        {
+                            name : "google",
+                            module : "py-google",
+                            version : "master"
+                        }
+                    ],
+                    initFile : "/~~/modules/py-google/_init_ae.py"
+                }
+            ]
+        },
+
+        ror : {
+            defaultVersion : "1.0",
+            versions : [
+                {
+                    version : "1.0",
+                    adapterType : "CGII"
+                }
+            ]
+        }
+    }
+}

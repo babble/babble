@@ -37,6 +37,8 @@ import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.util.*;
 import ed.lang.python.*;
+import ed.io.StreamUtil;
+import org.apache.log4j.lf5.util.StreamUtils;
 
 /**
  * This is the container for an instance of a site on a single server.
@@ -146,8 +148,30 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         _logger.info("Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch);
 
+        _loadAppEnvironmentInfo();
     }
 
+    private void _loadAppEnvironmentInfo() {
+        try {
+
+            InputStream is = this.getClass().getClassLoader().getResourceAsStream("appenvironments.json");
+            if (is == null) {
+                _logger.info("No appenvironments.json file found");
+                return;
+            }
+
+            _appEnvironments = new AppEnvironments(is);
+
+            Map<String, AppEnvironments.AE> map = _appEnvironments.getAppEnvironments();
+            for (String s : map.keySet()) {
+
+                _logger.info("AppEnv : " + s + " : " + map.get(s).toString());
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
     /**
      *  Returns the adapter type for the given file.  Will first use the
      *  adapter selector function if it was specified in init.js, otherwise
@@ -199,7 +223,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             return _staticAdapterType;
         }
 
-        AdapterType t = _getAdapterTypeFromString(o.toString());
+        AdapterType t = getAdapterTypeFromString(o.toString());
 
         return (t == null ? _staticAdapterType : t);
     }
@@ -560,6 +584,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _setupScope();
 
         _setStaticAdapterType();
+        
         _setAdapterSelectorFunction();
 
         return _scope;
@@ -583,6 +608,11 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         log("Adapter selector function specified in _init file");
     }
 
+    public void setStaticAdapterType(AdapterType type) {
+        log("Static adapter type directly set : " + type);
+        _staticAdapterType = type;
+    }
+
     /**
      *  Figure out what kind of static adapter type was specified.
      *  By default it's a 10genDEFAULT app
@@ -590,12 +620,20 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     protected void _setStaticAdapterType() {
 
         /*
+         *  app configuration steps could have set this already.  If so, don't bother doing anything
+         */
+        if (_staticAdapterType != AdapterType.UNSET) {
+            log("Static adapter type has already been directly set to " + _staticAdapterType);
+            return;
+        }
+        
+        /*
          * check to see if overridden in 10gen.properties
          */
         String override = Config.get().getProperty(INIT_ADAPTER_TYPE);
 
         if (override != null) {
-            AdapterType t = _getAdapterTypeFromString(override);
+            AdapterType t = getAdapterTypeFromString(override);
 
             if (t == null){
                 log("Static adapter type specified as override [" + override + "] unknown - will use _init file specified or default");
@@ -624,7 +662,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             return;
         }
 
-        _staticAdapterType = _getAdapterTypeFromString(o.toString());
+        _staticAdapterType = getAdapterTypeFromString(o.toString());
 
         if(_staticAdapterType == null) {
             log("Static adapter type from _init file [" + o.toString() + "] unknown - using default value of DIRECT_10GEN");
@@ -637,7 +675,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         return;
     }
 
-    protected AdapterType _getAdapterTypeFromString(String s) {
+    public AdapterType getAdapterTypeFromString(String s) {
 
         if (AdapterType.DIRECT_10GEN.toString().equals(s.toUpperCase())) {
             return AdapterType.DIRECT_10GEN;
@@ -989,6 +1027,8 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
                 }
             }
 
+            _setupAppEnv();
+
             _runInitFiles(INIT_FILES);
 
             if (_adminContext != null) {
@@ -1016,6 +1056,69 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             this.approxSize(_contextReachable);
         }
 
+    }
+
+    /**
+     *   Sets up the application environment for the app.  An "app env" is specified
+     *   in the "_10gen_config.json" file, specifying one of the valid names in
+     *   config/appenvironments.json and an optional version.  Ex :
+     *
+     *    {
+     *       appenvironment : { name = "appengine", version = "1.0" }
+     *    }
+     *
+     *   The lack of a _10gen_config.json file isn't a failure condition, nor is the lack of an
+     *   appenvironment key in the json.
+     */
+    protected void _setupAppEnv() {
+
+        try {
+            File f = new File(_rootFile, "_10gen_config.json");
+
+            if (!f.exists()) {
+                _logger.info("No application environment config specified.");
+                return;
+            }
+
+            JSObjectBase obj = (JSObjectBase) JSON.parse(StreamUtil.readFully(f));
+
+            if (obj == null) {
+                return;
+            }
+
+            JSObjectBase jso = (JSObjectBase) obj.get("appenvironment");
+
+            if (jso == null) {
+                return;
+            }
+
+            /*
+             *  first, check for a custom object
+             */
+
+            JSObjectBase custom = (JSObjectBase) jso.get("custom");
+
+            if (custom != null) {
+
+                _appEnvironments.setupContextCustom(this, custom);
+            }
+            else {
+                String name = jso.getAsString("name");
+
+                if (name == null) {
+                    throw new RuntimeException("Error : appenvironment declaration has neither 'custom' or non-null 'name'");
+                }
+                
+                String version = jso.getAsString("version");
+
+                _logger.info("setupAppEnv : setting environment to " + name + ", version = " + version);
+
+                _appEnvironments.setupContext(this, name, version);
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean inScopeSetup() {
@@ -1488,7 +1591,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     public final static String INIT_ADAPTER_TYPE = "adapterType";
     public final static String INIT_ADAPTER_SELECTOR = "adapterSelector";
 
-    private AdapterType _staticAdapterType = AdapterType.DIRECT_10GEN;
+    private AdapterType _staticAdapterType = AdapterType.UNSET;
     private JSFunction _adapterSelector = null;
 
     private static Logger _libraryLogger = Logger.getLogger("library.load");
@@ -1498,6 +1601,8 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     private static final Set<String> _knownInitScopeThings = new HashSet<String>();
+
+    private static AppEnvironments _appEnvironments;
 
     static {
         _knownInitScopeThings.add("mapUrlToJxpFileCore");
