@@ -58,8 +58,10 @@ public class JSRegex extends JSObjectBase {
                 // create a new regexp from the parameter
                 else {
                     JSRegex r = (JSRegex)a;
-                    CachedResult cr = r._last.get();
-                    ((JSRegex)o).init( cr.source, r.getFlags() );
+                    String g = r.global ? "g" : "";
+                    String i = r.ignoreCase ? "i" : "";
+                    String m = r.multiline ? "m" : "";
+                    ((JSRegex)o).init( r.source, g+i+m );
                     return o;
                 }
             }
@@ -149,14 +151,13 @@ public class JSRegex extends JSObjectBase {
                             return null;
                         }
                         JSRegex r = (JSRegex)o;
-                        CachedResult cr = r._last.get();
-                        String source = cr.source;
+                        String source = r.source;
                         // default source
                         if( source.equals( "" ) )
                             source = "(?:)";
-                        String g = cr.global ? "g" : "";
-                        String i = cr.ignoreCase ? "i" : "";
-                        String m = cr.multiline ? "m" : "";
+                        String g = r.global ? "g" : "";
+                        String i = r.ignoreCase ? "i" : "";
+                        String m = r.multiline ? "m" : "";
                         return new JSString( "/" + source + "/" + g + i + m );
                     }
                 } );
@@ -269,11 +270,11 @@ public class JSRegex extends JSObjectBase {
     }
 
     public void setProps( String p, String f) {
-        if( _last.get() == null ) {
-            _last.set( new CachedResult( p , null , AppRequest.getThreadLocal() , null ) );
-        }
         CachedResult cr = _last.get();
-        cr.initialize( this );
+        source = p;
+        global = f.indexOf( "g" ) >= 0;
+        ignoreCase = f.indexOf( "i" ) >= 0;
+        multiline = f.indexOf( "m" ) >= 0;
     }
 
 
@@ -387,9 +388,9 @@ public class JSRegex extends JSObjectBase {
      * @param f Flags
      */
     private void init( String p , String f ){
+        setProps( p, f );
         _p = _jsToJava( p );
         _f = f == null ? "" : f;
-        setProps( p, f );
 
         {
             int compilePatterns = 0;
@@ -412,37 +413,29 @@ public class JSRegex extends JSObjectBase {
     }
 
     public Object set( Object n, Object v ) {
-        CachedResult cr = _last.get();
-        cr.initialize( this );
         String s = n.toString();
         if( s.equals( "lastIndex" ) ) {
-            cr.lastIndex = Integer.parseInt( v.toString() );
+            _last.get().lastIndex = Integer.parseInt( v.toString() );
         }
         return v;
     }
 
     public Object get( Object n ) {
-        CachedResult cr = _last.get();
-        if( cr == null ) {
-            _last.set( new CachedResult( null, null, AppRequest.getThreadLocal(), null ) );
-            cr = _last.get();
-        }
-        cr.initialize( this );
         String s = n.toString();
         if( s.equals( "lastIndex" ) ) {
-            return cr.lastIndex;
+            return _last.get().lastIndex;
         }
         if( s.equals( "source" ) ) {
-            return cr.source;
+            return this.source;
         }
         if( s.equals( "global" ) ) {
-            return cr.global;
+            return this.global;
         }
         if( s.equals( "ignoreCase" ) ) {
-            return cr.ignoreCase;
+            return this.ignoreCase;
         }
         if( s.equals( "multiline" ) ) {
-            return cr.multiline;
+            return this.multiline;
         }
         return super.get( n );
     }
@@ -465,14 +458,8 @@ public class JSRegex extends JSObjectBase {
      * @return /expression/flags
      */
     public String toString(){
-        CachedResult cr = _last.get();
-        if( cr == null ) {
-            _last.set( new CachedResult( null, null, AppRequest.getThreadLocal(), null ) );
-            cr = _last.get();
-        }
-        cr.initialize( this );
-        String source = cr.source;
-        if( cr.source == null )
+        String source = this.source;
+        if( source == null )
             source = "(?:)";
         if( _f == null )
             _f = "";
@@ -537,11 +524,10 @@ public class JSRegex extends JSObjectBase {
     public JSArray exec( final String s , final boolean canUseOld ){
         
         CachedResult cr = _last.get();
-        cr.initialize( this );
 
         final Matcher m;
         
-        if ( canUseOld && cr != null && s == cr._input && s.equals( cr._input ) && cr._request == AppRequest.getThreadLocal() ){
+        if ( canUseOld && s == cr._input && s.equals( cr._input ) && cr._request == AppRequest.getThreadLocal() ){
             m = cr._matcher;
         }
         else {
@@ -549,7 +535,7 @@ public class JSRegex extends JSObjectBase {
         }
 
         if ( cr.lastIndex > s.length() || !m.find( cr.lastIndex ) ) {
-            if( cr.global ) {
+            if( global ) {
                 cr.lastIndex = 0;
             }
             _cons.set( "lastMatch", null );
@@ -575,7 +561,7 @@ public class JSRegex extends JSObjectBase {
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
         a.set( "index" , m.start() );
-        if( cr.global ) {
+        if( global ) {
             cr.lastIndex = m.end();
         }
 
@@ -598,21 +584,18 @@ public class JSRegex extends JSObjectBase {
     }
 
     void _setLast( JSArray arr ){
-        CachedResult r = _last.get();
-        if( r == null ) {
-            _last.set( new CachedResult( arr.get( "input" ).toString() , 
-                                          (Matcher)arr.get( "_matcher" ) , 
-                                          AppRequest.getThreadLocal() , 
-                                          arr ) );
-            r = _last.get();
+        CachedResult cr = _last.get();
+        if( cr == null ) {
+            _last.set( new CachedResult( null, null, null, null ) );
+            cr = _last.get();
         }
-        r.initialize( this );
-        r._request = AppRequest.getThreadLocal();
-        r._array = arr;
+        System.out.println("cr: "+cr);
+        cr._request = AppRequest.getThreadLocal();
+        cr._array = arr;
         if( arr == null )
             return;
-        r._input = arr.get( "input" )+"";
-        r._matcher = (Matcher)arr.get( "_matcher" );
+        cr._input = arr.get( "input" )+"";
+        cr._matcher = (Matcher)arr.get( "_matcher" );
     }
 
     /** Get the array of matches generated last.
@@ -656,6 +639,11 @@ public class JSRegex extends JSObjectBase {
         return buf.toString();
     }
 
+    String source = null;
+    boolean global = false;
+    boolean multiline = false;
+    boolean ignoreCase = false;
+
     /** @unexpose */
     String _p;
     /** @unexpose */
@@ -676,21 +664,7 @@ public class JSRegex extends JSObjectBase {
             _request = req;
             _array = arr;
         }
-
-        public void initialize( JSRegex foo ) {
-            if( initialized )
-                return;
-            source = foo.getPattern().toString();
-            global = foo.getFlags().indexOf( "g" ) >= 0;
-            ignoreCase = foo.getFlags().indexOf( "i" ) >= 0;
-            multiline = foo.getFlags().indexOf( "m" ) >= 0;
-            initialized = true;
-        }
         
-        String source = null;
-        boolean global = false;
-        boolean multiline = false;
-        boolean ignoreCase = false;
         int lastIndex = 0;
 
         String _input;
@@ -698,11 +672,14 @@ public class JSRegex extends JSObjectBase {
         AppRequest _request;
         
         JSArray _array;
-        boolean initialized = false;
     }
 
     /** @unexpose */
-    ThreadLocal<CachedResult> _last = new ThreadLocal<CachedResult>();
+    ThreadLocal<CachedResult> _last = new ThreadLocal<CachedResult>() {
+        @Override protected CachedResult initialValue() {
+            return new CachedResult( null, null, AppRequest.getThreadLocal(), null );
+        }
+    };
     
     /** @unexpose */
     static ThreadLocal<JSRegex> _lastRegex = new ThreadLocal<JSRegex>();
