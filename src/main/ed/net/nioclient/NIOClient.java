@@ -215,7 +215,20 @@ public abstract class NIOClient extends Thread {
         for ( ConnectionPool pool : pools )
             for ( Iterator<Connection> i = pool.getAll() ; i.hasNext(); )
                 i.next().checkForTimeOut();
-        
+
+        int total = 0;
+        for ( SelectionKey key : _selector.keys() ){
+            total++;
+        }
+        setNumSelectors( total );
+    }
+
+    protected void setNumSelectors( int total ){
+        _numSelectors = total;
+    }
+    
+    protected int getNumSelectors(){
+        return _numSelectors;
     }
     
     public boolean isShutDown(){
@@ -322,12 +335,14 @@ public abstract class NIOClient extends Thread {
     final protected int _connectionsPerHost;
     private boolean _shutdown = false;
     private long _shutdownTime = 0;
-
+    
     final Logger _logger;
     final Logger _loggerOpen;
     final Logger _loggerDrop;
     final Logger _loggerLostConnection;
 
+    private int _numSelectors = 0;
+    
     Selector _selector;
     private final BlockingQueue<Call> _newRequests = new ArrayBlockingQueue<Call>( 1000 );
     private final Map<InetSocketAddress,ConnectionPool> _connectionPools = new HashMap<InetSocketAddress,ConnectionPool>();
