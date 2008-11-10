@@ -542,6 +542,10 @@ public class Python extends Language {
             return temp;
         }
 
+        if( o instanceof PySystemState ){
+            return systemStateSize( (PySystemState)o , seen );
+        }
+
         String blah = o.getClass().toString();
         if ( ! _seenClasses.contains( blah ) ){
             System.out.println("Python bridge couldn't figure out size of " + blah);
@@ -549,6 +553,76 @@ public class Python extends Language {
         }
 
         return 0;
+    }
+
+    public static long systemStateSize( PySystemState p , IdentitySet seen ){
+        long temp = JSObjectSize.OBJ_OVERHEAD;
+
+        // public PyList argv
+        temp += JSObjectSize.size( p.argv , seen ) + 4;
+
+        // public PyObject modules
+        temp += JSObjectSize.size( p.modules , seen ) + 4;
+
+        // public PyList path
+        temp += JSObjectSize.size( p.path , seen ) + 4;
+
+        // public PyList meta_path
+        temp += JSObjectSize.size( p.meta_path , seen ) + 4;
+
+        // public PyList path_hooks
+        temp += JSObjectSize.size( p.path_hooks , seen ) + 4;
+
+        // public PyObject path_importer_cache
+        temp += JSObjectSize.size( p.path_importer_cache , seen ) + 4;
+
+        // public PyObject ps1
+        temp += JSObjectSize.size( p.ps1 , seen ) + 4;
+
+        // public PyObject ps2
+        temp += JSObjectSize.size( p.ps2 , seen ) + 4;
+
+        // public PyObject executable
+        temp += JSObjectSize.size( p.executable , seen ) + 4;
+
+        // private String currentWorkingDir
+        temp += JSObjectSize.size( p.getCurrentWorkingDir() , seen ) + 4;
+
+        // private PyObject environ
+        temp += JSObjectSize.size( p.getEnviron() , seen ) + 4;
+
+        // private ClassLoader classLoader
+        temp += JSObjectSize.size( p.getClassLoader() , seen ) + 4;
+
+        // public PyObject stdout, stderr, stdin
+        temp += JSObjectSize.size( p.stdout , seen ) + 4;
+        temp += JSObjectSize.size( p.stderr , seen ) + 4;
+        temp += JSObjectSize.size( p.stdin , seen ) + 4;
+
+        // public PyObject __stdout__, __stderr__, __stdin__
+        temp += JSObjectSize.size( p.__stdout__ , seen ) + 4;
+        temp += JSObjectSize.size( p.__stderr__ , seen ) + 4;
+        temp += JSObjectSize.size( p.__stdin__ , seen ) + 4;
+
+        // public PyObject __displayhook__, __excepthook__
+        temp += JSObjectSize.size( p.__displayhook__ , seen ) + 4;
+        temp += JSObjectSize.size( p.__excepthook__ , seen ) + 4;
+
+        // public PyObject last_value
+        temp += JSObjectSize.size( p.last_value , seen ) + 4;
+
+        // public PyObject last_type
+        temp += JSObjectSize.size( p.last_type , seen ) + 4;
+
+        // public PyObject last_traceback
+        temp += JSObjectSize.size( p.last_traceback , seen ) + 4;
+
+        // public PyObject __name__
+        temp += JSObjectSize.size( p.__name__ , seen ) + 4;
+        // public PyObject __dict__
+        temp += JSObjectSize.size( p.__dict__ , seen ) + 4;
+
+        return temp;
     }
 
     /**
