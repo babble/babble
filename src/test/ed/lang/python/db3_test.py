@@ -55,3 +55,12 @@ _10gen.assert( t.findOne( { "_id" : a["_id"] } ) );
 _10gen.assert( t.findOne( { "_id" : str( a["_id"] ) } ) );
 
 
+
+#boolean
+t.drop();
+t.save( { "a" : True , "b" : False , "c" : 5 , "d" : None} );
+r = t.findOne();
+assert( r.c == 5 )
+assert( r.a == True )
+assert( r.b == False )
+assert( r.d == None )
