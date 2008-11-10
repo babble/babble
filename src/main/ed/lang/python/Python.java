@@ -538,10 +538,10 @@ public class Python extends Language {
             temp += 32; // sizeof ConcurrentMap?
             PyList list = ((PyDictionary)o).keys();
             for( int i = 0 ; i < list.size(); ++i ){
-            	temp += JSObjectSize.OBJ_OVERHEAD; // hash table entry
-            	PyObject key = list.pyget(i);
-            	temp += JSObjectSize.size( key , seen );
-            	temp += JSObjectSize.size( ((PyDictionary)o).__finditem__( (PyObject)key ) , seen );
+                temp += JSObjectSize.OBJ_OVERHEAD; // hash table entry
+                PyObject key = list.pyget(i);
+                temp += JSObjectSize.size( key , seen );
+                temp += JSObjectSize.size( ((PyDictionary)o).__finditem__( (PyObject)key ) , seen );
             }
             return temp;
         }
