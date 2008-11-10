@@ -212,6 +212,10 @@ class LBCall extends Call {
             _logger.debug( 1 , "client error" , ioe );
             return WhatToDo.CLIENT_ERROR;
         }
+        
+        if ( isDone() && ! _keepalive )
+            return WhatToDo.DONE_AND_CLOSE;
+
         return WhatToDo.PAUSE;
     }
         
