@@ -38,6 +38,7 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  * is a JSObject that contains and forwards value changes to a RubyObject.
  *
  * @see RubyJSObjectWrapper
+ * @see JSObject
  */
 public class JSObjectWrapper implements JSObject {
 
@@ -135,13 +136,11 @@ public class JSObjectWrapper implements JSObject {
     }
 
     public Object setInt(int n, Object v) {
-        if (_robj instanceof RubyArray)
-            ((RubyArray)_robj).aset(_robj.getRuntime().newFixnum(n), toRuby(_scope, _robj.getRuntime(), v));
         return v;
     }
 
     public Object getInt(int n) {
-        return _robj instanceof RubyArray ? toJS(_scope, ((RubyArray)_robj).aref(_robj.getRuntime().newFixnum(n))) : null;
+        return null;
     }
 
     public Object removeField(Object n) {
