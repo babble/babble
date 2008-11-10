@@ -23,6 +23,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
+
 import javax.net.ssl.*;
 import javax.servlet.http.*;
 
@@ -452,13 +453,19 @@ public class XMLHttpRequest extends JSObjectBase {
         }
 
         public void gotCookie( Cookie c ){
-            JSObject cookies = (JSObject)get( "cookies" );
+            JSCookieJar cookies = (JSCookieJar)get( "cookies" );
             if ( cookies == null ){
-                cookies = new JSObjectBase();
+                cookies = new JSCookieJar();
                 set( "cookies" , cookies );
             }
-            cookies.set( c.getName() , new JSString( c.getValue() ) );            
-            _cookies.put( c.getName() , c );
+            
+            try {
+                URL url = new URL( get( "finalURL").toString() );
+                cookies.addCookie( url, c );
+            }
+            catch( MalformedURLException e ) {
+                //TODO: handle illegal cookies
+            }
         }
         
         public void setFinalUrl( URL url ){
@@ -478,7 +485,18 @@ public class XMLHttpRequest extends JSObjectBase {
         }
 
         public Map<String,Cookie> getCookiesToSend(){
-            return _cookies;
+            JSCookieJar cookieJar = (JSCookieJar)get( "cookies" );
+            
+            if( cookieJar == null)
+                return null;
+
+            List<Cookie> cookiesToSend = cookieJar.getCookies( _checkURL() );
+            
+            Map<String, Cookie> weirdMap = new HashMap<String, Cookie>();
+            for(Cookie cookie : cookiesToSend)
+                weirdMap.put( cookie.getName() , cookie );
+            
+            return weirdMap;
         }
 
         public byte[] getPostDataToSend(){
@@ -500,7 +518,6 @@ public class XMLHttpRequest extends JSObjectBase {
         int _contentLength = 0;
         String _contentEncoding = "UTF8";
         StringBuilder _header = new StringBuilder();
-        Map<String,Cookie> _cookies = new TreeMap<String,Cookie>();
     }
 
 
