@@ -75,7 +75,7 @@ public class Module {
         _versioned = ! ( _root.exists() && GitUtils.isSourceDirectory( _root ) );
         
         _config = _versioned ? ModuleRegistry.getARegistry( AppContext.findThreadLocal() ).getConfig( name ) : null;
-        _giturl = _config == null || ! USE_GIT ? null : _config.getGitUrl();
+        _giturl = _config == null ? null : _config.getGitUrl();
         
         if ( ! _root.exists() && _giturl != null )
             _root.mkdirs();
@@ -97,7 +97,7 @@ public class Module {
     public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
         synchronized ( _lock ){
             File f = getRootFile( version );
-            if ( pull && _versioned && GitUtils.onBranch( f ) )
+            if ( USE_GIT && pull && _versioned && GitUtils.onBranch( f ) )
                 GitUtils.pull( f , false );
             return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
         }
