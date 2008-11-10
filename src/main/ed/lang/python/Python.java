@@ -528,6 +528,10 @@ public class Python extends Language {
             return size;
         }
 
+        if( o instanceof PyNone ){
+            return JSObjectSize.OBJ_OVERHEAD;
+        }
+
         // PyDictionary: protected final ConcurrentMap table
         if( o instanceof PyDictionary ){
             long temp = 0;
@@ -541,6 +545,59 @@ public class Python extends Language {
             }
             return temp;
         }
+
+        if( o instanceof PyFunction ){
+            // public String __name__
+            // public PyObject __doc__
+            // public PyObject func_globals
+            // public PyObject[] func_defaults
+            // public PyObject __dict__
+            // public PyObject func_closure
+            // public PyObject __module__
+            PyFunction f = (PyFunction)o;
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            temp += JSObjectSize.size( f.__name__ , seen ) + 4;
+            temp += JSObjectSize.size( f.__doc__ , seen ) + 4;
+            temp += JSObjectSize.size( f.func_globals , seen ) + 4;
+            temp += 4; // pointer to func_defaults
+            if( f.func_defaults != null )
+                for( PyObject d : f.func_defaults ){
+                    temp += JSObjectSize.size( d , seen ) + 4;
+                }
+            temp += JSObjectSize.size( f.__dict__ , seen ) + 4;
+            temp += JSObjectSize.size( f.func_closure , seen ) + 4;
+            temp += JSObjectSize.size( f.__module__ , seen ) + 4;
+            return temp;
+        }
+
+        if( o instanceof PyFile ){
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            PyFile f = (PyFile)o;
+            // public PyObject name
+            temp += JSObjectSize.size( f.name , seen ) + 4;
+            // public String mode
+            temp += JSObjectSize.size( f.mode , seen ) + 4;
+            // public boolean softspace
+            // private boolean reading
+            // private boolean writing
+            // private boolean appending
+            // private boolean updating
+            // private boolean binary
+            // private boolean universal
+            temp += 7; // seven booleans?
+            // private TextIOBase file
+            // FIXME: probably have to pass this through again
+
+            // private Closer closer
+            temp += JSObjectSize.OBJ_OVERHEAD;
+            return temp;
+        }
+
+        /*
+        if( o instanceof PySystemStateFunctions ){
+            return JSObjectSize.OBJ_OVERHEAD;
+        }
+        */
 
         if( o instanceof PySystemState ){
             return systemStateSize( (PySystemState)o , seen );
@@ -621,6 +678,8 @@ public class Python extends Language {
         temp += JSObjectSize.size( p.__name__ , seen ) + 4;
         // public PyObject __dict__
         temp += JSObjectSize.size( p.__dict__ , seen ) + 4;
+
+        // __builtins__?
 
         return temp;
     }
