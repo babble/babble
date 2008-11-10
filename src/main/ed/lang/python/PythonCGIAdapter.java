@@ -187,8 +187,8 @@ public class PythonCGIAdapter extends CGIAdapter {
             return CGITLSData.getThreadLocal().getPyDict().__finditem__(key);
         }
 
-        public PyObject __setitem__(PyObject key, PyObject value) {
-            return CGITLSData.getThreadLocal().getPyDict().__setitem__(key, value);
+        public void __setitem__(PyObject key, PyObject value) {
+            CGITLSData.getThreadLocal().getPyDict().__setitem__(key, value);
         }
     }
 }
