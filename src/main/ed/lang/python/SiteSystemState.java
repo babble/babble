@@ -46,7 +46,7 @@ import ed.util.*;
  * 10gen-specific munging here. Our caller should pass
  * SiteSystemState.getPyState() to Py.setSystemState as needed.
  */
-public class SiteSystemState {
+public class SiteSystemState implements Sizable {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SITESYSTEMSTATE" );
     static final String COREMODULES_STRING = "COREMODULES_10GEN";
 
@@ -378,6 +378,8 @@ public class SiteSystemState {
                 }
             }
 
+            // FIXME: this ain't finished
+            if( innerMod == null ) return _finish( target , siteModule , m );
             PyObject to = innerMod.__findattr__( "__name__".intern() );
             if( to == null ) return _finish( target , siteModule , m );
 
@@ -762,6 +764,14 @@ public class SiteSystemState {
             }
             return Py.None;
         }
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return JSObjectSize.size( _log , seen ) +
+            JSObjectSize.size( globals , seen ) +
+            JSObjectSize.size( pyState , seen ) +
+            JSObjectSize.size( _context , seen ) +
+            JSObjectSize.size( _scope , seen );
     }
 
     final static Logger _log = Logger.getLogger( "python" );

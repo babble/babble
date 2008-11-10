@@ -88,6 +88,10 @@ public class ServletWriter extends JSFunctionCalls1 {
         };
     }
 
+    public void resetBuffer(){
+        _writer.reset();
+    }
+
     public Object get( Object n ){
         if ( "cdnPrefix".equals( n ) )
             return _fixer.getCDNPrefix();

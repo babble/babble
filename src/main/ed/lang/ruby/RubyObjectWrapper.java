@@ -180,12 +180,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
         if (r instanceof RubyObjectIdWrapper)
             return ((RubyObjectIdWrapper)r).getObjectId();
         if (r instanceof RubyArray) {
-            RubyArray ra = (RubyArray)r;
-            int len = ra.getLength();
-            JSArray ja = new JSArray(len);
-            for (int i = 0; i < len; ++i)
-                ja.setInt(i, toJS(scope, ra.entry(i)));
-            return ja;
+            Object o = new ed.lang.ruby.JSArrayWrapper(scope, (RubyArray)r);
+            cacheWrapper(r.getRuntime(), o, r);
+            return o;
         }
         if (r instanceof RubyHash) {
             RubyHash rh = (RubyHash)r;

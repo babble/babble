@@ -93,7 +93,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                 set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
         }
         
-        set( "constructor" , null );
+        super.set( "constructor" , null );
+        super.set( "prototype" , null );
     }
 
     private synchronized void _init(){
@@ -139,7 +140,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                 if ( s.equals( "_init" ) )
                     continue;
 
-                Object thing = super.get( s );
+                Object thing = super.get( _mangleKey( s ) );
 
                 if ( thing instanceof JxpSource ||
                      thing instanceof JSFileLibrary  )
@@ -422,10 +423,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     Object _get( final Object n ){
         if ( DS ) System.out.println( _uriBase + "\t GETTING \t [" + n + "]" );
 
-        Object v = super.get( n );
+        Object v = super.get( _mangleKey( n ) );
         if ( v != null )
             return v;
-
+        
         if ( ! ( n instanceof JSString ) &&
              ! ( n instanceof String ) )
             return null;
@@ -540,6 +541,23 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         size += JSObjectSize.size( _fileCache , seen );
 
         return size;
+    }
+
+    public Object set( Object k , Object v ){
+        return super.set( _mangleKey( k ) , v );
+    }
+    
+    private Object _mangleKey( Object key ){
+        if ( ! ( key instanceof String || 
+                 key instanceof JSString ) )
+            return key;
+        
+        String k = key.toString();
+
+        if ( key.equals( "constructor" ) ||
+             key.equals( "prototype" )  )
+            return "_________" + key;
+        return key;
     }
 
     final JSFileLibrary _parent;

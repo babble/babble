@@ -76,6 +76,7 @@ public class ENode extends JSObjectBase {
         }
 
         protected void init() {
+            
             _prototype.set( "addNamespace" , new ENodeFunction() {
                     public Object call( Scope s, Object foo[] ) {
                         return getENode( s ).addNamespace( getOneArg( foo ) );
@@ -369,6 +370,13 @@ public class ENode extends JSObjectBase {
         
         public Object get( Object n ) {
             String s = n.toString();
+            
+            if ( s.equals( "HTML" ) ){
+                if ( ! containsKey( "HTML" ) )
+                    super.set( "HTML" , new HtmlCons() );
+                return super.get( "HTML" );
+            }
+
             if( s.equals( ignoreCommentsStr ) )
                 return ignoreComments;
             if( s.equals( ignoreProcessingInstructionsStr ) )
@@ -379,12 +387,12 @@ public class ENode extends JSObjectBase {
                 return prettyPrinting;
             if( s.equals( prettyIndentStr ) )
                 return prettyIndent;
-            if( s.equals( "prototype" ) ) {
+            if( s.equals( "prototype" ) ) 
                 return this.getPrototype();
-            }
-            return null;
+            
+            return super.get( n );
         }
-
+        
         public Object set( Object k, Object v ) {
             String s = k.toString();
             String val = v.toString();
@@ -398,9 +406,9 @@ public class ENode extends JSObjectBase {
                 prettyPrinting = Boolean.parseBoolean(val);
             if( s.equals( prettyIndentStr ) )
                 prettyIndent = Long.parseLong(val);
-            return v;
+            return super.set( k , v );
         }
-
+        
         public Namespace getDefaultNamespace() {
             return defaultNamespace;
         }
@@ -408,6 +416,15 @@ public class ENode extends JSObjectBase {
         public Namespace setAndGetDefaultNamespace(Object o) {
             defaultNamespace = new Namespace( o );
             return defaultNamespace;
+        }
+    }
+
+    public static class HtmlCons extends Cons {
+        public JSObject newOne(){
+            ENode t = new ENode( this, defaultNamespace );
+            t._new = true;
+            t._html = true;
+            return t;
         }
     }
 
@@ -442,6 +459,7 @@ public class ENode extends JSObjectBase {
             this.children = children;
         }
         this.node = n;
+        _html = parent._html;
         nodeSetup(parent);
     }
 
@@ -450,6 +468,7 @@ public class ENode extends JSObjectBase {
         super( _getCons() );
         this.XML = n.XML;
         this.name = n.name;
+        _html = n._html;
 
         if( n.node != null ) {
             this.node = n.node.cloneNode( false );
@@ -542,7 +561,12 @@ public class ENode extends JSObjectBase {
             for( ENode n : parent.children ) {
                 if( n.node.getNodeType() == Node.ATTRIBUTE_NODE &&
                     n.name().toString().equals( this.name().toString() ) ) {
-                    throw new JSException( "TypeError: duplicate XML attribute "+this.name() );
+                    if ( _html ){
+                        // allowed in HTML
+                    }
+                    else {
+                        throw new JSException( "TypeError: duplicate XML attribute "+this.name() );
+                    }
                 }
             }
         }
@@ -670,9 +694,14 @@ public class ENode extends JSObjectBase {
                 if( s == null ) 
                     s = "";
             }
-            temp = XMLUtil.parse( "<parent>" + s + "</parent>" ).getDocumentElement();
+
+            if ( _html )
+                temp = HTMLUtil.parse( s );
+            else
+                temp = XMLUtil.parse( "<parent>" + s + "</parent>" ).getDocumentElement();
         }
         catch ( Exception e ) {
+            e.printStackTrace();
             throw new RuntimeException( "can't parse : " + e );
         }
 
@@ -2081,4 +2110,5 @@ public class ENode extends JSObjectBase {
     public Namespace defaultNamespace;
 
     private boolean _new = false;
+    private boolean _html = false;
 }

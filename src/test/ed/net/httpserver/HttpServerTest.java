@@ -244,6 +244,13 @@ public class HttpServerTest extends TestCase {
             buf.append("f");
     }
 
+    protected void checkData( int copies , String body ){
+        StringBuilder buf = new StringBuilder();
+        for ( int i=0; i<copies; i++ )
+            buf.append( PingHandler.DATA );
+        assertEquals( buf.toString() , body );
+    }
+
     public static class Response {
 
         Response(String fl, Map<String, String> h, byte[] data) {
@@ -261,11 +268,179 @@ public class HttpServerTest extends TestCase {
         public final Map<String, String> headers;
     }
 
+    public void testRandom1()
+        throws Throwable {
+        _testRandom( 10 , 10 );
+    }
+
+    public void testRandomBig()
+        throws Throwable {
+        if ( _load ){
+            System.out.println( "big random test" );
+            _testRandom( 20 , 20 );
+        }
+    }
+    
+    private void _testRandom( int threads , int seconds )
+        throws Throwable {
+    
+        final long start = System.currentTimeMillis();
+    
+        List<MyRandomThread> lst = new ArrayList<MyRandomThread>();
+        for ( int i=0; i<threads; i++ )
+            lst.add( new MyRandomThread( i ) );
+        
+        for ( MyRandomThread t : lst )
+            t.start();
+
+        try {
+            Thread.sleep( seconds * 1000 );
+        }
+        catch ( InterruptedException ie ){
+        }
+
+        for ( MyRandomThread t : lst )
+            t._go = false;
+
+        int total = 0;
+
+        for ( MyRandomThread t : lst ){
+            t.join();
+            total += t._requests;
+            if ( t._ioe != null )
+                throw t._ioe;
+        }
+        
+        final long end = System.currentTimeMillis();        
+        
+        System.out.println( "request/second: " + ( 1000 * total / ( end - start ) ) );
+    }
+    
+    class MyRandomThread extends Thread {
+
+        MyRandomThread( int num ){
+            _rand = new Random( 123123 * num );
+        }
+        
+        public void run(){
+            
+            try {
+                while ( _go ){
+                    
+                    switch ( _rand.nextInt( 5 ) ){
+                    case 0:
+                        _get();
+                        break;
+                    case 1:
+                        _post();
+                        break;
+                    case 2:
+                        _drop();
+                        break;
+                    }
+                    
+                }
+            }
+            catch ( Throwable t ){
+                _ioe = t;
+            }
+        }
+
+        void _drop()
+            throws IOException {
+            _check();
+            _sock.close();
+            _sock = null;
+        }
+    
+        void _get()
+            throws IOException{
+            _get( _rand.nextDouble() > .5 );
+        }
+
+        void _get( boolean close )
+            throws IOException {
+            
+            _check();
+            
+            final long start = System.currentTimeMillis();
+            
+            int num = _rand.nextInt( 10 );
+            
+            _sock.getOutputStream().write(headers("GET", "num=" + num , "Connection: " + ( close ? "Close" : "Keep-Alive" ) + "\r\n" ).toString().getBytes() );
+            InputStream in = _sock.getInputStream();
+            Response r = read(in);
+            checkResponse( r );
+            
+            final long end = System.currentTimeMillis();
+            assertLess( end - start , Math.max( 1000 , num * 1.5 ) );
+
+            assertEquals( num * PingHandler.DATA.length() , r.body.length() );
+            //LBFullTest.this.checkData( num , r.body);            
+            
+            if ( close ){
+                _sock.close();
+                _sock = null;
+            }
+            
+            _requests++;
+        }
+
+        void _post()
+            throws IOException {
+            _post( _rand.nextDouble() > .5 , _rand.nextInt( 50000 ) );
+        }
+        
+        void _post( boolean close , int size )
+            throws IOException {
+
+            _check();
+            
+            StringBuilder buf = headers("POST", "", "Content-Length: " + size + "\r\nConnection: " + ( close ? "Close" : "Keep-Alive" ) + "\r\n");
+            appendRandomData(buf, size);
+            _sock.getOutputStream().write( buf.toString().getBytes() );
+    
+            InputStream in = _sock.getInputStream();
+            Response r = read(in);
+            checkResponse( r );
+            assertEquals(PingHandler.DATA, r.body);            
+            
+            if ( close ){
+                _sock.close();
+                _sock = null;
+            }
+
+            _requests++;
+
+        }
+
+        void _check()
+            throws IOException {
+            if ( _sock == null )
+                _sock = open();
+        }
+        
+        final Random _rand;
+
+        boolean _go = true;
+        int _requests = 0;
+        
+        Socket _sock;
+        Throwable _ioe;
+    }
+
     HttpServer _server;
     final protected int _port;
+    protected boolean _load = false;
 
     public static void main(String args[])
             throws IOException {
-        (new HttpServerTest()).runConsole();
+        
+        HttpServerTest t = new HttpServerTest();
+
+        if ( Arrays.toString( args ).contains( "load" ) )
+            t._load = true;
+
+        t.runConsole();
     }
 }

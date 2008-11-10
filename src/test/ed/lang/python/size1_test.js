@@ -16,6 +16,12 @@
 
 local.src.test.ed.lang.python.size1_helper();
 
+/** assert that a <= b <= a + epsilon */
+var within = function( a , b , epsilon ){
+    assert( a <= b );
+    assert( b <= a + epsilon );
+};
+
 // These get converted to immutable objects.
 
 //print("boolean " + pyBoolean.approxSize());
@@ -28,9 +34,8 @@ var start = pyDict2.approxSize();
 
 var before = pyDict2.approxSize(); // str1: str2
 assert.eq( before , pyDict2.approxSize() );
-assert( before >= start );
-assert( before - start < 100 );
 assert.eq( before , pyDict2.approxSize() );
+within( start , before , 100 );
 
 
 pyModifyDict2(); // str1: str2
@@ -51,8 +56,7 @@ assert.eq(extraNode, pyDict2.approxSize());
 var start = pyList1.approxSize();
 var before = pyList1.approxSize();
 assert.eq( before , pyList1.approxSize() );
-assert( before >= start );
-assert( before - start < 100 );
+within( start , before , 100 );
 
 var diff = before - pyList2.approxSize();
 assert(diff > 0); // same object reused [1,1]
@@ -74,3 +78,17 @@ var deltaNew = pyList1.approxSize() - before; // cost of an extra node, plus ano
 
 assert( deltaNew > delta );
 assert.eq( pyList1.approxSize() - pyList2.approxSize() , diff ); // added to both
+
+var jxp = local.src.test.ed.lang.python.size1_helper;
+var jxp2 = local.src.test.ed.lang.python.date1_helper;
+
+var start = jxp.approxSize();
+var before = jxp.approxSize();
+
+within(start, before, 100);
+//assert.eq( before , jxp.approxSize() ); // FIXME: scope grows after within()?
+
+// jxp and jxp2 should share some stuff, so together they shouldn't be as
+// big as twice each one. Add the size of [] because Array is pretty big by
+// itself.
+assert( 2 * jxp.approxSize() + [].approxSize() > [ jxp , jxp2 ].approxSize() );

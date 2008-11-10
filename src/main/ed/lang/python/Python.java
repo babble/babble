@@ -284,7 +284,7 @@ public class Python extends Language {
         if ( o instanceof JSObject )
             return new PyJSObjectWrapper( (JSObject)o );
 
-        throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
+        return Py.java2py( o );
     }
 
     /**
@@ -516,10 +516,10 @@ public class Python extends Language {
         //    protected int size
         //    protected int modCountIncr
         // PySequence: public int gListAllocatedStatus
-        if( o instanceof PyList ){
-            PyList l = (PyList)o;
+        if( o instanceof PySequenceList ){
+            PySequenceList l = (PySequenceList)o;
             int n = l.size();
-            long size = 0;
+            long size = 4*JSObjectSize.OBJ_OVERHEAD;
             for( int i = 0; i < n; ++i){
                 PyObject foo = l.pyget(i);
                 size += 4; // pointer to an object?
@@ -528,18 +528,79 @@ public class Python extends Language {
             return size;
         }
 
+        if( o instanceof PyNone ){
+            return JSObjectSize.OBJ_OVERHEAD;
+        }
+
         // PyDictionary: protected final ConcurrentMap table
         if( o instanceof PyDictionary ){
             long temp = 0;
             temp += 32; // sizeof ConcurrentMap?
             PyList list = ((PyDictionary)o).keys();
             for( int i = 0 ; i < list.size(); ++i ){
-            	temp += JSObjectSize.OBJ_OVERHEAD; // hash table entry
-            	PyObject key = list.pyget(i);
-            	temp += JSObjectSize.size( key , seen );
-            	temp += JSObjectSize.size( ((PyDictionary)o).__finditem__( (PyObject)key ) , seen );
+                temp += JSObjectSize.OBJ_OVERHEAD; // hash table entry
+                PyObject key = list.pyget(i);
+                temp += JSObjectSize.size( key , seen );
+                temp += JSObjectSize.size( ((PyDictionary)o).__finditem__( (PyObject)key ) , seen );
             }
             return temp;
+        }
+
+        if( o instanceof PyFunction ){
+            // public String __name__
+            // public PyObject __doc__
+            // public PyObject func_globals
+            // public PyObject[] func_defaults
+            // public PyObject __dict__
+            // public PyObject func_closure
+            // public PyObject __module__
+            PyFunction f = (PyFunction)o;
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            temp += JSObjectSize.size( f.__name__ , seen ) + 4;
+            temp += JSObjectSize.size( f.__doc__ , seen ) + 4;
+            temp += JSObjectSize.size( f.func_globals , seen ) + 4;
+            temp += 4; // pointer to func_defaults
+            if( f.func_defaults != null )
+                for( PyObject d : f.func_defaults ){
+                    temp += JSObjectSize.size( d , seen ) + 4;
+                }
+            temp += JSObjectSize.size( f.__dict__ , seen ) + 4;
+            temp += JSObjectSize.size( f.func_closure , seen ) + 4;
+            temp += JSObjectSize.size( f.__module__ , seen ) + 4;
+            return temp;
+        }
+
+        if( o instanceof PyFile ){
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            PyFile f = (PyFile)o;
+            // public PyObject name
+            temp += JSObjectSize.size( f.name , seen ) + 4;
+            // public String mode
+            temp += JSObjectSize.size( f.mode , seen ) + 4;
+            // public boolean softspace
+            // private boolean reading
+            // private boolean writing
+            // private boolean appending
+            // private boolean updating
+            // private boolean binary
+            // private boolean universal
+            temp += 7; // seven booleans?
+            // private TextIOBase file
+            // FIXME: probably have to pass this through again
+
+            // private Closer closer
+            temp += JSObjectSize.OBJ_OVERHEAD;
+            return temp;
+        }
+
+        /*
+        if( o instanceof PySystemStateFunctions ){
+            return JSObjectSize.OBJ_OVERHEAD;
+        }
+        */
+
+        if( o instanceof PySystemState ){
+            return systemStateSize( (PySystemState)o , seen );
         }
 
         String blah = o.getClass().toString();
@@ -549,6 +610,78 @@ public class Python extends Language {
         }
 
         return 0;
+    }
+
+    public static long systemStateSize( PySystemState p , IdentitySet seen ){
+        long temp = JSObjectSize.OBJ_OVERHEAD;
+
+        // public PyList argv
+        temp += JSObjectSize.size( p.argv , seen ) + 4;
+
+        // public PyObject modules
+        temp += JSObjectSize.size( p.modules , seen ) + 4;
+
+        // public PyList path
+        temp += JSObjectSize.size( p.path , seen ) + 4;
+
+        // public PyList meta_path
+        temp += JSObjectSize.size( p.meta_path , seen ) + 4;
+
+        // public PyList path_hooks
+        temp += JSObjectSize.size( p.path_hooks , seen ) + 4;
+
+        // public PyObject path_importer_cache
+        temp += JSObjectSize.size( p.path_importer_cache , seen ) + 4;
+
+        // public PyObject ps1
+        temp += JSObjectSize.size( p.ps1 , seen ) + 4;
+
+        // public PyObject ps2
+        temp += JSObjectSize.size( p.ps2 , seen ) + 4;
+
+        // public PyObject executable
+        temp += JSObjectSize.size( p.executable , seen ) + 4;
+
+        // private String currentWorkingDir
+        temp += JSObjectSize.size( p.getCurrentWorkingDir() , seen ) + 4;
+
+        // private PyObject environ
+        temp += JSObjectSize.size( p.getEnviron() , seen ) + 4;
+
+        // private ClassLoader classLoader
+        temp += JSObjectSize.size( p.getClassLoader() , seen ) + 4;
+
+        // public PyObject stdout, stderr, stdin
+        temp += JSObjectSize.size( p.stdout , seen ) + 4;
+        temp += JSObjectSize.size( p.stderr , seen ) + 4;
+        temp += JSObjectSize.size( p.stdin , seen ) + 4;
+
+        // public PyObject __stdout__, __stderr__, __stdin__
+        temp += JSObjectSize.size( p.__stdout__ , seen ) + 4;
+        temp += JSObjectSize.size( p.__stderr__ , seen ) + 4;
+        temp += JSObjectSize.size( p.__stdin__ , seen ) + 4;
+
+        // public PyObject __displayhook__, __excepthook__
+        temp += JSObjectSize.size( p.__displayhook__ , seen ) + 4;
+        temp += JSObjectSize.size( p.__excepthook__ , seen ) + 4;
+
+        // public PyObject last_value
+        temp += JSObjectSize.size( p.last_value , seen ) + 4;
+
+        // public PyObject last_type
+        temp += JSObjectSize.size( p.last_type , seen ) + 4;
+
+        // public PyObject last_traceback
+        temp += JSObjectSize.size( p.last_traceback , seen ) + 4;
+
+        // public PyObject __name__
+        temp += JSObjectSize.size( p.__name__ , seen ) + 4;
+        // public PyObject __dict__
+        temp += JSObjectSize.size( p.__dict__ , seen ) + 4;
+
+        // __builtins__?
+
+        return temp;
     }
 
     /**

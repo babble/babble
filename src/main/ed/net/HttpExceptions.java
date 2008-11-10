@@ -50,4 +50,17 @@ public class HttpExceptions {
             super( "ClientError : " + msg );
         }
     }
+
+    public static class UnexpectedConnectionClosed extends EOFException {
+        public UnexpectedConnectionClosed( int numRequestsBeforeError ){
+            super( "UnexpectedConnectionClosed numRequestsBeforeError:" + numRequestsBeforeError );
+            _numRequestsBeforeError = numRequestsBeforeError;
+        }
+        
+        public int getNumRequestsBeforeError(){
+            return _numRequestsBeforeError;
+        }
+
+        final int _numRequestsBeforeError;
+    }
 }

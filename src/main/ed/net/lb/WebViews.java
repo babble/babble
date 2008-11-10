@@ -42,7 +42,7 @@ public class WebViews {
                     
                     if ( s.inErrorState() )
                         css = "error";
-                    else if ( s.timeSinceLastError() < 1000 * 60 )
+                    else if ( s.timeSinceLastError() < 1000 * 60 * 5 )
                         css ="warn";
                     
                     out.print( "<li class='" + css + "'>" + s + "</li>" );
