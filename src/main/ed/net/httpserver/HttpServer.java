@@ -45,14 +45,18 @@ public class HttpServer extends NIOServer {
     
     static final RollingNamedPipe _requestPipe = new RollingNamedPipe( "http-request" );
     static { _requestPipe.setMessageDivider( "\n" ); } 
-
+    
     public HttpServer( int port )
         throws IOException {
         super( port );
+
         _listentingPorts.add( port );
+
+        addHandler( new Stats() );
     }
     
     protected HttpSocketHandler accept( SocketChannel sc ){
+        _numTotalConnections++;
         return new HttpSocketHandler( this , sc );
     }
     
@@ -415,6 +419,10 @@ public class HttpServer extends NIOServer {
         _myHandlers.add( h );
     }
     
+    public void setStat( String name , int val ){
+        _specialStats.put( name , val );
+    }
+    
     List<HttpHandler> getHandlers(){
 
         int curHash = handlerHash();
@@ -469,45 +477,59 @@ public class HttpServer extends NIOServer {
         return Collections.unmodifiableSet( _listentingPorts );
     }
 
-    static final HttpHandler _stats = new HttpMonitor( "stats" ){
-
-            public void handle( MonitorRequest mr ){
-		mr.addHeader( "stats" );
-                
-		final HttpServer server = mr.getRequest()._handler._server;
-                final int forkedQueueSize = server._forkThreads.queueSize();
-		
-                if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
-                    mr.getResponse().setResponseCode( 510 );
-
-		mr.startData();
-
-                mr.addData( "forked queue length" , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? Status.WARN : Status.ERROR ) , forkedQueueSize );
-                mr.addData( "admin queue length" , server._forkThreadsAdmin.queueSize() );
-		
-		mr.addData( "forked processing" , server._forkThreads.inProgress() );
-		mr.addData( "admin processing" , server._forkThreadsAdmin.inProgress() );
-		
-                mr.addData( "&nbsp;" , "" );
-		
-                mr.addData( "numRequests" , _numRequests );
-                mr.addData( "numRequestsForked" , _numRequestsForked );
-                mr.addData( "numRequestsAdmin" , _numRequestsAdmin );
-		
-		mr.addData( "&nbsp;" , "" );
-                
-                mr.addData( "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
-		
-		mr.endData();
+    class Stats extends HttpMonitor {
+        Stats(){
+            super( "stats" );
             
-		mr.addSpacingLine();
-		
-		if ( mr.html() )
-		    _tracker.displayGraph( mr.getWriter() , _trackerOptions );
+        }
+        
+        public void handle( MonitorRequest mr ){
+            mr.addHeader( "stats" );
+            
+            final HttpServer server = mr.getRequest()._handler._server;
+            final int forkedQueueSize = server._forkThreads.queueSize();
+            
+            if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
+                mr.getResponse().setResponseCode( 510 );
+            
+            mr.startData();
+            
+            mr.addData( "forked queue length" , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? Status.WARN : Status.ERROR ) , forkedQueueSize );
+            mr.addData( "admin queue length" , server._forkThreadsAdmin.queueSize() );
+            
+            mr.addData( "forked processing" , server._forkThreads.inProgress() );
+            mr.addData( "admin processing" , server._forkThreadsAdmin.inProgress() );
+            
+            mr.addData( "&nbsp;" , "" );
+            
+            mr.addData( "numRequests" , _numRequests );
+            mr.addData( "numRequestsForked" , _numRequestsForked );
+            mr.addData( "numRequestsAdmin" , _numRequestsAdmin );
+            mr.addData( "numTotalConnections" , _numTotalConnections );
+            
+            mr.addData( "&nbsp;" , "" );
+            
+            mr.addData( "numSelectors" , getNumSelectors() );
+            for ( String ss : _specialStats.keySet() ){
+                mr.addData( ss , _specialStats.get( ss ) );
             }
 
-            final long _startTime = System.currentTimeMillis();
-        };
+            mr.addData( "&nbsp;" , "" );
+
+            mr.addData( "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
+            
+            mr.endData();
+            
+            mr.addSpacingLine();
+            
+            if ( mr.html() )
+                _tracker.displayGraph( mr.getWriter() , _trackerOptions );
+        }
+        
+        final long _startTime = System.currentTimeMillis();
+    }
+    
+    private Map<String,Integer> _specialStats = new HashMap<String,Integer>();
 
     static final List<HttpHandler> _globalHandlers = new ArrayList<HttpHandler>();
     static int _globalHandlersMods = 0;
@@ -519,7 +541,6 @@ public class HttpServer extends NIOServer {
 
     static {
         DummyHttpHandler.setup();
-        addGlobalHandler( _stats );
         addGlobalHandler( new HttpMonitor.MemMonitor() );
         addGlobalHandler( new HttpMonitor.ThreadMonitor() );
         addGlobalHandler( new HttpMonitor.FavIconHack() );
@@ -529,7 +550,8 @@ public class HttpServer extends NIOServer {
     private static int _numRequests = 0;
     private static int _numRequestsForked = 0;
     private static int _numRequestsAdmin = 0;
-    
+    private static int _numTotalConnections = 0;
+
     private static final int _trackerSmall = 10;
 
     private static HttpLoadTracker.Rolling _tracker = new HttpLoadTracker.Rolling( "webserver" );
