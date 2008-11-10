@@ -376,7 +376,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         if ( o == null )
             return;
 
-        _initScope.putAll( (JSObject)o.get( "config" ) );
+        _configScope.putAll( (JSObject)o.get( "config" ) );
     }
 
     /**
