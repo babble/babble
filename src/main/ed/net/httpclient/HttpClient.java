@@ -277,7 +277,6 @@ public class HttpClient {
             if ( c == null ){
                 c = new Cookie( name , value  );
                 c.setDomain( domain );
-                c.setSecure( true );
                 c.setPath("/");
             }
             else if ( name.equalsIgnoreCase("path") )
@@ -291,6 +290,8 @@ public class HttpClient {
                 catch ( Exception e ){
                     if ( DEBUG ) LOGGER.log( DEBUG_LEVEL , "couldn't parse date : " + value );
                 }
+            } else if( name.equalsIgnoreCase( "secure" )) {
+                c.setSecure( true );
             }
 
             if ( semiIndex >= 0 )
