@@ -459,6 +459,7 @@ public class ENode extends JSObjectBase {
             this.children = children;
         }
         this.node = n;
+        _html = parent._html;
         nodeSetup(parent);
     }
 
@@ -467,6 +468,7 @@ public class ENode extends JSObjectBase {
         super( _getCons() );
         this.XML = n.XML;
         this.name = n.name;
+        _html = n._html;
 
         if( n.node != null ) {
             this.node = n.node.cloneNode( false );
@@ -559,7 +561,12 @@ public class ENode extends JSObjectBase {
             for( ENode n : parent.children ) {
                 if( n.node.getNodeType() == Node.ATTRIBUTE_NODE &&
                     n.name().toString().equals( this.name().toString() ) ) {
-                    throw new JSException( "TypeError: duplicate XML attribute "+this.name() );
+                    if ( _html ){
+                        // allowed in HTML
+                    }
+                    else {
+                        throw new JSException( "TypeError: duplicate XML attribute "+this.name() );
+                    }
                 }
             }
         }
