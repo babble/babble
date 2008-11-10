@@ -30,10 +30,23 @@ import ed.util.*;
 import ed.net.httpserver.*;
 
 public class LBFullTest extends HttpServerTest {
+
+    public LBFullTest( String args[] )
+        throws IOException {
+        this( Arrays.toString( args ).contains( "load" ) );
+    }
     
     public LBFullTest()
         throws IOException {
+        this( false );
+    }
+    
+    public LBFullTest( boolean load )
+        throws IOException {
         super( 10003 );
+        
+        _load = load;
+
         _lb = new LB( _lbPort , new MyMappingFactory() , 0 );
         _lb.start();
     }
@@ -119,7 +132,8 @@ public class LBFullTest extends HttpServerTest {
 
         s.close();
     }
-    
+
+
     
     class MyMappingFactory implements MappingFactory {
         
@@ -173,12 +187,12 @@ public class LBFullTest extends HttpServerTest {
     }
     
     final LB _lb;
-    
     final int _lbPort = 10002;
 
     public static void main(String args[])
             throws IOException {
-        LBFullTest ft = new LBFullTest();
+        
+        LBFullTest ft = new LBFullTest( args );
         ft.runConsole();
         
         
