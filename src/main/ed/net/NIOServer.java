@@ -265,8 +265,11 @@ public abstract class NIOServer extends Thread {
     private void _cleanOldConnections(){
         final long now = System.currentTimeMillis();
         
-        for ( SelectionKey key : _selector.keys() ){
+        int total = 0;
 
+        for ( SelectionKey key : _selector.keys() ){
+            total++;
+            
             if ( ! key.isValid() )
                 continue;
             
@@ -286,7 +289,12 @@ public abstract class NIOServer extends Thread {
             }
             catch ( Exception e ){}
         }
-
+        
+        _numSelectors = total;
+    }
+    
+    protected int getNumSelectors(){
+        return _numSelectors;
     }
 
     protected abstract SocketHandler accept( SocketChannel sc );
@@ -410,7 +418,7 @@ public abstract class NIOServer extends Thread {
         
         protected long _lastAction = _created;
     }
-
+    
     protected final int _port;
     protected final ServerSocketChannel _ssChannel;    
 
@@ -418,6 +426,7 @@ public abstract class NIOServer extends Thread {
     
     private boolean _didASelectorReset = false;
     private boolean _closed = false;
-    
+    private int _numSelectors = 0;
+
     Logger _logger = Logger.getLogger( "nioserver" );
 }

@@ -161,6 +161,11 @@ public class LB extends NIOClient {
         _httpLog.append( new HttpEvent( rr ) );
     }
 
+    protected void setNumSelectors( int total ){
+        super.setNumSelectors( total );
+        _server.setStat( "lb-selectors" , total );
+    }
+
     void _addMonitors(){
         HttpServer.addGlobalHandler( new WebViews.LBOverview( this ) );
         HttpServer.addGlobalHandler( new WebViews.LBLast( this ) );
