@@ -466,6 +466,10 @@ public class JSRegex extends JSObjectBase {
      */
     public String toString(){
         CachedResult cr = _last.get();
+        if( cr == null ) {
+            _last.set( new CachedResult( null, null, AppRequest.getThreadLocal(), null ) );
+            cr = _last.get();
+        }
         cr.initialize( this );
         String source = cr.source;
         if( cr.source == null )
