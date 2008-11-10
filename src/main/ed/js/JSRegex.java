@@ -524,10 +524,13 @@ public class JSRegex extends JSObjectBase {
     public JSArray exec( final String s , final boolean canUseOld ){
         
         CachedResult cr = _last.get();
+        if( cr == null ) {
+            _last.set( new CachedResult( s, null, AppRequest.getThreadLocal(), null ) );
+            cr = _last.get();
+        }
 
         final Matcher m;
-        
-        if ( canUseOld && s == cr._input && s.equals( cr._input ) && cr._request == AppRequest.getThreadLocal() ){
+        if ( canUseOld && cr._matcher != null && s == cr._input && s.equals( cr._input ) && cr._request == AppRequest.getThreadLocal() ){
             m = cr._matcher;
         }
         else {
@@ -589,7 +592,6 @@ public class JSRegex extends JSObjectBase {
             _last.set( new CachedResult( null, null, null, null ) );
             cr = _last.get();
         }
-        System.out.println("cr: "+cr);
         cr._request = AppRequest.getThreadLocal();
         cr._array = arr;
         if( arr == null )
