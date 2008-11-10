@@ -18,11 +18,16 @@ package ed.net.httpclient;
 
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Set;
 import java.util.HashSet;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
+
+import javax.servlet.http.Cookie;
 
 import org.testng.annotations.Test;
 
@@ -114,6 +119,49 @@ public class HttpClientTest extends TestCase {
         server.stopServer();
     }
 
+    @Test(groups = {"basic"})
+    public static void testCookieHeaderParsing() {
+        SimpleDateFormat fmt = new SimpleDateFormat( "EEE, dd-MMM-yyyy HH:mm:ss z" , Locale.US);
+        
+        long diffms = 1000 * 60 * 60;
+        long maxAgeMarginSecs = 10;
+        
+        //Test full header
+        Date now = new Date(System.currentTimeMillis() + diffms );
+        String nowStr = fmt.format( now );
+        
+        Cookie c =  HttpClient.parseCookie( "10gen.com" , null , false , "MOO=37; expires="+nowStr+"; path=/;secure" );
+        long maxAgeErrorMargin = (diffms/1000) - (c.getMaxAge());
+        
+        assertEquals( "MOO" , c.getName() );
+        assertEquals( "37" , c.getValue() );
+        assertLess( maxAgeErrorMargin , maxAgeMarginSecs );
+        assertLess( 0 , maxAgeErrorMargin );
+        assertTrue( c.getSecure() );
+        
+        
+        //Test unsecure
+        now = new Date(System.currentTimeMillis() + diffms );
+        nowStr = fmt.format( now );
+        
+        c =  HttpClient.parseCookie( "10gen.com" , null , false , "MOO=37; expires="+nowStr+"; path=/" );
+        maxAgeErrorMargin = (diffms/1000) - (c.getMaxAge());
+        
+        assertEquals( "MOO" , c.getName() );
+        assertEquals( "37" , c.getValue() );
+        assertLess( maxAgeErrorMargin , maxAgeMarginSecs );
+        assertLess( 0 , maxAgeErrorMargin );
+        assertFalse( c.getSecure() );
+        
+        //Test nonpersistent
+        c =  HttpClient.parseCookie( "10gen.com" , null , false , "MOO=37; path=/; secure" );
+        
+        assertEquals( "MOO" , c.getName() );
+        assertEquals( "37" , c.getValue() );
+        assertEquals( -1 , c.getMaxAge() );
+        assertTrue( c.getSecure() );
+    }
+    
     public static void main( String args[] ){
         (new HttpClientTest()).runConsole();
     }

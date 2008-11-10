@@ -99,10 +99,11 @@ public class XMLHttpRequest extends JSObjectBase {
     /** Create an XML HTTP request */
     public XMLHttpRequest(){
         super( _cons );
+        this.setCookieJar(null);
     }
 
     public XMLHttpRequest( URL url ){
-        super( _cons );
+        this();
         init( "GET" , url.toString() , false );
     }
 
@@ -120,7 +121,7 @@ public class XMLHttpRequest extends JSObjectBase {
      * @param aysnc If the request should be asynchronous.
      */
     public XMLHttpRequest( String method , String url , boolean async ){
-        super( _cons );
+        this();
         init( method , url , async );
     }
 
@@ -364,6 +365,14 @@ public class XMLHttpRequest extends JSObjectBase {
             return null;
         return r.toString();
     }
+    
+    public JSCookieJar getCookieJar() {
+        return (JSCookieJar) get("cookies");
+    }
+
+    public void setCookieJar(JSCookieJar cookieJar) {
+        set( "cookies", cookieJar );
+    }
 
     private URL _checkURL(){
         if ( _urlString == null || _urlString.trim().length() == 0 )
@@ -452,13 +461,19 @@ public class XMLHttpRequest extends JSObjectBase {
         }
 
         public void gotCookie( Cookie c ){
-            JSObject cookies = (JSObject)get( "cookies" );
-            if ( cookies == null ){
-                cookies = new JSObjectBase();
-                set( "cookies" , cookies );
+            JSCookieJar cookieJar = getCookieJar();
+            
+            if ( cookieJar == null ){
+                cookieJar = new JSCookieJar();
+                setCookieJar( cookieJar );
             }
-            cookies.set( c.getName() , new JSString( c.getValue() ) );            
-            _cookies.put( c.getName() , c );
+            URL url;
+            try {
+                url = new URL( get( "finalURL").toString() );
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+            cookieJar.addCookie( url , c );
         }
         
         public void setFinalUrl( URL url ){
@@ -478,9 +493,17 @@ public class XMLHttpRequest extends JSObjectBase {
         }
 
         public Map<String,Cookie> getCookiesToSend(){
-            return _cookies;
+            JSCookieJar cookieJar = getCookieJar();
+            
+            if(cookieJar == null)
+                return null;
+            
+            Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+            for( Cookie c : getCookieJar().getActiveCookies( _checkURL() ) )
+                cookies.put( c.getName() , c );
+            return cookies;
         }
-
+        
         public byte[] getPostDataToSend(){
             return _postData;
         }
@@ -500,7 +523,6 @@ public class XMLHttpRequest extends JSObjectBase {
         int _contentLength = 0;
         String _contentEncoding = "UTF8";
         StringBuilder _header = new StringBuilder();
-        Map<String,Cookie> _cookies = new TreeMap<String,Cookie>();
     }
 
 
