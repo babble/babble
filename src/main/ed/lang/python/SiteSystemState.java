@@ -377,7 +377,8 @@ public class SiteSystemState implements Sizable {
                     PyObject foo = innerMod.__findattr__( modNames[i].intern() );
 
                     if( foo == null ){
-                        throw new RuntimeException("totally broken modules setup -- " + innerMod + " doesn't have " + modNames[i]);
+                        return _finish( target , siteModule , m );
+                        //throw new RuntimeException("totally broken modules setup -- " + innerMod + " doesn't have " + modNames[i]);
                     }
                     innerMod = foo;
                 }
