@@ -1034,7 +1034,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     /** @unexpose */
-    int _getInt( Object o ){
+    public int _getInt( Object o ){
         if ( o == null )
             return -1;
 
