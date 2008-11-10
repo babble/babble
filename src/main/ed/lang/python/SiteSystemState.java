@@ -49,6 +49,7 @@ import ed.util.*;
 public class SiteSystemState implements Sizable {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SITESYSTEMSTATE" );
     static final String COREMODULES_STRING = "COREMODULES_10GEN";
+    static final String CORE_MODULES_MARKER = "I AM IN A CORE MODULE";
 
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
@@ -101,7 +102,6 @@ public class SiteSystemState implements Sizable {
         for ( Object o : pyState.path )
             if ( o.toString().equals( myPath ) )
                 return;
-
 
         if( location == -1 )
             pyState.path.append( Py.newString( myPath ) );
@@ -374,12 +374,14 @@ public class SiteSystemState implements Sizable {
                 String [] modNames = target.split("\\.");
 
                 for( int i = 1; i < modNames.length; ++i ){
-                    innerMod = innerMod.__findattr__( modNames[i].intern() );
+                    PyObject foo = innerMod.__findattr__( modNames[i].intern() );
+
+                    if( foo == null ){
+                        throw new RuntimeException("totally broken modules setup -- " + innerMod + " doesn't have " + modNames[i]);
+                    }
+                    innerMod = foo;
                 }
             }
-
-            // FIXME: this ain't finished
-            if( innerMod == null ) return _finish( target , siteModule , m );
             PyObject to = innerMod.__findattr__( "__name__".intern() );
             if( to == null ) return _finish( target , siteModule , m );
 
@@ -522,14 +524,22 @@ public class SiteSystemState implements Sizable {
             }
 
             int period = modName.indexOf('.');
-            if( __path__ != null && period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
+            if( __path__ != null && __path__.size() >= 3 && __path__.get(1).equals(CORE_MODULES_MARKER) &&
+                period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
                 // look for foo.bar.baz in core-module foo and try foo.baz
+                // We only do this if we're in the foo core-module
+                // (according to __name__) at the time of the import. If we happen
+                // to be being imported without being in foo, don't rewrite it.
+                // (We tell when we're importing a core-module by sticking something in
+                // __path__. This isn't foolproof..)
                 String baz = modName.substring( modName.lastIndexOf( '.' ) + 1 );
 
                 String location = __path__.pyget(0).toString();
+                String __name__ = __path__.pyget(2).toString();
                 for( JSLibrary key : _loaded.keySet() ){
                     if( location.startsWith( key.getRoot().toString() ) ){
                         String name = _loaded.get( key );
+                        if( ! name.equals( __name__ ) ) continue;
                         Object foo = key.getFromPath( baz , true );
                         if( !( foo instanceof JSFileLibrary ) ) continue;
 
@@ -586,6 +596,8 @@ public class SiteSystemState implements Sizable {
             mod.__setattr__( "__file__".intern() , new PyString( "<10gen_virtual>" ) );
             mod.__setattr__( "__loader__".intern() , this );
             PyList pathL = new PyList( PyString.TYPE );
+            // FIXME: this is an import from a core-module, but we're running it as a
+            // JXP, so it probably isn't important if there's no __name__ marker
             pathL.append( new PyString( _root.getRoot().toString() ) );
             mod.__setattr__( "__path__".intern() , pathL );
 
@@ -613,7 +625,11 @@ public class SiteSystemState implements Sizable {
             PyList pathL = new PyList( );
             if( o instanceof JSFileLibrary ){
                 JSFileLibrary lib = (JSFileLibrary)o;
+                // Stick a marker in __path__ to make it clear we imported from a core
+                // module
                 pathL.append( new PyString( lib.getRoot().toString() ) );
+                pathL.append( new PyString( CORE_MODULES_MARKER ) );
+                pathL.append( pyName );
             }
 
             if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
