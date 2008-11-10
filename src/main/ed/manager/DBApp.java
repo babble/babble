@@ -37,17 +37,22 @@ public class DBApp extends SimpleApplication {
         super( _findDatabase() , "db" , id , _fixCommands( args ) );
 
         String dbpath = "/data/db/";
+        int port = ed.db.DBPort.PORT;
+
         for ( int i=0; i<_commands.length-1; i++ ){
-            if ( ! _commands[i].equals( "--dbpath" ) )
-                continue;
+            if ( _commands[i].equals( "--dbpath" ) )
+                dbpath = _commands[i+1];
             
-            dbpath = _commands[i+1];
+            if ( _commands[i].equals( "--port" ) )
+                port = Integer.parseInt( _commands[i+1] );
         }
         
         if ( dbpath.startsWith( "/" ) )
             ( new File( dbpath ) ).mkdirs();
         else 
             ( new File( getExecDir() , dbpath ) ).mkdirs();
+
+        _port = port;
 
     }
 
@@ -104,7 +109,8 @@ public class DBApp extends SimpleApplication {
         return args.toArray( arr );        
     }
 
-    final static String[] _configs = new String[]{ "port" , "dbpath" , "appsrvpath" };
+    final int _port;
+    final static String[] _configs = new String[]{ "port" , "dbpath" , "appsrvpath" , "source"  };
     final static String[] _booleans = new String[]{ "master" , "slave" , "nocursors" , "nojni" };
     
     public static void main( String args[] )

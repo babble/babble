@@ -126,6 +126,43 @@ public class JS extends Language {
         
     }
     
+    public static JSArray getArray( JSObject o , String name ){
+        if ( o == null )
+            return null;
+        Object v = o.get( name );
+        if ( v == null )
+            return null;
+        if ( v instanceof JSArray )
+            return (JSArray)v;
+        return null;
+    }
+
+    public static Object path( JSObject o , String path ){
+        if ( o == null )
+            return null;
+        
+        if ( path == null )
+            return o;
+        
+        while ( path.length() > 0 ){
+            int idx = path.indexOf( "." );
+            if ( idx < 0 )
+                return o.get( path );
+            
+            Object next = o.get( path.substring( 0 , idx ) );
+            if ( next == null )
+                return null;
+            
+            if ( ! ( next instanceof JSObject ) )
+                return null;
+            
+            o = (JSObject)next;
+            path = path.substring( idx + 1 );
+        }
+        
+        return o;
+    }
+    
     public static void main( String args[] )
         throws Exception {
 

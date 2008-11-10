@@ -11,7 +11,7 @@ import ed.util.*;
 
 public class DBPort {
     
-    static final int PORT = 27017;
+    public static final int PORT = 27017;
     static final boolean USE_NAGLE = false;
     
     static final long CONN_RETRY_TIME_MS = 15000;

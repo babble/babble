@@ -338,9 +338,11 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _scope.lock("user"); // protection against global user object
 
     }
-
+    
     private void _loadConfig() {
         try {
+            
+            _configScope.set( "__instance__" , this );
 
             _loadConfigFromCloudObject( getSiteObject() );
             _loadConfigFromCloudObject( getEnvironmentObject() );

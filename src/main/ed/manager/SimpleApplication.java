@@ -103,6 +103,10 @@ public class SimpleApplication implements Application {
         return ((SimpleApplication)o)._fullId.equals( _fullId );
     }
 
+    public String toString(){
+        return "SimpleApplication [" + _fullId + "] " + Arrays.toString( _commands );
+    }
+
     protected final File _root;
     protected final File _logDir;
 
