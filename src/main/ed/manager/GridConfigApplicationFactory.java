@@ -89,14 +89,34 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
             final String name = db.get( "name" ).toString();
             
             if ( _cloud.isMyServerName( db.get( "machine" ).toString() ) ){
-
+                
                 if ( added )
                     throw new RuntimeException( "have multiple databases configured for this node!" );
-
+                
                 config.addEntry( "db" , name , "ACTIVE" , "true" );
                 config.addEntry( "db" , name , "master" , "true" );
-
+                
                 added = true;
+            }
+            
+            List slaves = JS.getArray( db , "slaves" );
+            if ( slaves != null ){
+                for ( Object slaveName : slaves ){
+
+                    if ( ! _cloud.isMyServerName( slaveName.toString() ) )
+                        continue;
+                    
+                    if ( added )
+                        throw new RuntimeException( "have multiple databases configured for this node!" );
+                    
+                    config.addEntry( "db" , name , "ACTIVE" , "true" );
+                    config.addEntry( "db" , name , "slave" , "true" );
+                    config.addEntry( "db" , name , "source" , db.get( "machine" ).toString() );
+                    
+                    System.out.println( (new DBApp( name , config.getMap( "db" , name ) ) ) );
+
+                    added = true;
+                }
             }
         }
         
