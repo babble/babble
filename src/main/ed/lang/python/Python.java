@@ -516,8 +516,8 @@ public class Python extends Language {
         //    protected int size
         //    protected int modCountIncr
         // PySequence: public int gListAllocatedStatus
-        if( o instanceof PyList ){
-            PyList l = (PyList)o;
+        if( o instanceof PySequenceList ){
+            PySequenceList l = (PySequenceList)o;
             int n = l.size();
             long size = 4*JSObjectSize.OBJ_OVERHEAD;
             for( int i = 0; i < n; ++i){
