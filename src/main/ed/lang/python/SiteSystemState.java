@@ -378,6 +378,8 @@ public class SiteSystemState implements Sizable {
                 }
             }
 
+            // FIXME: this ain't finished
+            if( innerMod == null ) return _finish( target , siteModule , m );
             PyObject to = innerMod.__findattr__( "__name__".intern() );
             if( to == null ) return _finish( target , siteModule , m );
 
