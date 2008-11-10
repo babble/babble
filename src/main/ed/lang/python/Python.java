@@ -284,7 +284,7 @@ public class Python extends Language {
         if ( o instanceof JSObject )
             return new PyJSObjectWrapper( (JSObject)o );
 
-        throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
+        return Py.java2py( o );
     }
 
     /**
