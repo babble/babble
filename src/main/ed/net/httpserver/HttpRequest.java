@@ -28,6 +28,7 @@ import javax.servlet.http.*;
 import ed.js.*;
 import ed.util.*;
 import ed.appserver.*;
+import ed.net.URLDecoder;
 
 /**
  * Class to represent an HTTP request.  The 10gen app server exposes the variable 'request'
@@ -883,7 +884,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public Set<String> getPostParameterNames(){
         return _postParameters.keySet();
     }
-
+    
     private final String _urlDecode( String s ){
 
 	try {
