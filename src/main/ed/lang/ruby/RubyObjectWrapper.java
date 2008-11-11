@@ -167,8 +167,6 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return r.isTrue() ? Boolean.TRUE : Boolean.FALSE;
         if (r instanceof RubyString)
             return new JSString(((RubyString)r).toString());
-        if (r instanceof RubyObjectWrapper)
-            return ((RubyObjectWrapper)r)._obj;
         if (r instanceof RubyBignum)
             return JavaUtil.convertRubyToJava(r, BigInteger.class);
         if (r instanceof RubyBigDecimal)
