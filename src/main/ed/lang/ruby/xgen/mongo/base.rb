@@ -97,7 +97,7 @@ module XGen
               ivar_name = "@" + field.to_s
               define_method(field, lambda { instance_variable_get(ivar_name) })
               define_method("#{field}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
-              define_method("#{field}?", lambda {
+              define_method("#{field}?".to_sym, lambda {
                               val = instance_variable_get(ivar_name)
                               val != nil && (!val.kind_of?(String) || val != '')
                             })
@@ -122,7 +122,7 @@ module XGen
             ivar_name = "@" + name.to_s
             define_method(name, lambda { instance_variable_get(ivar_name) })
             define_method("#{name}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
-            define_method("#{name}?", lambda {
+            define_method("#{name}?".to_sym, lambda {
                             val = instance_variable_get(ivar_name)
                             val != nil && (!val.kind_of?(String) || val != '')
                           })
@@ -141,7 +141,7 @@ module XGen
             ivar_name = "@" + name.to_s
             define_method(name, lambda { instance_variable_get(ivar_name) })
             define_method("#{name}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
-            define_method("#{name}?", lambda { !instance_variable_get(ivar_name).empty? })
+            define_method("#{name}?".to_sym, lambda { !instance_variable_get(ivar_name).empty? })
             klass_name = options[:class_name] || field_name_to_class_name(name)
             @arrays[name] = Kernel.const_get(klass_name)
           end
@@ -585,9 +585,9 @@ module XGen
         self.class.field_names.each { |iv|
           case iv
           when :created_at
-            instance_variable_set("@#{iv}", t.to_i)
+            instance_variable_set("@#{iv}", t)
           when :created_on
-            instance_variable_set("@#{iv}", Time.local(t.year, t.month, t.day).to_i)
+            instance_variable_set("@#{iv}", Time.local(t.year, t.month, t.day))
           end
         }
         self.class.subobjects.keys.each { |iv|
@@ -601,9 +601,9 @@ module XGen
         self.class.field_names.each { |iv|
           case iv
           when :updated_at
-            instance_variable_set("@#{iv}", t.to_i)
+            instance_variable_set("@#{iv}", t)
           when :updated_on
-            instance_variable_set("@#{iv}", Time.local(t.year, t.month, t.day).to_i)
+            instance_variable_set("@#{iv}", Time.local(t.year, t.month, t.day))
           end
         }
         self.class.subobjects.keys.each { |iv|
