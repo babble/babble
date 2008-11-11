@@ -373,9 +373,9 @@ public class SiteSystemState implements Sizable {
             // http://docs.python.org/lib/built-in-funcs.html
             //
             // Rather than diving through a bunch of modules, we just
-            // compute the right name and look it up in sys.modules.
-            // This way, recursive imports where some module isn't yet
-            // in its package don't screw everything up.
+            // compute the right name.  This way, recursive imports
+            // where some module isn't yet in its package don't screw
+            // everything up.
             //
             // We got an import for foo.bar.baz, and we hold now a
             // module that may be package.subpackage.foo. We want to
@@ -383,17 +383,16 @@ public class SiteSystemState implements Sizable {
             // foo.__name__, and add ".bar.baz" so we get the full
             // module name package.subpackage.foo.bar.baz.
 
-            // FIXME: if we're going through all the trouble of computing the
-            // right name, just use that name instead of fetching that module
-            // and getting the name from the module.
-            // FIXME: pass the name as strings rather than PyStrings.
-
-            PyObject innerMod;
+            String imported = null;
             if( fromlist != null && fromlist.__len__() > 0 ){
                 // But if we got an import "from foo.bar.baz import thingy",
                 // we're holding foo.bar.baz, so we just get the name from
                 // m.
-                innerMod = m;
+                PyObject __name__ = m.__findattr__("__name__");
+                if( __name__ == null ){
+                    throw new RuntimeException("imported a module without a __name__ : " + m);
+                }
+                imported = __name__.toString();
             }
             else {
                 String startName = m.__findattr__("__name__").toString();
@@ -426,14 +425,10 @@ public class SiteSystemState implements Sizable {
                     }
                 }
 
-                innerMod = sss.getPyState().modules.__finditem__( new PyString( startName ) );
-                if( innerMod == null ){
-                    throw new RuntimeException("totally broken modules -- just imported " + target + " but using " + startName + " couldn't find it in " + sss.getPyState().modules);
-                }
+                imported = startName;
             }
 
-            PyObject to = innerMod.__findattr__( "__name__".intern() );
-            if( to == null ) return _finish( target , siteModule , m );
+            if( imported == null ) return _finish( target , siteModule , m );
 
             // Add a plain old JXP dependency on the file that was imported
             // Not sure if this is helpful or not
@@ -446,7 +441,7 @@ public class SiteSystemState implements Sizable {
             // Don't add dependencies to _10gen. FIXME: other "virtual"
             // modules should be OK.
             if( ! ( m instanceof PyModule && ((PyModule)m).__dict__ instanceof PyJSObjectWrapper ) )
-                sss.addDependency( to.toString() , importer.toString() );
+                sss.addDependency( imported , importer.toString() );
 
             return _finish( target , siteModule , m );
 
