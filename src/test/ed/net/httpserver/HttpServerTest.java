@@ -354,7 +354,7 @@ public class HttpServerTest extends TestCase {
                 }
             }
             catch ( Throwable t ){
-                _ioe = t;
+                _ioe = new Throwable( "this time : " + _thisTime + "\t" + t , t );
             }
         }
         
@@ -424,8 +424,9 @@ public class HttpServerTest extends TestCase {
             }
             
             _requests++;
+            _thisTime++;
         }
-
+        
         void _post()
             throws IOException {
             _post( _rand.nextDouble() > .5 , _rand.nextInt( 50000 ) );
@@ -451,15 +452,17 @@ public class HttpServerTest extends TestCase {
                 _sock.close();
                 _sock = null;
             }
-
+            
             _requests++;
-
+            _thisTime++;
         }
-
+        
         void _check()
             throws IOException {
-            if ( _sock == null )
+            if ( _sock == null ){
                 _sock = open();
+                _thisTime = 0;
+            }
         }
         
         void _what( String s ){
@@ -468,12 +471,13 @@ public class HttpServerTest extends TestCase {
         
         final Random _rand;
         final boolean _doBad;
-
+        
         boolean _go = true;
         int _requests = 0;
         
         Socket _sock;
         Throwable _ioe;
+        int _thisTime = 0;
     }
 
     HttpServer _server;
