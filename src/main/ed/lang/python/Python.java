@@ -570,6 +570,55 @@ public class Python extends Language {
             return temp;
         }
 
+        if( o instanceof PyModule ){
+            // public PyObject __dict__
+            PyModule m = (PyModule)o;
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            temp += JSObjectSize.size( m.__dict__ , seen ) + 4;
+            return temp;
+        }
+
+        if( o instanceof PyTableCode ){
+            PyTableCode t = (PyTableCode)o;
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            // PyCode: public String co_name
+            temp += JSObjectSize.size( t.co_name , seen ) + 4;
+            // PyTableCode:
+            // public int co_argcount
+            // int nargs
+            // public int co_firstlineno
+            temp += 12;
+            // public String co_varnames[]
+            temp += JSObjectSize.size( t.co_varnames , seen ) + 4;
+
+            // public String co_cellvars[]
+            temp += JSObjectSize.size( t.co_cellvars , seen ) + 4;
+
+            // public int jy_npurecell
+            temp += 4;
+
+            // public String co_freevars[]
+            temp += JSObjectSize.size( t.co_freevars , seen ) + 4;
+
+            // public String co_filename
+            temp += JSObjectSize.size( t.co_filename , seen ) + 4;
+
+            // public int co_flags
+            // public int co_nlocals
+            // public boolean varargs
+            // public boolean varkwargs
+            temp += 10;
+
+            // PyFunctionTable funcs
+            //temp += JSObjectSize.size( t.funcs , seen ) + 4;
+
+            // int func_id
+            temp += 4;
+            // public String co_code
+            temp += JSObjectSize.size( t.co_code , seen ) + 4;
+            return temp;
+        }
+
         if( o instanceof PyFile ){
             long temp = JSObjectSize.OBJ_OVERHEAD;
             PyFile f = (PyFile)o;
