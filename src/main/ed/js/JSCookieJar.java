@@ -26,9 +26,11 @@ public class JSCookieJar extends JSObjectBase {
         }
         catch( MalformedCookieException e ) {
             //TODO: invalid cookies
+            return;
         }
         catch( IllegalArgumentException e ) {
             //TODO: invalid cookies
+            return;
         }
         
         if( cookie.getMaxAge() == 0 ) {
@@ -277,7 +279,10 @@ public class JSCookieJar extends JSObjectBase {
      * @return true, if the cookie has an expiration date that has been reached
      */
     private boolean isExpired( Cookie cookie ) {
-        if( cookie.getMaxAge() <= 0)
+        if( cookie.getMaxAge() < 0)
+            return false;
+        
+        if( cookie.getMaxAge() == 0)
             return true;
         
         Date createDate = _creationDates.get( cookie.getName() );
