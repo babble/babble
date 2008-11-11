@@ -398,6 +398,11 @@ public class JSBuiltInFunctions {
     public static class NewObject extends JSFunctionCalls0{
 
         public Object call( Scope scope , Object extra[] ){
+            if( extra != null && extra.length > 0 
+                && extra[0] instanceof JSObject ) {
+                scope.setThis( extra[0] );
+                return extra[0];
+            }
             return new JSObjectBase();
         }
 

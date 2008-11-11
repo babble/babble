@@ -158,6 +158,7 @@ public abstract class NIOServer extends Thread {
 
             for ( ; i.hasNext() ;  ){
                 SelectionKey key = i.next();
+                i.remove();
                 
                 SocketChannel sc = null;
                 SocketHandler sh = null;
@@ -167,8 +168,6 @@ public abstract class NIOServer extends Thread {
                     if ( D ) System.out.println( key + " read : " + key.isReadable() + " write : " + key.isWritable() );
                     
                     if ( key.isAcceptable() ){
-                        i.remove();
-                        
                         ServerSocketChannel ssc = (ServerSocketChannel)key.channel();
                         
                         sc = ssc.accept();
@@ -190,21 +189,17 @@ public abstract class NIOServer extends Thread {
                     
 
                     if ( sh._bad || sh.shouldClose() ){
-                        i.remove();
-
                         if ( D ) System.out.println( "\t want to close : " + sc );
                         sh.close();
                         continue;
                     }
                     
                     if ( key.isWritable() ){
-                        i.remove();
                         if ( sh.writeMoreIfWant() )
                             continue;
                     }
                     
                     if ( key.isReadable() ){
-                        i.remove();
                         
                         if ( D ) System.out.println( "\t" + sc );
                         

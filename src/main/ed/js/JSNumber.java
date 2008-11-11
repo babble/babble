@@ -19,6 +19,7 @@
 package ed.js;
 
 import java.util.*;
+import java.text.DecimalFormat;
 
 import ed.util.*;
 import ed.js.func.*;
@@ -403,7 +404,7 @@ public class JSNumber extends Number implements JSObject {
         }
     }
 
-    public static int toInt32( final Object o ) {
+    public static long toUintX( Object o, int size ) {
         double d = getDouble( o );
         if( d == 0 ||
             Double.isNaN( d ) ||
@@ -411,21 +412,50 @@ public class JSNumber extends Number implements JSObject {
             return 0;
 
         int sign = o.toString().startsWith( "-" ) ? -1 : 1;
-        long preint = ( sign * (long)Math.floor( Math.abs( d ) ) ) % (long)Math.pow(2,32);
+        return ( sign * (long)Math.floor( Math.abs( d ) ) ) % (long)Math.pow(2, size);
+    }
+
+    public static int toInt32( final Object o ) {
+        long preint = toUintX( o , 32 );
         if( preint < (long)Math.pow(2,31) ) 
             return (int)preint;
         return (int)(preint - (long)Math.pow(2,32));
     }
 
-    public static short toUint16( final Object o ) {
-        double d = getDouble( o );
-        if( d == 0 ||
-            Double.isNaN( d ) ||
-            Double.isInfinite( d ) ) 
-            return 0;
-
-        int sign = o.toString().startsWith( "-" ) ? -1 : 1;
-        return (short)(( sign * (long)Math.floor( Math.abs( d ) ) ) % (long)Math.pow(2,16));
+    public static long toInt64( final Object o ) {
+        long preint = toUintX( o , 64 );
+        if( preint < (long)Math.pow(2,63) ) 
+            return preint;
+        return preint - (long)Math.pow(2,64);
     }
 
+    public static short toUint16( final Object o ) {
+        return (short)toUintX( o , 16 );
+    }
+
+    public static String formatNumber( Number o ) {
+        String s = o + "";
+        if( s.toUpperCase().indexOf( 'E' ) > 0 ) {
+            int exp = Integer.parseInt( s.substring( s.toUpperCase().indexOf( 'E' ) + 1 ) );
+            DecimalFormat df = new DecimalFormat( "#0.#" );
+            df.setDecimalSeparatorAlwaysShown( false );
+            df.setMaximumFractionDigits( 20 );
+            df.setNegativePrefix( "-" );
+            if( -7 < exp && exp < 21 ) {
+                s = df.format( o );
+            }
+            else {
+                df.applyPattern( "0.#E0" );
+                df.setDecimalSeparatorAlwaysShown( false );
+                df.setMaximumFractionDigits( 20 );
+                df.setNegativePrefix( "-" );
+                s = df.format( o );
+                s = s.substring( 0, s.indexOf( "E" ) ) + "e" + ( exp > 0 ? "+" : "" ) + exp;
+            }
+        }
+        else if( ((Number)o).doubleValue() == 0 || s.endsWith( ".0" ) ) {
+            return ((Number)o).intValue() + "";
+        }
+        return s;
+    }
 }

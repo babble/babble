@@ -356,14 +356,14 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return The object as a string
      */
     public static String JS_toString( Object o ){
+        if ( o == JSInternalFunctions.VOID ) 
+            return "undefined";
 
-        if ( o == null )
-            return "null";
+        if ( o instanceof Number ) {
+            return JSNumber.formatNumber( (Number)o );
+        }
 
-        if ( o instanceof Float || o instanceof Double )
-            o = fixType( o );
-
-        return o.toString();
+        return o + "";
     }
 
     /** @unexpose */

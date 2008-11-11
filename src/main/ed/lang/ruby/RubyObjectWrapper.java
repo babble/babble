@@ -75,6 +75,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return runtime.newString(obj.toString());
         if (obj instanceof Boolean)
             return ((Boolean)obj).booleanValue() ? runtime.getTrue() : runtime.getFalse();
+        if (obj instanceof JSDate)
+            return RubyTime.newTime(runtime, ((JSDate)obj).getTime());
 
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
         if (wrapper != null) {
@@ -165,8 +167,6 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return r.isTrue() ? Boolean.TRUE : Boolean.FALSE;
         if (r instanceof RubyString)
             return new JSString(((RubyString)r).toString());
-        if (r instanceof RubyObjectWrapper)
-            return ((RubyObjectWrapper)r)._obj;
         if (r instanceof RubyBignum)
             return JavaUtil.convertRubyToJava(r, BigInteger.class);
         if (r instanceof RubyBigDecimal)
@@ -219,6 +219,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
                 options = options.substring(0, options.indexOf('-'));
             return new JSRegex(regex.source().toString(), options);
         }
+        if (r instanceof RubyTime)
+            return new JSDate((long)(((RubyTime)r).to_f().getValue() * 1000.0));
         if (r instanceof RubyClass) {
             Object o = new JSRubyClassWrapper(scope, (RubyClass)r);
             cacheWrapper(r.getRuntime(), o, r);

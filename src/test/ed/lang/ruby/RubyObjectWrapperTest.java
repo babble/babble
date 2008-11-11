@@ -176,6 +176,14 @@ public class RubyObjectWrapperTest {
         assertEquals(val.toString(), "test string");
     }
 
+    @Test(groups = {"r2js"})
+    public void testRubyTimeToJSDate() {
+        RubyTime t = RubyTime.newTime(r, System.currentTimeMillis());
+        Object o = toJS(s, t);
+        assertTrue(o instanceof JSDate, "expected JSDate, saw " + (o == null ? "null" : o.getClass().getName()));
+        assertEquals(((JSDate)o).getTime(), (long)(t.to_f().getValue() * 1000.0));
+    }
+
     @Test(groups = {"js2r"})
     public void testNilToRuby() {
         assertEquals(toRuby(s, r, null), r.getNil());
@@ -285,6 +293,14 @@ public class RubyObjectWrapperTest {
     public void testJSFunctionWrapperToRuby() {
         // TODO test return of existing proc
         // TODO test return of new proc
+    }
+
+    @Test(groups = {"js2r"})
+    public void testJSDateToRubyTime() {
+        JSDate d = new JSDate();
+        IRubyObject ro = toRuby(s, r, d);
+        assertTrue(ro instanceof RubyTime, "expected RubyTime, saw " + (ro == null ? "null" : ro.getClass().getName()));
+        assertEquals((long)(((RubyTime)ro).to_f().getValue() * 1000.0), d.getTime());
     }
 
     public void testPublicMethodsWrapped() {

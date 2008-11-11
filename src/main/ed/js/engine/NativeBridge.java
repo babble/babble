@@ -288,7 +288,7 @@ public class NativeBridge {
             }
             return null;
         }
-        
+
         for ( int i=0; i<myClasses.length; i++ ){
 
             // null is fine with me
@@ -313,10 +313,17 @@ public class NativeBridge {
             
             
             if ( myClass.isArray() && params[i] instanceof JSArray ){
-                params[i] = ((JSArray)params[i]).toArray();
+                JSArray a = (JSArray)params[i];
+
+                Object newArray = Array.newInstance( myClass.getComponentType() , a.size() );                
+                
+                for ( int j=0; j<a.size(); j++ )
+                    Array.set( newArray , j , a.get( j ) );
+
+                params[i] = newArray;
                 continue;
             }
-
+            
             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
                 if ( debug ) System.out.println( "\t native assignement failed b/c " + myClasses[i] + " is not mappable from " + params[i].getClass() );
                 return null;

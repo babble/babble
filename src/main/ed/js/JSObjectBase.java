@@ -427,6 +427,7 @@ public class JSObjectBase implements JSObject {
         if ( _constructor != null ){
             _placesToLook[2] = _constructor._prototype;
             _placesToLook[3] = _constructor;
+
         }
         else {
             _placesToLook[2] = null;
@@ -519,12 +520,12 @@ public class JSObjectBase implements JSObject {
      */
     public Object removeField( Object n ){
         if ( n == null )
-            return null;
+            return false;
 
         if ( n instanceof JSString )
             n = n.toString();
 
-        Object val = null;
+        Object val = false;
 
         if ( n instanceof String ){
             if ( _dontDeleteKeys != null && _dontDeleteKeys.contains( (String)n ) )
