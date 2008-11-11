@@ -784,9 +784,9 @@ public class Scope implements JSObject , Bindings {
 
             if ( code.matches( JSNumber.POSSIBLE_NUM ) )
                 return StringParseUtil.parseStrict( code );
-            if ( code.equals( "true" ) || code.equals( "false" ) ) 
-                return Boolean.valueOf( code );
             if ( code.matches( "\\w+(\\.\\w+)*" ) ) {
+                if ( code.equals( "true" ) || code.equals( "false" ) ) 
+                    return Boolean.valueOf( code );
                 Object o = findObject( code );
                 if( hasReturn != null && hasReturn.length > 0 ) {
                     hasReturn[0] = ( o == null ) ? false : true;
