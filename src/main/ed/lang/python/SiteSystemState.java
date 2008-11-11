@@ -184,7 +184,7 @@ public class SiteSystemState implements Sizable {
         ss.path_hooks.append( new ModulePathHook( scope ) );
     }
 
-    public void addDependency( PyObject to, PyObject importer ){
+    public void addDependency( String to, String importer ){
         _checkModules();
         ((PythonModuleTracker)pyState.modules).addDependency( to , importer );
     }
@@ -446,7 +446,7 @@ public class SiteSystemState implements Sizable {
             // Don't add dependencies to _10gen. FIXME: other "virtual"
             // modules should be OK.
             if( ! ( m instanceof PyModule && ((PyModule)m).__dict__ instanceof PyJSObjectWrapper ) )
-                sss.addDependency( to , importer );
+                sss.addDependency( to.toString() , importer.toString() );
 
             return _finish( target , siteModule , m );
 
