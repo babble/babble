@@ -159,6 +159,8 @@ public abstract class NIOServer extends Thread {
             for ( ; i.hasNext() ;  ){
                 SelectionKey key = i.next();
                 i.remove();
+
+                if ( D ) System.out.println( NIOUtil.toString( key ) );
                 
                 SocketChannel sc = null;
                 SocketHandler sh = null;
