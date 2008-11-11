@@ -426,11 +426,9 @@ public class JSObjectBase implements JSObject {
 
         if ( _constructor != null ){
             _placesToLook[2] = _constructor._prototype;
-            _placesToLook[3] = _constructor;
         }
         else {
             _placesToLook[2] = null;
-            _placesToLook[3] = null;
         }
 
         for ( int i=1; i<_placesToLook.length; i++ )
@@ -519,12 +517,12 @@ public class JSObjectBase implements JSObject {
      */
     public Object removeField( Object n ){
         if ( n == null )
-            return null;
+            return false;
 
         if ( n instanceof JSString )
             n = n.toString();
 
-        Object val = null;
+        Object val = false;
 
         if ( n instanceof String ){
             if ( _dontDeleteKeys != null && _dontDeleteKeys.contains( (String)n ) )
@@ -1180,7 +1178,7 @@ public class JSObjectBase implements JSObject {
     private int _dependencySum = 0;
 
     private boolean _placesToLookUpdated = false;
-    private JSObject _placesToLook[] = new JSObject[4];
+    private JSObject _placesToLook[] = new JSObject[3];
 
     private int _getFromParentCalls = 0;
     private Map<String,Object> _jitCache;
