@@ -288,7 +288,7 @@ public class JSCookieJar extends JSObjectBase {
         Date createDate = _creationDates.get( cookie.getName() );
         Date expirationDate = new Date( createDate.getTime() + ( cookie.getMaxAge() * 1000 ) );
         
-        return expirationDate.getTime() >= System.currentTimeMillis();
+        return expirationDate.getTime() <= System.currentTimeMillis();
     }
     
 
