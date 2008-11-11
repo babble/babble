@@ -270,25 +270,31 @@ public class HttpServerTest extends TestCase {
 
     public void testRandom1()
         throws Throwable {
-        _testRandom( 10 , 10 );
+        _testRandom( 10 , 10 , false );
     }
 
-    public void testRandomBig()
+    public void testRandomBigClean()
         throws Throwable {
         if ( _load ){
-            System.out.println( "big random test" );
-            _testRandom( 20 , 20 );
+            _testRandom( 20 , 20 , false );
+        }
+    }
+
+    public void testRandomBigWithBad()
+        throws Throwable {
+        if ( _load ){
+            _testRandom( 20 , 20 , true );
         }
     }
     
-    private void _testRandom( int threads , int seconds )
+    private void _testRandom( int threads , int seconds , boolean doBad )
         throws Throwable {
     
         final long start = System.currentTimeMillis();
     
         List<MyRandomThread> lst = new ArrayList<MyRandomThread>();
         for ( int i=0; i<threads; i++ )
-            lst.add( new MyRandomThread( i ) );
+            lst.add( new MyRandomThread( i , doBad ) );
         
         for ( MyRandomThread t : lst )
             t.start();
@@ -305,7 +311,10 @@ public class HttpServerTest extends TestCase {
         int total = 0;
 
         for ( MyRandomThread t : lst ){
-            t.join();
+            t.join( 5000 );
+            if ( t.isAlive() ){
+                throw new RuntimeException( "thread not dead" );
+            }
             total += t._requests;
             if ( t._ioe != null )
                 throw t._ioe;
@@ -318,8 +327,9 @@ public class HttpServerTest extends TestCase {
     
     class MyRandomThread extends Thread {
 
-        MyRandomThread( int num ){
+        MyRandomThread( int num , boolean doBad ){
             _rand = new Random( 123123 * num );
+            _doBad = doBad;
         }
         
         public void run(){
@@ -327,16 +337,18 @@ public class HttpServerTest extends TestCase {
             try {
                 while ( _go ){
                     
-                    switch ( _rand.nextInt( 5 ) ){
+                    switch ( _rand.nextInt( 6 ) ){
                     case 0:
-                        _get();
-                        break;
+                        _post(); break;
                     case 1:
-                        _post();
-                        break;
+                        _drop(); break;
                     case 2:
-                        _drop();
-                        break;
+                    case 3:
+                    case 4:
+                        _get(); break;
+                    case 5:
+                        _bad(); break;
+                       
                     }
                     
                 }
@@ -345,24 +357,52 @@ public class HttpServerTest extends TestCase {
                 _ioe = t;
             }
         }
+        
+        void _bad()
+            throws IOException{
+            
+            if ( ! _doBad )
+                return;
+
+            _what( "b" );
+
+            _check();
+            
+            final long start = System.currentTimeMillis();
+            
+            int num = _rand.nextInt( 10 );
+            
+            _sock.getOutputStream().write(headers("GET", "num=" + num , "Connection: Keep-Alive\r\n" ).toString().getBytes() );
+            InputStream in = _sock.getInputStream();
+            if ( _rand.nextInt(3) == 0 )
+                in.read();
+            _sock.close();
+            _sock = null;
+        }
 
         void _drop()
             throws IOException {
+            
+            _what( "d" );
+
             _check();
             _sock.close();
             _sock = null;
         }
-    
+        
         void _get()
             throws IOException{
+
             _get( _rand.nextDouble() > .5 );
         }
-
+        
         void _get( boolean close )
             throws IOException {
             
             _check();
-            
+
+            _what( "g" );
+
             final long start = System.currentTimeMillis();
             
             int num = _rand.nextInt( 10 );
@@ -393,7 +433,9 @@ public class HttpServerTest extends TestCase {
         
         void _post( boolean close , int size )
             throws IOException {
-
+            
+            _what( "p" );
+            
             _check();
             
             StringBuilder buf = headers("POST", "", "Content-Length: " + size + "\r\nConnection: " + ( close ? "Close" : "Keep-Alive" ) + "\r\n");
@@ -420,7 +462,12 @@ public class HttpServerTest extends TestCase {
                 _sock = open();
         }
         
+        void _what( String s ){
+            System.out.print( s );
+        }
+        
         final Random _rand;
+        final boolean _doBad;
 
         boolean _go = true;
         int _requests = 0;
