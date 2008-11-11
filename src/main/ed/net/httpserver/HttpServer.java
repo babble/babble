@@ -354,16 +354,18 @@ public class HttpServer extends NIOServer {
         final HttpResponse _response;
         final HttpHandler _handler;
     }
-
-    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new SimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolds" , 20 , -1  ){
+    
+    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new SimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolds" , 20 , -1 ){
 
         public ByteBufferHolder createNew(){
             return new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
         }
         
         public boolean ok( ByteBufferHolder holder ){
+            holder.position( 0 );
             return holder.capacity() < 1024 * 1024;
         }
+        
     };
     
     private int _lastHandlerHash = 0;
