@@ -75,7 +75,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return runtime.newString(obj.toString());
         if (obj instanceof Boolean)
             return ((Boolean)obj).booleanValue() ? runtime.getTrue() : runtime.getFalse();
-        if (obj instanceof JSDate)
+        if (obj instanceof JSDate) // assume dates are immutable, so we don't have to wrap them
             return RubyTime.newTime(runtime, ((JSDate)obj).getTime());
 
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
@@ -219,7 +219,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
                 options = options.substring(0, options.indexOf('-'));
             return new JSRegex(regex.source().toString(), options);
         }
-        if (r instanceof RubyTime)
+        if (r instanceof RubyTime) // assume dates are immutable, so we don't have to wrap them
             return new JSDate((long)(((RubyTime)r).to_f().getValue() * 1000.0));
         if (r instanceof RubyClass) {
             Object o = new JSRubyClassWrapper(scope, (RubyClass)r);
