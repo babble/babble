@@ -461,8 +461,6 @@ public class SiteSystemState implements Sizable {
         }
     }
 
-    Map<JSLibrary, String> _loaded = new HashMap<JSLibrary, String>();
-
     /**
      * sys.meta_path hook to deal with core/core-modules and local/local-modules
      * imports.
@@ -569,22 +567,18 @@ public class SiteSystemState implements Sizable {
             }
 
             int period = modName.indexOf('.');
-            if( __path__ != null && __path__.size() >= 3 && __path__.get(1).equals(CORE_MODULES_MARKER) &&
-                period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
-                // look for foo.bar.baz in core-module foo and try foo.baz
-                // We only do this if we're in the foo core-module
-                // (according to __name__) at the time of the import. If we happen
-                // to be being imported without being in foo, don't rewrite it.
-                // (We tell when we're importing a core-module by sticking something in
-                // __path__. This isn't foolproof..)
+            if( __path__ != null && period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
+                // If we got an import for foo.bar.baz, see if we're in foo,
+                // and if so, try foo.baz.
+                String fooName = modName.substring( 0 , modName.indexOf( '.' ) );
                 String baz = modName.substring( modName.lastIndexOf( '.' ) + 1 );
 
                 String location = __path__.pyget(0).toString();
-                String __name__ = __path__.pyget(2).toString();
                 for( JSLibrary key : _loaded.keySet() ){
+                    String name = _loaded.get( key );
+                    if( ! name.equals( fooName ) ) continue;
+
                     if( location.startsWith( key.getRoot().toString() ) ){
-                        String name = _loaded.get( key );
-                        if( ! name.equals( __name__ ) ) continue;
                         Object foo = key.getFromPath( baz , true );
                         if( !( foo instanceof JSFileLibrary ) ) continue;
 
@@ -641,8 +635,6 @@ public class SiteSystemState implements Sizable {
             mod.__setattr__( "__file__".intern() , new PyString( "<10gen_virtual>" ) );
             mod.__setattr__( "__loader__".intern() , this );
             PyList pathL = new PyList( PyString.TYPE );
-            // FIXME: this is an import from a core-module, but we're running it as a
-            // JXP, so it probably isn't important if there's no __name__ marker
             pathL.append( new PyString( _root.getRoot().toString() ) );
             mod.__setattr__( "__path__".intern() , pathL );
 
@@ -670,11 +662,7 @@ public class SiteSystemState implements Sizable {
             PyList pathL = new PyList( );
             if( o instanceof JSFileLibrary ){
                 JSFileLibrary lib = (JSFileLibrary)o;
-                // Stick a marker in __path__ to make it clear we imported from a core
-                // module
                 pathL.append( new PyString( lib.getRoot().toString() ) );
-                pathL.append( new PyString( CORE_MODULES_MARKER ) );
-                pathL.append( pyName );
             }
 
             if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
@@ -840,4 +828,6 @@ public class SiteSystemState implements Sizable {
     private PySystemState pyState;
     private AppContext _context;
     private Scope _scope;
+    Map<JSLibrary, String> _loaded = new HashMap<JSLibrary, String>();
+
 }
