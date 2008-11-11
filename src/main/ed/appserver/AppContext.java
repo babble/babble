@@ -163,10 +163,6 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             _appEnvironments = new AppEnvironments(is);
 
             Map<String, AppEnvironments.AE> map = _appEnvironments.getAppEnvironments();
-            for (String s : map.keySet()) {
-
-                _logger.info("AppEnv : " + s + " : " + map.get(s).toString());
-            }
         }
         catch(Exception e) {
             e.printStackTrace();
