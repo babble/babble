@@ -283,7 +283,7 @@ public class HttpServerTest extends TestCase {
     public void testRandomBigWithBad()
         throws Throwable {
         if ( _load ){
-            _testRandom( 20 , 20 , true );
+            _testRandom( 25 , 25 , true );
         }
     }
     
@@ -354,7 +354,7 @@ public class HttpServerTest extends TestCase {
                 }
             }
             catch ( Throwable t ){
-                _ioe = new Throwable( "this time : " + _thisTime + "\t" + t , t );
+                _ioe = new Throwable( "this time : " + _thisTime + "\t" + t + "\t" + _sock , t );
             }
         }
         
@@ -460,13 +460,13 @@ public class HttpServerTest extends TestCase {
         void _check()
             throws IOException {
             if ( _sock == null ){
-                _sock = open();
                 _thisTime = 0;
+                _sock = open();
             }
         }
         
         void _what( String s ){
-            System.out.print( s );
+            //System.out.print( s );
         }
         
         final Random _rand;
