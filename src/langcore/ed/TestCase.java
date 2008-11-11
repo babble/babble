@@ -58,7 +58,7 @@ public class TestCase extends MyAsserts {
             StringBuilder buf = new StringBuilder();
             buf.append( _test );
             Throwable error = _error;
-            if ( error != null ){
+            while ( error != null ){
                 buf.append( "\n\t" + error + "\n" );
                 for ( StackTraceElement ste : error.getStackTrace() ){
                     buf.append( "\t\t" + ste + "\n" );
@@ -67,7 +67,7 @@ public class TestCase extends MyAsserts {
             }
             return buf.toString();
         }
-
+        
         final Test _test;
         final Throwable _error;
     }
