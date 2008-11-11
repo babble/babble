@@ -29,7 +29,7 @@ public abstract class SimplePool<T> {
      * See full constructor docs
      */
     public SimplePool( String name , int maxToKeep , int maxTotal ){
-        this( name , maxToKeep , maxTotal , false );
+        this( name , maxToKeep , maxTotal , false , false );
     }
 
     /** Initializes a new pool of objects.
@@ -38,11 +38,13 @@ public abstract class SimplePool<T> {
      * @param maxTotal max to have allocated at any point.  if there are no more, get() will block
      * @param trackLeaks if leaks should be tracked
      */
-    public SimplePool( String name , int maxToKeep , int maxTotal , boolean trackLeaks ){
+    public SimplePool( String name , int maxToKeep , int maxTotal , boolean trackLeaks , boolean debug ){
         _name = name;
         _maxToKeep = maxToKeep;
         _maxTotal = maxTotal;
         _trackLeaks = trackLeaks;
+        _debug = debug;
+        
     }
 
     /** Creates a new object of this pool's type.
@@ -119,8 +121,11 @@ public abstract class SimplePool<T> {
 
                 while ( _avail.size() > 0 ){
                     T t = _avail.remove( _avail.size() - 1 );
-                    if ( ok( t ) )
+                    if ( ok( t ) ){
+                        _debug( "got an old one" );
                         return t;
+                    }
+                    _debug( "old one was not ok" );
                     _all.remove( t );
                     continue;
                 }
@@ -185,10 +190,16 @@ public abstract class SimplePool<T> {
         return _everCreated;
     }
 
+    private void _debug( String msg ){
+        if( _debug )
+            System.out.println( "SimplePool [" + _name + "] : " + msg );
+    }
+
     protected final String _name;
     protected final int _maxToKeep;
     protected final int _maxTotal;
     protected final boolean _trackLeaks;
+    protected final boolean _debug;
 
     private final List<T> _avail = new ArrayList<T>();
     private final WeakBag<T> _all = new WeakBag<T>();
@@ -196,4 +207,6 @@ public abstract class SimplePool<T> {
 
     private int _everCreated = 0;
     private int _trackPrintCount = 0;
+
+    
 }
