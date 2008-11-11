@@ -3,10 +3,12 @@ package ed.js;
 import static org.testng.AssertJUnit.*;
 
 import java.net.*;
+import java.util.List;
 
 import javax.servlet.http.Cookie;
 
 import org.testng.annotations.Test;
+
 
 public class JSCookieJarTest {
     public JSCookieJarTest() {
@@ -69,5 +71,48 @@ public class JSCookieJarTest {
         jar.addCookie( new URL( "http://othersite.com/" ) , cookie );
         
         assertSame( 0, jar.keySet().size() );
+    }
+    
+    @Test
+    public void testClean() throws MalformedURLException, InterruptedException {
+        JSCookieJar jar = new JSCookieJar();
+
+        //Normal cookie
+        Cookie normalCookie = new Cookie( "normal", "mynorm");
+        normalCookie.setDomain( ".10gen.com" );
+        normalCookie.setPath( "/" );
+        normalCookie.setMaxAge( 9999 );
+        
+        jar.addCookie( new URL( "http://www.10gen.com/" ) , normalCookie );
+        
+        //Expired Cookie
+        Cookie expiredCookie = new Cookie( "expired", "myvalue" );
+        expiredCookie.setDomain( ".10gen.com" );
+        expiredCookie.setPath( "/" );
+        expiredCookie.setMaxAge( 1 );
+        
+        jar.addCookie( new URL( "http://www.10gen.com/" ) , expiredCookie );
+        
+        
+        //Nonpersistent cookie
+        Cookie nonpresistCookie = new Cookie( "nonpersist", "myval2" );
+        nonpresistCookie.setDomain( ".10gen.com" );
+        nonpresistCookie.setPath( "/" );
+        
+        jar.addCookie( new URL( "http://www.10gen.com/" ) , nonpresistCookie );
+        
+        
+        assertEquals( 3 , jar.keySet().size() );
+        
+        Thread.sleep( 2000 );
+        
+        List<Cookie> removedCookies = jar.clean(false);
+        assertEquals( 1 , removedCookies.size() );
+        assertEquals( "expired" , removedCookies.get( 0 ).getName() );
+        
+        
+        removedCookies = jar.clean(true);
+        assertEquals( 1 , removedCookies.size() );
+        assertEquals( "nonpersist" , removedCookies.get( 0 ).getName() );
     }
 }

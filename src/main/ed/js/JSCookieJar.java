@@ -1,6 +1,7 @@
 package ed.js;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.Map;
 import javax.servlet.http.Cookie;
 
 public class JSCookieJar extends JSObjectBase {
-    
+    //TODO: add clean method to remove stale & optionally nonpr
     public JSCookieJar() {
         this._creationDates = new HashMap<String, Date>();
     }
@@ -61,6 +62,28 @@ public class JSCookieJar extends JSObjectBase {
         return cookiesToSend;
     }
     
+    public List<Cookie> clean() {
+        return clean( true );
+    }
+    
+    public List<Cookie> clean(boolean removeNonpersistent) {
+        List<Cookie> deadCookies = new ArrayList<Cookie>();
+
+        JSObjectValueIterator iter = new JSObjectValueIterator( this );
+        while( iter.hasNext() ) {
+            Cookie c = (Cookie) iter.next();
+            
+            if( isExpired( c ) )
+                deadCookies.add( c );
+            
+            if( removeNonpersistent && c.getMaxAge() < 0 )
+                deadCookies.add( c );
+        }
+        for(Cookie deadCookie : deadCookies)
+            removeField( deadCookie.getName() );
+        
+        return deadCookies;
+    }
     /**
      * Allows cookies to be directly added to the jar
      */
