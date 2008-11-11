@@ -229,8 +229,14 @@ public class JSInternalFunctions extends JSNumericFunctions {
              obj instanceof Void )
             return TYPE_UNDEFINED;
 
-        if ( obj instanceof JSString )
-            return TYPE_STRING;
+        if ( obj instanceof JSString ) {
+            if(((JSString)obj).isObj() ) {
+                return TYPE_OBJECT;
+            }
+            else {
+                return TYPE_STRING;
+            }
+        }
 
         if ( obj instanceof String )
             return TYPE_NATIVE_STRING;

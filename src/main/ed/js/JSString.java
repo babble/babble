@@ -725,6 +725,14 @@ public class JSString extends JSObjectBase implements Comparable {
         return keys;
     }
 
+    private void setObj( boolean b ) {
+        isObj = b;
+    }
+
+    public boolean isObj() {
+        return isObj;
+    }
+
     String _s;
 
     public static class Symbol extends JSString {
@@ -734,4 +742,5 @@ public class JSString extends JSObjectBase implements Comparable {
     }
 
     static { JS._debugSIDone( "JSString" ); }
+    private boolean isObj = false;
 }
