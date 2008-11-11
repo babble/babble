@@ -154,19 +154,21 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
             _prototype.set( "join" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object strJS , Object foo[] ){
-                        JSArray a = (JSArray)(s.getThis());
+                        StringBuilder buf = new StringBuilder();
                         String str = ",";
-                        if ( strJS != null )
+                        if ( strJS != null && strJS != VOID )
                             str = strJS.toString();
 
-                        StringBuilder buf = new StringBuilder();
-
-                        for ( int i=0; i<a._array.size(); i++ ){
-                            if ( i > 0 )
-                                buf.append( str );
-                            buf.append( a._array.get( i ).toString() );
+                        JSObjectBase b = (JSObjectBase)s.getThis();
+                        int i = 0;
+                        while( b.containsKey( i+"" ) ) {
+                            if( i > 0 ) 
+                                buf.append( str ); 
+                            Object o = b.get(i);
+                            if( o != null && o != VOID ) 
+                                buf.append( JS_toString( o ) );
+                            i++;
                         }
-
                         return new JSString( buf.toString() );
                     }
                 } );
@@ -726,10 +728,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return The inserted object, <tt>v</tt>.
      */
     public Object set( Object n , Object v ){
-
-        int idx = _getInt( n );
-	if ( idx >= 0 )
+        if( n.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
+            int idx = JSNumber.toInt32( n );
 	    return setInt( idx , v );
+        }
 
         if ( n.toString().equals( "" ) ){
             _array.add( v );
@@ -817,7 +819,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             if ( i > 0 )
                 buf.append( "," );
             Object val = _array.get( i );
-            buf.append( val == null ? "" : JSInternalFunctions.JS_toString( val ) );
+            buf.append( val == null || val == VOID ?
+                        "" : JSInternalFunctions.JS_toString( val ) );
         }
         return buf.toString();
     }
