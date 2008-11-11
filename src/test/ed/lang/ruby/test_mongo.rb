@@ -14,6 +14,7 @@
 
 require 'ruby_test'
 require 'xgen/mongo'
+require 'course'
 require 'address'
 require 'student'
 
@@ -42,6 +43,7 @@ class MongoTest < RubyTest
     run_js <<EOS
 db = connect('test');
 db.rubytest_students.remove({});
+db.rubytest_courses.remove({});
 db.rubytest.remove({});
 db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});
 db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});
@@ -56,12 +58,18 @@ EOS
 
     @spongebob_addr = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
     @bender_addr = Address.new(:street => "Planet Express", :city => "New New York", :state => "NY", :postal_code => "10001")
-    @score1 = Score.new(:course_name => 'Course 101', :grade => 4.0)
-    @score2 = Score.new(:course_name => 'Course 201', :grade => 3.5)
+    @course1 = Course.new(:name => 'Introductory Testing')
+    @course2 = Course.new(:name => 'Advanced Phlogiston Combuston Theory')
+    @score1 = Score.new(:for_course => @course1, :grade => 4.0)
+    @score2 = Score.new(:for_course => @course2, :grade => 3.5)
   end
 
   def teardown
-    run_js 'db.rubytest.remove({});'
+    run_js <<EOS
+db.rubytest_students.remove({});
+db.rubytest_courses.remove({});
+db.rubytest.remove({});
+EOS
     super
   end
 
@@ -376,7 +384,7 @@ EOS
     score = list.first
     assert_not_nil score
     assert_kind_of Score, score
-    assert (score.course_name == @score1.course_name && score.grade == @score1.grade), "oops: first score is wrong: #{score}"
+    assert (score.for_course.name == @score1.for_course.name && score.grade == @score1.grade), "oops: first score is wrong: #{score}"
   end
 
   def test_field_query_methods
@@ -470,6 +478,34 @@ EOS
     assert s.updated_on?
     assert_kind_of Time, s.created_at
     assert_equal s.created_on, s.updated_on
+  end
+
+  # This reproduces a bug where DBRefs weren't being created properly because
+  # the XGen::Mongo::Base objects weren't storing the magic _ns, _update, and
+  # other values set by the database.
+  def test_db_ref
+    s = Student.new(:name => 'Spongebob Squarepants', :address => @spongebob_addr)
+    s.save
+
+    @course1.save
+    assert_not_nil @course1.id
+
+    s.add_score(@course1.id, 3.5)
+    s.save                      # This used to blow up
+
+    score = s.scores.first
+    assert_not_nil score
+    assert_equal @course1.name, score.for_course.name
+
+    # Now change the name of @course1 and see the student's score's course
+    # name change.
+    @course1.name = 'changed'
+    @course1.save
+
+    s = Student.find(:first, :conditions => "name = 'Spongebob Squarepants'")
+    assert_not_nil s
+    assert_equal 1, s.scores.length
+    assert_equal 'changed', s.scores.first.for_course.name
   end
 
   def assert_all_songs(str)
