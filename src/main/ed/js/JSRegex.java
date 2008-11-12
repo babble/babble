@@ -502,10 +502,24 @@ public class JSRegex extends JSObjectBase {
      * @return If the given string contained a match for this pattern.
      */
     public boolean test( String s ){
-        if( s == null )
-            s = getConstructor().get( "input") + "";
         Matcher m = _patt.matcher( s );
-        return m.find();
+        if( s == null )
+            s = getConstructor().get( "input" ) + "";
+        CachedResult cr = _last.get();
+        if( cr == null || cr._request != AppRequest.getThreadLocal() ) {
+            _last.set( new CachedResult( s, m, AppRequest.getThreadLocal(), null ) );
+            cr = _last.get();
+        }
+        boolean b = m.find( cr.lastIndex );
+        if( global ) {
+            _cons.set( "lastMatch", b ? m.group(0) : null );
+            _cons.set( "lastParen", b && m.groupCount() > 0 ? m.group( m.groupCount() ) : "" );
+            _cons.set( "leftContext", b ? s.substring( 0, m.start(0) ) : "" );
+            _cons.set( "rightContext", b ? s.substring( m.end(0) ) : "" );
+
+            cr.lastIndex = b ? m.end() : 0;
+        }
+        return b;
     }
 
     /** Applies this regular expression to the given string and returns an array of all matching substrings.
@@ -524,7 +538,7 @@ public class JSRegex extends JSObjectBase {
     public JSArray exec( final String s , final boolean canUseOld ){
         
         CachedResult cr = _last.get();
-        if( cr == null ) {
+        if( cr == null || cr._request != AppRequest.getThreadLocal() ) {
             _last.set( new CachedResult( s, null, AppRequest.getThreadLocal(), null ) );
             cr = _last.get();
         }
@@ -569,8 +583,8 @@ public class JSRegex extends JSObjectBase {
         }
 
         if ( _replaceAll ){
-            if ( cr == null ){
-                _last.set( cr );
+            if ( cr == null || cr._request != AppRequest.getThreadLocal() ){
+                _last.set( new CachedResult( s, m, AppRequest.getThreadLocal(), a ) );
             }
             else {
                 cr._array = a;
@@ -588,7 +602,7 @@ public class JSRegex extends JSObjectBase {
 
     void _setLast( JSArray arr ){
         CachedResult cr = _last.get();
-        if( cr == null ) {
+        if( cr == null || cr._request != AppRequest.getThreadLocal() ) {
             _last.set( new CachedResult( null, null, null, null ) );
             cr = _last.get();
         }
@@ -676,7 +690,9 @@ public class JSRegex extends JSObjectBase {
         JSArray _array;
     }
 
-    /** @unexpose */
+    /** @unexpose 
+     * Not only thread local, but CachedResult should be re-created on every HTTP request
+     */
     ThreadLocal<CachedResult> _last = new ThreadLocal<CachedResult>() {
         @Override protected CachedResult initialValue() {
             return new CachedResult( null, null, AppRequest.getThreadLocal(), null );
