@@ -17,24 +17,40 @@
 local.src.test.ed.lang.python.regexp1_helper();
 
 assert(re1.test("a"));
+re1.lastIndex = 0;
 assert(re1.test("abba"));
+re1.lastIndex = 0;
 assert(!re1.test("b"));
+re1.lastIndex = 0;
 assert(!re1.test("Abba"));
+re1.lastIndex = 0;
 
 assert(re2.test("a"));
+re2.lastIndex = 0;
 assert(re2.test("abba"));
+re2.lastIndex = 0;
 assert(!re2.test("b"));
+re2.lastIndex = 0;
 assert(re2.test("Abba"));
+re2.lastIndex = 0;
 
 assert(re3.test("a"));
+re3.lastIndex = 0;
 assert(re3.test("abba"));
+re3.lastIndex = 0;
 assert(!re3.test("b"));
-assert(re3.test("Abba"));
+re3.lastIndex = 0;
+assert(re3.test("Abba"))
+re3.lastIndex = 0;
 
 assert(re4.test("bab"));
+re4.lastIndex = 0;
 assert(re4.test("baab"));
+re4.lastIndex = 0;
 assert(re4.test("baaab"));
+re4.lastIndex = 0;
 assert(!re4.test("baaaab"));
+re4.lastIndex = 0;
 
 assert(re5.exec("")[1] == "");
 assert(re5.exec("/")[1] == "");
