@@ -701,7 +701,7 @@ public class JSRegex extends JSObjectBase {
 
             CachedResult cr = super.get();
             if ( cr == null )
-                return null;
+                return initialValue();
             
             AppRequest ar = AppRequest.getThreadLocal();
             if ( ar == cr._request )
