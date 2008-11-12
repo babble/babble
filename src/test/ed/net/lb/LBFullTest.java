@@ -31,22 +31,10 @@ import ed.net.httpserver.*;
 
 public class LBFullTest extends HttpServerTest {
 
-    public LBFullTest( String args[] )
-        throws IOException {
-        this( Arrays.toString( args ).contains( "load" ) );
-    }
-    
     public LBFullTest()
-        throws IOException {
-        this( false );
-    }
-    
-    public LBFullTest( boolean load )
         throws IOException {
         super( 10003 );
         
-        _load = load;
-
         _lb = new LB( _lbPort , new MyMappingFactory() , 0 );
         _lb.start();
     }
@@ -192,14 +180,22 @@ public class LBFullTest extends HttpServerTest {
     public static void main(String args[])
             throws IOException {
         
-        LBFullTest ft = new LBFullTest( args );
+        LBFullTest ft = new LBFullTest();
+        
+        for ( int i=0; i<args.length; i++ )
+            if ( args[i].equals( "load" ) )
+                ft._load = true;
+
         ft.runConsole();
         
         
         if ( args.length > 0 ){
-            int sleep = Integer.parseInt( args[0] );
-            System.out.println( "sleeping for " + sleep + " seconds" );
-            ThreadUtil.sleep( sleep * 1000 );
+            try {
+                int sleep = Integer.parseInt( args[0] );
+                System.out.println( "sleeping for " + sleep + " seconds" );
+                ThreadUtil.sleep( sleep * 1000 );
+            }
+            catch ( NumberFormatException nfe ){}
         }
         
     }
