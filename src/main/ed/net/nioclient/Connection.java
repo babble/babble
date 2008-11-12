@@ -92,7 +92,7 @@ public class Connection {
         
     boolean ok(){
         if ( _error != null ){
-            _myLostConnectionLogger.info( "error" );
+            _myLostConnectionLogger.info( "error" , _error );
             return false;
         }
 
