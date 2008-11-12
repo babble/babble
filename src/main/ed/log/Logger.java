@@ -75,12 +75,16 @@ public class Logger extends JSFunctionCalls2 {
     // -------------------
 
     public Logger( Logger parent , String name ){
+        this( parent , name , true );
+    }
+
+    public Logger( Logger parent , String name , boolean cache ){
         _parent = parent;
         _name = name;
         _fullName = _parent == null ? name : _parent._fullName + "." + _name;
         _sentEmail = new JSDate(0);
 
-        if ( ! _fullName.contains( "." ) )
+        if ( cache && ! _fullName.contains( "." ) )
             _fullNameToLogger.put( _fullName , this );
 
         if ( _parent == null )

@@ -39,7 +39,7 @@ public abstract class ServletContextBase implements ServletContext {
     protected ServletContextBase( String name ){
 	_baseName = name;
 	_attributes = new JSObjectBase();
-	_logger = Logger.getLogger( name );
+	_logger = new Logger( null , name , false );
     }
 
     public Object getAttribute(String name){
