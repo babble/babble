@@ -270,31 +270,45 @@ public class HttpServerTest extends TestCase {
 
     public void testRandom1()
         throws Throwable {
-        _testRandom( 10 , 10 , false );
+        _testRandom( 10 , 10 , false , false );
     }
 
     public void testRandomBigClean()
         throws Throwable {
         if ( _load ){
-            _testRandom( 20 , 20 , false );
+            _testRandom( 20 , 20 , false , false );
         }
     }
 
     public void testRandomBigWithBad()
         throws Throwable {
         if ( _load ){
-            _testRandom( 25 , 25 , true );
+            _testRandom( 25 , 25 , true , false );
+        }
+    }
+
+    public void testRandomBigWithFork()
+        throws Throwable {
+        if ( _load ){
+            _testRandom( 25 , 25 , false , true );
+        }
+    }
+
+    public void testRandomBigWithAll()
+        throws Throwable {
+        if ( _load ){
+            _testRandom( 25 , 25 , true , true );
         }
     }
     
-    private void _testRandom( int threads , int seconds , boolean doBad )
+    private void _testRandom( int threads , int seconds , boolean doBad , boolean doFork  )
         throws Throwable {
     
         final long start = System.currentTimeMillis();
     
         List<MyRandomThread> lst = new ArrayList<MyRandomThread>();
         for ( int i=0; i<threads; i++ )
-            lst.add( new MyRandomThread( i , doBad ) );
+            lst.add( new MyRandomThread( i , doBad , doFork ) );
         
         for ( MyRandomThread t : lst )
             t.start();
@@ -327,9 +341,10 @@ public class HttpServerTest extends TestCase {
     
     class MyRandomThread extends Thread {
 
-        MyRandomThread( int num , boolean doBad ){
+        MyRandomThread( int num , boolean doBad , boolean doFork ){
             _rand = new Random( 123123 * num );
             _doBad = doBad;
+            _doFork = doFork;
         }
         
         public void run(){
@@ -337,7 +352,7 @@ public class HttpServerTest extends TestCase {
             try {
                 while ( _go ){
                     
-                    switch ( _rand.nextInt( 6 ) ){
+                    switch ( _rand.nextInt( 7 ) ){
                     case 0:
                         _post(); break;
                     case 1:
@@ -348,7 +363,8 @@ public class HttpServerTest extends TestCase {
                         _get(); break;
                     case 5:
                         _bad(); break;
-                       
+                    case 6:
+                        _fork(); break;
                     }
                     
                 }
@@ -392,22 +408,27 @@ public class HttpServerTest extends TestCase {
         
         void _get()
             throws IOException{
+            _get( _rand.nextDouble() > .5 , false );
+        }
 
-            _get( _rand.nextDouble() > .5 );
+        void _fork()
+            throws IOException{
+            if ( ! _doFork )
+                return;
+            _get( _rand.nextDouble() > .5 , true );
         }
         
-        void _get( boolean close )
+        void _get( boolean close , boolean fork )
             throws IOException {
             
             _check();
 
             _what( "g" );
-
+            
             final long start = System.currentTimeMillis();
             
             int num = _rand.nextInt( 10 );
-            
-            _sock.getOutputStream().write(headers("GET", "num=" + num , "Connection: " + ( close ? "Close" : "Keep-Alive" ) + "\r\n" ).toString().getBytes() );
+            _sock.getOutputStream().write(headers("GET", "num=" + num + ( fork ? "&fork=true" : "" ) , "Connection: " + ( close ? "Close" : "Keep-Alive" ) + "\r\n" ).toString().getBytes() );
             InputStream in = _sock.getInputStream();
             Response r = read(in);
             checkResponse( r );
@@ -471,7 +492,8 @@ public class HttpServerTest extends TestCase {
         
         final Random _rand;
         final boolean _doBad;
-        
+        final boolean _doFork;
+
         boolean _go = true;
         int _requests = 0;
         
@@ -479,11 +501,11 @@ public class HttpServerTest extends TestCase {
         Throwable _ioe;
         int _thisTime = 0;
     }
-
+    
     HttpServer _server;
     final protected int _port;
     protected boolean _load = false;
-
+    
     public static void main(String args[])
             throws IOException {
         
