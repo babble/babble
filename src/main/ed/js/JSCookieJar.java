@@ -1,6 +1,49 @@
+/**
+*    Copyright (C) 2008 10gen Inc.
+*
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+*  Portions of this code taken from Apache's HTTPClient and was licensed under the following terms :
+*  
+*  
+*  Licensed to the Apache Software Foundation (ASF) under one or more
+*  contributor license agreements.  See the NOTICE file distributed with
+*  this work for additional information regarding copyright ownership.
+*  The ASF licenses this file to You under the Apache License, Version 2.0
+*  (the "License"); you may not use this file except in compliance with
+*  the License.  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*
+* This software consists of voluntary contributions made by many
+* individuals on behalf of the Apache Software Foundation.  For more
+* information on the Apache Software Foundation, please see
+* <http://www.apache.org/>.
+* 
+*/
+
 package ed.js;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +52,7 @@ import java.util.Map;
 import javax.servlet.http.Cookie;
 
 public class JSCookieJar extends JSObjectBase {
-    
+    //TODO: add clean method to remove stale & optionally nonpr
     public JSCookieJar() {
         this._creationDates = new HashMap<String, Date>();
     }
@@ -26,9 +69,11 @@ public class JSCookieJar extends JSObjectBase {
         }
         catch( MalformedCookieException e ) {
             //TODO: invalid cookies
+            return;
         }
         catch( IllegalArgumentException e ) {
             //TODO: invalid cookies
+            return;
         }
         
         if( cookie.getMaxAge() == 0 ) {
@@ -59,6 +104,28 @@ public class JSCookieJar extends JSObjectBase {
         return cookiesToSend;
     }
     
+    public List<Cookie> clean() {
+        return clean( true );
+    }
+    
+    public List<Cookie> clean(boolean removeNonpersistent) {
+        List<Cookie> deadCookies = new ArrayList<Cookie>();
+
+        JSObjectValueIterator iter = new JSObjectValueIterator( this );
+        while( iter.hasNext() ) {
+            Cookie c = (Cookie) iter.next();
+            
+            if( isExpired( c ) )
+                deadCookies.add( c );
+            
+            if( removeNonpersistent && c.getMaxAge() < 0 )
+                deadCookies.add( c );
+        }
+        for(Cookie deadCookie : deadCookies)
+            removeField( deadCookie.getName() );
+        
+        return deadCookies;
+    }
     /**
      * Allows cookies to be directly added to the jar
      */
@@ -277,13 +344,16 @@ public class JSCookieJar extends JSObjectBase {
      * @return true, if the cookie has an expiration date that has been reached
      */
     private boolean isExpired( Cookie cookie ) {
-        if( cookie.getMaxAge() <= 0)
+        if( cookie.getMaxAge() < 0)
+            return false;
+        
+        if( cookie.getMaxAge() == 0)
             return true;
         
         Date createDate = _creationDates.get( cookie.getName() );
         Date expirationDate = new Date( createDate.getTime() + ( cookie.getMaxAge() * 1000 ) );
         
-        return expirationDate.getTime() >= System.currentTimeMillis();
+        return expirationDate.getTime() <= System.currentTimeMillis();
     }
     
 

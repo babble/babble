@@ -85,6 +85,14 @@ public class JSONTest extends ed.TestCase {
 
     }
 
+    @Test(groups = {"basic"})
+    public void testBool(){
+        JSObject foo = (JSObject)(JSON.parse( "{ a : true , b: false , c : 5 }" ));
+        assertTrue( (Boolean)(foo.get( "a" ) ) );
+        assertFalse( (Boolean)(foo.get( "b" ) ) );
+        assertEquals( 5 , (Number)(foo.get( "c" ) ) );
+    }
+
     public static void main( String args[] ){
         (new JSONTest()).runConsole();
     }

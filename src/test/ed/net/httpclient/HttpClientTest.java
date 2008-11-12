@@ -119,7 +119,7 @@ public class HttpClientTest extends TestCase {
         server.stopServer();
     }
 
-    @Test(groups = {"basic"})
+    @Test(groups = {"basic"}, enabled = false)
     public static void testCookieHeaderParsing() {
         SimpleDateFormat fmt = new SimpleDateFormat( "EEE, dd-MMM-yyyy HH:mm:ss z" , Locale.US);
         

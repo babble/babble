@@ -184,7 +184,7 @@ public class SiteSystemState implements Sizable {
         ss.path_hooks.append( new ModulePathHook( scope ) );
     }
 
-    public void addDependency( PyObject to, PyObject importer ){
+    public void addDependency( String to, String importer ){
         _checkModules();
         ((PythonModuleTracker)pyState.modules).addDependency( to , importer );
     }
@@ -358,33 +358,77 @@ public class SiteSystemState implements Sizable {
                 }
             }
 
-            // We have to return m, but that might not be the module itself.
-            // If we got "import foo.bar", m = foo, but we want to get
-            // bar.__name__. So we have to search through modules to get to the
-            // innermost.
-            // But if we got "from foo import bar", m = bar, and we don't want
-            // to do anything. Ahh, crappy __import__ semantics..
-            // For more information see http://docs.python.org/lib/built-in-funcs.html
+            // We want to find the module that was actually imported so we can
+            // get its name for import tracking. If module package.foo does
+            // "import baz", it might get package.baz, and we want to record
+            // this correctly.
+            //
+            // We have to return m, but that might not be the module
+            // named by the import.  If we got "import foo.bar", m =
+            // foo, but we want to get bar.__name__. So we have to
+            // search through modules to get to the innermost.  But if
+            // we got "from foo import bar", m = bar, and we don't
+            // want to do anything. Ahh, crappy __import__ semantics..
+            // For more information see
+            // http://docs.python.org/lib/built-in-funcs.html
+            //
+            // Rather than diving through a bunch of modules, we just
+            // compute the right name.  This way, recursive imports
+            // where some module isn't yet in its package don't screw
+            // everything up.
+            //
+            // We got an import for foo.bar.baz, and we hold now a
+            // module that may be package.subpackage.foo. We want to
+            // get the name package.subpackage.foo, which should be
+            // foo.__name__, and add ".bar.baz" so we get the full
+            // module name package.subpackage.foo.bar.baz.
 
-            PyObject innerMod;
-            if( fromlist != null && fromlist.__len__() > 0 )
-                innerMod = m;
+            String imported = null;
+            if( fromlist != null && fromlist.__len__() > 0 ){
+                // But if we got an import "from foo.bar.baz import thingy",
+                // we're holding foo.bar.baz, so we just get the name from
+                // m.
+                PyObject __name__ = m.__findattr__("__name__");
+                if( __name__ == null ){
+                    throw new RuntimeException("imported a module without a __name__ : " + m);
+                }
+                imported = __name__.toString();
+            }
             else {
-                innerMod = m;
+                String startName = m.__findattr__("__name__").toString();
                 String [] modNames = target.split("\\.");
 
-                for( int i = 1; i < modNames.length; ++i ){
-                    PyObject foo = innerMod.__findattr__( modNames[i].intern() );
+                // We got an import for "foo.bar". But Jython might
+                // have implemented foo using a Java module FooModule.
+                // But of course, sys.modules would only have
+                // "foo.bar", not "FooModule.bar", because otherwise
+                // it would be ridiculous.  This only seems to happen
+                // with time -> Time and _random -> RandomModule, but
+                // it could conceivably happen with other modules.
+                //
+                // If we import foo.bar.baz we should get a "foo"
+                // module.  That means its __name__ is "foo" or its
+                // __name__ is "something.foo".
 
-                    if( foo == null ){
-                        return _finish( target , siteModule , m );
-                        //throw new RuntimeException("totally broken modules setup -- " + innerMod + " doesn't have " + modNames[i]);
-                    }
-                    innerMod = foo;
+                if( ! ( startName.endsWith("."+modNames[0]) || startName.equals(modNames[0]) ) ){
+                    if( DEBUG )
+                        System.out.println("Did an import for " + target + " but got " + startName );
+                    // Hopefully it was just an import for foo, and we
+                    // got Foo.  We'll just look up "foo" in
+                    // sys.modules and hope for the best.
+                    startName = target;
                 }
+                else {
+                    // OK, we got "package.foo", let's add ".bar".
+                    for( int i = 1; i < modNames.length; ++i ){
+                        startName += "." + modNames[i];
+                    }
+                }
+
+                imported = startName;
             }
-            PyObject to = innerMod.__findattr__( "__name__".intern() );
-            if( to == null ) return _finish( target , siteModule , m );
+
+            if( imported == null ) return _finish( target , siteModule , m );
 
             // Add a plain old JXP dependency on the file that was imported
             // Not sure if this is helpful or not
@@ -397,7 +441,7 @@ public class SiteSystemState implements Sizable {
             // Don't add dependencies to _10gen. FIXME: other "virtual"
             // modules should be OK.
             if( ! ( m instanceof PyModule && ((PyModule)m).__dict__ instanceof PyJSObjectWrapper ) )
-                sss.addDependency( to , importer );
+                sss.addDependency( imported , importer.toString() );
 
             return _finish( target , siteModule , m );
 
@@ -416,8 +460,6 @@ public class SiteSystemState implements Sizable {
             return siteModule;
         }
     }
-
-    Map<JSLibrary, String> _loaded = new HashMap<JSLibrary, String>();
 
     /**
      * sys.meta_path hook to deal with core/core-modules and local/local-modules
@@ -525,22 +567,18 @@ public class SiteSystemState implements Sizable {
             }
 
             int period = modName.indexOf('.');
-            if( __path__ != null && __path__.size() >= 3 && __path__.get(1).equals(CORE_MODULES_MARKER) &&
-                period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
-                // look for foo.bar.baz in core-module foo and try foo.baz
-                // We only do this if we're in the foo core-module
-                // (according to __name__) at the time of the import. If we happen
-                // to be being imported without being in foo, don't rewrite it.
-                // (We tell when we're importing a core-module by sticking something in
-                // __path__. This isn't foolproof..)
+            if( __path__ != null && period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
+                // If we got an import for foo.bar.baz, see if we're in foo,
+                // and if so, try foo.baz.
+                String fooName = modName.substring( 0 , modName.indexOf( '.' ) );
                 String baz = modName.substring( modName.lastIndexOf( '.' ) + 1 );
 
                 String location = __path__.pyget(0).toString();
-                String __name__ = __path__.pyget(2).toString();
                 for( JSLibrary key : _loaded.keySet() ){
+                    String name = _loaded.get( key );
+                    if( ! name.equals( fooName ) ) continue;
+
                     if( location.startsWith( key.getRoot().toString() ) ){
-                        String name = _loaded.get( key );
-                        if( ! name.equals( __name__ ) ) continue;
                         Object foo = key.getFromPath( baz , true );
                         if( !( foo instanceof JSFileLibrary ) ) continue;
 
@@ -597,8 +635,6 @@ public class SiteSystemState implements Sizable {
             mod.__setattr__( "__file__".intern() , new PyString( "<10gen_virtual>" ) );
             mod.__setattr__( "__loader__".intern() , this );
             PyList pathL = new PyList( PyString.TYPE );
-            // FIXME: this is an import from a core-module, but we're running it as a
-            // JXP, so it probably isn't important if there's no __name__ marker
             pathL.append( new PyString( _root.getRoot().toString() ) );
             mod.__setattr__( "__path__".intern() , pathL );
 
@@ -626,11 +662,7 @@ public class SiteSystemState implements Sizable {
             PyList pathL = new PyList( );
             if( o instanceof JSFileLibrary ){
                 JSFileLibrary lib = (JSFileLibrary)o;
-                // Stick a marker in __path__ to make it clear we imported from a core
-                // module
                 pathL.append( new PyString( lib.getRoot().toString() ) );
-                pathL.append( new PyString( CORE_MODULES_MARKER ) );
-                pathL.append( pyName );
             }
 
             if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
@@ -796,4 +828,6 @@ public class SiteSystemState implements Sizable {
     private PySystemState pyState;
     private AppContext _context;
     private Scope _scope;
+    Map<JSLibrary, String> _loaded = new HashMap<JSLibrary, String>();
+
 }

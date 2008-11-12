@@ -175,16 +175,14 @@ public class PythonModuleTracker extends PyStringMap {
     Map<String, Set<String> > _reverseDeps = new HashMap<String, Set<String> >();
     Map<String, Set<String> > _forwardDeps = new HashMap<String, Set<String> >();
 
-    public void addDependency( PyObject module , PyObject importer ){
-        String moduleS = module.toString();
-        String importerS = importer.toString();
+    public void addDependency( String moduleS , String importerS ){
         Set<String> rdeps = _reverseDeps.get( moduleS );
         if( rdeps == null ){
             rdeps = new HashSet<String>();
             _reverseDeps.put( moduleS , rdeps );
         }
         if( DEBUG )
-            System.out.println( "Module "+ module + " was imported by module " + importer );
+            System.out.println( "Module "+ moduleS + " was imported by module " + importerS );
         rdeps.add( importerS );
 
         Set<String> fdeps = _forwardDeps.get( importerS );

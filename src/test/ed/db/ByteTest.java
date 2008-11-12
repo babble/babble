@@ -98,9 +98,9 @@ public class ByteTest extends TestCase {
         o.set( "myf" , false );
         
         JSArray a = new JSArray();
-        a.set( "" , "A" );
-        a.set( "" , "B" );
-        a.set( "" , "C" );
+        a.add( "A" );
+        a.add( "B" );
+        a.add( "C" );
         o.set( "a" , a );
 
         o.set( "d" , new JSDate() );

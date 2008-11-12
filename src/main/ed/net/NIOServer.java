@@ -158,17 +158,16 @@ public abstract class NIOServer extends Thread {
 
             for ( ; i.hasNext() ;  ){
                 SelectionKey key = i.next();
+                i.remove();
+
+                if ( D ) System.out.println( NIOUtil.toString( key ) );
                 
                 SocketChannel sc = null;
                 SocketHandler sh = null;
                 
                 try {
                     
-                    if ( D ) System.out.println( key + " read : " + key.isReadable() + " write : " + key.isWritable() );
-                    
                     if ( key.isAcceptable() ){
-                        i.remove();
-                        
                         ServerSocketChannel ssc = (ServerSocketChannel)key.channel();
                         
                         sc = ssc.accept();
@@ -178,7 +177,7 @@ public abstract class NIOServer extends Thread {
                         sh = accept( sc );
                         sh._key = sc.register( _selector , SelectionKey.OP_READ , sh );
                         
-                        if ( D ) System.out.println( sc );
+                        if ( D ) System.out.println( "connected : " + sc );
 
                         continue;
                     }
@@ -190,27 +189,21 @@ public abstract class NIOServer extends Thread {
                     
 
                     if ( sh._bad || sh.shouldClose() ){
-                        i.remove();
-
-                        if ( D ) System.out.println( "\t want to close : " + sc );
+                        if ( D ) System.out.println( "\t want to close : " + sc + " bad:" + sh._bad );
                         sh.close();
                         continue;
                     }
                     
                     if ( key.isWritable() ){
-                        i.remove();
                         if ( sh.writeMoreIfWant() )
                             continue;
                     }
                     
                     if ( key.isReadable() ){
-                        i.remove();
-                        
-                        if ( D ) System.out.println( "\t" + sc );
                         
                         readBuf.clear();
                         int read = sc.read( readBuf );
-                        if ( D ) System.out.println( "\t\t" + read  );
+                        if ( D ) System.out.println( "\t" + read  );
                         if ( read == -1 ){
                             sc.close();
                             continue;
@@ -238,7 +231,23 @@ public abstract class NIOServer extends Thread {
                     } 
                     Runtime.getRuntime().halt( -2 );
                 }
+                catch ( IOException e ){
+                    
+                    if ( D ) _selectLoopLogger.error( sc.toString() , e );
+                    
+                    if ( sc != null ){
+                        try {
+                            sc.close();
+                        }
+                        catch ( Exception ee ){
+                        }
+                    }
+                    
+                }
                 catch ( Exception e ){
+                    
+                    _selectLoopLogger.error( sc.toString() , e );
+                    
                     if ( sc != null ){
                         try {
                             sc.close();
@@ -324,13 +333,13 @@ public abstract class NIOServer extends Thread {
 
         public void registerForWrites()
             throws IOException {
-            if ( D ) System.out.println( "registerForWrites" );
+            if ( D ) System.out.println( _channel + " registerForWrites" );
             _register( SelectionKey.OP_WRITE );
         }
 
         public void registerForReads()
             throws IOException {
-            if ( D ) System.out.println( "registerForReads" );
+            if ( D ) System.out.println( _channel + " registerForReads" );
             _register( SelectionKey.OP_READ );
         }
 
@@ -359,7 +368,6 @@ public abstract class NIOServer extends Thread {
 
             key.interestOps( ops );
             _selector.wakeup();
-            if ( D ) System.out.println( key + " : " + key.isValid() );
         }
         
         public void cancel(){
@@ -368,7 +376,7 @@ public abstract class NIOServer extends Thread {
         
         public void pause()
             throws IOException {
-            if ( D ) System.out.println( "pausing selector" );
+            if ( D ) System.out.println( _channel + " pausing selector" );
             _register( 0 );
         }
         
@@ -429,4 +437,5 @@ public abstract class NIOServer extends Thread {
     private int _numSelectors = 0;
 
     Logger _logger = Logger.getLogger( "nioserver" );
+    Logger _selectLoopLogger = _logger.getChild( "runloop" );
 }

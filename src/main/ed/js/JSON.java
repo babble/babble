@@ -438,11 +438,18 @@ public class JSON {
             
         case Token.NULL:
             return null;
-        }
 
+        case Token.TRUE:
+            return true;
+            
+        case Token.FALSE:
+            return false;
+            
+        }
+        
         
 
         Debug.printTree( n , 0 );
-        throw new RuntimeException( "what: " + Token.name( n.getType() ) );
+        throw new RuntimeException( "don't know how to convert from json: " + Token.name( n.getType() ) );
     }
 }
