@@ -40,7 +40,7 @@
 * 
 */
 
-package ed.js;
+package ed.net;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -51,10 +51,13 @@ import java.util.Map;
 
 import javax.servlet.http.Cookie;
 
-public class JSCookieJar extends JSObjectBase {
+import edu.emory.mathcs.backport.java.util.Collections;
+
+public class CookieJar {    
     //TODO: add clean method to remove stale & optionally nonpr
-    public JSCookieJar() {
+    public CookieJar() {
         this._creationDates = new HashMap<String, Date>();
+        this._cookies = new HashMap<String, Cookie>();
     }
 
     /**
@@ -77,11 +80,12 @@ public class JSCookieJar extends JSObjectBase {
         }
         
         if( cookie.getMaxAge() == 0 ) {
-            removeField( cookie.getName() );
+            remove( cookie.getName() );
             return;
         }
         else {
-            set( cookie.getName(), cookie );
+            _cookies.put( cookie.getName() , cookie );
+            _creationDates.put( cookie.getName() , new Date() );
         }
     }
 
@@ -90,15 +94,12 @@ public class JSCookieJar extends JSObjectBase {
      * @param requestingUrl
      * @return
      */
-    public List<Cookie> getActiveCookies(URL requestingUrl) {
-        JSArray cookiesToSend = new JSArray();
+    public Map<String, Cookie> getActiveCookies(URL requestingUrl) {
+        Map<String, Cookie> cookiesToSend = new HashMap<String, Cookie>();
         
-        JSObjectValueIterator iter = new JSObjectValueIterator( this );
-        while( iter.hasNext() ) {
-            Cookie c = (Cookie) iter.next();
-            
+        for( Cookie c : _cookies.values() ) {
             if( match( requestingUrl, c ) )
-                cookiesToSend.add( c );
+                cookiesToSend.put( c.getName(), c );
         }
 
         return cookiesToSend;
@@ -108,13 +109,14 @@ public class JSCookieJar extends JSObjectBase {
         return clean( true );
     }
     
+    public Map<String, Cookie> getAll() {
+        return Collections.unmodifiableMap( _cookies );
+    }
+    
     public List<Cookie> clean(boolean removeNonpersistent) {
         List<Cookie> deadCookies = new ArrayList<Cookie>();
 
-        JSObjectValueIterator iter = new JSObjectValueIterator( this );
-        while( iter.hasNext() ) {
-            Cookie c = (Cookie) iter.next();
-            
+        for( Cookie c : _cookies.values() ) {
             if( isExpired( c ) )
                 deadCookies.add( c );
             
@@ -122,32 +124,21 @@ public class JSCookieJar extends JSObjectBase {
                 deadCookies.add( c );
         }
         for(Cookie deadCookie : deadCookies)
-            removeField( deadCookie.getName() );
+            _cookies.remove( deadCookie.getName() );
         
         return deadCookies;
     }
-    /**
-     * Allows cookies to be directly added to the jar
-     */
-    public Object set(Object n, Object v) {
-        if( ! ( v instanceof Cookie ) )
-            throw new IllegalArgumentException( "This object can only contain cookies" );
-        
-        String key = n.toString();
-        Cookie c = (Cookie)v;
-        
-        if( !key.equals( c.getName() ) )
-            throw new IllegalArgumentException( "Key/cookie name mismatch, expected the cookie name to be " + key + ", but was " +c.getName() );
-        
-        _creationDates.put( key , new Date() );
-        return super.set( key , v );
-    }
     
-    public Object removeField(Object n) {
-        _creationDates.remove( n.toString() );
-        return super.removeField( n );
+    public Cookie remove( String name ) {
+        _creationDates.remove( name );
+        return _cookies.remove( name );
     }
 
+    public void removeAll() {
+        _creationDates.clear();
+        _cookies.clear();
+    }
+    
     /**
      * Performs RFC 2109 {@link Cookie} validation
      * 
@@ -357,9 +348,6 @@ public class JSCookieJar extends JSObjectBase {
     }
     
 
-    private final Map<String, Date> _creationDates;
-    
-
     public static class MalformedCookieException extends RuntimeException {
         public MalformedCookieException() {
             super();
@@ -386,5 +374,9 @@ public class JSCookieJar extends JSObjectBase {
             super(message, cause);
         }
     }
+
+    
+    private final Map<String, Date> _creationDates;
+    private final Map<String, Cookie> _cookies;
 
 }
