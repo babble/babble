@@ -264,6 +264,14 @@ public class HttpServerTest extends TestCase {
             return firstLine + " headers:" + headers + " [" + body + "]";
         }
 
+        boolean keepAlive(){
+            String k = headers.get( "Connection" );
+            if ( k == null || k.trim().length() == 0 )
+                return true;
+
+            return k.trim().equalsIgnoreCase( "keep-alive" );
+        }
+
         public final String firstLine;
         public final String body;
         public final Map<String, String> headers;
@@ -433,10 +441,11 @@ public class HttpServerTest extends TestCase {
             InputStream in = _sock.getInputStream();
             Response r = read(in);
             checkResponse( r );
-            
+            assertEquals( close , ! r.keepAlive() );
+
             final long end = System.currentTimeMillis();
             assertLess( end - start , Math.max( 1000 , num * 1.5 ) );
-
+            
             assertEquals( num * PingHandler.DATA.length() , r.body.length() );
             //LBFullTest.this.checkData( num , r.body);            
             
@@ -469,6 +478,7 @@ public class HttpServerTest extends TestCase {
             Response r = read(in);
             checkResponse( r );
             assertEquals(PingHandler.DATA, r.body);            
+            assertEquals( close , ! r.keepAlive() );
             
             if ( close ){
                 _sock.close();
