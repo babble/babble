@@ -18,9 +18,19 @@
 
 package ed.net;
 
+import java.util.*;
 import java.nio.channels.*;
 
 public class NIOUtil {
+
+    public static String toString( Collection<SelectionKey> coll ){
+	StringBuilder buf = new StringBuilder( "[");
+	
+	for ( SelectionKey key : coll )
+	    buf.append( toString( key ) ).append(", " );
+
+	return buf.append( "]" ).toString();
+    }
 
     public static String toString( SelectionKey key ){
 
