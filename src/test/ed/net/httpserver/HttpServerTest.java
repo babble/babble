@@ -335,9 +335,9 @@ public class HttpServerTest extends TestCase {
 
         for ( MyRandomThread t : lst ){
             t.join( 5000 );
-            if ( t.isAlive() ){
-                throw new RuntimeException( "thread not dead" );
-            }
+            if ( t.isAlive() )
+                throw new RuntimeException( "thread not dead : " + t._sock );
+
             total += t._requests;
             if ( t._ioe != null )
                 throw t._ioe;
