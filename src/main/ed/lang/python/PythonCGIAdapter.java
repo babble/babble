@@ -190,5 +190,9 @@ public class PythonCGIAdapter extends CGIAdapter {
         public void __setitem__(PyObject key, PyObject value) {
             CGITLSData.getThreadLocal().getPyDict().__setitem__(key, value);
         }
+
+        public boolean __contains__(PyObject key) {
+            return CGITLSData.getThreadLocal().getPyDict().has_key(key);
+        }
     }
 }
