@@ -25,6 +25,7 @@ import java.util.*;
 import org.testng.annotations.Test;
 
 import ed.*;
+import ed.net.*;
 import ed.io.*;
 import ed.util.*;
 
@@ -164,7 +165,7 @@ public class HttpServerTest extends TestCase {
     
     protected Socket getSocket()
         throws IOException{
-        return new Socket("127.0.0.1", _port);
+        return new Socket( DNSUtil.getMyAddresses().get(0) , _port);
     }
 
     public static StringBuilder headers(String method, String params, String headers) {

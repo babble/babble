@@ -25,6 +25,7 @@ import java.util.*;
 import org.testng.annotations.Test;
 
 import ed.*;
+import ed.net.*;
 import ed.io.*;
 import ed.util.*;
 import ed.net.httpserver.*;
@@ -51,7 +52,7 @@ public class LBFullTest extends HttpServerTest {
 
     protected Socket getSocket()
         throws IOException {
-        return new Socket("127.0.0.1", _lbPort);
+        return new Socket(  DNSUtil.getMyAddresses().get(0) , _lbPort);
     }
 
 

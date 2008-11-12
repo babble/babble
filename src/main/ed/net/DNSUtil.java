@@ -95,10 +95,20 @@ public class DNSUtil {
 
         return "";
     }
-
+    
     public static List<InetAddress> getPublicAddresses()
         throws IOException {
+        return getAddresses( false );
+    }   
 
+    public static List<InetAddress> getMyAddresses()
+        throws IOException {
+        return getAddresses( true );
+    }
+
+
+    public static List<InetAddress> getAddresses( boolean includeInternal )
+        throws IOException {
         List<InetAddress> lst = new ArrayList<InetAddress>();
         
         for ( NetworkInterface nic : getNetworkInterfaces() ){
@@ -113,10 +123,13 @@ public class DNSUtil {
                 
                 if ( ip.startsWith( "127.0.0.1" ) )
                     continue;
-                if ( ip.startsWith( "10." ) )
-                    continue;
-                if ( ip.startsWith( "192.168." ) )
-                    continue;
+
+                if ( ! includeInternal ){
+                    if ( ip.startsWith( "10." ) )
+                        continue;
+                    if ( ip.startsWith( "192.168." ) )
+                        continue;
+                }
                 
                 lst.add( ia );
             }
