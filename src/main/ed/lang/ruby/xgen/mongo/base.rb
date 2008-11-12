@@ -43,6 +43,15 @@ module XGen
 
   module Mongo
 
+    class MongoError < StandardError #:nodoc:
+    end
+    class PreparedStatementInvalid < MongoError #:nodic:
+    end
+    class RecordNotFound < MongoError #:nodic:
+    end
+    class RecordNotSaved < MongoError #:nodic:
+    end
+
     # A superclass for database collection instances.
     #
     # If you override initialize, make sure to call the superclass version,
@@ -256,7 +265,32 @@ module XGen
 
         # Creates, saves, and returns a new database object.
         def create(values_hash)
-          self.new(values_hash).save
+          object = self.new(values_hash)
+          object.save
+          object
+        end
+
+        # Finds the record from the passed +id+, instantly saves it with the passed +attributes+ (if the validation permits it),
+        # and returns it. If the save fails under validations, the unsaved object is still returned.
+        #
+        # The arguments may also be given as arrays in which case the update method is called for each pair of +id+ and 
+        # +attributes+ and an array of objects is returned.
+        # => 
+        # Example of updating one record:
+        #   Person.update(15, {:user_name => 'Samuel', :group => 'expert'})
+        # 
+        # Example of updating multiple records:
+        #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy"} } 	
+        #   Person.update(people.keys, people.values)
+        def update(id, attributes)
+          if id.is_a?(Array)
+            i = -1
+            id.collect { |id| i += 1; update(id, attributes[i]) }
+          else
+            object = find(id)
+            object.update_attributes(attributes)
+            object
+          end
         end
 
         # Handles find_* methods such as find_by_name, find_all_by_shoe_size,
@@ -325,7 +359,14 @@ module XGen
           sort_by = sort_by_from(options[:order]) if options[:order]
           db_cursor.sort(sort_by) if sort_by
           cursor = Cursor.new(db_cursor, self)
-          ids.length == 1 ? self.new(cursor[0]) : cursor
+          case ids.length
+          when 0
+            raise RecordNotFound, "Couldn't find #{name} without an ID"
+          when 1
+            self.new(cursor[0])
+          else
+            cursor
+          end
         end
 
         def ids_clause(ids)
@@ -424,7 +465,7 @@ module XGen
             if h.include?(match)
               quote(h[match])
             else
-              raise "missing value for :#{match} in #{str}" # TODO this gets swallowed in find()
+              raise PreparedStatementInvalid, "missing value for :#{match} in #{str}" # TODO this gets swallowed in find()
             end
           end
         end
@@ -528,20 +569,15 @@ module XGen
         @_id.to_s
       end
 
-      # Saves and returns self.
+      # Saves self and returns true if the save was successful, false if not.
       def save
-        if @_id == nil
-          set_create_times
-        else
-          set_update_times
-        end
-        row = self.class.coll.save(to_mongo_value)
-        if @_id == nil
-          @_id = row._id
-        elsif row._id.to_s != @_id.to_s
-          raise "Error: after save, database id changed: old = #{row._id}, new = #{@_id}"
-        end
-        self
+        create_or_update
+      end
+
+      # Saves self and returns true if the save was successful and raises
+      # RecordNotSaved if not.
+      def save!
+        create_or_update || raise(RecordNotSaved)
       end
 
       def new_record?
@@ -554,6 +590,24 @@ module XGen
         h
       end
 
+      # Saves self to the database.
+      def create
+        set_create_times
+        row = self.class.coll.save(to_mongo_value)
+        @_id = row._id
+        self
+      end
+
+      # Saves self to the database. Returns false if there was an error.
+      def update
+        set_update_times
+        row = self.class.coll.save(to_mongo_value)
+        if row._id.to_s != @_id.to_s
+          return false
+        end
+        self
+      end
+
       # Removes self from the database and sets @_id to nil. If self has no
       # @_id, does nothing.
       def delete
@@ -564,7 +618,45 @@ module XGen
       end
       alias_method :remove, :delete
 
+      # ================================================================
+      # These methods exist so we can plug in ActiveRecord validation, etc.
+      # ================================================================
+
+      # Updates a single attribute and saves the record. This is especially
+      # useful for boolean flags on existing records. Note: This method is
+      # overwritten by the Validation module that'll make sure that updates
+      # made with this method doesn't get subjected to validation checks.
+      # Hence, attributes can be updated even if the full object isn't valid.
+      def update_attribute(name, value)
+        send(name.to_s + '=', value)
+        save
+      end
+
+      # Updates all the attributes from the passed-in Hash and saves the
+      # record. If the object is invalid, the saving will fail and false will
+      # be returned.
+      def update_attributes(attributes)
+        self.attributes = attributes
+        save
+      end
+      
+      # Updates an object just like Base.update_attributes but calls save!
+      # instead of save so an exception is raised if the record is invalid.
+      def update_attributes!(attributes)
+        self.attributes = attributes
+        save!
+      end
+
+      def attributes_from_column_definition; end
+
+      # ================================================================
+
       private
+
+      def create_or_update
+        result = new_record? ? create : update
+        result != false
+      end
 
       # Initialize ivar. +name+ must include the leading '@'.
       def init_ivar(ivar_name, val)
