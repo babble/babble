@@ -161,6 +161,9 @@ public class Module {
      */
     public String _checkVersion( String want ){
         
+        if ( want == null )
+            return null;
+
         Object min = JS.path( _moduleVersionInfo , _name + ".minVersion" );
         if ( min == null )
             return want;
