@@ -313,7 +313,10 @@ public class SiteSystemState implements Sizable {
             finally {
                 Py.setSystemState( oldPyState );
             }
+            return trackDependency( sss , globals , target , siteModule , m , fromlist );
+        }
 
+        PyObject trackDependency( SiteSystemState sss , PyObject globals , String target , PyObject siteModule , PyObject m , PyObject fromlist ){
             if( globals == null ){
                 // Only happens (AFAICT) from within Java code.
                 // For example, Jython's codecs.java calls
@@ -334,7 +337,7 @@ public class SiteSystemState implements Sizable {
                 PyFrame f = Py.getFrame();
                 if( f == null ){
                     // No idea what this means
-                    System.err.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
+                    System.err.println("Can't figure out where the call to import " + target + " came from! Import tracking is going to be screwed up!");
                     return _finish( target, siteModule, m );
                 }
 
@@ -354,7 +357,7 @@ public class SiteSystemState implements Sizable {
                 }
 
                 if( importer == null ){ // Still??
-                    System.err.println("Totally unable to figure out how import to " + args[0] + " came about. Import tracking is going to be screwed up.");
+                    System.err.println("Totally unable to figure out how import to " + target + " came about. Import tracking is going to be screwed up.");
                 }
             }
 
@@ -578,16 +581,17 @@ public class SiteSystemState implements Sizable {
                     String name = _loaded.get( key );
                     if( ! name.equals( fooName ) ) continue;
 
-                    if( location.startsWith( key.getRoot().toString() ) ){
-                        Object foo = key.getFromPath( baz , true );
-                        if( !( foo instanceof JSFileLibrary ) ) continue;
+                    if( ! location.startsWith( key.getRoot().toString() ) )
+                        continue;
 
-                        if( DEBUG ){
-                            System.out.println("Got " + foo + " from " + _loaded + " " + foo.getClass());
-                            System.out.println("Returning rewrite loader for " + name + "." + baz);
-                        }
-                        return new RewriteModuleLoader( name + "." + baz );
+                    Object foo = key.getFromPath( baz , true );
+                    if( !( foo instanceof JSFileLibrary ) ) continue;
+
+                    if( DEBUG ){
+                        System.out.println("Got " + foo + " from " + _loaded + " " + foo.getClass());
+                        System.out.println("Returning rewrite loader for " + name + "." + baz);
                     }
+                    return new RewriteModuleLoader( name + "." + baz );
                 }
             }
 
