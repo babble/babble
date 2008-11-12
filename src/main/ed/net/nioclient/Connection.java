@@ -92,7 +92,7 @@ public class Connection {
         
     boolean ok(){
         if ( _error != null ){
-            _myLostConnectionLogger.info( "error" , _error );
+            _myLostConnectionLogger.log( _error instanceof ClientError ? Level.DEBUG : Level.INFO , "error" , _error );
             return false;
         }
 
@@ -185,7 +185,7 @@ public class Connection {
             _userError( "Call.handleRead returned ERROR" );
             return;
         case CLIENT_ERROR:
-            _error = new IOException( "downstream error so closing" );
+            _error = new ClientError( "downstream error so closing" );
             done( true );
             return;
         case DONE_AND_CLOSE:
