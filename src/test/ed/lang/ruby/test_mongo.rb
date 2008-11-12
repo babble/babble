@@ -451,6 +451,11 @@ EOS
     assert_equal @mayor_str, str
   end
 
+  def test_destroy
+    Track.destroy(@mayor_id)
+    assert_nil Track.find(@mayor_id)
+  end
+
   # Potential bug: if this test runs at midnight, a create runs before midnight
   # and the update runs after, then this test will fail.
   def test_time_updates

@@ -257,6 +257,19 @@ module XGen
         end
         alias_method :remove, :delete
 
+        def destroy(id)
+          id.is_a?(Array) ? id.each { |id| destroy(id) } : find(id).destroy
+        end
+
+        def update_all(updates, conditions = nil)
+          # TODO
+          raise "not yet implemented"
+        end
+
+        def destroy_all(conditions = nil)
+          find(:all, :conditions => conditions).each { |object| object.destroy }
+        end
+
         # Deletes all matching records. If you want to remove everything in
         # the collection, pass in an empty hash.
         def delete_all(*args)
@@ -617,6 +630,13 @@ module XGen
         end
       end
       alias_method :remove, :delete
+
+      def destroy
+        unless new_record?
+          self.class.destroy(@_id)
+        end
+        freeze
+      end
 
       # ================================================================
       # These methods exist so we can plug in ActiveRecord validation, etc.
