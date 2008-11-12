@@ -36,6 +36,7 @@ import ed.js.func.*;
 import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.util.*;
+import ed.git.*;
 import ed.lang.python.*;
 import ed.io.StreamUtil;
 import org.apache.log4j.lf5.util.StreamUtils;
@@ -123,14 +124,16 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         _root = root;
         _rootFile = rootFile;
+        _git = new GitDir( _rootFile );
         _name = name;
+        
         _environment = environment;
         _nonAdminParent = nonAdminParent;
         _admin = _nonAdminParent != null;
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
         _moduleRegistry = ModuleRegistry.getNewGlobalChild();
 
-        _gitBranch = GitUtils.hasGit(_rootFile) ? GitUtils.getBranchOrTagName(_rootFile) : null;
+        _gitBranch = _git.isValid() ? _git.getBranchOrTagName() : null;
 
         _isGrid = name.equals("grid");
 
@@ -1237,7 +1240,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             throw new RuntimeException("this should be impossible");
 
         if (_lastScopeInitTime < _gitFile.lastModified())
-            _gitBranch = GitUtils.getBranchOrTagName(_rootFile);
+            _gitBranch = _git.getBranchOrTagName();
 
         return _gitBranch;
     }
@@ -1258,26 +1261,26 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
      * if name or environemnt is missing, does nothing
      */
     public String updateCode() {
-
-        if (!GitUtils.isSourceDirectory(_rootFile))
-            throw new RuntimeException(_rootFile + " is not a git repo");
+        
+        if ( ! _git.isValid() )
+            throw new RuntimeException( _rootFile + " is not a git repository" );
 
         _logger.info("going to update code");
-        GitUtils.fullUpdate(_rootFile);
+        _git.fullUpdate();
 
-        if (_name == null || _environment == null)
+        if ( _name == null || _environment == null)
             return getCurrentGitBranch();
 
         JSObject env = getEnvironmentObject();
         if (env == null)
             return null;
 
-
         String branch = env.get("branch").toString();
         _logger.info("updating to [" + branch + "]");
-        AppContextHolder._checkout(_rootFile, branch);
+        
+        _git.checkout( branch );
         Python.deleteCachedJythonFiles(_rootFile);
-
+        
         return getCurrentGitBranch();
     }
 
@@ -1537,6 +1540,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     final String _name;
     final String _root;
     final File _rootFile;
+    final GitDir _git;
 
     private String _gitBranch;
     final String _environment;
