@@ -505,12 +505,14 @@ public class JSRegex extends JSObjectBase {
         Matcher m = _patt.matcher( s );
         if( s == null )
             s = getConstructor().get( "input" ) + "";
+
         CachedResult cr = _last.get();
-        if( cr == null || cr._request != AppRequest.getThreadLocal() ) {
-            _last.set( new CachedResult( s, m, AppRequest.getThreadLocal(), null ) );
-            cr = _last.get();
-        }
-        boolean b = m.find( cr.lastIndex );
+        
+        int idx = cr.lastIndex;
+        if ( idx >= s.length() )
+            idx = 0;
+        boolean b = m.find( idx );
+        
         if( global ) {
             _cons.set( "lastMatch", b ? m.group(0) : null );
             _cons.set( "lastParen", b && m.groupCount() > 0 ? m.group( m.groupCount() ) : "" );
@@ -538,7 +540,7 @@ public class JSRegex extends JSObjectBase {
     public JSArray exec( final String s , final boolean canUseOld ){
         
         CachedResult cr = _last.get();
-        if( cr == null || cr._request != AppRequest.getThreadLocal() ) {
+        if( cr == null ){
             _last.set( new CachedResult( s, null, AppRequest.getThreadLocal(), null ) );
             cr = _last.get();
         }
@@ -693,11 +695,29 @@ public class JSRegex extends JSObjectBase {
     /** @unexpose 
      * Not only thread local, but CachedResult should be re-created on every HTTP request
      */
-    ThreadLocal<CachedResult> _last = new ThreadLocal<CachedResult>() {
+    class CRLast extends ThreadLocal<CachedResult>{
+
+        public CachedResult get(){
+
+            CachedResult cr = super.get();
+            if ( cr == null )
+                return null;
+            
+            AppRequest ar = AppRequest.getThreadLocal();
+            if ( ar == cr._request )
+                return cr;
+            
+            cr = initialValue();
+            set( cr );
+            return cr;
+        }
+        
         @Override protected CachedResult initialValue() {
             return new CachedResult( null, null, AppRequest.getThreadLocal(), null );
         }
     };
+
+    private CRLast _last = new CRLast();
     
     /** @unexpose */
     static ThreadLocal<JSRegex> _lastRegex = new ThreadLocal<JSRegex>();
