@@ -316,6 +316,10 @@ public class SiteSystemState implements Sizable {
             return trackDependency( sss , globals , target , siteModule , m , fromlist );
         }
 
+        /**
+         * Mark a dependency in a given system state, based on information
+         * taken from the import context.
+         */
         PyObject trackDependency( SiteSystemState sss , PyObject globals , String target , PyObject siteModule , PyObject m , PyObject fromlist ){
             if( globals == null ){
                 // Only happens (AFAICT) from within Java code.
