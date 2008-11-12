@@ -38,7 +38,7 @@
       <class name="ed.lang.python.PythonResetTest" />
       <class name="ed.lang.python.PythonFileTest" />
       <class name="ed.manager.ManagerTest" />
-      <class name="ed.js.JSCookieJarTest" />
+      <class name="ed.net.CookieJarTest" />
     </classes>
   </test>
 

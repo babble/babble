@@ -1,4 +1,4 @@
-package ed.js;
+package ed.net;
 
 import static org.testng.AssertJUnit.*;
 
@@ -10,13 +10,13 @@ import javax.servlet.http.Cookie;
 import org.testng.annotations.Test;
 
 
-public class JSCookieJarTest {
-    public JSCookieJarTest() {
+public class CookieJarTest {
+    public CookieJarTest() {
     }
     
     @Test
     public void testSimple() throws MalformedURLException {
-        JSCookieJar jar = new JSCookieJar();
+        CookieJar jar = new CookieJar();
         Cookie cookie = new Cookie( "myname", "myvalue" );
         cookie.setDomain( "10gen.com" );
         cookie.setPath( "/" );
@@ -24,10 +24,10 @@ public class JSCookieJarTest {
         jar.addCookie( new URL( "http://10gen.com/" ), cookie );
 
         //make sure it was actually saved
-        assertSame( cookie, jar.get( "myname" ) );
+        assertSame( cookie, jar.getAll().get( "myname" ) );
 
         //make sure it would resent to the same url
-        assertSame( cookie, jar.getActiveCookies( new URL("http://10gen.com/") ).get( 0 ) );
+        assertSame( cookie, jar.getActiveCookies( new URL("http://10gen.com/") ).get( "myname" ) );
         
         //make sure it won't be sent elsewhere
         URL otherUrl = new URL( "http://someotherhost.com/with/random/path");
@@ -36,7 +36,7 @@ public class JSCookieJarTest {
     
     @Test
     public void testSecure() throws MalformedURLException {
-        JSCookieJar jar = new JSCookieJar();
+        CookieJar jar = new CookieJar();
         Cookie cookie = new Cookie( "myname", "myvalue" );
         cookie.setDomain( ".10gen.com" );
         cookie.setPath( "/" );
@@ -44,38 +44,38 @@ public class JSCookieJarTest {
         
         jar.addCookie( new URL("https://www.10gen.com") , cookie );
         
-        assertSame( cookie, jar.getActiveCookies( new URL( "https://10gen.com/" ) ).get(0) );
+        assertSame( cookie, jar.getActiveCookies( new URL( "https://10gen.com/" ) ).get("myname") );
         assertSame( 0, jar.getActiveCookies( new URL( "http://10gen.com/" ) ).size() );
     }
     
     @Test
     public void testPath() throws MalformedURLException {
-        JSCookieJar jar = new JSCookieJar();
+        CookieJar jar = new CookieJar();
         Cookie cookie = new Cookie( "myname", "myvalue" );
         cookie.setDomain( ".10gen.com" );
         cookie.setPath( "/subdir" );
         
         jar.addCookie( new URL( "http://www.10gen.com/subdir" ), cookie );
         
-        assertSame( cookie, jar.getActiveCookies( new URL( "http://10gen.com/subdir/moo/baa.html" ) ).get(0) );
+        assertSame( cookie, jar.getActiveCookies( new URL( "http://10gen.com/subdir/moo/baa.html" ) ).get("myname") );
         assertSame( 0, jar.getActiveCookies( new URL( "http://10gen.com/otherdir/" ) ).size() );
     }
     
     @Test
     public void testInvalidDomain() throws MalformedURLException {
-        JSCookieJar jar = new JSCookieJar();
+        CookieJar jar = new CookieJar();
         Cookie cookie = new Cookie( "myname", "myvalue" );
         cookie.setDomain( ".10gen.com" );
         cookie.setPath( "/subdir" );
         
         jar.addCookie( new URL( "http://othersite.com/" ) , cookie );
         
-        assertSame( 0, jar.keySet().size() );
+        assertSame( 0, jar.getAll().size() );
     }
     
     @Test
     public void testClean() throws MalformedURLException, InterruptedException {
-        JSCookieJar jar = new JSCookieJar();
+        CookieJar jar = new CookieJar();
 
         //Normal cookie
         Cookie normalCookie = new Cookie( "normal", "mynorm");
@@ -102,7 +102,7 @@ public class JSCookieJarTest {
         jar.addCookie( new URL( "http://www.10gen.com/" ) , nonpresistCookie );
         
         
-        assertEquals( 3 , jar.keySet().size() );
+        assertEquals( 3 , jar.getAll().size() );
         
         Thread.sleep( 2000 );
         

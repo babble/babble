@@ -23,6 +23,11 @@ package ed.util;
  * @expose
  */
 public class Box<T> {
+    
+    public Box(){
+        _t = null;
+    }
+    
     /** Initializes a new wrapper for an object.
      * @param t Object to wrap
      */

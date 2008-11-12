@@ -202,6 +202,11 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public synchronized Object get( final Object n , final boolean doInit ){
+
+        if (n == null) {
+            throw new IllegalArgumentException("Filename cannot be null.");    
+        }
+
         if ( doInit )
             _init();
 
