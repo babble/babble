@@ -20,6 +20,7 @@ package ed.appserver;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 
 import ed.js.*;
 import ed.js.engine.*;
@@ -150,6 +151,44 @@ public class Module {
         }
         
         return f;
+    }
+    
+    public static long parseVersion( final String version ){
+        if ( version == null )
+            throw new NullPointerException( "version can't be null" );
+        
+        // 6 bits per numbers
+        // max 10 numbers
+        
+        long num = 0;
+        Matcher m = Pattern.compile( "(\\d+)" ).matcher( version );
+        int pos = 0;
+        while ( m.find() ){
+            num = num << 6;
+            pos++;
+            
+            int now = Integer.parseInt( m.group(1) );
+            if ( now > 63 )
+                throw new IllegalArgumentException( "can't have digit in version larger than 64" );
+            num = num | ( now & 0x3f );
+        }
+
+        if ( pos > 10 )
+            throw new IllegalArgumentException( "too many numbers [" + version + "]" );
+        
+        while ( pos++ < 10 )
+            num = num << 6;
+
+        return num;
+    }
+
+    public static int compareVersions( String a , String b ){
+        long diff = parseVersion( a ) - parseVersion( b );
+        if ( diff < 0 )
+            return -1;
+        if ( diff > 0 )
+            return 1;
+        return 0;
     }
 
     final File _base;
