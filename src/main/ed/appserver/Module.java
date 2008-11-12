@@ -83,9 +83,11 @@ public class Module {
         
         if ( _versioned ){
             String defaultVersion = _config == null ? "master" : _config.getDefaultTag();
+            _defaultVersion = defaultVersion;
             _default = getRootFile( defaultVersion );
         }
         else {
+            _defaultVersion = "unversioned";
             _default = _root;
         }
         
@@ -100,9 +102,15 @@ public class Module {
         version = _checkVersion( version );
 
         synchronized ( _lock ){
+            Box<String> b = new Box<String>();
+
             File f = getRootFile( version );
             if ( USE_GIT && pull && _versioned && GitUtils.onBranch( f ) )
                 GitUtils.pull( f , false );
+
+            if ( context != null )
+                context.getLibraryVersionsLoaded().set( _name , b.get() );
+                 
             return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
         }
     }
@@ -122,8 +130,16 @@ public class Module {
     }
 
     public File getRootFile( String version ){
-        if ( version == null )
+        return getRootFile( version , new Box<String>() );
+    }
+
+    public File getRootFile( String version , Box<String> versionUsed ){
+        versionUsed.set( version );
+
+        if ( version == null ){
+            versionUsed.set( _defaultVersion );
             return _default;
+        }
 
         if ( ! _versioned ){
             _log.getChild( _name ).info( "Module [" + _uriBase + "] want version [" + version + "] but not in versioned mode" );
@@ -131,8 +147,10 @@ public class Module {
         }
 
         String symlink = getSymLink( version );
-        if ( symlink != null )
-            version = symlink;        
+        if ( symlink != null ){
+            version = symlink; 
+            versionUsed.set( version );
+        }
 
         // now try to find best match
         File f = new File( _root , version );
@@ -226,6 +244,7 @@ public class Module {
     final boolean _versioned;
 
     final File _default;
+    final String _defaultVersion;
     
     final String _lock;
 
