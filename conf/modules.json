@@ -1,0 +1,7 @@
+
+{
+    "corejs" : { 
+        minVersion : "r0.1.7_rc2"
+    }
+}
+        

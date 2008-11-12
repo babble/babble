@@ -96,6 +96,9 @@ public class Module {
     }
     
     public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
+        
+        version = _checkVersion( version );
+
         synchronized ( _lock ){
             File f = getRootFile( version );
             if ( USE_GIT && pull && _versioned && GitUtils.onBranch( f ) )
@@ -123,7 +126,7 @@ public class Module {
             return _default;
 
         if ( ! _versioned ){
-            _log.getLogger( version ).info( "Module [" + _uriBase + "] want version [" + version + "] but not in versioned mode" );
+            _log.getChild( _name ).info( "Module [" + _uriBase + "] want version [" + version + "] but not in versioned mode" );
             return _root;
         }
 
@@ -151,6 +154,23 @@ public class Module {
         }
         
         return f;
+    }
+
+    /**
+     * if version wanted is too old, upgrade to min
+     */
+    public String _checkVersion( String want ){
+        
+        Object min = JS.path( _moduleVersionInfo , _name + ".minVersion" );
+        if ( min == null )
+            return want;
+        
+        if ( compareVersions( want , min.toString() ) < 0 ){
+            _log.getChild( _name ).error( "wanted version [" + want + "] but min version is [" + min + "] so upgrading" );
+            return min.toString();
+        }
+
+        return want;
     }
     
     public static long parseVersion( final String version ){
@@ -205,4 +225,23 @@ public class Module {
     final File _default;
     
     final String _lock;
+
+    static final JSObject _moduleVersionInfo;
+    static {
+        JSObject info = new JSDict();
+        try {
+            InputStream in = Module.class.getClassLoader().getResourceAsStream( "modules.json" );
+            if ( in != null ){
+                String data = StreamUtil.readFully( in );
+                info = (JSObject)JSON.parse( data );
+            }
+        }
+        catch ( Exception e ){
+            System.err.println( "couldn't load module info" );
+            e.printStackTrace();
+        }
+        
+        _moduleVersionInfo = info;
+    }
+    
 }
