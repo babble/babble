@@ -214,13 +214,11 @@ EOS
   def test_new_and_save
     x = Track.new(:artist => 'Level 42', :album => 'Standing In The Light', :song => 'Micro-Kid', :track => 1)
     assert_nil(x._id)
-    y = x.save
-    assert_equal(x.to_s, y.to_s)
-    assert_equal("artist: Level 42, album: Standing In The Light, song: Micro-Kid, track: 1", y.to_s)
-    assert_not_nil(y._id)
-    z = Track.find(y._id)
-    assert_equal(y.to_s, z.to_s)
-    assert_equal(y._id, z._id)
+    assert x.save, "x.save returned false; expected true"
+    assert_not_nil(x._id)
+    z = Track.find(x._id)
+    assert_equal(x.to_s, z.to_s)
+    assert_equal(x._id, z._id)
   end
 
   def find_or_create_but_already_exists
@@ -451,6 +449,11 @@ EOS
   def test_where
     str = Track.find(:all, :where => "function() { return obj.song == '#{@mayor_song}'; }").inject('') { |str, t| str + t.to_s }
     assert_equal @mayor_str, str
+  end
+
+  def test_destroy
+    Track.destroy(@mayor_id)
+    assert_nil Track.find(@mayor_id)
   end
 
   # Potential bug: if this test runs at midnight, a create runs before midnight

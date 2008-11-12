@@ -13,6 +13,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require 'xgen/sql'
+require 'xgen/mongo/oid'
 require 'xgen/mongo/cursor'
 
 class JSObject
@@ -121,6 +122,10 @@ module ActiveRecord
         collection.remove(XGen::SQL::Parser.parse_where(conditions, true) || {})
       end
 
+      def count(options)
+        find_every(options).count()
+      end
+
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
       #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
@@ -219,6 +224,10 @@ module ActiveRecord
         db_cursor.sort(sort_by) if sort_by
         cursor = XGen::Mongo::Cursor.new(db_cursor, self)
         ids.length == 1 ? self.instantiate(cursor[0].to_ar_hash) : cursor
+      end
+
+      def ids_clause(ids)
+        ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| id.to_oid}}
       end
 
       # Turns array, string, or hash conditions into something useable by Mongo.

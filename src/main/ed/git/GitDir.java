@@ -38,22 +38,29 @@ public class GitDir {
         return _dotGit.exists() && _dotGit.isDirectory();
     }
 
-    public String getBranchOrTagName()
-        throws IOException {
+    public String getBranchOrTagName(){
         _assertValid();
         
-        String head = StreamUtil.readFully( new File( _dotGit , "HEAD" ) ).trim();
-        if ( head.startsWith( "ref: refs/heads/" ) )
-            return head.substring( 16 ).trim();
-        
-        if ( head.length() == 40 ){
-            String tag = findTagForHash( head );
-            if ( tag != null )
-                return tag;
-            return head;
+        try {
+            String head = StreamUtil.readFully( new File( _dotGit , "HEAD" ) ).trim();
+            if ( head.startsWith( "ref: refs/heads/" ) )
+                return head.substring( 16 ).trim();
+            
+            if ( head.length() == 40 ){
+                String tag = findTagForHash( head );
+                if ( tag != null )
+                    return tag;
+                return head;
+            }
+            throw new RuntimeException( "dont know what to do with HEAD [" + head + "]" );
         }
-        
-        throw new RuntimeException( "dont know what to do with HEAD [" + head + "]" );
+        catch ( IOException ioe ){
+            throw new RuntimeException( "can't getBranchOrTagName b/c of io error" , ioe );
+        }
+    }
+
+    public boolean onLocalBranch(){
+        return getLocalBranches().contains( getBranchOrTagName() );
     }
     
     public String findTagForHash( final String hash )
@@ -78,6 +85,26 @@ public class GitDir {
     }
     
     public boolean checkout( String pathspec ){
+        if ( getTags().contains( pathspec ) )
+            return _checkout( pathspec );
+        
+        if ( getRemoteBranches().contains( pathspec ) )
+            return _checkout( "origin/" + pathspec );
+        
+        if ( getLocalBranches().contains( pathspec ) ){
+            
+            if ( ! _checkout( pathspec ) )
+                return false;
+            
+            pull( false );
+
+            return true;
+        }
+
+        return false;
+    }
+
+    boolean _checkout( String pathspec ){
         _logger.info( "checkout " + pathspec );
         SysExec.Result r = _exec( "git checkout " + pathspec );
 
@@ -135,14 +162,89 @@ public class GitDir {
     }
 
 
-
+    
     public Collection<String> getAllBranchAndTagNames(){
+        
         Collection<String> all = new ArrayList<String>();
-        _getHeads( all , new File( _dotGit , "refs/heads" ) );
-        _getHeads( all , new File( _dotGit , "refs/tags" ) );
-        _getHeads( all , new File( _dotGit , "refs/remotes/origin" ) );
+
+        getLocalBranches( all ) ;
+        getTags( all );
+        getRemoteBranches( all );
+
         all.remove( "HEAD" );
         return new JSArray( all );
+    }
+    
+    public Collection<String> getLocalBranches(){
+        return getLocalBranches( new ArrayList<String>() );
+    }
+    public Collection<String> getLocalBranches( Collection<String> all ){
+        _getHeads( all , new File( _dotGit , "refs/heads" ) );        
+        return all;
+    }
+
+    public Collection<String> getRemoteBranches(){
+        return getRemoteBranches( new ArrayList<String>() );
+    }
+    public Collection<String> getRemoteBranches( Collection<String> all ){
+        _getHeads( all , new File( _dotGit , "refs/remotes/origin" ) );        
+        return all;
+    }
+
+    public Collection<String> getTags(){
+        return getTags( new ArrayList<String>() );
+    }    
+    public Collection<String> getTags( Collection<String> all ){
+        _getHeads( all , new File( _dotGit , "refs/tags" ) );        
+        return all;
+    }
+
+    /** Tries a "git pull" on the given directory.
+     * @return if the pull was successful
+     */
+    public boolean fullUpdate(){
+        boolean ok = fetch() && fetch( " --tags " );
+        if ( onLocalBranch() )
+            ok = ok && pull();
+        return ok;
+    }
+
+    public boolean pull(){
+        return pull( true );
+    }
+    
+    /** Tries a "git pull" on the given directory.
+     * @param careAboutError if errors should be logged
+     * @return if the pull was successful
+     */
+    public boolean pull( boolean careAboutError ){
+        _logger.info( "pull" );
+        SysExec.Result r = _exec( "git pull");
+
+        if ( r.exitValue() == 0 )
+            return true;
+
+        if ( careAboutError )
+            _logger.info( "pull error " + r );
+        return false;
+    }
+
+    /** Updates all of the remote tracking branches.
+     * @retirm if the fetch was successful
+     */
+    public boolean fetch(){
+        return fetch( "" );
+    }
+    
+    public boolean fetch( String options ){
+        _logger.info( "fetch" );
+        SysExec.Result r = _exec( "git fetch " + ( options == null ? "" : options ) );
+
+        if ( r.exitValue() == 0 )
+            return true;
+
+        _logger.info( "fectch error " + r );
+        return false;
     }
 
     private void _getHeads( Collection<String> all , File dir ){

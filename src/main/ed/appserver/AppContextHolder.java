@@ -25,6 +25,7 @@ import ed.js.*;
 import ed.net.*;
 import ed.net.httpserver.*;
 import ed.log.*;
+import ed.git.*;
 import ed.util.*;
 import ed.cloud.*;
 
@@ -323,10 +324,11 @@ public class AppContextHolder {
     }
 
     static void _checkout( File f , String what ){
-        if ( GitUtils.checkout( f , what ) )
-            return;
-
-        if ( GitUtils.checkout( f , "origin/" + what ) )
+        GitDir gd = new GitDir( f );
+        if ( ! gd.isValid() )
+            throw new RuntimeException( f + " is not a valid git repo" );
+        
+        if ( gd.checkout( what ) )
             return;
 
         throw new RuntimeException( "couldn't checkout [" + what + "] for [" + f + "]" );

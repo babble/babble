@@ -17,11 +17,13 @@ public class GitDirTest extends TestCase {
             assertTrue( gd.isValid() );
             assertEquals( "master" , gd.getBranchOrTagName() );
             assertClose( "master" , gd.getAllBranchAndTagNames() );
+            assertTrue( gd.onLocalBranch() );
 
             gd._exec( "git branch blah" );
             assertEquals( "master" , gd.getBranchOrTagName() );
             
             gd._exec( "git checkout blah" );
+            assertTrue( gd.onLocalBranch() );
             assertEquals( "blah" , gd.getBranchOrTagName() );
 
             assertTrue( gd.checkout( "master" ) );
@@ -47,12 +49,15 @@ public class GitDirTest extends TestCase {
 
             gd._exec( "git tag abc" );
             assertEquals( "master" , gd.getBranchOrTagName() );
-            
+            assertTrue( gd.onLocalBranch() );            
+
             gd._exec( "git checkout abc" );
             assertEquals( "abc" , gd.getBranchOrTagName() );
-
+            assertFalse( gd.onLocalBranch() );            
+            
             assertTrue( gd.checkout( "master" ) );
             assertEquals( "master" , gd.getBranchOrTagName() );
+            assertTrue( gd.onLocalBranch() );
 
             assertClose( "master, abc" , gd.getAllBranchAndTagNames() );
         }
