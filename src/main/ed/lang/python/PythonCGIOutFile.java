@@ -54,10 +54,8 @@ public class PythonCGIOutFile extends PyFile {
 
     final public void _10gen_cgiout_write(String s) {
 
-        PythonCGIAdapter.CGITLSData osw = PythonCGIAdapter.CGITLSData.getThreadLocal();
-
         try {
-            osw.getOut().write(s.getBytes("ISO-8859-1"));
+            PythonCGIAdapter.CGITLSData.getThreadLocal().getOutputStream().write(s.getBytes("ISO-8859-1"));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -66,8 +64,9 @@ public class PythonCGIOutFile extends PyFile {
 
     @ExposedMethod
     public void flush() {
+
         try {
-            PythonCGIAdapter.CGITLSData.getThreadLocal().getOut().flush();
+            PythonCGIAdapter.CGITLSData.getThreadLocal().getOutputStream().flush();
         }
         catch (IOException e) {
             e.printStackTrace();

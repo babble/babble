@@ -159,7 +159,7 @@ public class PythonCGIAdapter extends CGIAdapter {
             _tl.set(this);
         }
 
-        public OutputStream getOut() {
+        public OutputStream getOutputStream() {
             return _out;
         }
 
