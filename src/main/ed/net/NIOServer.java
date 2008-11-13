@@ -28,7 +28,7 @@ import ed.log.*;
 
 public abstract class NIOServer extends Thread {
 
-    final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
+    public final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
     final static long SELECT_TIMEOUT = 10;
     final static long CLIENT_TIMEOUT = 1000 * 60 * 2;
     final static int DEAD_CYCLES = 10000;
@@ -204,7 +204,7 @@ public abstract class NIOServer extends Thread {
                         int read = sc.read( readBuf );
                         if ( D ) System.out.println( "\t" + read  );
                         if ( read == -1 ){
-                            sc.close();
+                            sh.close();
                             continue;
                         }
                         
@@ -384,27 +384,27 @@ public abstract class NIOServer extends Thread {
         public int getRemotePort(){
             return _channel.socket().getPort();
         }
-
+        
         public void bad(){
             _bad = true;
         }
         
         public void close(){
-            try {
-                Socket temp = _channel.socket();
-                temp.shutdownInput();
-                temp.shutdownOutput();
-                temp.close();
-            }
-            catch ( IOException ioe ){
-            }
+            if ( _closed )
+                return;
+            
+            if ( D ) System.out.println( "closing " + _channel );
+            _closed = true;
+            
 
             try {
                 _channel.close();
             }
             catch ( IOException ioe ){
+                System.err.println( "error closing channel : " + _channel );
             }
             
+            _key.attach( null );
             _key.cancel();
         }
 
@@ -422,6 +422,8 @@ public abstract class NIOServer extends Thread {
         protected final long _created = System.currentTimeMillis();
         
         protected long _lastAction = _created;
+
+        private boolean _closed = false;
     }
     
     protected final int _port;
