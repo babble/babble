@@ -543,7 +543,7 @@ public class JSRegex extends JSObjectBase {
         
         CachedResult cr = _last.get();
         if( cr == null ){
-            _last.set( new CachedResult( s, null, AppRequest.getThreadLocal(), null ) );
+            _last.set( new CachedResult( s, null, null ) );
             cr = _last.get();
         }
 
@@ -588,7 +588,7 @@ public class JSRegex extends JSObjectBase {
 
         if ( _replaceAll ){
             if ( cr == null ){
-                _last.set( new CachedResult( s, m, AppRequest.getThreadLocal(), a ) );
+                _last.set( new CachedResult( s, m, a ) );
             }
             else {
                 cr._array = a;
@@ -607,10 +607,8 @@ public class JSRegex extends JSObjectBase {
     void _setLast( JSArray arr ){
         CachedResult cr = _last.get();
         if ( cr == null ){
-            _last.set( new CachedResult( null, null, null, null ) );
-            cr = _last.get();
+            cr = _last.set( new CachedResult( null, null, null ) );
         }
-        cr._request = new WeakReference<AppRequest>( AppRequest.getThreadLocal() );
         cr._array = arr;
         if( arr == null )
             return;
@@ -678,10 +676,9 @@ public class JSRegex extends JSObjectBase {
     boolean _replaceAll;
 
     static class CachedResult {        
-        CachedResult( String input , Matcher m , AppRequest req , JSArray arr ){
+        CachedResult( String input , Matcher m , JSArray arr ){
             _input = input;
             _matcher = m;
-            _request = new WeakReference<AppRequest>( req );
             _array = arr;
         }
         
@@ -689,7 +686,6 @@ public class JSRegex extends JSObjectBase {
         
         String _input;
         Matcher _matcher;
-        WeakReference<AppRequest> _request;
         
         JSArray _array;
     }
@@ -733,18 +729,19 @@ public class JSRegex extends JSObjectBase {
             return cr;
         }
 
-        public void set( CachedResult cr ){
+        public CachedResult set( CachedResult cr ){
             final AppRequest ar = AppRequest.getThreadLocal();
             if ( ar == null ){
                 _tl.set( cr );
-                return;
+                return cr;
             }
             
             _getMap( ar ).put( JSRegex.this , cr );
+            return cr;
         }
         
         CachedResult _initialValue() {
-            return new CachedResult( null, null, AppRequest.getThreadLocal(), null );
+            return new CachedResult( null, null , null );
         }
         
         ThreadLocal<CachedResult> _tl = new ThreadLocal<CachedResult>(){
