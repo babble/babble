@@ -269,6 +269,7 @@ public class SiteSystemState implements Sizable {
             // Second argument is the dict of globals. Mostly this is helpful
             // for getting context -- file or module *doing* the import.
             PyObject globals = ( argc > 1 ) ? args[1] : null;
+            PyObject locals = ( argc > 2 ) ? args[2] : null;
             PyObject fromlist = (argc > 3) ? args[3] : null;
 
             SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
@@ -289,6 +290,7 @@ public class SiteSystemState implements Sizable {
 
             PyObject siteModule = null;
             PyObject m = null;
+            // import <sitename> -- why isn't this a meta_path hook?
             if( target.indexOf('.') != -1 ){
                 String firstPart = target.substring( 0 , target.indexOf('.'));
                 if( ac != null && firstPart.equals( ac.getName() ) ){
@@ -305,13 +307,30 @@ public class SiteSystemState implements Sizable {
                 }
             }
 
-            PySystemState oldPyState = Py.getSystemState();
-            try {
-                Py.setSystemState( sss.getPyState() );
-                m = _import.__call__( args, keywords );
+            // If you're in a core-module called foo, in a package
+            // called bar.baz, and you do an import for moo, and there is
+            // no sensible choice for foo.bar.moo or whatever,
+            // we "rewrite" the import to import foo.moo and return that.
+            //
+            // Sensible in this case means:
+            // 1) something on sys.path, excepting the user directory
+            // 2) something in the current directory
+            //
+            // If we're in a core module, we should never import code from
+            // the user's directory.
+            if( m == null ){
+                m = tryModuleRewrite( sss , target , globals , locals , fromlist );
             }
-            finally {
-                Py.setSystemState( oldPyState );
+
+            if( m == null ){
+                PySystemState oldPyState = Py.getSystemState();
+                try {
+                    Py.setSystemState( sss.getPyState() );
+                    m = _import.__call__( args, keywords );
+                }
+                finally {
+                    Py.setSystemState( oldPyState );
+                }
             }
             return trackDependency( sss , globals , target , siteModule , m , fromlist );
         }
@@ -466,6 +485,67 @@ public class SiteSystemState implements Sizable {
             siteModule.__setattr__( firstPart , result );
             return siteModule;
         }
+
+        public PyObject tryModuleRewrite(SiteSystemState sss , String target , PyObject globals , PyObject locals , PyObject fromlist ){
+            // if __name__ indicates we're in core-module named foo.bar.baz,
+            // and target is "moo.boo.zoo",
+            // check foo.moo.boo.zoo and try that
+            if( globals == null ) return null;
+            PyObject __name__P = globals.__finditem__("__name__");
+            if( ! ( __name__P instanceof PyString ) ) return null;
+            String __name__ = __name__P.toString();
+            int period = __name__.indexOf('.');
+            if( period == -1 ) return null;
+
+            String fooName = __name__.substring( 0 , period );
+            for( JSLibrary key : sss._loaded.keySet() ){
+                String name = sss._loaded.get( key );
+                if( ! name.equals( fooName ) ) continue;
+
+                String lastWord = target;
+                File directoryF = key.getRoot();
+
+                if( target.indexOf( '.' ) > -1 ){
+                    String directory = target.substring( 0 , target.lastIndexOf('.') );
+                    directory = directory.replaceAll("\\.", "/");
+                    lastWord = target.substring( target.lastIndexOf( '.' ) + 1 );
+                    directoryF = new File( directoryF , directory );
+                }
+                if( ! directoryF.exists() ) continue;
+
+                // FIXME: other endings for Python files?
+                // FIXME: check that the directoryF/lastword is directory, or directoryF/lastword.py isn't?
+                if( ! ( new File( directoryF , lastWord ).exists() || new File( directoryF , lastWord + ".py" ).exists() ) ) continue;
+
+                // FIXME: If we get here and we fail, we should really
+                // throw an error! Otherwise we end up with misleading
+                // error messages like "cannot import webob"
+                if( DEBUG ){
+                    System.out.println("Got " + directoryF + "/" + lastWord + " from " + sss._loaded);
+                    System.out.println("Returning rewrite loader for " + fooName + "." + target);
+                }
+
+                PySystemState oldPyState = Py.getSystemState();
+                PyObject m = null;
+                PyString newTarget = new PyString( fooName + "." + target );
+                try {
+                    Py.setSystemState( sss.getPyState() );
+                    m = _import.__call__( newTarget , globals , locals , fromlist );
+                    if( fromlist != null && fromlist.__len__() != 0 ) return m;
+                    // we just ran an import for foo.moo.boo.zoo, but the
+                    // user just wanted moo.boo.zoo, so let's fetch foo.moo from
+                    // sys.modules
+
+                    m = sss.getPyState().modules.__finditem__( newTarget );
+                    return m;
+                }
+                finally {
+                    Py.setSystemState( oldPyState );
+                }
+            }
+
+            return null;
+        }
     }
 
     /**
@@ -571,32 +651,6 @@ public class SiteSystemState implements Sizable {
                 String path = modName.substring( period + 1 );
                 path = path.replaceAll( "\\." , "/" );
                 return new JSLibraryLoader( _core, path );
-            }
-
-            int period = modName.indexOf('.');
-            if( __path__ != null && period != -1 && modName.indexOf( '.', period + 1 ) != -1 ){
-                // If we got an import for foo.bar.baz, see if we're in foo,
-                // and if so, try foo.baz.
-                String fooName = modName.substring( 0 , modName.indexOf( '.' ) );
-                String baz = modName.substring( modName.lastIndexOf( '.' ) + 1 );
-
-                String location = __path__.pyget(0).toString();
-                for( JSLibrary key : _loaded.keySet() ){
-                    String name = _loaded.get( key );
-                    if( ! name.equals( fooName ) ) continue;
-
-                    if( ! location.startsWith( key.getRoot().toString() ) )
-                        continue;
-
-                    Object foo = key.getFromPath( baz , true );
-                    if( !( foo instanceof JSFileLibrary ) ) continue;
-
-                    if( DEBUG ){
-                        System.out.println("Got " + foo + " from " + _loaded + " " + foo.getClass());
-                        System.out.println("Returning rewrite loader for " + name + "." + baz);
-                    }
-                    return new RewriteModuleLoader( name + "." + baz );
-                }
             }
 
             if( DEBUG ){
