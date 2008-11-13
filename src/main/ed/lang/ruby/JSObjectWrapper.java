@@ -172,7 +172,7 @@ public class JSObjectWrapper implements JSObject {
         for (Variable<IRubyObject> var : _robj.getInstanceVariables().getInstanceVariableList()) {
             String name = var.getName().substring(1); // Strip off leading "@"
             if (_robj.respondsTo(name) || _robj.respondsTo(name + "="))
-                names.add(var.getName().substring(1));
+                names.add(name);
         }
 
         if (includePrototype)

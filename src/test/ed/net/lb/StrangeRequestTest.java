@@ -54,18 +54,18 @@ public class StrangeRequestTest extends HttpServerTest {
         throws IOException {
         return new Socket(  DNSUtil.getMyAddresses().get(0) , _lbPort);
     }
-
+    
     @Test
     public void testContentLen() 
         throws IOException {
         // unescaped content
         sendItOff( headers("POST", " ", "\n") );
-        // incorrect content length
-        sendItOff( headers("POST", "", "Content-Length: 20\n") );
+        // Incorrect content length
+        sendItOff( headers("POST", "", "Content-Length: -20\n") );
         // incorrect, non-int length
         sendItOff( headers("POST", "", "Content-Length: 40000000000\n") );
     }
-
+    
     @Test
     public void testPost() 
         throws IOException {
@@ -76,31 +76,33 @@ public class StrangeRequestTest extends HttpServerTest {
         }
         sendItOff( headers("GET", s, "") );
     }
-
+    
     @Test
     public void testMethod() 
         throws IOException {
         // fake method
-        sendItOff( headers("BLORT", "", "") );
-        sendItOff( "DELETE http://shopwiki.local.10gen.com\nAccept: text/html\n" );
-        sendItOff( "PUT http://shopwiki.local.10gen.com\nAccept: text/html\n" );
-        sendItOff( "PUT http://shopwiki.local.10gen.com\nAccept: text/html\n\nhey=there" );
-        sendItOff( "HEAD http://shopwiki.local.10gen.com\n" );
+        sendItOff( headers("BLORT", "asdfghjkl", "") );
+        sendItOff( headers( "DELETE", "asdfghjkl", "Accept: text/html\n" ) );
+        sendItOff( "http://shopwiki.local.10gen.com\nAccept: text/html\n" );
+        sendItOff( headers( "PUT", "", "Accept: text/html\n\nhey=there" ) );
+        sendItOff( headers( "HEAD", "", "null" ) );
     }
-
+    
     @Test
     public void testMalformedMethod() 
         throws IOException {
+        // works
+        // sendItOff( "POST /~ping? HTTP/1.1\r\nHost: localhost\r\n\r\n" );
         // malformed
-        sendItOff( "POST \nhttp://shopwiki.local.10gen.com\n" );
+        sendItOff( "POST \r/~ping? HTTP/1.1\r\nHost: localhost\r\n\r\n" );
         sendItOff( "POST htt://shopwiki.local.10gen.com\n" );
-        sendItOff( "POST http://shopwiki.local.10gen.com" );
+        sendItOff( "POST /~ping? HTTP/1.1" );
         sendItOff( "POST foo" );
         sendItOff( "POST google\n\n.c\no\nm" );
         sendItOff( "POST &g&oog&le\n" );
         sendItOff( "POST \uF32A\n" );
     }
-
+    
     // ---parameters---
     @Test
     public void testAccept() 
@@ -114,12 +116,12 @@ public class StrangeRequestTest extends HttpServerTest {
     @Test
     public void testParams() 
         throws IOException {
-        sendItOff( "GET http://shopwiki.local.10gen.com\nAccept-Charset: x-mac-arabic, q=1" );
-        sendItOff( "GET http://shopwiki.local.10gen.com\nAccept-Encoding:" );
-        sendItOff( "GET http://shopwiki.local.10gen.com\nAccept-Encoding: blort;q=0.5" );
-        sendItOff( "GET http://shopwiki.local.10gen.com\nAccept-Language: da, en-gb;q=0.8, en;q=0.7" );
-        sendItOff( "GET http://shopwiki.local.10gen.com\nContent-Encoding: exe" );
-        sendItOff( "GET http://shopwiki.local.10gen.com\nContent-Encoding: blort" );
+        sendItOff( headers( "GET", "", "Accept-Charset: x-mac-arabic, q=1" ) );
+        sendItOff( headers( "GET", "", "Accept-Encoding:" ) );
+        sendItOff( headers( "GET ", "", "Accept-Encoding: blort;q=0.5" ) );
+        sendItOff( headers( "GET", "", "Accept-Language: da, en-gb;q=0.8, en;q=0.7" ) );
+        sendItOff( headers( "GET", "", "Content-Encoding: exe" ) );
+        sendItOff( headers( "GET", "", "Content-Encoding: blort" ) );
     }
 
     @Test

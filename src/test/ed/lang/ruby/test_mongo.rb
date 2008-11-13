@@ -330,6 +330,12 @@ EOS
     assert str.include?('King For A Day')
   end
 
+  def test_find_one_using_id
+    t = Track.find(@mayor_id)
+    assert_not_nil t
+    assert_match /song: The Mayor Of Simpleton/, t.to_s
+  end
+
   def test_select_find_one
     t = Track.find(@mayor_id, :select => :album)
     assert t.album?
