@@ -22,7 +22,7 @@ import ed.util.*;
  * 10
  * 11
  */
-public class ObjectId {
+public class ObjectId implements Comparable<ObjectId>{
 
     static final boolean D = false;
     
@@ -143,6 +143,27 @@ public class ObjectId {
         buf.append( b );
         
         return buf.toString();
+    }
+
+    public int compareTo( ObjectId id ){
+        if ( id == null )
+            return -1;
+        
+        if ( id._base == _base ){
+            if ( _inc < id._inc )
+                return -1;
+            if ( _inc > id._inc )
+                return 1;
+            return 0;
+        }
+
+        if ( _base < id._base )
+            return -1;
+
+        if ( _base > id._base )
+            return 1;
+
+        return 0;
     }
 
     final long _base;
