@@ -99,8 +99,6 @@ public class Module {
     
     public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
         
-        version = _checkVersion( version );
-
         synchronized ( _lock ){
             Box<String> b = new Box<String>();
 
@@ -147,10 +145,13 @@ public class Module {
         }
 
         String symlink = getSymLink( version );
-        if ( symlink != null ){
-            version = symlink; 
-            versionUsed.set( version );
-        }
+        if ( symlink != null )
+            version = symlink;
+
+        version = _checkVersion( version );
+        
+        versionUsed.set( version );
+
 
         // now try to find best match
         File f = new File( _root , version );
