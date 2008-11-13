@@ -463,27 +463,7 @@ public class Python extends Language {
 
         s.setAttribute( "__python__" , state );
 
-        if( _rmap == null ){
-            _rmap = new HashMap<PySystemState, SiteSystemState>();
-        }
-        _rmap.put( state.getPyState(), state );
-
         return state;
-    }
-
-    /**
-     * Get the already-existing SiteSystemState that wraps the given
-     * PySystemState.
-     *
-     * This assumes you've already passed through the other
-     * getSiteSystemState code path at some point and are returning a
-     * PySystemState wrapped by a SiteSystemState.
-     *
-     * @param py Python system state to be wrapped
-     * @return pre-existing SiteSystemState that wraps the input
-     */
-    public static SiteSystemState getSiteSystemState( PySystemState py ){
-        return _rmap.get( py );
     }
 
     public static long size( PyObject o , IdentitySet seen ){
@@ -757,7 +737,6 @@ public class Python extends Language {
     }
 
     private static Scope _extractGlobals;
-    private static Map<PySystemState, SiteSystemState> _rmap;
     private static Set<String> _seenClasses = Collections.synchronizedSet( new HashSet<String>() );
 
     public static class PyStackTraceFixer implements StackTraceFixer {
