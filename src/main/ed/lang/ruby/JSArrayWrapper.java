@@ -370,7 +370,7 @@ public class JSArrayWrapper extends JSArray {
         for (Variable<IRubyObject> var : _rarray.getInstanceVariables().getInstanceVariableList()) {
             String name = var.getName().substring(1); // Strip off leading "@"
             if (_rarray.respondsTo(name) || _rarray.respondsTo(name + "="))
-                names.add(var.getName().substring(1));
+                names.add(name);
         }
 
         if (includePrototype)
