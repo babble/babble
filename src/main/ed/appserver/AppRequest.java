@@ -19,7 +19,6 @@
 package ed.appserver;
 
 import java.io.*;
-import java.util.*;
 
 import ed.js.*;
 import ed.js.engine.*;
@@ -366,14 +365,6 @@ public class AppRequest implements Sizable {
         return s;
     }
 
-    public void setAttribute( String name , Object attr ){
-        _attributes.put( name , attr );
-    }
-
-    public Object getAttribute( String name ){
-        return _attributes.get( name );
-    }
-
     final String _uri;
     final String _host;
     final HttpRequest _request;
@@ -399,8 +390,7 @@ public class AppRequest implements Sizable {
     ProfilingTracker _profiler;
     OutputStream _appenderStream;
     PrintStream _appenderWriter;
-    
-    private Map<String,Object> _attributes = new HashMap<String,Object>();
+
 
 
     static ThreadLocal<AppRequest> _tl = new ThreadLocal<AppRequest>();
