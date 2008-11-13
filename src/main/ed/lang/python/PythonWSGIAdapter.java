@@ -125,10 +125,10 @@ public class PythonWSGIAdapter extends WSGIAdapter {
             }
         }
         
-        PythonCGIAdapter.CGITLSData cgiosw = new PythonCGIAdapter.CGITLSData(stdout, null);
+        PythonCGIAdapter.CGITLSData cgiosw = new PythonCGIAdapter.CGITLSData(new PyFile(stdin), stdout, null);
 
         ss.getPyState().stdout = new PythonCGIOutFile();
-        ss.getPyState().stdin = new PyFile(stdin);
+        ss.getPyState().stdin = new PythonCGIAdapter.PyTLSProxyFile();
 
         try {
             _getAppCode();   // get latest app code
