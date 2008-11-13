@@ -18,6 +18,8 @@
 
 package ed.js;
 
+import java.lang.ref.*;
+import java.util.*;
 import java.util.regex.*;
 
 import ed.util.*;
@@ -546,7 +548,7 @@ public class JSRegex extends JSObjectBase {
         }
 
         final Matcher m;
-        if ( canUseOld && cr._matcher != null && s == cr._input && s.equals( cr._input ) && cr._request == AppRequest.getThreadLocal() ){
+        if ( canUseOld && cr._matcher != null && s == cr._input && s.equals( cr._input ) ){
             m = cr._matcher;
         }
         else {
@@ -585,7 +587,7 @@ public class JSRegex extends JSObjectBase {
         }
 
         if ( _replaceAll ){
-            if ( cr == null || cr._request != AppRequest.getThreadLocal() ){
+            if ( cr == null ){
                 _last.set( new CachedResult( s, m, AppRequest.getThreadLocal(), a ) );
             }
             else {
@@ -604,11 +606,11 @@ public class JSRegex extends JSObjectBase {
 
     void _setLast( JSArray arr ){
         CachedResult cr = _last.get();
-        if( cr == null || cr._request != AppRequest.getThreadLocal() ) {
+        if ( cr == null ){
             _last.set( new CachedResult( null, null, null, null ) );
             cr = _last.get();
         }
-        cr._request = AppRequest.getThreadLocal();
+        cr._request = new WeakReference<AppRequest>( AppRequest.getThreadLocal() );
         cr._array = arr;
         if( arr == null )
             return;
@@ -675,19 +677,19 @@ public class JSRegex extends JSObjectBase {
     /** @unexpose */
     boolean _replaceAll;
 
-    class CachedResult {        
+    static class CachedResult {        
         CachedResult( String input , Matcher m , AppRequest req , JSArray arr ){
             _input = input;
             _matcher = m;
-            _request = req;
+            _request = new WeakReference<AppRequest>( req );
             _array = arr;
         }
         
         int lastIndex = 0;
-
+        
         String _input;
         Matcher _matcher;
-        AppRequest _request;
+        WeakReference<AppRequest> _request;
         
         JSArray _array;
     }
@@ -695,26 +697,61 @@ public class JSRegex extends JSObjectBase {
     /** @unexpose 
      * Not only thread local, but CachedResult should be re-created on every HTTP request
      */
-    class CRLast extends ThreadLocal<CachedResult>{
+    
+    static class RegexToCRtMap extends IdentityHashMap<JSRegex,CachedResult>{};
 
-        public CachedResult get(){
+    class CRLast {
+        
+        RegexToCRtMap _getMap( final AppRequest ar ){
 
-            CachedResult cr = super.get();
-            if ( cr == null )
-                return initialValue();
+            RegexToCRtMap m = (RegexToCRtMap)ar.getAttribute( "__regexCache" );
+
+            if ( m != null )
+                return m;
             
-            AppRequest ar = AppRequest.getThreadLocal();
-            if ( ar == cr._request )
-                return cr;
-            
-            cr = initialValue();
-            set( cr );
-            return cr;
+            m = new RegexToCRtMap();
+            ar.setAttribute( "__regexCache" , m );
+            return m;
         }
         
-        @Override protected CachedResult initialValue() {
+        public CachedResult get(){
+
+            final AppRequest ar = AppRequest.getThreadLocal();
+            if ( ar == null ){
+                CachedResult cr = _tl.get();
+                if ( cr != null )
+                    return cr;
+                return _initialValue();
+            }
+            
+            RegexToCRtMap m = _getMap( ar );
+            CachedResult cr = m.get( JSRegex.this );
+
+            if ( cr == null )
+                return _initialValue();
+            
+            return cr;
+        }
+
+        public void set( CachedResult cr ){
+            final AppRequest ar = AppRequest.getThreadLocal();
+            if ( ar == null ){
+                _tl.set( cr );
+                return;
+            }
+            
+            _getMap( ar ).put( JSRegex.this , cr );
+        }
+        
+        CachedResult _initialValue() {
             return new CachedResult( null, null, AppRequest.getThreadLocal(), null );
         }
+        
+        ThreadLocal<CachedResult> _tl = new ThreadLocal<CachedResult>(){
+            protected CachedResult initialValue(){
+                return _initialValue();
+            }
+        };
     };
 
     private CRLast _last = new CRLast();
