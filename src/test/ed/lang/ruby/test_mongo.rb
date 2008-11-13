@@ -294,7 +294,13 @@ EOS
     Track.delete_all({:artist => 'XTC'})
     assert_no_match(/artist: XTC/, Track.find(:all).inject('') { |str, t| str + t.to_s })
 
-    Track.delete_all({})        # must explicitly pass in {} if you want to delete everything
+    Track.delete_all(["song = ?", 'The Mayor Of Simpleton'])
+    assert_no_match(/song: The Mayor Of Simpleton/, Track.find(:all).inject('') { |str, t| str + t.to_s })
+
+    Track.delete_all("song = 'King For A Day'")
+    assert_no_match(/song: King For A Day/, Track.find(:all).inject('') { |str, t| str + t.to_s })
+
+    Track.delete_all()
     assert_equal 0, Track.count
   end
 

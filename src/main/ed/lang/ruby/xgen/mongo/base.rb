@@ -269,10 +269,13 @@ module XGen
           find(:all, :conditions => conditions).each { |object| object.destroy }
         end
 
-        # Deletes all matching records. If you want to remove everything in
-        # the collection, pass in an empty hash.
-        def delete_all(*args)
-          coll.remove(*args)
+        # Deletes all records that match +condition+, which can be a
+        # Mongo-style hash or an ActiveRecord-like hash. Examples:
+        #   Person.destroy_all "name like '%fred%'   # SQL WHERE clause
+        #   Person.destroy_all ["name = ?", 'Fred']  # Rails condition
+        #   Person.destroy_all {:name => 'Fred'}     # Mongo hash
+        def delete_all(conditions=nil)
+          coll.remove(criteria_from(conditions))
         end
 
         # Creates, saves, and returns a new database object.
@@ -373,7 +376,7 @@ module XGen
           if ids.length == 1
             row = coll.findOne(criteria, fields)
             raise RecordNotFound, "Couldn't find #{name} with ID=#{ids[0]} #{criteria.inspect}" if row == nil || row.empty?
-            new(row)
+            self.new(row)
           else
             db_cursor = coll.find(criteria, fields)
             sort_by = sort_by_from(options[:order]) if options[:order]
