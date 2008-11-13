@@ -37,12 +37,16 @@ public class PrintStreamAppender implements Appender {
 	
         try {
             _out.write( output.getBytes( "utf8" ) );
+            if ( e._throwable != null )
+                e._throwable.printStackTrace( _out );
         }
         catch ( IOException encodingBad ){
             _out.print( output );
         }
-        if ( e._throwable != null )
-            e._throwable.printStackTrace( _out );
+	catch ( Exception we ){
+	    _out.print( output );
+            we.printStackTrace();
+	}	
     }
 
     final PrintStream _out;
