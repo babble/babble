@@ -61,8 +61,10 @@ public class JavaApplication extends SimpleApplication {
         
         final double fullGCPer = _gcStream.fullGCPercentage();
 
-        if ( fullGCPer > .8 )
+        if ( fullGCPer > .8 ){
+            System.out.println( "GOING TO RESTART " + this + " BECAUSE OF MEMORY" );
             throw new RestartApp( "too much full gc: " + fullGCPer );
+        }
 
         return true;
     }

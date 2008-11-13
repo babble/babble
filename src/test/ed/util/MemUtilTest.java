@@ -39,6 +39,8 @@ public class MemUtilTest extends ed.TestCase {
         assertTrue( GCLine.isGCLine( "[GC [PSYoungGen: 260545K->52847K(272960K)] 702311K->509225K(763136K), 0.1738920 secs] [Times: user=0.19 sys=0.00, real=0.18 secs] " ) );
         assertTrue( GCLine.isGCLine( "[Full GC [PSYoungGen: 52847K->0K(272960K)] [PSOldGen: 456378K->287193K(508160K)] 509225K->287193K(781120K) [PSPermGen: 44209K->44209K(44992K)], 0.8087710 secs] [Times: user=0.81 sys=0.00, real=0.80 secs] " ) );
 
+        assertTrue( GCLine.isGCLine( "46954.065: [Full GC [PSYoungGen: 100608K->100594K(225984K)] [PSOldGen: 819199K->819199K(819200K)] 919807K->919794K(1045184K) [PSPermGen: 46936K->46936K(47232K)], 1.8832360 secs]" ) );
+
 
         // 1.5
         assertTrue( GCLine.isGCLine( "105.350: [GC [PSYoungGen: 106006K->25000K(145024K)] 228802K->167810K(1874496K), 0.0308960 secs]" ) );
@@ -101,7 +103,7 @@ public class MemUtilTest extends ed.TestCase {
     @Test
     public void testGCStream1(){
         GCStream s = new GCStream();
-        assertEquals( 0 , s.fullGCPercentage() );
+        assertEquals( 0.0 , s.fullGCPercentage() );
         
         s.add( new GCLine( 0000 , false , 5 ) );
         s.add( new GCLine( 1000 , false , 5 ) );
@@ -116,7 +118,7 @@ public class MemUtilTest extends ed.TestCase {
     @Test
     public void testGCStream2(){
         GCStream s = new GCStream();
-        assertEquals( 0 , s.fullGCPercentage() );
+        assertEquals( 0.0 , s.fullGCPercentage() );
         
         s.add( new GCLine( 0000 , true , 500 ) );
         s.add( new GCLine( 1000 , true , 500 ) );
@@ -132,7 +134,7 @@ public class MemUtilTest extends ed.TestCase {
     @Test
     public void testGCStream3(){
         GCStream s = new GCStream();
-        assertEquals( 0 , s.fullGCPercentage() );
+        assertEquals( 0.0 , s.fullGCPercentage() );
         
         s.add( new GCLine( 0000 , true , 500 ) );
         s.add( new GCLine( 1000 , false , 500 ) );

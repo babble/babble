@@ -379,6 +379,7 @@ public class HttpServerTest extends TestCase {
                 }
             }
             catch ( Throwable t ){
+                System.out.print( "ERROR : " + t + "\t" +  _sock );
                 _ioe = new Throwable( "this time : " + _thisTime + "\t" + t + "\t" + _sock , t );
             }
         }
@@ -388,10 +389,9 @@ public class HttpServerTest extends TestCase {
             
             if ( ! _doBad )
                 return;
-
-            _what( "b" );
-
+            
             _check();
+            _what( "b" );
             
             final long start = System.currentTimeMillis();
             
@@ -408,9 +408,9 @@ public class HttpServerTest extends TestCase {
         void _drop()
             throws IOException {
             
+            _check();
             _what( "d" );
 
-            _check();
             _sock.close();
             _sock = null;
         }
@@ -431,8 +431,7 @@ public class HttpServerTest extends TestCase {
             throws IOException {
             
             _check();
-
-            _what( "g" );
+            _what( "g c=" + close + " f=" + fork );            
             
             final long start = System.currentTimeMillis();
             
@@ -466,9 +465,8 @@ public class HttpServerTest extends TestCase {
         void _post( boolean close , int size )
             throws IOException {
             
-            _what( "p" );
-            
             _check();
+            _what( "p c=" + close + " s=" + size );
             
             StringBuilder buf = headers("POST", "", "Content-Length: " + size + "\r\nConnection: " + ( close ? "Close" : "Keep-Alive" ) + "\r\n");
             appendRandomData(buf, size);
@@ -498,7 +496,8 @@ public class HttpServerTest extends TestCase {
         }
         
         void _what( String s ){
-            //System.out.print( s );
+            if ( NIOServer.D )
+                System.out.println( "TEST: " + _sock + "\t" + s );
         }
         
         final Random _rand;

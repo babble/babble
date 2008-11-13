@@ -65,6 +65,10 @@ public class ByteBufferHolder {
         _pos = p;
         int num = _pos / _bufSize;
         int pos = _pos % _bufSize;
+        
+        while ( _buffers.size() <= num )
+            _addBucket();
+
         ByteBuffer bb = _buffers.get( num );
         bb.position( pos );
         for ( int i=num+1; i<_buffers.size(); i++ )
