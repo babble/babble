@@ -95,7 +95,12 @@ public abstract class PostData {
             public int read(){
                 if ( _pos >= max )
                     return -1;
-                return get( _pos++ );
+
+                /*
+                 *  Java bytes are signed, so force to the int, and then clean up any sign bits that got
+                 *  promoted
+                 */
+                return ((int) get( _pos++ )) & 0xFF;
                     
             }
             

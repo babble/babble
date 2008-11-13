@@ -134,9 +134,16 @@ public class HttpServer extends NIOServer {
             
             if ( _inFork )
                 return false;
-
+            
+            if ( _lastResponse == null ){
+                if ( _done )
+                    return true;
+                
+                return false;
+            }
+            
             writeMoreIfWant();
-            return _done;
+            return false;
         }
         
         protected boolean writeMoreIfWant()

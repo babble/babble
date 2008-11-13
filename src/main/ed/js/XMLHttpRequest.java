@@ -21,9 +21,8 @@ package ed.js;
 import java.io.*;
 import java.net.*;
 import java.nio.*;
-import java.nio.channels.*;
 import java.util.*;
-import javax.net.ssl.*;
+
 import javax.servlet.http.*;
 
 import ed.io.*;
@@ -99,11 +98,14 @@ public class XMLHttpRequest extends JSObjectBase {
     /** Create an XML HTTP request */
     public XMLHttpRequest(){
         super( _cons );
+        
+        _cookieJar = new CookieJar();
+        _cookieJarDelegate = new CookieJarDelegate();
+        _headersToSend = new HashMap<String,String>();
     }
 
     public XMLHttpRequest( URL url ){
-        super( _cons );
-        init( "GET" , url.toString() , false );
+        this( "GET" , url.toString() , false );
     }
 
     /** Create an XML HTTP request, setting the handler, url, and if it is asynchronous
@@ -120,7 +122,7 @@ public class XMLHttpRequest extends JSObjectBase {
      * @param aysnc If the request should be asynchronous.
      */
     public XMLHttpRequest( String method , String url , boolean async ){
-        super( _cons );
+        this();
         init( method , url , async );
     }
 
@@ -173,8 +175,6 @@ public class XMLHttpRequest extends JSObjectBase {
      * @return <tt>v</tt>
      */
     public Object set( Object n , Object v ){
-        String name = n.toString();
-
         if ( n.equals( "onreadystatechange" ) ){
 
             JSFunction f = (JSFunction)v;
@@ -187,8 +187,19 @@ public class XMLHttpRequest extends JSObjectBase {
 
             return super.set( n , v );
         }
+        
+        if( n.equals( "cookies" ) ) {
+            throw new UnsupportedOperationException( "cookies is a readonly property, please use the setCookieJar method to change the cookie jar");
+        }
 
         return super.set( n , v );
+    }
+    
+    public Object get(Object n) {
+        if( n.equals( "cookies" ) )
+            return _cookieJarDelegate;
+
+        return super.get( n );
     }
 
     /** Send an XML HTTP request.
@@ -380,6 +391,13 @@ public class XMLHttpRequest extends JSObjectBase {
         return _url;
     }
 
+    public CookieJar getCookieJar() {
+        return _cookieJar;
+    }
+    public void setCookieJar( CookieJar cookieJar ) {
+        _cookieJar = cookieJar;
+    }
+
     class Handler implements HttpResponseHandler {
 
         Handler( String postData ){
@@ -452,13 +470,18 @@ public class XMLHttpRequest extends JSObjectBase {
         }
 
         public void gotCookie( Cookie c ){
-            JSObject cookies = (JSObject)get( "cookies" );
-            if ( cookies == null ){
-                cookies = new JSObjectBase();
-                set( "cookies" , cookies );
+            CookieJar cookieJar = getCookieJar();
+            if( cookieJar == null ) {
+                cookieJar = new CookieJar();
+                setCookieJar( cookieJar );
             }
-            cookies.set( c.getName() , new JSString( c.getValue() ) );            
-            _cookies.put( c.getName() , c );
+            
+            try {
+                URL url = new URL( get( "finalURL" ).toString() );
+                cookieJar.addCookie( url , c );
+            } catch (MalformedURLException e) {
+                throw new RuntimeException( e );
+            }
         }
         
         public void setFinalUrl( URL url ){
@@ -478,7 +501,10 @@ public class XMLHttpRequest extends JSObjectBase {
         }
 
         public Map<String,Cookie> getCookiesToSend(){
-            return _cookies;
+            if( getCookieJar() == null )
+                return null;
+            
+            return getCookieJar().getActiveCookies( _checkURL() );
         }
 
         public byte[] getPostDataToSend(){
@@ -500,14 +526,71 @@ public class XMLHttpRequest extends JSObjectBase {
         int _contentLength = 0;
         String _contentEncoding = "UTF8";
         StringBuilder _header = new StringBuilder();
-        Map<String,Cookie> _cookies = new TreeMap<String,Cookie>();
     }
 
+    class CookieJarDelegate implements JSObject {
+        public Object get(Object n) {
+            String name = n.toString();
+            
+            if( containsKey( name ) )
+                return _cookieJar.getAll().get( name ).getValue();
+            else
+                return null;
+        }
+        public Object getInt(int n) {
+            return get( String.valueOf( n ) );
+        }
+        
+        public Object set(Object n, Object v) {
+            URL url = _checkURL();
+            Cookie c = new Cookie( n.toString(), v.toString() );
+            c.setDomain( url.getHost() );
+            c.setPath( url.getPath() );
+            
+            _cookieJar.addCookie( url , c );
+            return v;
+        }
+        public Object setInt(int n, Object v) {
+            return set( String.valueOf( n ), v);
+        }
+        
+        public Set<String> keySet() {
+            return _cookieJar.getAll().keySet();
+        }
+        public Set<String> keySet(boolean includePrototype) {
+            return keySet();
+        }
+        public boolean containsKey(String s) {
+            return _cookieJar.getAll().containsKey( s );
+        }
+        public boolean containsKey(String s, boolean includePrototype) {
+            return containsKey( s );
+        }
+        public Object removeField(Object n) {
+            String name = n.toString();
+            Cookie removed = _cookieJar.remove( name );
+            
+            return (removed == null)? null : removed.getName();
+        }
+        
+        public JSFunction getConstructor() {
+            return null;
+        }
+        public JSFunction getFunction(String name) {
+            return null;
+        }
+        public JSObject getSuper() {
+            return null;
+        }
+
+    }
 
     String _method;
     String _urlString;
     boolean _async;
-    Map<String,String> _headersToSend = new HashMap<String,String>();
+    Map<String,String> _headersToSend;
+    CookieJar _cookieJar;
+    CookieJarDelegate _cookieJarDelegate;
 
     URL _url;
     Scope _onreadystatechangeScope;

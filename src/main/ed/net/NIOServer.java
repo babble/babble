@@ -195,8 +195,7 @@ public abstract class NIOServer extends Thread {
                     }
                     
                     if ( key.isWritable() ){
-                        if ( sh.writeMoreIfWant() )
-                            continue;
+                        sh.writeMoreIfWant();
                     }
                     
                     if ( key.isReadable() ){
@@ -209,14 +208,12 @@ public abstract class NIOServer extends Thread {
                             continue;
                         }
                         
-                        if ( read == 0 )
-                            continue;
-                        
-                        readBuf.flip();
-                        
-                        if ( sh.gotData( readBuf ) ){
-                            key.cancel();
-                            continue;
+                        if ( read > 0 ){
+                            readBuf.flip();
+                            
+                            if ( sh.gotData( readBuf ) ){
+                                key.cancel();
+                            }
                         }
                         
                     }

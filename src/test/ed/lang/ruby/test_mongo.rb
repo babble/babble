@@ -191,8 +191,12 @@ EOS
 
   def test_find_first_with_search
     t = Track.find(:first, :conditions => {:track => 3})
-    assert_not_nil t, "oops: nill track returned"
+    assert_not_nil t, "oops: nil track returned"
     assert_equal "artist: XTC, album: Oranges & Lemons, song: King For A Day, track: 3", t.to_s
+  end
+
+  def test_find_first_returns_nil_if_not_found
+    assert_nil Track.find(:first, :conditions => {:track => 666})
   end
 
   def test_find_all_by
@@ -214,13 +218,11 @@ EOS
   def test_new_and_save
     x = Track.new(:artist => 'Level 42', :album => 'Standing In The Light', :song => 'Micro-Kid', :track => 1)
     assert_nil(x._id)
-    y = x.save
-    assert_equal(x.to_s, y.to_s)
-    assert_equal("artist: Level 42, album: Standing In The Light, song: Micro-Kid, track: 1", y.to_s)
-    assert_not_nil(y._id)
-    z = Track.find(y._id)
-    assert_equal(y.to_s, z.to_s)
-    assert_equal(y._id, z._id)
+    assert x.save, "x.save returned false; expected true"
+    assert_not_nil(x._id)
+    z = Track.find(x._id)
+    assert_equal(x.to_s, z.to_s)
+    assert_equal(x._id, z._id)
   end
 
   def find_or_create_but_already_exists
@@ -241,12 +243,18 @@ EOS
     assert_nil Track.find(:first, :conditions => {:song => 'Does Not Compute'})
   end
 
-  def test_return_nil_if_bogus_id
-    assert_nil Track.find("bogus_id")
+  def test_raise_error_if_bogus_id
+    Track.find("bogus_id")
+    fail 'expected "invalid ObjectId" exception'
+  rescue => ex
+    assert_match /invalid ObjectId/, ex.to_s
   end
 
-  def test_return_nil_if_first_bogus_id_in_hash
-    assert_nil Track.find(:first, :conditions => {:_id => "bogus_id"})
+  def test_raise_error_if_first_and_bogus_id_in_hash
+    Track.find(:first, :conditions => {:_id => "bogus_id"})
+    fail 'expected "invalid ObjectId" exception'
+  rescue => ex
+    assert_match /invalid ObjectId/, ex.to_s
   end
 
   def test_find_options
@@ -451,6 +459,16 @@ EOS
   def test_where
     str = Track.find(:all, :where => "function() { return obj.song == '#{@mayor_song}'; }").inject('') { |str, t| str + t.to_s }
     assert_equal @mayor_str, str
+  end
+
+  def test_destroy
+    Track.destroy(@mayor_id)
+    begin
+      Track.find(@mayor_id)
+      fail "expected exception about missing ID"
+    rescue => ex
+      assert_match /Couldn't find Track with ID=#@mayor_id/, ex.to_s # ' <= for Emacs font lock mode
+    end
   end
 
   # Potential bug: if this test runs at midnight, a create runs before midnight

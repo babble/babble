@@ -45,6 +45,14 @@ module ActiveRecord
         rt, @runtime = @runtime, 0
         rt
       end
+
+      def table_alias_for(table_name)
+        table_name.gsub(/\./, '_')
+      end
+
+      def supports_count_distinct?
+        false
+      end
     end
   end
 end

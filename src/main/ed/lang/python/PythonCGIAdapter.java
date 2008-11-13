@@ -78,15 +78,16 @@ public class PythonCGIAdapter extends CGIAdapter {
         os.__setattr__("environ", new PyTLSProxyDict());
 
         /*
-         *  create a threadlocal writer for the output stream
-         *  TODO - need to do for input stream as it will suffer the same problem
+         *  create a threadlocal writer for the output stream.  Then hand it a PyFile
+         *  wrapped around the input stream, as that's sufficient (so far) for dealing
+         *  with CGI reading on the stream
          */
-        CGITLSData cgiosw = new CGITLSData(stdout, pd);
+        CGITLSData cgiosw = new CGITLSData(new PyFile(stdin), stdout, pd);
 
         // TODO - these don't change ever for a site..
 
         ss.getPyState().stdout = new PythonCGIOutFile();
-        ss.getPyState().stdin = new PyFile(stdin);
+        ss.getPyState().stdin = new PyTLSProxyFile();
 
         try {
             PythonJxpSource.runPythonCode(_getCode(), ac, ss, globals, _lib, _file, true);
@@ -144,19 +145,26 @@ public class PythonCGIAdapter extends CGIAdapter {
      */
     public static class CGITLSData {
 
+        protected final PyFile _inFile;
+
         protected final OutputStream _out;
         protected final PyDictionary _pyDict;
 
         static ThreadLocal<CGITLSData> _tl = new ThreadLocal<CGITLSData>();
 
-        public CGITLSData(OutputStream o, PyDictionary dict) {
+        public CGITLSData(PyFile infile, OutputStream o, PyDictionary dict) {
+            _inFile = infile;
             _out = o;
             _pyDict = dict;
             _tl.set(this);
         }
 
-        public OutputStream getOut() {
+        public OutputStream getOutputStream() {
             return _out;
+        }
+
+        public PyFile getInputFile() {
+            return _inFile;
         }
 
         public PyDictionary getPyDict() {
@@ -193,6 +201,17 @@ public class PythonCGIAdapter extends CGIAdapter {
 
         public boolean __contains__(PyObject key) {
             return CGITLSData.getThreadLocal().getPyDict().has_key(key);
+        }
+    }
+
+    /**
+     *  Proxy file to use for
+     */
+    public static class PyTLSProxyFile extends PyObject {
+
+        public PyObject __findattr_ex__(String key) {
+
+            return CGITLSData.getThreadLocal().getInputFile().__findattr__(key);
         }
     }
 }

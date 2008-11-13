@@ -25,12 +25,6 @@ import org.python.core.PyString;
 import org.python.core.Py;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CharacterCodingException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-
 
 /**
  *  PyFile that writes to a thread-local stream.  Used for CGI
@@ -40,26 +34,12 @@ import java.nio.CharBuffer;
 @ExposedType(name = "_10gen_cgiout")
 public class PythonCGIOutFile extends PyFile {
 
-    protected static Charset _charset = Charset.forName("ISO-8859-1");
-    protected CharsetEncoder encoder = _charset.newEncoder();
-
     protected static PyType TYPE = Python.exposeClass(PythonCGIOutFile.class);
 
     PythonCGIOutFile() {
         super(TYPE);
     }
     
-    @ExposedMethod
-    public void flush() {
-        try {
-            PythonCGIAdapter.CGITLSData osw = PythonCGIAdapter.CGITLSData.getThreadLocal();
-            osw.getOut().flush();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     @ExposedMethod
     public void _10gen_cgiout_write(PyObject o) {
 
@@ -72,6 +52,31 @@ public class PythonCGIOutFile extends PyFile {
         }
     }
 
+    final public void _10gen_cgiout_write(String s) {
+
+        try {
+            PythonCGIAdapter.CGITLSData.getThreadLocal().getOutputStream().write(s.getBytes("ISO-8859-1"));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @ExposedMethod
+    public void flush() {
+
+        try {
+            PythonCGIAdapter.CGITLSData.getThreadLocal().getOutputStream().flush();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }    
+
+    public void write(String s) {
+        _10gen_cgiout_write(s);
+    }
+
     @ExposedMethod(names = {"__str__", "__repr__"})
     public String toString() {
         return "<open file '_10gen.apprequest', mode 'w'>";
@@ -81,24 +86,4 @@ public class PythonCGIOutFile extends PyFile {
         return this;
     }
 
-    final public void _10gen_cgiout_write(String s) {
-
-        PythonCGIAdapter.CGITLSData osw = PythonCGIAdapter.CGITLSData.getThreadLocal();
-
-        try {
-            // decode to bytes - python seems to do iso-8859-1
-            ByteBuffer bbuf = encoder.encode(CharBuffer.wrap(s));
-            osw.getOut().write(bbuf.array());
-
-        } catch (CharacterCodingException e) {
-                e.printStackTrace();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }    
-    }
-
-    public void write(String s) {
-        _10gen_cgiout_write(s);
-    }
 }
