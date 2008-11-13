@@ -39,6 +39,7 @@
       <class name="ed.lang.python.PythonFileTest" />
       <class name="ed.manager.ManagerTest" />
       <class name="ed.net.CookieJarTest" />
+      <class name="ed.net.httpserver.PostDataInMemoryTest"/>
     </classes>
   </test>
 
