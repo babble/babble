@@ -179,9 +179,6 @@ public class Module {
      */
     public String _checkVersion( String want ){
         
-        if ( want == null )
-            return null;
-
         Object min = JS.path( _moduleVersionInfo , _name + ".minVersion" );
         if ( min == null )
             return want;
@@ -196,7 +193,7 @@ public class Module {
     
     public static long parseVersion( final String version ){
         if ( version == null )
-            throw new NullPointerException( "version can't be null" );
+            return 0;
         
         // 6 bits per numbers
         // max 10 numbers
