@@ -165,7 +165,8 @@ module XGen
         #
         # * Find by id (a single id or an array of ids) returns one record or a Cursor.
         #
-        # * Find :first returns the first record that matches the options used.
+        # * Find :first returns the first record that matches the options used
+        #   or nil if not found.
         #
         # * Find :all records; returns a Cursor that can iterate over raw
         #   records.
@@ -236,8 +237,6 @@ module XGen
           else
             find_from_ids(args, options)
           end
-        rescue => ex
-          nil
         end
 
         # Returns all records matching mql. Not yet implemented.
@@ -258,7 +257,7 @@ module XGen
         alias_method :remove, :delete
 
         def destroy(id)
-          id.is_a?(Array) ? id.each { |id| destroy(id) } : find(id).destroy
+          id.is_a?(Array) ? id.each { |oid| destroy(oid) } : find(id).destroy
         end
 
         def update_all(updates, conditions = nil)
@@ -362,23 +361,24 @@ module XGen
 
         def find_from_ids(ids, options)
           ids = ids.to_a.flatten.compact.uniq
+          raise RecordNotFound, "Couldn't find #{name} without an ID" unless ids.length > 0
+
           # Note: must use merge! because JSObject (returned by
           # criteria_from_string) does not have an allocator (therefore dup()
           # is not allowed).
           criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           criteria[:_id] = ids_clause(ids)
           fields = fields_from(options[:select])
-          db_cursor = coll.find(criteria, fields)
-          sort_by = sort_by_from(options[:order]) if options[:order]
-          db_cursor.sort(sort_by) if sort_by
-          cursor = Cursor.new(db_cursor, self)
-          case ids.length
-          when 0
-            raise RecordNotFound, "Couldn't find #{name} without an ID"
-          when 1
-            self.new(cursor[0])
+
+          if ids.length == 1
+            row = coll.findOne(criteria, fields)
+            raise RecordNotFound, "Couldn't find #{name} with ID=#{ids[0]} #{criteria.inspect}" if row == nil || row.empty?
+            new(row)
           else
-            cursor
+            db_cursor = coll.find(criteria, fields)
+            sort_by = sort_by_from(options[:order]) if options[:order]
+            db_cursor.sort(sort_by) if sort_by
+            Cursor.new(db_cursor, self)
           end
         end
 
@@ -631,10 +631,9 @@ module XGen
       end
       alias_method :remove, :delete
 
+      # Deletes and freezes self.
       def destroy
-        unless new_record?
-          self.class.destroy(@_id)
-        end
+        delete
         freeze
       end
 
