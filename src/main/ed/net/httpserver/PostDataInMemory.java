@@ -44,6 +44,8 @@ class PostDataInMemory extends PostData {
     }
 
     void put( byte b ){
+        if ( b < 0 )
+            throw new RuntimeException( "yo" );
         _data[_pos++] = b;
     }
 
