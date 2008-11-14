@@ -33,14 +33,15 @@ import static ed.lang.ruby.RubyObjectWrapper.toJS;
 
 public class GridFS {
 
-    public static void save(RubyObject rscope, RubyObject rdb, RubyObject gridFile) {
-        final Scope scope = (Scope)((RubyJSObjectWrapper)rscope).getJSObject();
+    public static void save(RubyJSObjectWrapper rscope, RubyJSObjectWrapper rdb, RubyObject gridFile) {
+        final Scope scope = (Scope)rscope.getJSObject();
         final Ruby runtime = gridFile.getRuntime();
         final ThreadContext context = runtime.getCurrentContext();
 
-        DBBase db = (DBBase)toJS(scope, rdb);
+        DBBase db = (DBBase)rdb.getJSObject();
         DBCollection _files = (DBCollection)db.get("_files");
-        String name = gridFile.instance_variable_get(context, runtime.newString("@name")).toString();
+        RubyObject gridFileName = (RubyObject)gridFile.instance_variable_get(context, runtime.newString("@name"));
+        String name = gridFileName.toString();
         String str = gridFile.callMethod(context, "read", JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK).toString();
         RubyHash metadata = (RubyHash)gridFile.instance_variable_get(context, runtime.newString("@metadata"));
 
@@ -54,7 +55,7 @@ public class GridFS {
                     }
                 });
 
-            remove(db, name);
+            remove(rscope, rdb, name);
             _files.save(scope, f);
         }
         catch (IOException e) {
@@ -63,14 +64,12 @@ public class GridFS {
         }
     }
 
-    public static void remove(RubyObject rscope, RubyObject rdb, RubyObject fileName) {
-        Scope scope = (Scope)((RubyJSObjectWrapper)rscope).getJSObject();
-        remove((DBBase)toJS(scope, rdb), fileName.toString());
-    }
+    public static void remove(RubyJSObjectWrapper rscope, RubyJSObjectWrapper rdb, String fileName) {
+        Scope scope = (Scope)rscope.getJSObject();
+        DBBase base = (DBBase)rdb.getJSObject();
 
-    public static void remove(DBBase base, String fileName) {
         JSObjectBase criteria = new JSObjectBase();
-        criteria.set("filename", fileName);
+        criteria.set("filename", fileName.toString());
         JSDBFile f = (JSDBFile)base.getCollectionFromString("_files").findOne(criteria);
         if (f != null)
             f.remove();

@@ -44,6 +44,8 @@ class GridFileTest < RubyTest
   def test_delete
     GridFile.delete('myfile')
     assert !GridFile.exist?('myfile')
+
+    assert_equal 0, $db['_chunks'].find().count(), "chunks were not deleted"
   end
 
   def test_attributes
