@@ -42,13 +42,17 @@ public class AppContextHolder {
 
         for ( String d : OUR_DOMAINS )
             for ( String h : CDN_HOST )
-                s.add( (h + d).replaceAll( "\\.+" , "." ) );
+                s.add( (h + d).replaceAll( "\\.+" , "." ).toLowerCase() );
 
         CDN_HOSTNAMES = Collections.unmodifiableSet( s );
     }
 
     private static final String LOCAL_BRANCH_LIST[] = new String[]{ "master" , "test" , "www" };
     private static final String WWW_BRANCH_LIST[] = new String[]{ "test" , "master" };
+
+    public static boolean isCDNHost( String host ){
+        return CDN_HOSTNAMES.contains( host );
+    }
 
     /**
      * @param defaultWebRoot default web site

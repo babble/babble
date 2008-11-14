@@ -139,15 +139,15 @@ public class MappingBaseTest extends TestCase {
         
         TextMapping tm = create( s );
 
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
 
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
 
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: dev.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo.com" );
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo.com" );
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: me.play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: dev.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: me.play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo" + Environment._internalDomain );
 
     }
 
@@ -192,14 +192,14 @@ public class MappingBaseTest extends TestCase {
         
         TextMapping tm = create( s );
 
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider.com" );
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: businesssheet.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider.com" );
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: clusterstock.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: businesssheet.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: clusterstock.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider" + Environment._internalDomain );
         
         // TODO: should useHost for these 2, be env.name ??
         //       or should it rewrite the url
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/www.alleyinsider.com/foo.jpg" , "Host: origin.10gen.com" ) ) , "alleyinsider" , "www" , "origin.10gen.com" , "origin.10gen.com" );
-        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/clusterstock.alleyinsider.com/foo.jpg" , "Host: origin.10gen.com" ) ) , "alleyinsider" , "www" , "origin.10gen.com" , "origin.10gen.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/www.alleyinsider.com/foo.jpg" , "Host: origin.10gen.com" ) ) , "alleyinsider" , "www" , "origin.10gen.com" , "www.alleyinsider" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/clusterstock.alleyinsider.com/foo.jpg" , "Host: origin.10gen.com" ) ) , "alleyinsider" , "www" , "origin.10gen.com" , "www.alleyinsider" + Environment._internalDomain );
     }
 
     void assertEquals( Environment e , String site , String env , String host , String useHost ){

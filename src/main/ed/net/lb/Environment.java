@@ -65,15 +65,20 @@ public class Environment {
     }
     
     public void getExtraHeaderString( StringBuilder buf ){
-        if ( host != null )
-            buf.append( "X-Host: " ).append( this.host ).append( "\r\n" );
+        buf.append( "X-Host: " ).append( fullInternalHost() ).append( "\r\n" );
     }
     
     public String toString(){
         return "site: [" + site + "] env: [" + env + "] host: [" + this.host + "]";
     }
     
+    String fullInternalHost(){
+        return this.env + "." + this.site + _internalDomain;
+    }
+
     public final String site;
     public final String env;
     public final String host;
+
+    static String _internalDomain = "." + ed.util.Config.getExternalDomain();
 }
