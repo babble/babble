@@ -128,9 +128,7 @@ class GridFile < StringIO
     rewind()
     if @mode == :write || @mode == :append
       raise "$db not defined" unless $db
-      f = Java::EdJs::JSInputFile.new(@name, nil, read())
-      @metadata.each { |k, v| f.set(k, v) unless RESERVED_KEYS.include?(key.to_s) }
-      $db['_files'].save(f)
+      Java::EdLangRuby::GridFS.save($scope, $db, self)
     end
     super
   end
