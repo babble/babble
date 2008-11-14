@@ -91,7 +91,7 @@ class GridFileTest < RubyTest
     GridFile.open('multi-line', 'r') { |f|
       i = 1
       f.each { |line| assert_equal "line #{i}\n", line; i += 1 }
-      assert_equal 4, line
+      assert_equal 4, i
     }
   end
 
