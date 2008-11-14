@@ -39,7 +39,7 @@ public class GridFS {
         final ThreadContext context = runtime.getCurrentContext();
 
         DBBase db = (DBBase)rdb.getJSObject();
-        DBCollection _files = (DBCollection)db.get("_files");
+        DBCollection _files = db.getCollectionFromString("_files");
         RubyObject gridFileName = (RubyObject)gridFile.instance_variable_get(context, runtime.newString("@name"));
         String name = gridFileName.toString();
         String str = gridFile.callMethod(context, "read", JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK).toString();
@@ -66,12 +66,12 @@ public class GridFS {
 
     public static void remove(RubyJSObjectWrapper rscope, RubyJSObjectWrapper rdb, String fileName) {
         Scope scope = (Scope)rscope.getJSObject();
-        DBBase base = (DBBase)rdb.getJSObject();
+        DBBase db = (DBBase)rdb.getJSObject();
 
         JSObjectBase criteria = new JSObjectBase();
         criteria.set("filename", fileName.toString());
-        JSDBFile f = (JSDBFile)base.getCollectionFromString("_files").findOne(criteria);
+        JSDBFile f = (JSDBFile)db.getCollectionFromString("_files").findOne(criteria);
         if (f != null)
-            f.remove();
+            f.remove();         // Removes the chunks, too
     }
 }
