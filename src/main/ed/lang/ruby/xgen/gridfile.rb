@@ -74,7 +74,7 @@ class GridFile < StringIO
     # Delete the named GridFile from the database.
     def unlink(name)
       raise "$db not defined" unless $db
-      Java::EdLangRuby::GridFS.remove($scope, $db, name)
+      Java::EdLangRuby::GridFS.remove($db, name)
     end
     alias_method :delete, :unlink
 

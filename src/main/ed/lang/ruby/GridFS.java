@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import org.jruby.*;
 import org.jruby.exceptions.RaiseException;
-import org.jruby.runtime.*;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -55,7 +54,7 @@ public class GridFS {
                     }
                 });
 
-            remove(rscope, rdb, name);
+            remove(rdb, name);
             _files.save(scope, f);
         }
         catch (IOException e) {
@@ -64,8 +63,7 @@ public class GridFS {
         }
     }
 
-    public static void remove(RubyJSObjectWrapper rscope, RubyJSObjectWrapper rdb, String fileName) {
-        Scope scope = (Scope)rscope.getJSObject();
+    public static void remove(RubyJSObjectWrapper rdb, String fileName) {
         DBBase db = (DBBase)rdb.getJSObject();
 
         JSObjectBase criteria = new JSObjectBase();
