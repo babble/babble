@@ -151,15 +151,66 @@ public class MappingBaseTest extends TestCase {
 
     }
 
+    @Test(groups = {"basic"})
+    public void testAlias2()
+        throws IOException {
+
+        String s = 
+            
+            "site alleyinsider\n" +
+            "    backup : backup1\n" +
+            "    dev : test1\n" +
+            "    stage : stage1\n" + 
+            "    test : test1\n" +
+            "    www : prod1\n" +
+            "    x : dev1\n" +
+
+            "site-alias alleyinsider\n" + 
+            "    businesssheet : www\n" +
+            "    businesssheet.stage : stage\n" +
+            "    businesssheet.test : test\n" +
+            "    clusterstock : www\n" +
+            "    clusterstock.stage : stage\n" +
+            "    clusterstock.test : test\n" + 
+            "    www.test : test\n" +
+
+            "pool backup1\n" + 
+            "   sat-sb-n1\n" + 
+            "pool dev1\n" + 
+            "   iad-sb-n1\n" + 
+            "pool prod1\n" + 
+            "   iad-sb-n4\n" +
+            "   iad-sb-n5\n" +
+            "pool prod2\n" +
+            "   iad-sb-n9\n" +
+            "pool stage1\n" +
+            "   iad-sb-n4\n" +
+            "pool test1\n" +
+            "   iad-sb-n7\n";
+
+
+        
+        TextMapping tm = create( s );
+
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: businesssheet.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: clusterstock.alleyinsider.com" ) ) , "alleyinsider" , "www" , "www.alleyinsider.com" , "www.alleyinsider.com" );
+        
+        // TODO: should useHost for these 2, be env.name ??
+        //       or should it rewrite the url
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/www.alleyinsider.com/foo.jpg" , "Host: origin.10gen.com" ) ) , "alleyinsider" , "www" , "origin.10gen.com" , "origin.10gen.com" );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/clusterstock.alleyinsider.com/foo.jpg" , "Host: origin.10gen.com" ) ) , "alleyinsider" , "www" , "origin.10gen.com" , "origin.10gen.com" );
+    }
+
     void assertEquals( Environment e , String site , String env , String host , String useHost ){
         assertEquals( e , site , env , host );
         assertEquals( e.getExtraHeaderString().trim() , "X-Host: " + useHost );
     }
 
     void assertEquals( Environment e , String site , String env , String host ){
-        assertEquals( site , e.site );
-        assertEquals( env , e.env );
-        assertEquals( host , e.host );
+        assertEquals( site , e.site , "site wrong" );
+        assertEquals( env , e.env , "environment wrong" );
+        assertEquals( host , e.host , "host wrong" );
     }
     
     TextMapping create( String content )
