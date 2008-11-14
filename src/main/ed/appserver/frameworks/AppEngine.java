@@ -34,15 +34,12 @@ public class AppEngine extends Framework {
             packages = new JSDict();
         }
 
-        JSObject google = new JSDict();
-        google.set("module", "py-google");
-        google.set("path", "");
-        packages.set("google", google);
-
         JSObject django = new JSDict();
         django.set("module", "py-google");
         django.set("path", "django");
         packages.set("django", django);
+
+        packages.set("google", "py-google");
 
         context.setConfigObject("packages", packages);
 
