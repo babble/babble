@@ -26,15 +26,26 @@ import ed.js.JSString;
 
 public class AppEngine extends Framework {
     public void install (AppContext context) throws IOException {
-        // Set up mapping "import google" => "import core.modules.py-google".
+        /*
+         * Set up package mappings for google and django.
+         */
         JSObject packages = (JSObject)context.getConfigObject("packages");
         if (packages == null) {
             packages = new JSDict();
         }
+
+        JSObject django = new JSDict();
+        django.set("module", "py-google");
+        django.set("path", "django");
+        packages.set("django", django);
+
         packages.set("google", "py-google");
+
         context.setConfigObject("packages", packages);
 
-        // Run _init_ae.py (sets up adapterType and mapUrlToJxpFile)
+        /*
+         * Run _init_ae.py (sets up adapterType and mapUrlToJxpFile)
+         */
         context.runInitFile("/~~/modules/py-google/_init_ae.py");
     };
 }

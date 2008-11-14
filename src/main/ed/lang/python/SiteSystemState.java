@@ -843,14 +843,8 @@ public class SiteSystemState implements Sizable {
                 return Py.None;
             }
 
-            if( ! ( packageSpec instanceof String || packageSpec instanceof JSString ) ){
-                System.out.println("Package " + modName + " was mapped to " + packageSpec + " and I don't know what that means!");
-                return Py.None;
-            }
-
-            String packageName = packageSpec.toString();
-
-            if( packageName.indexOf('.') == -1 ){
+            if( packageSpec instanceof String || packageSpec instanceof JSString ){
+                String packageName = packageSpec.toString();
                 String toLoad = null;
 
                 if( ModuleRegistry.getARegistry( _context ).getConfig( "py-"+packageName ) != null ){
@@ -870,10 +864,60 @@ public class SiteSystemState implements Sizable {
                 }
             }
 
+            else if( packageSpec instanceof JSObject ){
+                JSObject packageJ = (JSObject)packageSpec;
+                Object moduleObj = packageJ.get( "module" );
+                Object pathObj = packageJ.get( "path" );
+                if( moduleObj == null ){
+                    throw _missingField(modName, "module");
+                }
+
+                if( pathObj == null ){
+                    throw _missingField(modName, "path");
+                }
+
+                if( ! ( moduleObj instanceof String || moduleObj instanceof JSString ) ){
+                    throw new RuntimeException("Can't figure out how to handle module of type " + moduleObj.getClass() + " -- expected String (in package " + modName + ", field 'module')");
+                }
+                if( ! ( pathObj instanceof String || pathObj instanceof JSString ) ){
+                    throw new RuntimeException("Can't figure out how to handle path of type " + pathObj.getClass() + " -- expected String (in package " + modName + ", field 'path')");
+                }
+
+                String module = moduleObj.toString();
+                String path = pathObj.toString();
+
+                Object foo = _coreModules.getFromPath( module , true );
+                if( ! ( foo instanceof JSLibrary ) ){
+                    throw new RuntimeException("problem loading core-module " + module + " -- got " + foo + " instead of JSLibrary");
+                }
+
+                JSLibrary lib = (JSLibrary)foo;
+
+                Object subdir = lib.getFromPath( path , true );
+
+                if( subdir == null ){
+                    throw new RuntimeException( "couldn't find subdirectory " + path + " in module " + module );
+                }
+
+                if( ! ( subdir instanceof JSLibrary ) ){
+                    throw new RuntimeException( "file was not a subdirectory at module = "+ module + ", path = " + path );
+                }
+
+                return new LibraryModuleLoader( (JSLibrary)subdir );
+            }
+
+            else {
+                throw new RuntimeException( "couldn't figure out how to handle package spec of type " + packageSpec.getClass() );
+            }
+
             if( DEBUG ){
                 System.out.println( "core-modules finder didn't match " + modName );
             }
             return Py.None;
+        }
+
+        RuntimeException _missingField(String moduleName, String fieldName ){
+            return new RuntimeException( "package definition for module " + moduleName + " is missing field " + fieldName );
         }
     }
 
