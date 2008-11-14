@@ -5,6 +5,7 @@ package ed.db;
 import java.net.*;
 import java.util.*;
 
+import ed.util.*;
 import ed.cloud.*;
 import ed.appserver.*;
 
@@ -26,7 +27,14 @@ public class DBProvider {
         
         if ( env == null || c == null ){
             try {
-                return get( name , false );
+                String fullName = name;
+                if ( fullName.indexOf( ":" ) < 0 ){
+                    env = Config.get().getTryEnvFirst( "db_env" , null );
+                    if ( env != null && env.trim().length() > 0 ){
+                        fullName += ":" + env.trim();
+                    }
+                }
+                return get( fullName , false );
             }
             catch ( UnknownHostException un ){
                 throw new RuntimeException( "can't connect to default db host" , un );

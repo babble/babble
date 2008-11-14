@@ -77,6 +77,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return ((Boolean)obj).booleanValue() ? runtime.getTrue() : runtime.getFalse();
         if (obj instanceof JSDate) // assume dates are immutable, so we don't have to wrap them
             return RubyTime.newTime(runtime, ((JSDate)obj).getTime());
+        if (obj instanceof Date)
+            return RubyTime.newTime(runtime, ((Date)obj).getTime());
 
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
         if (wrapper != null) {

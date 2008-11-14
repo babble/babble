@@ -19,14 +19,14 @@ class GridFileTest < RubyTest
 
   def setup
     super
-    run_js "db = connect('test'); db._files.remove({});"
+    run_js "db = connect('test'); db._files.remove({}); db._chunks.remove({});"
 
     @str = "Hello, GridFS!"
     GridFile.open('myfile', 'w') { |f| f.write @str }
   end
 
   def teardown
-    run_js "db._files.remove({});"
+    run_js "db._files.remove({}); db._chunks.remove({});"
     super
   end
 
@@ -44,6 +44,8 @@ class GridFileTest < RubyTest
   def test_delete
     GridFile.delete('myfile')
     assert !GridFile.exist?('myfile')
+
+    assert_equal 0, $db['_chunks'].find().count(), "chunks were not deleted"
   end
 
   def test_attributes
@@ -67,7 +69,7 @@ class GridFileTest < RubyTest
     assert_not_nil f.uploadDate
   end
 
-  def test_rails_if_no_db
+  def test_raise_if_no_db
     old_db = $db
     begin
       $db = nil

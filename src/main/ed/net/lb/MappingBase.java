@@ -53,22 +53,21 @@ public abstract class MappingBase implements Mapping {
             }
         }
 
-        final String name = site.getHost();
+        final String name = site.getHost(); // this is the site name (alleyinsider,shopwiki.com.au)
         
         String env = site.getEnvironment( info.getHost() );
         String useHost = request.getHost();
         
         final SiteInfo si = _sites.get( name );
         if ( si != null ){
-            String real = si.getAlias( env );
+            final String real = si.getAlias( env );
             if ( real != null ){
                 if ( useHost.startsWith( env + "." ) ){
                     int idx = useHost.indexOf( "." , env.length() );
-                    
                     useHost = real + useHost.substring( idx );
-                    env = real;
                 }
-                
+                env = real;
+                                
             }
         }
 

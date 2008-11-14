@@ -20,30 +20,41 @@ package ed.net.httpserver;
 
 import java.io.*;
 import java.nio.*;
-import java.util.*;
-import java.util.regex.*;
 
 class PostDataInMemory extends PostData {
 
     static final int MAX = 1024 * 1024 * 110;
 
-    PostDataInMemory( int cl , boolean multipart , String ct ){
-        super( cl , multipart , ct );
-        _data = new byte[cl];
+    PostDataInMemory( int contentLength , boolean multipart , String contentType ){
+        super( contentLength , multipart , contentType );
+
+        if (contentLength < 0 || contentLength > MAX) {
+            throw new RuntimeException("Error : specified content length [" + contentLength + "] invalid. < 0 or > MAX (Max = " + MAX + "");
+        }
+        
+        _data = new byte[contentLength];
         _pos = 0;
     }
     
     int position(){
         return _pos;
     }
+
+    static int getMax() {
+        return MAX;
+    }
     
     byte get( int pos ){
-        if ( pos >= _pos )
-            throw new RuntimeException( "pos >= _pos" );
+        if ( pos >= _pos ) {
+            throw new RuntimeException("Error: attempt to read past end of data. " + pos + " >= " + _pos);
+        }
         return _data[pos];
     }
 
     void put( byte b ){
+        if ( _pos == _data.length ) {
+            throw new RuntimeException("Error: attempt to write past end of buffer.");
+        }
         _data[_pos++] = b;
     }
 
