@@ -106,53 +106,83 @@ public class TrackImport extends PyObject {
     }
 
     /**
+     * Struggle to get a sensible __name__ attribute from the context of an
+     * __import__.
+     *
+     * @param globals the globals dictionary (context)
+     * @param target  the module that we wanted to import (for error reporting)
+     */
+    String getName( PyObject globals , String target ){
+        // FIXME: PyUnicode?
+        // This can only happen from Java code, as far as I can tell.
+        // For example, Jython's codecs.java calls
+        // __builtin__.__import__("encodings").  Python calls to
+        // __import__ that don't provide an argument get supplied with
+        // an empty Python dict. (And there's no way Python can
+        // explicitly provide a null.
+        if( globals == null ){
+            return null;
+        }
+
+        PyObject importer = globals.__finditem__( "__name__".intern() );
+        if( importer instanceof PyString ){
+            return importer.toString();
+        }
+
+        if( DEBUG ){
+            System.out.println("TrackImport importing " + target + ": Couldn't understand __name__ in globals: " + importer + " -- trying frame");
+        }
+
+        // Globals was empty? Maybe we were called "manually" with
+        // __import__, or maybe import is happening from an exec()
+        // or something.
+        // Let's try to get the place that called the import manually
+        // and hope for the best.
+        PyFrame f = Py.getFrame();
+        if( f == null ){
+            // No idea what this means
+            System.err.println("TrackImport importing " + target + ": Can't figure out where the call to import came from! Import tracking is going to be screwed up!");
+            return null;
+        }
+
+        globals = f.f_globals;
+        importer = globals.__finditem__( "__name__".intern() );
+        if( importer instanceof PyString )
+            return importer.toString();
+
+        // Probably an import from within an exec("foo", {}).
+        // Let's go for broke and try to get the filename from
+        // the PyFrame. This won't be tracked any further,
+        // but that's fine -- at least we'll know which file
+        // needs to be re-exec'ed (e.g. for modjy).
+        // FIXME: exec('import foo', {}) ???
+        //   -- filename is <string> or what?
+        PyTableCode code = f.f_code;
+        if( code.co_filename != null )
+            return code.co_filename;
+
+        System.err.println("TrackImport importing " + target + ": Totally unable to figure out how import to " + target + " came about. Import tracking is going to be screwed up.");
+
+        return null;
+    }
+
+    /**
      * Mark a dependency in a given system state, based on information
      * taken from the import context.
      */
     PyObject trackDependency( SiteSystemState sss , PyObject globals , String target , PyObject siteModule , PyObject m , PyObject fromlist ){
         if( globals == null ){
             // Only happens (AFAICT) from within Java code.
-            // For example, Jython's codecs.java calls
-            // __builtin__.__import__("encodings");
-            // Python calls to __import__ provide an empty Python dict.
+            // Jython won't import user code by accident (hopefully),
+            // so we shouldn't need to track this import.
             return _finish( target , siteModule , m );
         }
 
-
         // gets the module name -- __file__ is the file
-        PyObject importer = globals.__finditem__( "__name__".intern() );
-        if( importer == null ){
-            // Globals was empty? Maybe we were called "manually" with
-            // __import__, or maybe import is happening from an exec()
-            // or something.
-            // Let's try to get the place that called the import manually
-            // and hope for the best.
-            PyFrame f = Py.getFrame();
-            if( f == null ){
-                // No idea what this means
-                System.err.println("Can't figure out where the call to import " + target + " came from! Import tracking is going to be screwed up!");
-                return _finish( target, siteModule, m );
-            }
-
-            globals = f.f_globals;
-            importer = globals.__finditem__( "__name__".intern() );
-            if( importer == null ){
-                // Probably an import from within an exec("foo", {}).
-                // Let's go for broke and try to get the filename from
-                // the PyFrame. This won't be tracked any further,
-                // but that's fine -- at least we'll know which file
-                // needs to be re-exec'ed (e.g. for modjy).
-                // FIXME: exec('import foo', {}) ???
-                //   -- filename is <string> or what?
-                PyTableCode code = f.f_code;
-                // FIXME: wrap just to unwrap later
-                importer = new PyString( code.co_filename );
-            }
-
-            if( importer == null ){ // Still??
-                System.err.println("Totally unable to figure out how import to " + target + " came about. Import tracking is going to be screwed up.");
-            }
-        }
+        String importer = getName( globals , target );
+        if( importer == null )
+            // Error was reported by getName()
+            return _finish( target , siteModule , m );
 
         // We want to find the module that was actually imported so we can
         // get its name for import tracking. If module package.foo does
@@ -237,7 +267,7 @@ public class TrackImport extends PyObject {
         // Don't add dependencies to _10gen. FIXME: other "virtual"
         // modules should be OK.
         if( ! ( m instanceof PyModule && ((PyModule)m).__dict__ instanceof PyJSObjectWrapper ) )
-            sss.addDependency( imported , importer.toString() );
+            sss.addDependency( imported , importer );
 
         return _finish( target , siteModule , m );
 
@@ -262,6 +292,10 @@ public class TrackImport extends PyObject {
         // check foo.moo.boo.zoo and try that
         if( globals == null ) return null;
         PyObject __name__P = globals.__finditem__("__name__");
+        if( __name__P == null ){
+            // core-module did an __import__ ?
+        }
+
         if( ! ( __name__P instanceof PyString ) ) return null;
         String __name__ = __name__P.toString();
         int period = __name__.indexOf('.');
