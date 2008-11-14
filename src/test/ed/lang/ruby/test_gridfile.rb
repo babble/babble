@@ -82,4 +82,17 @@ class GridFileTest < RubyTest
     end
   end
 
+  def test_each
+    GridFile.open('multi-line', 'w') { |f|
+      f.puts 'line 1'
+      f.puts 'line 2'
+      f.puts 'line 3'
+    }
+    GridFile.open('multi-line', 'r') { |f|
+      i = 1
+      f.each { |line| assert_equal "line #{i}\n", line; i += 1 }
+      assert_equal 4, i
+    }
+  end
+
 end

@@ -843,6 +843,8 @@ public class SiteSystemState implements Sizable {
                 return Py.None;
             }
 
+
+            // FIXME: refactor out _loaded.put (somehow)
             if( packageSpec instanceof String || packageSpec instanceof JSString ){
                 String packageName = packageSpec.toString();
                 String toLoad = null;
@@ -893,6 +895,11 @@ public class SiteSystemState implements Sizable {
 
                 JSLibrary lib = (JSLibrary)foo;
 
+                if( path.equals("") ){
+                    _loaded.put( lib , modName );
+                    return new LibraryModuleLoader( (JSLibrary) lib );
+                }
+
                 Object subdir = lib.getFromPath( path , true );
 
                 if( subdir == null ){
@@ -903,6 +910,7 @@ public class SiteSystemState implements Sizable {
                     throw new RuntimeException( "file was not a subdirectory at module = "+ module + ", path = " + path );
                 }
 
+                _loaded.put( (JSLibrary) subdir , modName );
                 return new LibraryModuleLoader( (JSLibrary)subdir );
             }
 
