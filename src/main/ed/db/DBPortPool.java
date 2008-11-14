@@ -48,9 +48,9 @@ class DBPortPool extends SimplePool<DBPort> {
     }
 
     // ----
-
+    
     DBPortPool( InetSocketAddress addr ){
-        super( addr.toString() , 10 , Bytes.CONNECTIONS_PER_HOST );
+        super( addr.toString() , Bytes.CONNECTIONS_PER_HOST , Bytes.CONNECTIONS_PER_HOST );
         _addr = addr;
 	_waitingSem = new Semaphore( Math.min( ed.net.httpserver.HttpServer.WORKER_THREAD_QUEUE_MAX / 2 , Bytes.CONNECTIONS_PER_HOST * 5 ) );
     }

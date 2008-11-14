@@ -141,5 +141,4 @@ public class JSInputFile extends JSNewFile {
 
 
     private final List<JSBinaryData> _data;
-    private final List<MyChunk> _chunks = new ArrayList<MyChunk>();
 }
