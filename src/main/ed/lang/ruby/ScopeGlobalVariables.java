@@ -17,7 +17,6 @@
 package ed.lang.ruby;
 
 import java.util.Set;
-import java.util.HashSet;
 
 import org.jruby.Ruby;
 import org.jruby.RubyProc;
