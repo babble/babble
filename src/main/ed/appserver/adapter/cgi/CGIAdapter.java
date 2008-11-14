@@ -244,6 +244,7 @@ public abstract class CGIAdapter extends JxpSource {
 
     private MyServlet _servlet = null;
     private static final JSFunction _dontCall = new JSFunctionCalls0(){
+            public boolean isCallable() { return false; }
             public Object call( Scope s , Object extra[] ){
                 throw new RuntimeException( "don't call me" );
             }
