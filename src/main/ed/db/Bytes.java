@@ -21,7 +21,7 @@ public class Bytes {
 
     static final int BUF_SIZE = 1024 * 1024 * 5;
     
-    static final int CONNECTIONS_PER_HOST = 20;
+    static final int CONNECTIONS_PER_HOST = ed.net.httpserver.HttpServer.WORKER_THREADS;
     static final int BUFS_PER_50M = ( 1024 * 1024 * 50 ) / BUF_SIZE;
 
     static final byte EOO = 0;    
