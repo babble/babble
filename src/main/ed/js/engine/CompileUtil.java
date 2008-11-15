@@ -21,6 +21,7 @@ package ed.js.engine;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.jar.*;
 
 import org.eclipse.jdt.internal.compiler.batch.*;
 
@@ -43,27 +44,35 @@ public class CompileUtil {
             byte[] b = loadClassData( name );
             return defineClass(name, b, 0, b.length);
         }
+
+        File _getJarFile( String name ){
+            
+            String file = getCompileSrcDir( name );
+            file = file.substring( 0 , file.length() - 1 );
+            file = file.replaceAll( "\\$[\\d\\$]+$" , "" );
+            return new File( file + ".jar" );
+        }
         
         private byte[] loadClassData( String name )
             throws ClassNotFoundException {
             
-            String file = getCompileSrcDir( name );
-            file = file.substring( 0 , file.length() - 1 );
+            File f = _getJarFile( name );
+            if ( ! f.exists() ){
+                throw new ClassNotFoundException( "Jar file doesn't exist [" + f + "]" );
+            }
             
-            File f = new File( file + ".class" );
-            if ( ! f.exists() )
-                throw new ClassNotFoundException( "[" + f + "] doesn't exist for [" + name + "]" );
-            
-            byte d[] = new byte[(int)(f.length())];
             try {
-                FileInputStream fin = new FileInputStream( f );
-                fin.read( d );
-                fin.close();
+                JarFile jar = new JarFile( f );
+                JarEntry entry = jar.getJarEntry( name + ".class" );
+
+                if ( entry == null )
+                    throw new ClassNotFoundException( "can't find [" + name + "] in [" + f + "]" );                
+
+                return StreamUtil.readBytesFully( jar.getInputStream( entry ) );
             }
             catch ( IOException ioe ){
-                throw new ClassNotFoundException( "can't load [" + f + "] for [" + name + "] " + ioe );                
+                throw new ClassNotFoundException( "error loading [" + name + "] from [" + f + "]" + ioe );
             }
-            return d;
          }
     }
 
@@ -87,10 +96,9 @@ public class CompileUtil {
         }
         
         File f = new File( dir , c + ".java" );
-        File output = new File( f.getAbsolutePath().replaceAll( "java$" , "class" ) );
-        File marker = new File( f.getAbsolutePath().replaceAll( "java$" , "marker" ) );
-
-        synchronized( output.toString().intern() ){
+        File jarFile = new File( dir , c + ".jar" );
+        
+        synchronized( jarFile.toString().intern() ){
             long depend = getDependencyLastTime();
             
             String old = null;
@@ -98,18 +106,17 @@ public class CompileUtil {
                 old = StreamUtil.readFully( new FileInputStream( f ) );
             
             final boolean oldSourceSame = source.equals( old );
-            final boolean oldExists = output.exists();
-            final boolean oldDepends = output.lastModified() > depend;
+            final boolean oldExists = jarFile.exists();
+            final boolean oldDepends = jarFile.lastModified() > depend;
             
-            final boolean markerOk = marker.exists() && marker.lastModified() >= output.lastModified();
-            
-            boolean oldOK = oldExists && oldSourceSame && oldDepends && markerOk;
+            boolean oldOK = oldExists && oldSourceSame && oldDepends;
             
             if ( ! oldOK ){
-                
                 _rollingLog.write( f.toString() );
-                if ( CD ) System.out.println( " compiling  oldSourceSame: " + oldSourceSame + " oldExists:" + oldExists + " oldDepends:" + oldDepends + " markerOk:" + markerOk + "\t" + f );
+                if ( CD ) System.out.println( " compiling  oldSourceSame: " + oldSourceSame + " oldExists:" + oldExists + " oldDepends:" + oldDepends + "\t" + f );
                 
+                _cleanOld( dir , c , false );
+
                 FileOutputStream fout = new FileOutputStream( f );
                 fout.write( source.getBytes() );
                 fout.close();
@@ -137,12 +144,70 @@ public class CompileUtil {
                     throw new RuntimeException( compiler.getLastMessage() );
                 }
                 
+                _createJar( jarFile , pack , dir , c );
+                _cleanOld( dir , c , true );
             }
             
             Class result = _loader.loadClass( pack + "." + c );
-            FileUtil.touch( marker );
             return result;
         }
+    }
+
+    static void _cleanOld( final File dir , final String prefix , final boolean onlyClassFiles  ){
+        if ( ! dir.exists() )
+            return;
+        
+        File[] toDelete = dir.listFiles( new MyFilter( prefix , onlyClassFiles ) );
+        
+        for ( File f : toDelete ){
+            f.delete();
+        }
+    }
+
+    static void _createJar( File jar , String pack , File dir , String prefix )
+        throws IOException {
+        File[] classFiles = dir.listFiles( new MyFilter( prefix , true ) );
+
+        FileOutputStream fout = new FileOutputStream( jar );
+        JarOutputStream jout = new JarOutputStream( fout );
+        
+        for ( File f : classFiles ){
+            FileUtil.add( jout , pack + "." + f.getName() , f );
+        }
+        jout.closeEntry();
+        jout.close();
+        fout.close();
+    }
+    
+    static class MyFilter implements FilenameFilter {
+        MyFilter( final String prefix , final boolean onlyClassFiles ){
+            _prefix = prefix;
+            _onlyClassFiles = onlyClassFiles;
+        }
+        
+        public boolean accept( final File mydir, final String name ){
+
+            if ( ! name.startsWith( _prefix ) )
+                return false;
+
+            String remaining = name.substring( _prefix.length() );
+            if ( remaining.matches( "[\\$\\d]*\\.class" ) )
+                return true;
+            
+            if ( _onlyClassFiles )
+                return false;
+            
+            if ( name.equals( _prefix ) )
+                return true;
+            
+            if ( name.lastIndexOf( "." ) == _prefix.length() )
+                return true;
+
+            return false;
+        }
+        
+        final String _prefix;
+        final boolean _onlyClassFiles;
     }
 
     static long getDependencyLastTime(){
