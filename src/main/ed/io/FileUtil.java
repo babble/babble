@@ -19,6 +19,7 @@
 package ed.io;
 
 import java.io.*;
+import java.util.zip.*;
 
 public class FileUtil {
 
@@ -57,5 +58,25 @@ public class FileUtil {
         }
         
         f.delete();
+    }
+
+    public static void add( ZipOutputStream out , String path , File f )
+        throws IOException {
+        add( out , path , new FileInputStream( f ) , f.lastModified() );
+    }
+
+    /**
+     * @param path - full path including filename
+     */
+    public static void add( ZipOutputStream out , String path , InputStream data , long lastModified )
+        throws IOException {
+
+        path = path.replace( '\\' , '/' );
+
+        ZipEntry entry = new ZipEntry( path );
+        entry.setTime( lastModified );
+        
+        out.putNextEntry( entry );
+        StreamUtil.pipe( data , out );
     }
 }
