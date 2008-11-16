@@ -226,7 +226,12 @@ public class NativeBridge {
         if ( obj instanceof ed.appserver.JSFileLibrary )
             throw new NullPointerException( "included file [" + ((ed.appserver.JSFileLibrary)obj).getURIBase().replaceAll( "^jxp" , "" )  + "/" + name + "] does not exist" );
 
-        throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
+        String msg = " (from a [" + obj.getClass() + "] ";
+        if ( obj instanceof JSObjectBase )
+            msg += "name: " + ((JSObjectBase)obj)._getName();
+        msg += ")";
+
+        throw new NullPointerException( name + msg );
 
     }
 
