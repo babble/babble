@@ -19,10 +19,8 @@ package ed.appserver.frameworks;
 import java.io.IOException;
 
 import ed.appserver.AppContext;
-import ed.appserver.frameworks.Framework;
 import ed.js.JSObject;
 import ed.js.JSDict;
-import ed.js.JSString;
 
 public class AppEngine extends Framework {
     public void install (AppContext context) throws IOException {
@@ -50,5 +48,5 @@ public class AppEngine extends Framework {
          * Run _init_ae.py (sets up adapterType and mapUrlToJxpFile)
          */
         context.runInitFile("/~~/modules/py-google/_init_ae.py");
-    };
+    }
 }
