@@ -210,6 +210,8 @@ response.setCookie({
 
         if ( o.get( "path" ) != null )
             c.setPath( o.get( "path" ).toString() );
+        else 
+            c.setPath( "/" );
 
         if ( JSInternalFunctions.JS_evalToBool( o.get( "secure" ) ) )
             c.setSecure( true );
