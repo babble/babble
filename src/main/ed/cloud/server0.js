@@ -127,7 +127,10 @@ me = new Cloud.Server( SERVER_NAME );
 log.info( "SERVER_NAME : " + SERVER_NAME );
 log.info( "me : " + me );
 
-db = connect( "grid" , me.getGridLocation() );
+if ( me.isMyGridDomainPaired() )
+    db = connect.ms( "grid" , me.getGridLocation() );
+else
+    db = connect( "grid" , me.getGridLocation() );
 
 
 log.info( "grid server : " + me.getGridLocation() + " amIGrid:" + me.isGridServer() );
