@@ -349,7 +349,7 @@ module ActiveRecord
     # be made (since they can't be persisted).
     def destroy
       unless new_record?
-        self.class.collection.remove({:id => self.id})
+        self.class.collection.remove({:_id => self.id})
       end
       freeze
     end
