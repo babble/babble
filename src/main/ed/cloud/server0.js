@@ -15,6 +15,12 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+if ( ! Cloud )
+    Cloud = {};
+
+var internalDomain = javaStatic( "ed.util.Config" , "getInternalDomain" );
+var gridPort = javaStatic( "ed.cloud.Cloud" , "getGridDBPort" );
+
 Cloud.Server = function( name ){
     name = Cloud.Server._fixHostName( name );
 
@@ -37,18 +43,34 @@ Cloud.Server = function( name ){
     this.name = this.location + "-" + this.provider + "." + this.number;
 };
 
-Cloud.Server.prototype.gridServer = function(){
+Cloud.Server.prototype.gridServer = function( lr ){
     if ( this.bad )
         return null;
-    return this.location + "-" + this.provider + "-grid." + javaStatic( "ed.util.Config" , "getInternalDomain" );
+    return this.location + "-" + this.provider + "-grid" + ( lr || "" ) + "." + internalDomain;
 };
+
+Cloud.Server.prototype.getGridLocation = function(){
+    if ( ! this.isMyDomainPaired() )
+        return ( this.gridServer() || "127.0.0.1" ) + ":" + gridPort;
+
+    return [ this.gridServer( "-l" ) + ":" + gridPort , this.gridServer( "-r" ) + ":" + gridPort ];
+}
+
+Cloud.Server.prototype.isMyDomainPaired = function(){
+    if ( this.bad )
+        return false;
+    return Cloud.Server.isDomainPaired( internalDomain , this.location + "-" + this.provider );
+}
+
 
 Cloud.Server.prototype.toString = function(){
     return "{Server.  location:" + this.location + " provider:" + this.provider + " n:" + this.number + "}";
 }
 
 Cloud.Server._fixHostName = function( host ){
-    
+    if ( ! host )
+        return null;
+
     // special code for ec2
     var r = /ip\-(\d+)\-(\d+)\-(\d+)\-(\d+)/.exec( host );
     if ( r ){
@@ -62,12 +84,27 @@ Cloud.Server._fixHostName = function( host ){
     return host;
 }
 
+/**
+* @param domain 10gen.cc
+* @param loc  iad-sb
+*/
+Cloud.Server.isDomainPaired = function( domain , loc ){
+    try {
+        var l = javaStatic( "ed.net.DNSUtil" , "getByName" , loc + "-grid-l." + domain ).getHostAddress();
+        var r = javaStatic( "ed.net.DNSUtil" , "getByName" , loc + "-grid-r." + domain ).getHostAddress();
+    }
+    catch ( e ){
+        return false;
+    }
+    return l.toString() != r.toString();
+}
+
 me = new Cloud.Server( SERVER_NAME );
 log.info( "SERVER_NAME : " + SERVER_NAME );
 log.info( "me : " + me );
 
-db = connect( "grid" , ( me.gridServer() || "localhost" ) + ":" + javaStatic( "ed.cloud.Cloud" , "getGridDBPort" ) );
+db = connect( "grid" , me.getGridLocation() );
 
 me.isGridServer = me.real && javaStatic( "ed.net.DNSUtil" , "isLocalAddress" , me.gridServer() );
 
-log.info( "grid server : " + me.gridServer() + " amIGrid:" + me.isGridServer );
+log.info( "grid server : " + me.getGridLocation() + " amIGrid:" + me.isGridServer );
