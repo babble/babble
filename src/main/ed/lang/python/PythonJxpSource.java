@@ -100,7 +100,9 @@ public class PythonJxpSource extends JxpSource implements Sizable {
 
         ss.flushOld();
 
-        ss.ensurePath( file.getParent());
+        // Running this file should not contaminate the sys.path outside of its
+        // runtime. This isn't the best solution..
+        ss.addPath( file.getParent() );
         ss.ensurePath( lib.getRoot().getAbsolutePath() );
         ss.ensurePath( lib.getTopParent().getRoot().getAbsolutePath() );
 
@@ -134,6 +136,7 @@ public class PythonJxpSource extends JxpSource implements Sizable {
         }
         finally {
             Py.setSystemState( pyOld );
+            ss.removePath( file.getParent() );
         }
         return result;
     }
