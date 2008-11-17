@@ -77,6 +77,10 @@ public class Shell {
     public static class ConnectDB extends JSFunctionCalls2 {
         
         public void init(){
+
+            /**
+             * usage:  connect( "foo" , [ "node1" , "node2" ] );
+             */
             set( "ms" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object nameObject , Object hosts[] ){
                         if ( hosts == null || hosts.length < 2 )
