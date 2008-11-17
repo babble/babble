@@ -197,35 +197,41 @@ public class DBTCP extends DBMessageLayer {
     }
 
     private void _pickInitial(){
+        assert( _curAddress == null );
+        
         // we need to just get a server to query for ismaster
         _pickCurrent();
         
-        DBCollection collection = getCollection( "$cmd" );
-        Iterator<JSObject> i = collection.find( _isMaster , null , 0 , 1 );
-        if ( i == null || ! i.hasNext() )
-            throw new RuntimeException( "no result for ismaster query?" );
-        JSObject res = i.next();
-        if ( i.hasNext() )
-            throw new RuntimeException( "what's going on" );
-        
-        int ismaster = ((Number)res.get( "ismaster" )).intValue();
-        if ( 1 == ismaster )
-            return;
-
-        if ( res.get( "remote" ) == null )
-            throw new RuntimeException( "remote not sent back!" );
-        
-        String remote = res.get( "remote" ).toString();
-        synchronized ( _allHosts ){
-            for ( DBAddress a : _allHosts ){
-                if ( ! a.sameHost( remote ) )
-                    continue;
-                System.out.println( "remote [" + remote + "] -> [" + a + "]" );
-                _set( a );
+        try {
+            DBCollection collection = getCollection( "$cmd" );
+            Iterator<JSObject> i = collection.find( _isMaster , null , 0 , 1 );
+            if ( i == null || ! i.hasNext() )
+                throw new RuntimeException( "no result for ismaster query?" );
+            JSObject res = i.next();
+            if ( i.hasNext() )
+                throw new RuntimeException( "what's going on" );
+            
+            int ismaster = ((Number)res.get( "ismaster" )).intValue();
+            if ( 1 == ismaster )
                 return;
+            
+            if ( res.get( "remote" ) == null )
+                throw new RuntimeException( "remote not sent back!" );
+            
+            String remote = res.get( "remote" ).toString();
+            synchronized ( _allHosts ){
+                for ( DBAddress a : _allHosts ){
+                    if ( ! a.sameHost( remote ) )
+                        continue;
+                    System.out.println( "remote [" + remote + "] -> [" + a + "]" );
+                    _set( a );
+                    return;
+                }
             }
         }
-        throw new RuntimeException( "can't find remote [" + remote + "]" );
+        catch ( Exception e ){
+            _logger.error( "can't pick initial master, using random one" , e );
+        }
     }
     
     private void _pickCurrent(){
