@@ -162,6 +162,18 @@ public class JS extends Language {
         
         return o;
     }
+
+    public static Object eval( JSObject o , String funcName , Object ... args ){
+        if ( o == null )
+            throw new NullPointerException( "null object" );
+        
+        JSFunction f = o.getFunction( funcName );
+
+        if ( f == null )
+            throw new NullPointerException( "no function named [" + funcName + "]" );
+
+        return f.callAndSetThis( null , o , args );
+    }
     
     public static void main( String args[] )
         throws Exception {

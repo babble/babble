@@ -334,6 +334,8 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     public Object callAndSetThis( Scope s , Object obj , Object args[] ){
+        if ( s == null )
+            s = new Scope();
         s.setThis( obj );
         try {
             return call( s , args );
