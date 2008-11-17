@@ -178,6 +178,15 @@ public class JS extends Language {
 
         return f.callAndSetThis( null , o , args );
     }
+
+    public static JSDict build( String[] names , Object[] values ){
+        JSDict d = new JSDict();
+        
+        for ( int i=0; i<names.length; i++ )
+            d.set( names[i] , values != null && i < values.length ? values[i] : null );
+
+        return d;
+    }
     
     public static void main( String args[] )
         throws Exception {
