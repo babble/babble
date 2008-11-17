@@ -254,6 +254,8 @@ public class GitDir {
         if ( _root.exists() )
             throw new RuntimeException( _root + " already exists" );
         
+        _root.getParentFile().mkdirs();
+
         SysExec.Result res = SysExec.exec( "git clone " + root + "  " + _root.getName() , null , _root.getParentFile() , null );
         if ( res.exitValue() != 0 )
             throw new RuntimeException( "couldn't clone [" + root + "] " + res.toString() );
