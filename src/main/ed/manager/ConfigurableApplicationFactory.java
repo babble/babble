@@ -84,6 +84,10 @@ public abstract class ConfigurableApplicationFactory implements ApplicationFacto
         return _timeBetweenRefresh;
     }
 
+    public boolean runGridApplication(){
+        return false;
+    }
+
     final long _timeBetweenRefresh;
     private List<Application> _previousApps;
 

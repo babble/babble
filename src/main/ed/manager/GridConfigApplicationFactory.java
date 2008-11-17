@@ -178,6 +178,11 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
         }
     }
 
+    public boolean runGridApplication(){
+        JSObject me = _cloud.getMe();
+        return JS.bool( JS.eval( me , "isGridServer" ) );
+    }
+
     final Cloud _cloud;
     final DBBase _db;
     final String _serverName;

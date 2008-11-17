@@ -31,4 +31,6 @@ public interface ApplicationFactory {
      * @return ms between calls to getApplications
      */
     public long timeBetweenRefresh();
+
+    public boolean runGridApplication();
 }

@@ -25,6 +25,9 @@ import java.lang.reflect.*;
 import org.apache.commons.cli.*;
 
 import ed.log.*;
+import ed.git.*;
+import ed.util.*;
+import ed.appserver.*;
 import ed.net.httpserver.*;
 
 /**
@@ -61,6 +64,9 @@ public class Manager extends Thread {
         }
 
         _webView.add();
+
+        if ( _factory.runGridApplication() )
+            _installGridApp();
         
         Runtime.getRuntime().addShutdownHook( new Thread(){
                 public void run(){
@@ -148,6 +154,19 @@ public class Manager extends Thread {
 
     RunningApplication getRunning( Application app ){
         return _running.get( app );
+    }
+    
+    void _installGridApp(){
+        String gridSite = Config.getDataRoot() + "/sites/grid/";
+
+        GitDir gd = new GitDir( new File( gridSite ) );
+
+        if ( ! gd.isValid() )
+            gd.clone( "git@github.com:10gen/sites-grid.git" );
+
+        gd.pull();
+        
+        _server.addHandler( new AppServer( gridSite , null ) );
     }
     
     final ApplicationFactory _factory;
