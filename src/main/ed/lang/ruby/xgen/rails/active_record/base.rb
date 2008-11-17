@@ -74,7 +74,6 @@ module ActiveRecord
 
       # ================ relational database connection handling ================
 
-      # Return an object that does nothing, no matter what is passed to it
       def connection
         @@mongo_connection ||= ActiveRecord::ConnectionAdapters::MongoPseudoConnection.new
       end
