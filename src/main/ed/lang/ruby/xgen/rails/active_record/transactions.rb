@@ -18,8 +18,9 @@ module ActiveRecord
 
     module ClassMethods
       def transaction(*objects, &block)
-        yield block
+        result = yield block
         objects.each { |o| o.commit_transaction }
+        result
       end
     end
   end
