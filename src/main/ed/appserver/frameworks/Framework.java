@@ -19,10 +19,7 @@
 package ed.appserver.frameworks;
 
 import ed.appserver.*;
-import ed.js.JSObjectBase;
-
 import java.io.IOException;
-import java.io.InputStream;
 
 public abstract class Framework {
 
@@ -35,55 +32,4 @@ public abstract class Framework {
         return null;
     }
 
-    public static Framework byName(String name, String version) {
-        if (name == null) {
-            throw new RuntimeException("Error : framework name can't be null");
-        }
-
-        return _frameworks.getFramework(name, version);
-    }
-
-    public static Framework byClass(String classname) {
-        try {
-            Object o =  Class.forName(classname).newInstance();
-
-            if (o instanceof Framework) {
-                return (Framework) o;
-            }
-
-            throw new RuntimeException("Error : problem instantiating framework by class name - wasn't a Framework [" +
-                classname + "]");
-        } catch (Exception e) {
-            throw new RuntimeException("Error : problem instantiating framework by class name [" +
-                    classname + "]", e);
-        }
-    }
-
-    public static Framework byCustom(JSObjectBase obj) {
-
-        if (obj == null) {
-            throw new RuntimeException("Error : framework custom object can't be null");
-        }
-
-        return _frameworks.getCustomFramework(obj);
-    }
-
-
-    static {
-        try {
-            InputStream is = Framework.class.getResourceAsStream("/conf/frameworks.json");
-
-            if (is == null) {
-                System.err.println("No frameworks.json file found");
-            }
-            else {
-                _frameworks = new PredefinedFrameworks(is);
-            }
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static PredefinedFrameworks _frameworks;
 }

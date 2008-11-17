@@ -16,7 +16,6 @@
     </fileset>
     <pathelement path="conf" />
     <pathelement path="build" />
-      <pathelement path="." />
 
   </path>
 

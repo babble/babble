@@ -38,6 +38,8 @@ import ed.net.httpserver.*;
 import ed.util.*;
 import ed.git.*;
 import ed.lang.python.*;
+import ed.io.StreamUtil;
+import org.apache.log4j.lf5.util.StreamUtils;
 
 /**
  * This is the container for an instance of a site on a single server.
@@ -148,8 +150,27 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _contextReachable = new IdentitySet();
 
         _logger.info("Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch);
+
+        _loadAppEnvironmentInfo();
     }
 
+    private void _loadAppEnvironmentInfo() {
+        try {
+
+            InputStream is = this.getClass().getClassLoader().getResourceAsStream("appenvironments.json");
+            if (is == null) {
+                _logger.info("No appenvironments.json file found");
+                return;
+            }
+
+            _appEnvironments = new AppEnvironments(is);
+
+            Map<String, AppEnvironments.AE> map = _appEnvironments.getAppEnvironments();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
     /**
      *  Returns the adapter type for the given file.  Will first use the
      *  adapter selector function if it was specified in init.js, otherwise
@@ -588,13 +609,9 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         log("Adapter selector function specified in _init file");
     }
 
-    public void setStaticAdapterTypeValue(AdapterType type) {
+    public void setStaticAdapterType(AdapterType type) {
         log("Static adapter type directly set : " + type);
         _staticAdapterType = type;
-    }
-
-    public AdapterType getStaticAdapterTypeValue() {
-        return _staticAdapterType;
     }
 
     /**
@@ -1000,51 +1017,18 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _inScopeSetup = true;
 
         try {
-            Object fo = getConfigObject("framework");
 
-            if ( fo != null ){
-
-                Framework f = null;
-
-                if (fo instanceof JSString) {
-                    f = Framework.byName(fo.toString(), null);  // we allow people to just specify name
-                    _logger.info("Setting framework by name [" + fo.toString() + "]");
+            {
+                final Object fo = getConfigObject( "framework" );
+                if ( fo != null ){
+                    final Framework f = Framework.forName( fo.toString() );
+                    if ( f == null )
+                        throw new RuntimeException( "can't find framework [" + fo + "]" );
+                    f.install( this );
                 }
-                else if (fo instanceof JSObjectBase) {
-
-                    JSObjectBase obj = (JSObjectBase) fo;
-
-                    if (obj.containsKey("name")) {
-
-                        String s = obj.getAsString("version");
-
-                        f = Framework.byName(obj.getAsString("name"), s);
-                        _logger.info("Setting framework by name [" + obj.getAsString("name") + "]");
-                    }
-                    else if (obj.containsKey("custom")) {
-
-                        Object o = obj.get("custom");
-
-                        if (o instanceof JSObjectBase) {
-                            f = Framework.byCustom((JSObjectBase) o);
-                            _logger.info("Setting framework by custom [" + o + "]");
-                        }
-                        else {
-                            throw new RuntimeException("Error - custom framework wasn't an object [" + o + "]");
-                        }
-                    }
-                    else if (obj.containsKey("classname")) {
-                        f = Framework.byClass(obj.getAsString("classname"));
-                        _logger.info("Setting framework by class [" + obj.getAsString("classname") + "]");
-                    }
-                }
-
-                if (f == null ) {
-                    throw new RuntimeException( "Error : can't find framework [" + fo + "]" );
-                }
-
-                f.install( this );
             }
+
+            _setupAppEnv();
 
             _runInitFiles(INIT_FILES);
 
@@ -1071,6 +1055,70 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
                 saveTL.makeThreadLocal();
 
             this.approxSize(_contextReachable);
+        }
+
+    }
+
+    /**
+     *   Sets up the application environment for the app.  An "app env" is specified
+     *   in the "_10gen_config.json" file, specifying one of the valid names in
+     *   config/appenvironments.json and an optional version.  Ex :
+     *
+     *    {
+     *       appenvironment : { name = "appengine", version = "1.0" }
+     *    }
+     *
+     *   The lack of a _10gen_config.json file isn't a failure condition, nor is the lack of an
+     *   appenvironment key in the json.
+     */
+    protected void _setupAppEnv() {
+
+        try {
+            File f = new File(_rootFile, "_10gen_config.json");
+
+            if (!f.exists()) {
+                _logger.info("No application environment config specified.");
+                return;
+            }
+
+            JSObjectBase obj = (JSObjectBase) JSON.parse(StreamUtil.readFully(f));
+
+            if (obj == null) {
+                return;
+            }
+
+            JSObjectBase jso = (JSObjectBase) obj.get("appenvironment");
+
+            if (jso == null) {
+                return;
+            }
+
+            /*
+             *  first, check for a custom object
+             */
+
+            JSObjectBase custom = (JSObjectBase) jso.get("custom");
+
+            if (custom != null) {
+
+                _appEnvironments.setupContextCustom(this, custom);
+            }
+            else {
+                String name = jso.getAsString("name");
+
+                if (name == null) {
+                    throw new RuntimeException("Error : appenvironment declaration has neither 'custom' or non-null 'name'");
+                }
+                
+                String version = jso.getAsString("version");
+
+                _logger.info("setupAppEnv : setting environment to " + name + ", version = " + version);
+
+                _appEnvironments.setupContext(this, name, version);
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -1556,6 +1604,8 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
     private static final Set<String> _knownInitScopeThings = new HashSet<String>();
 
+    private static AppEnvironments _appEnvironments;
+
     static {
         _knownInitScopeThings.add("mapUrlToJxpFileCore");
         _knownInitScopeThings.add("mapUrlToJxpFile");
@@ -1565,4 +1615,5 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _knownInitScopeThings.add(INIT_ADAPTER_TYPE);
         _knownInitScopeThings.add(INIT_ADAPTER_SELECTOR);
     }
+
 }

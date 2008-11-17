@@ -1,1 +1,0 @@
-framework = { classname: "ed.appserver.framework.TestFramework" };
