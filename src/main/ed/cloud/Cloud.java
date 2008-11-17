@@ -84,7 +84,7 @@ public class Cloud extends JSObjectBase {
 
     // ---
 
-    private Cloud(){
+    protected Cloud(){
 
 	File cloudDir = new File( "src/main/ed/cloud/" );
 	_scope = Scope.newGlobal().child( "cloud" );
