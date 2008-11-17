@@ -162,7 +162,7 @@ public class Manager extends Thread {
         GitDir gd = new GitDir( new File( gridSite ) );
 
         if ( ! gd.isValid() )
-            gd.clone( "git@github.com:10gen/sites-grid.git" );
+            gd.clone( "git://github.com/10gen/sites-grid.git" );
 
         gd.pull();
         

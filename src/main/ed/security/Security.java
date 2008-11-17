@@ -46,12 +46,12 @@ public class Security {
     }
 
     final static String SECURE[] = new String[]{
-        "/data/corejs/" ,
-        "/data/core-modules/admin/",
-        "/data/sites/admin/",
-        "/data/sites/www/",
-        "/data/sites/grid/",
-        "/data/sites/modules/",
+        Config.getDataRoot() + "corejs/" ,
+        Config.getDataRoot() + "core-modules/admin/",
+        Config.getDataRoot() + "sites/admin/",
+        Config.getDataRoot() + "sites/www/",
+        Config.getDataRoot() + "sites/grid/",
+        Config.getDataRoot() + "sites/modules/",
         "lastline",
         "src/main/ed/",
         "/home/yellow/code_for_hudson/",

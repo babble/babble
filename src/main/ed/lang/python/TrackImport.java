@@ -292,12 +292,18 @@ public class TrackImport extends PyObject {
         // check foo.moo.boo.zoo and try that
         if( globals == null ) return null;
         PyObject __name__P = globals.__finditem__("__name__");
-        if( __name__P == null ){
-            // core-module did an __import__ ?
+        String __name__ = null;
+
+        // whether we're excuting an explicit __import__ method
+        boolean explicit = false;
+        if( __name__P instanceof PyString ){
+            __name__ = __name__P.toString();
+        }
+        else {
+            __name__ = getName( globals , target );
+            explicit = true;
         }
 
-        if( ! ( __name__P instanceof PyString ) ) return null;
-        String __name__ = __name__P.toString();
         int period = __name__.indexOf('.');
         if( period == -1 ) return null;
 
@@ -340,7 +346,13 @@ public class TrackImport extends PyObject {
                 // user just wanted moo.boo.zoo, so let's fetch foo.moo from
                 // sys.modules
 
-                m = sss.getPyState().modules.__finditem__( newTarget );
+                int dot = target.indexOf('.');
+                String moo = target;
+                if( dot > -1 ){
+                    moo = target.substring( 0 , dot );
+                }
+                PyString foomoo = new PyString( fooName + "." + moo );
+                m = sss.getPyState().modules.__finditem__( foomoo );
                 return m;
             }
             finally {
