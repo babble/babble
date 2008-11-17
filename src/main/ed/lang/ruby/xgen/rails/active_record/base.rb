@@ -366,12 +366,6 @@ module ActiveRecord
 
     private
 
-    def create_or_update
-      raise ReadOnlyRecord if readonly?
-      result = new_record? ? create : update
-      result != false
-    end
-
     # Saves and returns self.
     def save_data
       row = self.class.collection.save(to_mongo_value)
@@ -392,18 +386,6 @@ module ActiveRecord
       @new_record = false
       self.id
     end
-
-
-    # Quote strings appropriately for SQL statements.
-    def quote_value(value, column = nil)
-      self.class.quote(value, column)
-    end
-
-    # Deprecated, use quote_value
-    def quote(value, column = nil)
-      self.class.quote(value, column)
-    end
-    deprecate :quote => :quote_value
 
   end
 
