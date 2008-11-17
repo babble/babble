@@ -366,25 +366,19 @@ module ActiveRecord
 
     private
 
-    # Saves and returns self.
-    def save_data
-      row = self.class.collection.save(to_mongo_value)
-      self.id = row._id if new_record?
-      self
-    end
-
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def update
-      save_data
+    def update_without_callbacks
+      self.class.collection.save(to_mongo_value)
     end
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create
-      save_data
+    def create_without_callbacks
+      row = self.class.collection.save(to_mongo_value)
+      self.id = row._id
       @new_record = false
-      self.id
+      id
     end
 
   end
