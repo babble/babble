@@ -247,6 +247,22 @@ public class GitDir {
         return false;
     }
 
+    public void clone( String root ){
+        if ( isValid() )
+            throw new RuntimeException( _root + " is already a repository" );
+        
+        if ( _root.exists() )
+            throw new RuntimeException( _root + " already exists" );
+        
+        SysExec.Result res = SysExec.exec( "git clone " + root + "  " + _root.getName() , null , _root.getParentFile() , null );
+        if ( res.exitValue() != 0 )
+            throw new RuntimeException( "couldn't clone [" + root + "] " + res.toString() );
+        
+        if ( ! isValid() )
+            throw new RuntimeException( "clone seemed ok but didn't work" );
+
+    }
+
     private void _getHeads( Collection<String> all , File dir ){
         if ( ! dir.exists() )
             return;
