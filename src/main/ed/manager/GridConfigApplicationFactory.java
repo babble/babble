@@ -158,12 +158,23 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     }
 
     void _addDefaultsIfAny( SimpleConfig config ){
+        
+        JSObject me = _cloud.getMe();
 
-        if ( JSInternalFunctions.JS_evalToBool( _cloud.getMe().get( "isGridServer" ) ) ){
+        if ( JS.bool( JS.eval( me , "isGridServer" ) ) ){
             config.addEntry( "db" , "grid" , "ACTIVE" , "true" );
-            config.addEntry( "db" , "grid" , "master" , "true" );
             config.addEntry( "db" , "grid" , "port" , String.valueOf( _cloud.getGridDBPort() ) );
             config.addEntry( "db" , "grid" , "dbpath" , "/data/db-grid/" );
+
+            if ( JS.bool( JS.eval( me , "isMyGridDomainPaired" ) ) ){
+                List l = (List)JS.eval( me , "getGridLocation" );
+                assert( l.size() == 2 );
+                config.addEntry( "db" , "grid" , "pairwith" , JS.eval( me , "getOtherGridPair" ).toString() );
+            }
+            else {
+                config.addEntry( "db" , "grid" , "master" , "true" );
+            }
+
         }
     }
 

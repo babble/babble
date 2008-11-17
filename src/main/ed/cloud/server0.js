@@ -49,19 +49,43 @@ Cloud.Server.prototype.gridServer = function( lr ){
     return this.location + "-" + this.provider + "-grid" + ( lr || "" ) + "." + internalDomain;
 };
 
-Cloud.Server.prototype.getGridLocation = function(){
-    if ( ! this.isMyDomainPaired() )
-        return ( this.gridServer() || "127.0.0.1" ) + ":" + gridPort;
-
-    return [ this.gridServer( "-l" ) + ":" + gridPort , this.gridServer( "-r" ) + ":" + gridPort ];
+Cloud.Server.prototype.gridServerRight = function(){
+    return this.gridServer( "-r" );
 }
 
-Cloud.Server.prototype.isMyDomainPaired = function(){
+Cloud.Server.prototype.gridServerLeft = function(){
+    return this.gridServer( "-l" );
+}
+
+Cloud.Server.prototype.getGridLocation = function(){
+    if ( ! this.isMyGridDomainPaired() )
+        return ( this.gridServer() || "127.0.0.1" ) + ":" + gridPort;
+
+    return [ this.gridServerLeft() + ":" + gridPort , this.gridServerRight() + ":" + gridPort ];
+}
+
+Cloud.Server.prototype.getOtherGridPair = function(){
+    assert( this.isMyGridDomainPaired() , "my grid not paired" );
+
+    if ( javaStatic( "ed.net.DNSUtil" , "isLocalAddress" , me.gridServerLeft()  ) )
+        return me.gridServerRight();
+    
+    return me.gridServerLeft();
+}
+
+Cloud.Server.prototype.isMyGridDomainPaired = function(){
     if ( this.bad )
         return false;
     return Cloud.Server.isDomainPaired( internalDomain , this.location + "-" + this.provider );
 }
 
+Cloud.Server.prototype.isGridServer = function(){
+    if ( ! me.real || this.bad )
+        return false;
+
+    return javaStatic( "ed.net.DNSUtil" , "isLocalAddress" , me.gridServerLeft() ) ||
+        javaStatic( "ed.net.DNSUtil" , "isLocalAddress" , me.gridServerRight() );
+}
 
 Cloud.Server.prototype.toString = function(){
     return "{Server.  location:" + this.location + " provider:" + this.provider + " n:" + this.number + "}";
@@ -105,6 +129,5 @@ log.info( "me : " + me );
 
 db = connect( "grid" , me.getGridLocation() );
 
-me.isGridServer = me.real && javaStatic( "ed.net.DNSUtil" , "isLocalAddress" , me.gridServer() );
 
-log.info( "grid server : " + me.getGridLocation() + " amIGrid:" + me.isGridServer );
+log.info( "grid server : " + me.getGridLocation() + " amIGrid:" + me.isGridServer() );

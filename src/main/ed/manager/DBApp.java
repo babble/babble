@@ -105,6 +105,11 @@ public class DBApp extends SimpleApplication {
             }
         }
 
+        if ( m.containsKey( "pairwith" ) ){
+            args.add( m.get( "pairwith" ) );
+            args.add( "-" );
+        }
+        
         String[] arr = new String[args.size()];
         return args.toArray( arr );        
     }
