@@ -87,7 +87,9 @@ public class Shell {
                             throw new RuntimeException( "can only use connect.ms with multiple hosts" );
                         
                         List<DBAddress> addrs = new ArrayList<DBAddress>();
-
+                        
+                        if ( hosts.length == 1 && hosts[0] instanceof List )
+                            hosts = ((List)hosts[0]).toArray();
                         
                         for ( Object foo : hosts ){
                             try {
