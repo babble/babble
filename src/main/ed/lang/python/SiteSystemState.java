@@ -109,6 +109,22 @@ public class SiteSystemState implements Sizable {
             pyState.path.insert( location , Py.newString( myPath ) );
     }
 
+    void addPath( String myPath ){
+        pyState.path.insert( 0 , Py.newString( myPath ) );
+    }
+
+    void removePath( String myPath ){
+        PyList path = pyState.path;
+        int len = path.__len__();
+        for( int i = 0; i < len ; i++ ){
+            PyObject p = path.pyget( i );
+            if( p instanceof PyString && p.toString().equals( myPath ) ){
+                path.__delitem__( Py.newInteger( i ) );
+                return;
+            }
+        }
+    }
+
     /**
      * Set up module interception code.
      *
