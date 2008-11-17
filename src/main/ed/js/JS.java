@@ -74,7 +74,11 @@ public class JS extends Language {
     public static final int fun(){
         return 17;
     }
-
+    
+    public static boolean bool( Object o ){
+        return JSInternalFunctions.JS_evalToBool( o );
+    }
+    
     /** Takes a string and, if possible, evaluates it as JavaScript.
      * @param js A string of JavaScript code
      * @return Whatever object is created by the evaluating the JavaScript string
