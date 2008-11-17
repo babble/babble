@@ -87,7 +87,7 @@ public class HttpServer extends NIOServer {
                         return false;
                     }
                     
-                    response.setResponseCode( 500 );
+                    response.setResponseCode( 503 );
                     response.getJxpWriter().print( "no more threads (appsrv h612)\n" );
                     response.done();
                     return false;
