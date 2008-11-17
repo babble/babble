@@ -340,7 +340,13 @@ public class TrackImport extends PyObject {
                 // user just wanted moo.boo.zoo, so let's fetch foo.moo from
                 // sys.modules
 
-                m = sss.getPyState().modules.__finditem__( newTarget );
+                int dot = target.indexOf('.');
+                String moo = target;
+                if( dot > -1 ){
+                    moo = target.substring( 0 , dot );
+                }
+                PyString foomoo = new PyString( fooName + "." + moo );
+                m = sss.getPyState().modules.__finditem__( foomoo );
                 return m;
             }
             finally {
