@@ -1,0 +1,1 @@
+framework = { classname: "ed.appserver.framework.TestNonFramework" };
