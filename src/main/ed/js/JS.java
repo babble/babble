@@ -19,6 +19,7 @@
 package ed.js;
 
 import java.io.*;
+import java.util.*;
 
 import ed.lang.*;
 import ed.js.engine.*;
@@ -131,13 +132,20 @@ public class JS extends Language {
     }
     
     public static JSArray getArray( JSObject o , String name ){
+        List l = getList( o , name );
+        if ( l instanceof JSArray )
+            return (JSArray)l;
+        return null;
+    }
+
+    public static List getList( JSObject o , String name ){
         if ( o == null )
             return null;
         Object v = o.get( name );
         if ( v == null )
             return null;
-        if ( v instanceof JSArray )
-            return (JSArray)v;
+        if ( v instanceof List )
+            return (List)v;
         return null;
     }
 
