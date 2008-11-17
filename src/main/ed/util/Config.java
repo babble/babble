@@ -35,6 +35,13 @@ public class Config extends Properties {
         return get().getProperty( "externalDomain" , "10gen.com" );
     }
     
+    public static String getDataRoot(){
+        String root = Config.get().getTryEnvFirst( "BASE" , "/data/" ).trim();
+        if ( ! root.endsWith( "/" ) )
+            root += "/";
+        return root;
+    }
+
     static String _placesToLook[] = new String[]{
         "./" , 
         "conf" , 
