@@ -366,44 +366,20 @@ module ActiveRecord
 
     private
 
-    def create_or_update
-      raise ReadOnlyRecord if readonly?
-      result = new_record? ? create : update
-      result != false
-    end
-
-    # Saves and returns self.
-    def save_data
-      row = self.class.collection.save(to_mongo_value)
-      self.id = row._id if new_record?
-      self
-    end
-
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def update
-      save_data
+    def update_without_callbacks
+      self.class.collection.save(to_mongo_value)
     end
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create
-      save_data
+    def create_without_callbacks
+      row = self.class.collection.save(to_mongo_value)
+      self.id = row._id
       @new_record = false
-      self.id
+      id
     end
-
-
-    # Quote strings appropriately for SQL statements.
-    def quote_value(value, column = nil)
-      self.class.quote(value, column)
-    end
-
-    # Deprecated, use quote_value
-    def quote(value, column = nil)
-      self.class.quote(value, column)
-    end
-    deprecate :quote => :quote_value
 
   end
 

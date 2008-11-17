@@ -72,7 +72,7 @@ module XGen
 
       def write(str)
         $stderr.puts str if @console
-        $db[@collection_name].save({:time => Time.now.to_i, :msg => str})
+        $db[@collection_name].save({:time => Time.now, :msg => str})
       end
 
       def close
