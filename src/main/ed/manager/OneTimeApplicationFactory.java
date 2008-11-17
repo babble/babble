@@ -36,5 +36,9 @@ public class OneTimeApplicationFactory implements ApplicationFactory {
         return Long.MAX_VALUE;
     }
 
+    public boolean runGridApplication(){
+        return false;
+    }
+
     final List<Application> _apps;
 }

@@ -19,6 +19,7 @@
 package ed.js;
 
 import java.io.*;
+import java.util.*;
 
 import ed.lang.*;
 import ed.js.engine.*;
@@ -131,13 +132,20 @@ public class JS extends Language {
     }
     
     public static JSArray getArray( JSObject o , String name ){
+        List l = getList( o , name );
+        if ( l instanceof JSArray )
+            return (JSArray)l;
+        return null;
+    }
+
+    public static List getList( JSObject o , String name ){
         if ( o == null )
             return null;
         Object v = o.get( name );
         if ( v == null )
             return null;
-        if ( v instanceof JSArray )
-            return (JSArray)v;
+        if ( v instanceof List )
+            return (List)v;
         return null;
     }
 
@@ -177,6 +185,15 @@ public class JS extends Language {
             throw new NullPointerException( "no function named [" + funcName + "]" );
 
         return f.callAndSetThis( null , o , args );
+    }
+
+    public static JSDict build( String[] names , Object[] values ){
+        JSDict d = new JSDict();
+        
+        for ( int i=0; i<names.length; i++ )
+            d.set( names[i] , values != null && i < values.length ? values[i] : null );
+
+        return d;
     }
     
     public static void main( String args[] )

@@ -32,9 +32,13 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     static final File EXTRA_GRID_CONFIG = new File( "conf/extraGridApps" );
 
     GridConfigApplicationFactory(){
+        this( Cloud.getInstanceIfOnGrid() );
+    }
+
+    GridConfigApplicationFactory( Cloud c ){
         super( Cloud.CLOUD_REFRESH_RATE );
 
-        _cloud = Cloud.getInstanceIfOnGrid();
+        _cloud = c;
         if ( _cloud == null )
             throw new RuntimeException( "can't get cloud" );
 
@@ -84,11 +88,15 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
         
         boolean added = false;
 
-        for ( Iterator<JSObject> i = _find( "dbs" ); i.hasNext(); ){
-            final JSObject db = i.next();
+        for ( final JSObject db : _find( "dbs" ) ){
+
+            if ( db.get( "name" ) == null )
+                throw new IllegalArgumentException( "db has to have a name" );
+
             final String name = db.get( "name" ).toString();
-            
-            if ( _cloud.isMyServerName( db.get( "machine" ).toString() ) ){
+            System.out.println( "DB : " + name + " " + db.keySet() );
+
+            if ( db.get( "machine" ) != null && _cloud.isMyServerName( db.get( "machine" ).toString() ) ){
                 
                 if ( added )
                     throw new RuntimeException( "have multiple databases configured for this node!" );
@@ -118,13 +126,32 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                     added = true;
                 }
             }
+
+            List pairs = JS.getList( db , "pairs" );
+            if ( pairs != null ){
+                if ( pairs.size() != 2 )
+                    throw new RuntimeException( "invalid pair config for [" + name + "] need exactly 2 pairs" );
+                
+                for ( int i=0; i<pairs.size(); i++ ){
+
+                    Object mySide = pairs.get(i);
+                    
+                    if ( ! _cloud.isMyServerName( mySide.toString() ) )
+                        continue;
+                    
+                    if ( added )
+                        throw new RuntimeException( "have multiple databases configured for this node!" );
+
+                    config.addEntry( "db" , name , "ACTIVE" , "true" );
+                    config.addEntry( "db" , name , "pairwith" , pairs.get(1-i).toString() );
+                }
+            }
         }
         
     }
 
     void _doAppServers( SimpleConfig config ){ 
-        for ( Iterator<JSObject> i = _find( "pools" ); i.hasNext(); ){
-            final JSObject pool = i.next();
+        for ( final JSObject pool : _find( "pools" ) ){
             final String name = pool.get( "name" ).toString();
             
             for ( Object machine : (List)(pool.get( "machines" )) ){
@@ -139,8 +166,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     }
     
     void _doLoadBalancers( SimpleConfig config ){ 
-        for ( Iterator<JSObject> i = _find( "lbs" ); i.hasNext(); ){
-            final JSObject lb = i.next();
+        for ( final JSObject lb : _find( "lbs" ) ){
             final String machine = lb.get( "machine" ).toString();
             
             if ( ! _cloud.isMyServerName( machine ) )
@@ -149,12 +175,17 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
             config.addEntry( "lb" , machine , "ACTIVE" , "true" );
         }
     }
-
-    Iterator<JSObject> _find( String type ){
-        Iterator<JSObject> i = _db.getCollection( type ).find();
+    
+    protected Iterable<JSObject> _find( String type ){
+        final Iterator<JSObject> i = _db.getCollection( type ).find();
         if ( i == null )
-            i = (new LinkedList<JSObject>()).iterator();
-        return i;
+            return new LinkedList<JSObject>();
+        
+        return new Iterable<JSObject>(){
+            public Iterator<JSObject> iterator(){
+                return i;
+            }
+        };
     }
 
     void _addDefaultsIfAny( SimpleConfig config ){
@@ -176,6 +207,11 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
             }
 
         }
+    }
+
+    public boolean runGridApplication(){
+        JSObject me = _cloud.getMe();
+        return JS.bool( JS.eval( me , "isGridServer" ) );
     }
 
     final Cloud _cloud;

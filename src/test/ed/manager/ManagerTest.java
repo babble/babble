@@ -37,6 +37,10 @@ public class ManagerTest extends ed.TestCase {
             return Long.MAX_VALUE;
         }
 
+        public boolean runGridApplication(){
+            return false;
+        }
+
     }
 
     @Test

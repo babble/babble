@@ -37,12 +37,7 @@ public class Module {
     
 
     static { 
-        String s = Config.get().getProperty( "BASE" , "/data/" );
-        s = System.getenv( "BASE" ) == null ? s : System.getenv( "BASE" );
-        if ( s != null && !s.endsWith("/")) {
-            s += "/";
-        }
-        _defaultBaseFile = s;
+        _defaultBaseFile = Config.getDataRoot();
     }
     static File _defaultBase = new File( _defaultBaseFile );
 

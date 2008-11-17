@@ -683,6 +683,9 @@ public abstract class HttpMonitor implements HttpHandler {
             if ( host == null )
                 return false;
             
+            if ( ed.appserver.AppContextHolder.isCDNHost( host ) )
+                return true;
+
             if ( ! host.contains( "10gen" ) )
                 return false;
 
