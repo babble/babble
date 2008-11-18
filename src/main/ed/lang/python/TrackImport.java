@@ -60,23 +60,9 @@ public class TrackImport extends PyObject {
 
         PyObject siteModule = null;
         PyObject m = null;
-        // import <sitename> -- why isn't this a meta_path hook?
-        if( target.indexOf('.') != -1 ){
-            String firstPart = target.substring( 0 , target.indexOf('.'));
-            if( ac != null && firstPart.equals( ac.getName() ) ){
-                siteModule = sss.getPyState().modules.__finditem__( firstPart.intern() );
-                if( siteModule == null ){
-                    siteModule = new PyModule( firstPart );
-                    sss.getPyState().modules.__setitem__( firstPart.intern() , siteModule );
-                }
-                target = target.substring( target.indexOf('.') + 1 );
-                args[0] = new PyString( target );
-                // Don't recur -- just allow one replacement
-                // This'll still do meta_path stuff, but at least it won't
-                // let you do import sitename.sitename.sitename.foo..
-            }
+        if( m == null ){
+            m = tryImportSitename( sss , target , globals , locals , fromlist , ac );
         }
-
         // If you're in a core-module called foo, in a package
         // called bar.baz, and you do an import for moo, and there is
         // no sensible choice for foo.bar.moo or whatever,
@@ -361,5 +347,50 @@ public class TrackImport extends PyObject {
         }
 
         return null;
+    }
+
+    public PyObject tryImportSitename( SiteSystemState sss , String target , PyObject globals , PyObject locals , PyObject fromlist , AppContext ac ){
+        // We want to import "real files" in the directory, but
+        // prohibit other kinds of loading, i.e. from core or a
+        // core-module.  This means however we do this, we can't rely
+        // on any tricks that recurse.
+        String original = target;
+        int dot = target.indexOf('.');
+        if( dot == -1 ) return null;
+
+        String firstPart = target.substring( 0 , dot );
+        if( ac == null || ! firstPart.equals( ac.getName() ) ) return null;
+
+        target = target.substring( target.indexOf('.') + 1 );
+        // I only need to take care of the files "one level deep" here --
+        // after that, the built-in stuff should 'just work'.
+        if( target.indexOf( '.' ) != -1 ) return null;
+
+        PyObject modules = sss.getPyState().modules;
+
+        PyObject siteModule = modules.__finditem__( Py.newString( ac.getName() ) );
+        PyString originalP = Py.newString( original );
+        if( modules.__finditem__( originalP ) != null ){
+            PyObject originalM = modules.__finditem__( originalP );
+            if( fromlist != null && fromlist.__len__() != 0 )
+                return originalM;
+            return siteModule;
+        }
+
+        PyString newTarget = new PyString( target );
+
+        // existing points to sitename.foo
+        PyObject existing = modules.__finditem__( newTarget );
+        if( existing == null ){
+            // Have to load this "the hard way", including calling
+            // loadFromSource and setting an attribute on the site module
+            existing = ImportHelper.loadFromSource( sss.getPyState() , target , target , ac.getRoot() );
+            siteModule.__setattr__( target.intern() , existing );
+        }
+
+        // alias new to old
+        modules.__setitem__( original , existing );
+        if( fromlist != null && fromlist.__len__() != 0 ) return existing;
+        return siteModule;
     }
 }
