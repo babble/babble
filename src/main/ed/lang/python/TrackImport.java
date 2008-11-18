@@ -435,6 +435,7 @@ public class TrackImport extends PyObject {
     public PyObject trySiteImport( SiteSystemState sss , String target ,
                                    String __name__ , boolean explicit , PyObject globals , PyObject locals , PyObject fromlist , AppContext ac ){
         // FIXME: This might only work for one-level-deep modules
+        if( ac == null ) return null;
         PyObject modules = sss.getPyState().modules;
         PyObject existing = modules.__finditem__( Py.newString( target ) );
         if( existing != null ) return existing;
