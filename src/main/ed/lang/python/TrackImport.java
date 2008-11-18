@@ -88,6 +88,7 @@ public class TrackImport extends PyObject {
                 Py.setSystemState( oldPyState );
             }
         }
+
         return trackDependency( sss , globals , target , siteModule , m , fromlist );
     }
 
@@ -290,6 +291,22 @@ public class TrackImport extends PyObject {
             explicit = true;
         }
 
+        PyObject __path__P = globals.__finditem__("__path__");
+        if( __path__P instanceof PyList ){
+            String __path__ = ((PyList)__path__P).get(0).toString();
+            if( relativeFile( __path__ , target ) )
+                return null;
+        }
+
+        PyObject __file__P = globals.__finditem__("__file__");
+        if( __file__P instanceof PyString ){
+            String __file__ = __file__P.toString();
+            if( __file__.indexOf( '/' ) != -1 )
+                __file__ = __file__.substring( 0 , __file__.lastIndexOf('/') );
+            if( relativeFile( __file__ , target ) )
+                return null;
+        }
+
         int period = __name__.indexOf('.');
         if( period == -1 ) return null;
 
@@ -347,6 +364,15 @@ public class TrackImport extends PyObject {
         }
 
         return null;
+    }
+
+    /**
+     * Return true if something that might be a Python file called target
+     * exists in the directory named by dir.
+     */
+    public boolean relativeFile( String dir , String target ){
+        return new File( dir , target ).exists() || new File( dir , target+".py" ).exists();
+
     }
 
     public PyObject tryImportSitename( SiteSystemState sss , String target , PyObject globals , PyObject locals , PyObject fromlist , AppContext ac ){
