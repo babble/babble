@@ -77,7 +77,8 @@ public class TrackImport extends PyObject {
         }
 
         if( explicit ){
-            // Check site imports
+            // Check site imports first -- perhaps some core-module is trying
+            // to load user code
             m = trySiteImport( sss , target , __name__ , explicit , globals , locals , fromlist , ac );
         }
 
