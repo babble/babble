@@ -60,6 +60,28 @@ public class TrackImport extends PyObject {
 
         PyObject siteModule = null;
         PyObject m = null;
+
+        PyObject __name__P = null;
+        if( globals != null )
+            __name__P = globals.__finditem__("__name__");
+        String __name__ = null;
+
+        // whether we're excuting an explicit __import__ method
+        boolean explicit = false;
+        if( __name__P instanceof PyString ){
+            __name__ = __name__P.toString();
+        }
+        else {
+            __name__ = getName( globals , target );
+            explicit = true;
+        }
+
+        if( explicit ){
+            // Check site imports first -- perhaps some core-module is trying
+            // to load user code
+            m = trySiteImport( sss , target , __name__ , explicit , globals , locals , fromlist , ac );
+        }
+
         if( m == null ){
             m = tryImportSitename( sss , target , globals , locals , fromlist , ac );
         }
@@ -75,7 +97,7 @@ public class TrackImport extends PyObject {
         // If we're in a core module, we should never import code from
         // the user's directory.
         if( m == null ){
-            m = tryModuleRewrite( sss , target , globals , locals , fromlist );
+            m = tryModuleRewrite( sss , target , __name__ , explicit , globals , locals , fromlist );
         }
 
         if( m == null ){
@@ -88,6 +110,7 @@ public class TrackImport extends PyObject {
                 Py.setSystemState( oldPyState );
             }
         }
+
         return trackDependency( sss , globals , target , siteModule , m , fromlist );
     }
 
@@ -272,22 +295,27 @@ public class TrackImport extends PyObject {
         return siteModule;
     }
 
-    public PyObject tryModuleRewrite(SiteSystemState sss , String target , PyObject globals , PyObject locals , PyObject fromlist ){
+    public PyObject tryModuleRewrite(SiteSystemState sss , String target ,
+                                     String __name__, boolean explicit, PyObject globals , PyObject locals , PyObject fromlist ){
         // if __name__ indicates we're in core-module named foo.bar.baz,
         // and target is "moo.boo.zoo",
         // check foo.moo.boo.zoo and try that
         if( globals == null ) return null;
-        PyObject __name__P = globals.__finditem__("__name__");
-        String __name__ = null;
 
-        // whether we're excuting an explicit __import__ method
-        boolean explicit = false;
-        if( __name__P instanceof PyString ){
-            __name__ = __name__P.toString();
+        PyObject __path__P = globals.__finditem__("__path__");
+        if( __path__P instanceof PyList ){
+            String __path__ = ((PyList)__path__P).get(0).toString();
+            if( relativeFile( __path__ , target ) )
+                return null;
         }
-        else {
-            __name__ = getName( globals , target );
-            explicit = true;
+
+        PyObject __file__P = globals.__finditem__("__file__");
+        if( __file__P instanceof PyString ){
+            String __file__ = __file__P.toString();
+            if( __file__.indexOf( '/' ) != -1 )
+                __file__ = __file__.substring( 0 , __file__.lastIndexOf('/') );
+            if( relativeFile( __file__ , target ) )
+                return null;
         }
 
         int period = __name__.indexOf('.');
@@ -349,6 +377,16 @@ public class TrackImport extends PyObject {
         return null;
     }
 
+    /**
+     * Return true if something that might be a Python file called target
+     * exists in the directory named by dir.
+     */
+    public boolean relativeFile( String dir , String target ){
+        target = target.replaceAll( "\\." , "/" );
+        return new File( dir , target ).exists() || new File( dir , target+".py" ).exists();
+
+    }
+
     public PyObject tryImportSitename( SiteSystemState sss , String target , PyObject globals , PyObject locals , PyObject fromlist , AppContext ac ){
         // We want to import "real files" in the directory, but
         // prohibit other kinds of loading, i.e. from core or a
@@ -392,5 +430,22 @@ public class TrackImport extends PyObject {
         modules.__setitem__( original , existing );
         if( fromlist != null && fromlist.__len__() != 0 ) return existing;
         return siteModule;
+    }
+
+    public PyObject trySiteImport( SiteSystemState sss , String target ,
+                                   String __name__ , boolean explicit , PyObject globals , PyObject locals , PyObject fromlist , AppContext ac ){
+        // FIXME: This might only work for one-level-deep modules
+        if( ac == null ) return null;
+        PyObject modules = sss.getPyState().modules;
+        PyObject existing = modules.__finditem__( Py.newString( target ) );
+        if( existing != null ) return existing;
+
+        if( relativeFile( ac.getRoot() , target ) ){
+            existing = ImportHelper.loadFromSource( sss.getPyState() , target , target , ac.getRoot() );
+            sss.getPyState().modules.__setitem__( Py.newString( target ) , existing );
+            return existing;
+        }
+
+        return null;
     }
 }

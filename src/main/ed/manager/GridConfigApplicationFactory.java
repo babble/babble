@@ -200,7 +200,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
             if ( JS.bool( JS.eval( me , "isMyGridDomainPaired" ) ) ){
                 List l = (List)JS.eval( me , "getGridLocation" );
                 assert( l.size() == 2 );
-                config.addEntry( "db" , "grid" , "pairwith" , JS.eval( me , "getOtherGridPair" ).toString() );
+                config.addEntry( "db" , "grid" , "pairwith" , JS.eval( me , "getOtherGridPair" ).toString() + ":" + Cloud.getGridDBPort() );
             }
             else {
                 config.addEntry( "db" , "grid" , "master" , "true" );

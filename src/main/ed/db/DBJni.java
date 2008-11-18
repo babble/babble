@@ -56,6 +56,10 @@ public class DBJni extends DBMessageLayer {
         return dataIn.limit();
     }
 
+    public String debugString(){
+        return _root + " DBJni";
+    }
+
     static native void native_say( ByteBuffer out );
     static native int native_call( ByteBuffer out , ByteBuffer in );
 

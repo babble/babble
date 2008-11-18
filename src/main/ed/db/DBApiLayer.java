@@ -58,6 +58,7 @@ public abstract class DBApiLayer extends DBBase {
      */
     protected abstract int doGetMore( ByteBuffer out , ByteBuffer in );
 
+    public abstract String debugString();
 
     /**
      * @param name the name of the collection to find
@@ -104,7 +105,10 @@ public abstract class DBApiLayer extends DBBase {
         
         DBApiLayer base = _sisters.get( root );
         if ( base == null ){
-            base = DBProvider.getSisterDB( this , root );
+            DBBase b = DBProvider.getSisterDB( this , root );
+            if ( ! ( b instanceof DBApiLayer ) )
+                throw new RuntimeException( "sister db for [" + root + "] is not a DBApiLayer" );
+            base = (DBApiLayer)b;
             _sisters.put( root , base );
         }
 

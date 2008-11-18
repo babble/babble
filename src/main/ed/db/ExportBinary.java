@@ -28,7 +28,7 @@ public class ExportBinary {
         File myRoot = new File( baseDir , root );
         myRoot.mkdirs();
 
-        DBApiLayer db = DBProvider.get( new DBAddress( ip , root ) );
+        DBApiLayer db = new DBTCP( new DBAddress( ip , root ) );
         
         for ( String t : db.getCollectionNames() ){
 	    
