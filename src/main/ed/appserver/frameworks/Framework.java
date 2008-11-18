@@ -38,7 +38,7 @@ public abstract class Framework {
      *
      * @param name name of framework to configure
      * @param version of named framework to use
-     * @return framewok object for the given name and version
+     * @return framework object for the given name and version
      */
     public static Framework byName(String name, String version) {
         if (name == null) {
