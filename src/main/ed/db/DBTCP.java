@@ -263,7 +263,18 @@ public class DBTCP extends DBMessageLayer {
         _curPortPool = DBPortPool.get( _curAddress );
         return true;
     }
-    
+
+    public String debugString(){
+        StringBuilder buf = new StringBuilder( _root );
+        buf.append( " DBTCP: " );
+        if ( _allHosts != null )
+            buf.append( "paired : " ).append( _allHosts );
+        else
+            buf.append( _curAddress );
+
+        return buf.toString();
+    }
+
     private DBAddress _curAddress;
     private DBPortPool _curPortPool;
     private final List<DBAddress> _allHosts;
