@@ -21,7 +21,7 @@ public class Export {
 
     static void export( String root , String ip , PrintStream out )
         throws IOException {
-        DBApiLayer db = DBProvider.get( new DBAddress( ip , root ) );
+        DBApiLayer db = new DBTCP( new DBAddress( ip , root ) );
 
         out.println( "var " + root + " = connect( \"" + root + "\" );" );
         

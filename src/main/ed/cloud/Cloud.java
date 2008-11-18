@@ -26,7 +26,7 @@ import java.util.regex.*;
 import ed.db.DBAddress;
 import ed.db.DBBase;
 import ed.db.DBProvider;
-import ed.db.DBApiLayer;
+import ed.db.DBBase;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
@@ -160,7 +160,7 @@ public class Cloud extends JSObjectBase {
 
     }
 
-    public DBApiLayer getDBConnection( String siteName , String environment ){
+    public DBBase getDBConnection( String siteName , String environment ){
         return DBProvider.get( getDBAddressForSite( siteName , environment , true ) );
     }
 

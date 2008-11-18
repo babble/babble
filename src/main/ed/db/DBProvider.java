@@ -11,11 +11,11 @@ import ed.appserver.*;
 
 public class DBProvider {
 
-    public static DBApiLayer get( final AppContext ctxt ){
+    public static DBBase get( final AppContext ctxt ){
         return get( ctxt , ctxt.getName() );
     }
 
-    public static DBApiLayer get( final AppContext ctxt , final String name ){
+    public static DBBase get( final AppContext ctxt , final String name ){
         if ( ctxt == null )
             throw new NullPointerException( "shouldn't call this version of DBProvider.get without an AppContext" );
         
@@ -47,7 +47,7 @@ public class DBProvider {
         return get( addr , false );
     }
 
-    public static DBApiLayer getSisterDB( DBBase base , String name ){
+    public static DBBase getSisterDB( DBBase base , String name ){
         AppContext ctxt = AppContext.findThreadLocal();
         if ( ctxt != null )
             return get( ctxt , name );
@@ -65,26 +65,26 @@ public class DBProvider {
         
     }
     
-    public static DBApiLayer get( String urlFormat )
+    public static DBBase get( String urlFormat )
         throws UnknownHostException {
         return get( urlFormat , true );
     }
 
-    public static DBApiLayer get( String urlFormat , boolean useCache )
+    public static DBBase get( String urlFormat , boolean useCache )
         throws UnknownHostException {
         return get( new DBAddress( urlFormat ) , useCache );
     }
 
-    public static DBApiLayer get( DBAddress addr ){
+    public static DBBase get( DBAddress addr ){
         return get( addr , true );
     }
 
-    public static DBApiLayer get( DBAddress addr , boolean useCache ){
+    public static DBBase get( DBAddress addr , boolean useCache ){
 
         if ( ! useCache )
             return new DBTCP( addr );
 
-        DBApiLayer db = _connections.get( addr );
+        DBBase db = _connections.get( addr );
         if ( db != null )
             return db;
         
@@ -100,5 +100,5 @@ public class DBProvider {
         return db;
     }
     
-    static final Map<DBAddress,DBApiLayer> _connections = Collections.synchronizedMap( new HashMap<DBAddress,DBApiLayer>() );
+    static final Map<DBAddress,DBBase> _connections = Collections.synchronizedMap( new HashMap<DBAddress,DBBase>() );
 }
