@@ -58,6 +58,7 @@ public abstract class DBApiLayer extends DBBase {
      */
     protected abstract int doGetMore( ByteBuffer out , ByteBuffer in );
 
+    public abstract String debugString();
 
     /**
      * @param name the name of the collection to find

@@ -93,9 +93,7 @@ class DBPortPool extends SimplePool<DBPort> {
     
     protected DBPort createNew(){
         try {
-            DBPort p = new DBPort( _addr , this );
-            _everWorked = true;
-            return p;
+            return new DBPort( _addr , this );
         }
         catch ( IOException ioe ){
             throw new RuntimeException( "can't create port to:" + _addr , ioe );
