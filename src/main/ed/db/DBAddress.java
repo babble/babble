@@ -3,6 +3,7 @@
 package ed.db;
 
 import java.net.*;
+import java.util.*;
 
 import ed.net.*;
 import ed.util.*;
@@ -41,7 +42,9 @@ public class DBAddress {
         
         _check( _host , "host" );
         _check( _name , "name" );
-        _addr = _getAddress( _host );
+        
+        _addrs = _getAddress( _host );
+        _addr = _addrs[0];
     }
     
     static String _fixName( String name ){
@@ -67,7 +70,22 @@ public class DBAddress {
         _host = host.trim();
         _port = port;
         _name = name.trim();
-        _addr = _getAddress( _host );
+
+        _addrs = _getAddress( _host );
+        _addr = _addrs[0];
+    }
+
+    public DBAddress( InetAddress addr , int port , String name ){
+        if ( addr == null )
+            throw new IllegalArgumentException( "addr can't be null" );
+        _check( name , "name" );
+        
+        _host = addr.getHostName();
+        _port = port;
+        _name = name.trim();
+        
+        _addr = addr;
+        _addrs = new InetAddress[]{ addr };
     }
 
     static void _check( String thing , String name ){
@@ -115,32 +133,60 @@ public class DBAddress {
             _host.equalsIgnoreCase( host );
     }
 
+    boolean isPaired(){
+        return _addrs.length > 1;
+    }
+
+    List<DBAddress> getPairedAddresses(){
+        if ( _addrs.length != 2 )
+            throw new RuntimeException( "not paired.  num addressed : " + _addrs.length );
+        
+        List<DBAddress> l = new ArrayList<DBAddress>();
+        for ( int i=0; i<_addrs.length; i++ ){
+            l.add( new DBAddress( _addrs[i] , _port , _name ) );
+        }
+        return l;
+    }
+    
     final String _host;
     final int _port;
     final String _name;
     final InetAddress _addr;
+    final InetAddress[] _addrs;
     
-    private static InetAddress _getAddress( String host )
+    private static InetAddress[] _getAddress( String host )
         throws UnknownHostException {
-        return DNSUtil.getByName( _checkCloudHostName( host ) );
+
+        String hosts[] = _checkCloudHostName( host );
+        
+        if ( hosts == null )
+            return new InetAddress[]{ DNSUtil.getByName( host ) };
+        
+        InetAddress[] addrs = new InetAddress[hosts.length];
+        for ( int i=0; i<addrs.length; i++ )
+            addrs[i] = DNSUtil.getByName( hosts[i] );
+        return addrs;
     }
 
-    private static String _checkCloudHostName( final String host ){
+    private static String[] _checkCloudHostName( final String host ){
         if ( host.contains( "." ) )
-            return host;
+            return null;
 
         Cloud c = Cloud.getInstanceIfOnGrid();
         if ( c == null )
-            return host;
+            return null;
         
         try {
-            String temp = c.getDBHost( host );
+            String[] temp = c.getDBHosts( host );
             if ( temp != null )
                 return temp;
         }
-        catch ( Exception e ){} // don't care
+        catch ( Exception e ){
+            // don't care
+            e.printStackTrace();
+        }
 
-        return host;
+        return null;
     }
 
     public static String defaultHost(){

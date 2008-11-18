@@ -20,23 +20,37 @@ public class DBTCP extends DBMessageLayer {
 
         _createLogger.info( addr );
         
-        _set( addr );
-        _allHosts = null;
+        if ( addr.isPaired() ){
+            _allHosts = new ArrayList<DBAddress>( addr.getPairedAddresses() );
+            _validatePairs( _allHosts );
+            _pickInitial();
+            _createLogger.info( "switch to paired mode : " + _allHosts + " -> " + _curAddress  );
+        }
+        else {
+            _set( addr );
+            _allHosts = null;
+        }
     }
     
     public DBTCP( List<DBAddress> all ){
         super( _checkAddress( all )._name );
 
+        _validatePairs( all );
+        
+        _allHosts = new ArrayList<DBAddress>( all ); // make a copy so it can't be modified
+        _pickInitial();
+
+        _createLogger.info( all  + " -> " + _curAddress );
+    }
+
+    private void _validatePairs( List<DBAddress> all ){
+        
         final String name = all.get(0)._name;
         for ( int i=1; i<all.size(); i++ ){
             if ( ! all.get(i)._name.equals( name ) )
                 throw new IllegalArgumentException( " names don't match [" + all.get(i)._name + "] != [" + name + "]" );
         }
         
-        _allHosts = new ArrayList<DBAddress>( all ); // make a copy so it can't be modified
-        _pickInitial();
-
-        _createLogger.info( all  + " -> " + _curAddress );
     }
 
     private static DBAddress _checkAddress( DBAddress addr ){
@@ -203,6 +217,7 @@ public class DBTCP extends DBMessageLayer {
         _pickCurrent();
         
         try {
+            System.out.println( _curAddress );
             DBCollection collection = getCollection( "$cmd" );
             Iterator<JSObject> i = collection.find( _isMaster , null , 0 , 1 );
             if ( i == null || ! i.hasNext() )
@@ -270,7 +285,7 @@ public class DBTCP extends DBMessageLayer {
         if ( _allHosts != null )
             buf.append( "paired : " ).append( _allHosts );
         else
-            buf.append( _curAddress );
+            buf.append( _curAddress ).append( " " ).append( _curAddress._addr );
 
         return buf.toString();
     }

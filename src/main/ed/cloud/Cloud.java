@@ -25,6 +25,8 @@ import java.util.regex.*;
 
 import ed.db.DBAddress;
 import ed.db.DBBase;
+import ed.db.DBProvider;
+import ed.db.DBApiLayer;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
@@ -158,19 +160,31 @@ public class Cloud extends JSObjectBase {
 
     }
 
-    public String getDBHost( String dbname ){
+    public DBApiLayer getDBConnection( String siteName , String environment ){
+        return DBProvider.get( getDBAddressForSite( siteName , environment , true ) );
+    }
+
+    public String[] getDBHosts( String dbname ){
         if ( _bad )
             return null;
 
 	JSObject db = (JSObject)evalFunc( "Cloud.findDBByName" , dbname );
 	if ( db == null )
 	    throw new RuntimeException( "can't find global db named [" + dbname + "]" );
-	
+        
 	Object machine = db.get( "machine" );
-	if ( machine == null )
-	    throw new RuntimeException( "global db [" + dbname + "] doesn't have machine set" );
+	if ( machine == null ){
+            List l = JS.getList( db , "pairs" );
+            if ( l == null )
+                throw new RuntimeException( "global db [" + dbname + "] doesn't have machine set" );
+            
+            String[] arr = new String[l.size()];
+            for ( int i=0; i<l.size(); i++ )
+                arr[i] = l.get( i ).toString();
+            return arr;
+        }
 
-        return machine.toString();
+        return new String[]{ machine.toString() };
     }
 
     public DBAddress getDBAddressForSite( String siteName , String environment ){
