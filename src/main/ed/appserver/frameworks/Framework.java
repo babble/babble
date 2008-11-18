@@ -31,13 +31,6 @@ public abstract class Framework {
 
     public abstract void install( AppContext context ) throws IOException;
 
-    public static Framework forName( String name ){
-        if (name.equalsIgnoreCase("AppEngine")) {
-            return new AppEngine();
-        }
-        return null;
-    }
-
     /**
      *   Load a known framework by name.  Currently, these are stored in the
      *   conf/frameworks.json file in the root of ed.  They should come from
