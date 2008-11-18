@@ -1,0 +1,3 @@
+
+
+myGlobalVariable = "thing";
