@@ -1,3 +1,4 @@
+<<<<<<< HEAD:src/main/org/python/core/ImportHelper.java
 // ImportHelper.java
 
 /**
@@ -25,3 +26,13 @@ public class ImportHelper {
         return imp.loadFromSource(sys, name, modName, entry);
     }
 }
+=======
+package org.python.core;
+
+public class ImportHelper {
+    static public PyObject loadFromSource( PySystemState state, String name, String modName, String path ){
+        // Java class protection mechanisms suck, but at least they're easy to defeat
+        return imp.loadFromSource( state , name , modName , path );
+    }
+}
+>>>>>>> 1022434a1c47f6a0b868667b9052b1000e4d2f7d:src/main/org/python/core/ImportHelper.java
