@@ -41,6 +41,7 @@
       <class name="ed.net.CookieJarTest" />
       <class name="ed.net.httpserver.PostDataInMemoryTest"/>
       <class name="ed.appserver.framework.AppContextFrameworkTest"/>
+      <class name="ed.appserver.adapter.AppContextAdapterTest"/>
     </classes>
   </test>
 
