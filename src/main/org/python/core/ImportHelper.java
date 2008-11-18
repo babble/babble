@@ -64,12 +64,7 @@ public class ImportHelper {
         }
 
         if (sourceFile.isFile() && imp.caseok(sourceFile, sourceName)) {
-            String filename;
-            if (pkg) {
-                filename = new File(new File(displayDirName, name), sourceName).getPath();
-            } else {
-                filename = new File(displayDirName, sourceName).getPath();
-            }
+            String filename = new File(dir, sourceName).getPath();
             if(compiledFile.isFile() && imp.caseok(compiledFile, compiledName)) {
                 Py.writeDebug(IMPORT_LOG, "trying precompiled "
                         + compiledFile.getPath());
