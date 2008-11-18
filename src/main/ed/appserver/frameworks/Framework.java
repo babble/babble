@@ -51,7 +51,7 @@ public abstract class Framework {
     /**
      *   Load a framework by custom class.  The class must be in the appserver classpath,
      *   and must extend Framework
-     * 
+     *
      * @param classname name of class to use
      * @return instantiated framework class
      */
