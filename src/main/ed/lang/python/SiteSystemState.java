@@ -519,6 +519,19 @@ public class SiteSystemState implements Sizable {
         }
     }
 
+    public class DirectoryLoader extends PyObject {
+        File _file;
+        DirectoryLoader( File directory ){
+            _file = directory;
+        }
+
+        @ExposedMethod(names={"load_module"})
+        public PyObject load_module( String name ){
+            PyObject m = ImportHelper.loadFromDirectory( getPyState() , name , name , _file.getAbsolutePath() );
+            return m;
+        }
+    }
+
     /**
      * Finder which checks in core.modules to satisfy imports.
      *
@@ -586,7 +599,7 @@ public class SiteSystemState implements Sizable {
                     if( foo instanceof JSLibrary ){
                         JSLibrary lib = (JSLibrary)foo;
                         _loaded.put( lib , modName );
-                        return new LibraryModuleLoader( lib );
+                        return new DirectoryLoader( lib.getRoot() );
                     }
                 }
             }
@@ -622,7 +635,7 @@ public class SiteSystemState implements Sizable {
 
                 if( path.equals("") ){
                     _loaded.put( lib , modName );
-                    return new LibraryModuleLoader( (JSLibrary) lib );
+                    return new DirectoryLoader( ((JSLibrary) lib).getRoot() );
                 }
 
                 Object subdir = lib.getFromPath( path , true );
@@ -636,7 +649,7 @@ public class SiteSystemState implements Sizable {
                 }
 
                 _loaded.put( (JSLibrary) subdir , modName );
-                return new LibraryModuleLoader( (JSLibrary)subdir );
+                return new DirectoryLoader( ((JSLibrary)subdir).getRoot() );
             }
 
             else {
