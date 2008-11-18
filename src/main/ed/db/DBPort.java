@@ -30,8 +30,6 @@ public class DBPort {
         _array[0].order( Bytes.ORDER );
 
         _hashCode = _addr.hashCode();
-
-        _open();
     }
 
     /**
@@ -50,6 +48,9 @@ public class DBPort {
     private synchronized DBMessage go( DBMessage msg , ByteBuffer response )
         throws IOException {
         
+        if ( _sock == null )
+            _open();
+
         _reset( _array[0] );
         msg.putHeader( _array[0] );
         _array[0].flip();
@@ -58,6 +59,9 @@ public class DBPort {
         
         _sock.write( _array );
         
+        if ( _pool != null )
+            _pool._everWorked = true;
+
         if ( response == null )
             return null;
 

@@ -33,7 +33,7 @@ fi
 
 # Start the servers
 if ! run_db $SITE
-    then      
+    then
         exit 1
 fi
 db_pid=$PID
@@ -117,5 +117,17 @@ fi
 
 kill_ed $http_pid
 kill_db $db_pid
+
+echo ""
+echo ""
+echo ""
+echo "Go here for results:"
+# Hardcoding in the url for test results. This is annoying and stupid,
+# but less annoying than actually trying to decipher the test results
+# that webtest prints to the command line.
+echo "http://ofc-n1.10gen.com:8080/view/sites/$SITE/test/results/"
+echo ""
+echo ""
+echo ""
 
 exit $STATUS

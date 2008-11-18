@@ -191,7 +191,7 @@ public abstract class ModuleRepository {
             final String url = _url + command;
             
             XMLHttpRequest req = new XMLHttpRequest( "GET" , url , false );
-            req.set( "timeout" , 1500 );
+            req.set( "timeout" , 300 );
             try {
                 req.send();
             }

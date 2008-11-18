@@ -23,23 +23,6 @@
             ]
         },
 
-        rake : {
-            defaultVersion : "1.0",
-            versions : [
-                {
-                    version : "1.0",
-                    adapterType : "CGI",
-                    packages : [
-                        {
-                            name : "rake",
-                            module : "rb-rake",
-                            version : "master"
-                        }
-                    ]
-                }
-            ]
-        },
-
         appengine : {
             defaultVersion : "1.0",
             versions : [
@@ -50,7 +33,14 @@
                         {
                             name : "google",
                             module : "py-google",
-                            version : "master"
+                            version : "master",
+                            path : ""
+                        },
+                        {
+                            name : "django",
+                            module : "py-google",
+                            version : "master",
+                            path : "django"
                         }
                     ],
                     initFile : "/~~/modules/py-google/_init_ae.py"
@@ -63,7 +53,7 @@
             versions : [
                 {
                     version : "1.0",
-                    adapterType : "CGII"
+                    adapterType : "CGI"
                 }
             ]
         }

@@ -1,0 +1,2 @@
+
+myGlobalVariable = "thang";
