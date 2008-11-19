@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 
@@ -31,96 +33,68 @@ import ed.js.JSArray;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.net.DNSUtil;
-import ed.net.httpserver.HttpServerTest;
-import ed.net.lb.LB;
+import ed.net.httpserver.HttpRequest;
+import ed.net.httpserver.HttpResponse;
+import ed.net.httpserver.HttpServer;
+import ed.net.nioclient.NIOClient;
 import ed.db.DBBase;
 import ed.db.DBCollection;
 
-public class Simulator extends LB {
+public class Simulator { 
 
-    public static class RequestSpawner extends Thread {
-        public RequestSpawner( String s1, String s2, String s3, String s4, int num ) {
-            super();
-
-            _s = makeRequestString( s1, s2, s3, s4 );
-            _num = num;
-        }
-
-        public void run() {
-            try {
-                sendRequests( _num, _s );
-            }
-            catch( IOException e ) {
-                e.printStackTrace();
-            }
-        }
-
-        private void sendRequests( int num, String requests ) 
-            throws IOException {
-
-            _cal = Calendar.getInstance();
-            long startTime = _cal.getTimeInMillis();
-            for( int i=0; i<num; i++) {
-                sendString( requests );
-            }
-            _cal = Calendar.getInstance();
-            System.out.println( "Sent " + num + " request(s): " + requests + 
-                              "\nTotal time: "+ ( _cal.getTimeInMillis()-startTime ));
-        }
-
-        private void sendString( String buf ) 
-            throws IOException {
-
-            Socket s = new Socket( DNSUtil.getMyAddresses().get(0) , _port );
-            s.setSoTimeout( 1000 );
-            s.getOutputStream().write( buf.getBytes() );
-            InputStream in = s.getInputStream();
-            HttpServerTest.Response r = HttpServerTest.read( in );
-            if( _verbose == 1 ) {
-                System.out.println( r );
-            }
-        }
-        private String makeRequestString( String method, String url, String params, String headers ) {
-            StringBuilder buf = new StringBuilder();
-            buf.append(method).append(" ").append(url).append("?").append(params).append(" HTTP/1.1\r\n");
-            buf.append("Host: ").append( url ).append("\r\n");
-            buf.append(headers);
-            buf.append("\r\n");
-            return buf.toString();
-        }
-
-        String _s;
-        int _num = 1;
-    }
+    private static DBBase db;
 
     public Simulator() 
         throws IOException {
-        super( _port, new GridMapping.Factory(), _verbose );
+
+        // connect to db
+        db = (DBBase)Cloud.getInstance().getScope().get("db");
+
+        // set up local pseudo servers
+        Iterator<JSObject> pools;
+        for( pools = db.getCollection( "pools" ).find(); pools.hasNext(); ) {
+            JSObject pool = pools.next();
+
+            // "machines" should never be null
+            if( pool.get( "machines" ) == null ) 
+                continue;
+
+            // find the port of each machine
+            for( Object o : (JSArray)pool.get( "machines" ) ) {
+                String s = o.toString();
+                int port = Integer.parseInt( s.substring( s.indexOf( ":" ) + 1 ) );
+                if( !_portsUsed.contains( port ) ) {
+                    _servers.add( new HttpServer( port ) );
+                    _portsUsed.add( port );
+                }
+                _basePort = Math.max( port, _basePort );
+            }
+        }
+
+        // set up router
+        _router = new Router( new GridMapping.Factory() );
     }
 
     public void doStuff() 
         throws IOException,
                InterruptedException {
 
-        start();
-
         // get db connection
-        DBBase db = (DBBase)Cloud.getInstance().getScope().get("db");
 
         // default strings
-        String method = "GET";
         String url = null;
-        String params = "";
-        String headers = "";
         String name = "";
         String machine = "";
+        long interval = 10;
+        long totalTime = 100;
         int num = 1;
 
         final String intro = "\nr - send requests\n" + 
             "p - add/edit/remove pools\n" + 
             "s - add/edit/remove sites\n" +
             "v - view current configuration\n" +
-            //            "k - kill a pool\n" +
+            "k - kill a server\n" +
+            "u - unkill a server\n" +
             "\nWhat would you like to do? ";
         System.out.print( intro );
 
@@ -130,24 +104,51 @@ public class Simulator extends LB {
             switch ( r ) {
             //request
             case 'r' :
-                System.out.print( "\t[p]ost/[g]et: " );
-                method = ( getChar( isr ) == 'p'  ? "POST" : "GET" );
+                System.out.println( "defaults: \n"+
+                                    "\turl: "+url+"\n" +
+                                    "\tinterval: "+interval+"\n" +
+                                    "\ttotal time: "+totalTime+"\n" );
 
                 System.out.print( "\turl: " );
                 url = readOpt( isr, url );
 
-                System.out.print( "\tparams: " );
-                params = readOpt( isr, params );
+                System.out.print( "\tsend a request every: (ms) " );
+                interval = Long.parseLong( readOpt( isr, interval+"" ) );
 
-                System.out.print( "\theaders: " );
-                headers = readOpt( isr, headers );
+                System.out.print( "\tfor: (ms) " );
+                totalTime = Long.parseLong( readOpt( isr, totalTime+"" ) );
 
-                System.out.print( "\tnumber of times: " );
-                num = Integer.parseInt( readOpt( isr, num + "" ) );
+                HttpRequest request = HttpRequest.getDummy( url, "Host: "+url );
 
-                RequestSpawner spawn = new RequestSpawner( method, url, params, headers, num );
-                spawn.start();
-                spawn.join();
+                _cal = Calendar.getInstance();
+                long current = _cal.getTimeInMillis();
+                long end = current + totalTime;
+                do {
+                    InetSocketAddress addr = _router.chooseAddress( request, false );
+                    System.out.println( "chosen address: "+addr );
+                    if( addr == null ) {
+                        System.out.println( "no viable server found." );
+                    }
+                    else if( _deadAddresses.contains( addr.getPort() ) ) {
+                        _router.error( request, 
+                                       (HttpResponse)null, 
+                                       addr, 
+                                       NIOClient.ServerErrorType.SOCK_TIMEOUT, 
+                                       new RuntimeException( "faking pool outage at " + addr ) );
+                    }
+                    else {
+                        _router.success( request, (HttpResponse)null, addr );
+                    }
+
+                    try { Thread.sleep( interval ); }
+                    catch( InterruptedException e ) {}
+
+                    _cal = Calendar.getInstance();
+                    current = _cal.getTimeInMillis();
+                }
+                while( current < end );
+
+                System.out.println(  );
                 break;
 
             // add/remove pool
@@ -174,22 +175,27 @@ public class Simulator extends LB {
                     pool = temp;
                 }
 
+                JSArray machines = new JSArray();
                 // find the array of machines
-                if( action == 'p' ) 
-                    System.out.print( "\tmachine: " );
+                if( action == 'p' ) { 
+                    System.out.print( "\tnumber of machines: " );
+                    num = Integer.parseInt( readOpt( isr, "1" ) );
+
+                    System.out.print( "\tstarting port: (default: "+(_basePort+1)+") " );
+                    int port = Integer.parseInt( readOpt( isr, (_basePort+1)+"" ) );
+                    for( int i=port; i<port + num; i++ ) {
+                        machines.add( "localhost:" + i );
+                        if( !_portsUsed.contains( i ) ) {
+                            _servers.add( new HttpServer( i ) );
+                            _portsUsed.add( i );
+                        }
+                    }
+                }
                 else {
                     System.out.println( "\tenvironment" );
                     System.out.print( "\t\t(field 1 of 2) name: " );
-                }
-
-                JSArray machines = new JSArray();
-                while( !(machine = readOpt( isr, "" )).equals( "" ) ) {
-                    if( action == 'p' ) {
-                        // add machine name
-                        machines.add( machine );
-                        System.out.print( "\tmachine: " );
-                    }
-                    else {
+                    
+                    while( !(machine = readOpt( isr, "" )).equals( "" ) ) {
                         machines.add( getEnvironment( isr, machine ) );
                         // reprompt
                         System.out.println( "\tenvironment" );
@@ -202,20 +208,24 @@ public class Simulator extends LB {
                 collection.save( pool );
                 System.out.println( "saved " + (action == 'p' ? "pool " : "site " ) + name );
 
-                System.out.println( "\nNote: Router will automatically refresh mapping "+
-                                    "within 30 seconds or on restart" );
-
+                _router = new Router( new GridMapping.Factory() );
                 break;
 
             case 'v' :
-                printCollection( db );
+                printCollection();
                 break;
 
-                /*
             case 'k' :
-                killPool( isr, db.getCollection( "pools" ) );
+                killAddress( isr );
                 break;
-                */
+
+            case 'u' :
+                printPools();
+                System.out.print( "which server would you like to unkill? " );
+                int port = Integer.parseInt( readOpt( isr, "0" ) );
+                _deadAddresses.remove( new Integer( port ) );
+                break;
+
             default :
                 break;
             }
@@ -224,12 +234,15 @@ public class Simulator extends LB {
         }
 
         isr.close();
-        join();
-        System.exit(0);
     }
 
     // todo: print aliases
-    private static void printCollection( DBBase db ) {
+    private static void printCollection() {
+        printEnvironments();
+        printPools();
+    }
+
+    private static void printEnvironments() {
         StringBuilder sb = new StringBuilder();
 
         Iterator<JSObject> cursor;
@@ -261,39 +274,63 @@ public class Simulator extends LB {
             }
             System.out.println();
         }
+    }
 
+    private static void printPools() {
+        Iterator<JSObject> cursor;
         for( cursor = db.getCollection( "pools" ).find(); 
              cursor != null && cursor.hasNext(); ) {
             JSObject pool = cursor.next();
             System.out.println( "pool " + pool.get( "name" ) );
             for( Object obj : (JSArray)pool.get( "machines" ) ) {
-                System.out.println( "\t" + obj );
+                String addr = obj.toString();
+                System.out.print( "\t" + obj );
+                if( _deadAddresses.contains( Integer.parseInt( addr.substring( addr.indexOf( ":" ) + 1 ) ) ) )
+                    System.out.print( " (dead)" );
+                System.out.println();
             }
             System.out.println();
         }
     }
 
-    /*
-    private static void killPool( InputStreamReader isr, DBCollection pools ) 
+    private static void killAddress( InputStreamReader isr ) 
         throws IOException {
-        System.out.print( "which pool would you like to kill? " );
-        String pool = readOpt( isr, "" );
+        printPools();
 
-        Iterator cursor;
-        for( cursor = pools.find(); 
-             cursor != null && cursor.hasNext(); ) {
-            JSObject obj = (JSObject)cursor.next();
-            JSArray foo = (JSArray)obj.get( "machines" );
-            if( foo == null )
-                continue;
+        System.out.print( "which address would you like to kill? " );
+        int port = Integer.parseInt( readOpt( isr, "" ) );
 
-            if( foo.remove( pool ) ) {
-                foo.add( pool + "123456789" );
-                pools.save( obj ); 
-            }
-        }
+        System.out.print( "for how long? (ms, leave blank for forever) " );
+        long time = Long.parseLong( readOpt( isr, "0" ) );
+
+        Strangler s = new Strangler( port, time );
+        s.setDaemon( true );
+        s.start();
     }
-    */
+
+    static class Strangler extends Thread {
+        public Strangler( int port, long time ) {
+            super( "Strangle "+port );
+            if( !_deadAddresses.contains( port ) )
+                _deadAddresses.add( port );
+            _p = port;
+            _t = time;
+        }
+
+        public void run() {
+            if( _t == 0 ) 
+                return;
+
+            try {
+                Thread.sleep( _t );
+            }
+            catch( InterruptedException e ) {}
+            _deadAddresses.remove( new Integer( _p ) );
+        }
+
+        int _p;
+        long _t;
+    }
 
     // add alias list
     private static JSArray addAliases( InputStreamReader isr, String machine ) 
@@ -365,14 +402,20 @@ public class Simulator extends LB {
         _timed = true;
         _memTracked = true;
 
-        // make load balancer
         Simulator sim = new Simulator();
         sim.doStuff();
     }
 
     private static int _port = 8080;
+    private static int _basePort = 14520;
     private static int _verbose = 0;
     private static boolean _timed = false;
     private static boolean _memTracked = false;
     private static Calendar _cal;
+    private static ArrayList<Integer> _deadAddresses = new ArrayList<Integer>();
+    private static ArrayList<Integer> _portsUsed = new ArrayList<Integer>();
+
+    private Router _router;
+    private ArrayList<HttpServer> _servers = new ArrayList<HttpServer>();
 }
+
