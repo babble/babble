@@ -626,12 +626,14 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                      || foo instanceof JSDate )
 		    continue;
                 
-                if ( foo instanceof DBCollection )
+                if ( foo instanceof DBCollection || 
+                     foo instanceof DBBase )
                     continue;
                 
                 JSObject e = (JSObject)foo;
                 if ( e instanceof JSObjectBase )
                     ((JSObjectBase)e).prefunc();
+
                 if ( n.get( name ) == null )
                     continue;
 
