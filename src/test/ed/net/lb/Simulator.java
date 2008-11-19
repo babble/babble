@@ -93,7 +93,8 @@ public class Simulator {
             "p - add/edit/remove pools\n" + 
             "s - add/edit/remove sites\n" +
             "v - view current configuration\n" +
-            "k - kill/raise a server\n" +
+            "k - kill a server\n" +
+            "u - unkill a server\n" +
             "\nWhat would you like to do? ";
         System.out.print( intro );
 
@@ -216,6 +217,13 @@ public class Simulator {
 
             case 'k' :
                 killAddress( isr );
+                break;
+
+            case 'u' :
+                printPools();
+                System.out.print( "which server would you like to unkill? " );
+                int port = Integer.parseInt( readOpt( isr, "0" ) );
+                _deadAddresses.remove( new Integer( port ) );
                 break;
 
             default :
