@@ -32,12 +32,12 @@
   <target name="langcore" depends="init">
 
     <javac srcdir="src/langcore"
-	   destdir="build"
-	   optimize="off"
-	   deprecation="off"
-	   source="1.5"
+           destdir="build"
+           optimize="off"
+           deprecation="off"
+           source="1.5"
            encoding="ISO-8859-1"
-	   debug="on" >
+           debug="on" >
       <classpath refid="classpath"/>
     </javac>
   </target>
@@ -45,12 +45,12 @@
   <target name="compile" depends="langcore">
 
     <javac srcdir="src/main"
-	   destdir="build"
-	   optimize="off"
-	   deprecation="off"
-	   source="1.5"
+           destdir="build"
+           optimize="off"
+           deprecation="off"
+           source="1.5"
            encoding="ISO-8859-1"
-	   debug="on" >
+           debug="on" >
       <classpath refid="classpath"/>
     </javac>
 
@@ -61,12 +61,12 @@
     </copy>
 
     <javac srcdir="src/test"
-	   destdir="build"
-	   optimize="off"
-	   deprecation="off"
-	   source="1.5"
+           destdir="build"
+           optimize="off"
+           deprecation="off"
+           source="1.5"
            encoding="ISO-8859-1"
-	   debug="on" >
+           debug="on" >
       <classpath refid="classpath"/>
     </javac>
 
@@ -94,9 +94,9 @@
             destdir="docs/"
             author="true"
             version="true"
-	    source="1.5"
+            source="1.5"
             use="true"
-	    access="package"
+            access="package"
             >
      <link href="http://java.sun.com/j2se/1.5/docs/api/" />
      <classpath refid="classpath"/>
@@ -151,14 +151,14 @@
     <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
- 
+
  <target  name="test-corejs" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <xmlfileset dir="." includes="testng-corejs.xml"/>
     <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
- 
+
  <target  name="test-db-load" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <xmlfileset dir="." includes="testng-db-load.xml"/>
@@ -176,9 +176,9 @@
 
  <target name="test-mql" depends="compile, init">
      <testng classpathref="classpath"
-		outputDir="${testdir}"
-		haltOnFailure="true" verbose="2">
-	<classfileset dir="build" includes="ed/db/mql/*Test.class" />
+                outputDir="${testdir}"
+                haltOnFailure="true" verbose="2">
+        <classfileset dir="build" includes="ed/db/mql/*Test.class" />
   </testng>
  </target>
 

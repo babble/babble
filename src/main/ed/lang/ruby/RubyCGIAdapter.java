@@ -69,8 +69,7 @@ public class RubyCGIAdapter extends CGIAdapter {
     public void handleCGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
         Scope s = ar.getScope();
         runenv.addCGIEnv(s, env);
-        runenv.commonSetup(s);
-        setIO(s, stdin, stdout);
+        runenv.commonSetup(s, stdin, stdout);
         try {
             runenv.commonRun(getAST(), s);
         }
@@ -90,15 +89,5 @@ public class RubyCGIAdapter extends CGIAdapter {
 
     protected Node parseContent(String filePath) throws IOException {
         return runenv.parse(getContent(), filePath);
-    }
-
-    /**
-     * Set Ruby's $stdin and $stdout so that reading and writing go to the
-     * right place. Called from {@link ed.appserver.adapter.cgi.CGIAdapter#handleCGI}
-     */
-    protected void setIO(Scope s, InputStream stdin, OutputStream stdout) {
-        Ruby runtime = runenv.getRuntime(s);
-        runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
-        runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
     }
 }
