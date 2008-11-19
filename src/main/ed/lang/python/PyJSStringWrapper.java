@@ -32,7 +32,7 @@ public class PyJSStringWrapper extends PyString {
     public static PyType TYPE = Python.exposeClass( PyJSStringWrapper.class );
 
     public PyJSStringWrapper( JSString s ){
-        super( TYPE , s.toString() );
+        super( s.toString() );
         _p = new PyJSObjectWrapper( s );
     }
 
