@@ -155,7 +155,7 @@ public class ByteEncoder extends Bytes {
                 continue;
             
             Object val;
-            if ( o instanceof JSObjectBase )
+            if ( o.getClass() == JSObjectBase.class || o instanceof JSArray )
                 val = ((JSObjectBase)o)._simpleGet( s );
             else
                 val = o.get( s );
