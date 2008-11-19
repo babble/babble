@@ -1,0 +1,26 @@
+s (create alleyinsider site)
+alleyinsider
+dev
+dev1
+
+www
+prod1
+
+test
+test1
+y
+www.test
+
+
+p (pool creation)
+prod1
+100
+14521
+p (pool creation)
+dev1
+100
+14523
+p (pool creation)
+test1
+100
+14550
