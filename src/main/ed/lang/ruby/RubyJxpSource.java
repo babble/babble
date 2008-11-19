@@ -25,6 +25,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import ed.appserver.jxp.JxpSource;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
+import ed.net.httpserver.HttpRequest;
 import ed.net.httpserver.HttpResponse;
 
 public class RubyJxpSource extends JxpSource.JxpFileSource {
@@ -53,8 +54,11 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
-        runenv.commonSetup(s);
-        setOutput(s);
+        HttpRequest request = (HttpRequest)s.get("request");
+        HttpResponse response = (HttpResponse)s.get("response");
+        runenv.commonSetup(s,
+                           request == null ? null : request.getInputStream(),
+                           response == null ? null : response.getOutputStream());
         return runenv.commonRun(node, s);
     }
 
@@ -69,18 +73,5 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
 
     protected Node parseContent(String filePath) throws IOException {
         return runenv.parse(getContent(), filePath);
-    }
-
-    /**
-     * Set Ruby's $stdout so that print/puts statements output to the right
-     * place. If we have no HttpResponse (for example, we're being run outside
-     * the app server), then nothing happens.
-     */
-    protected void setOutput(Scope s) {
-        HttpResponse response = (HttpResponse)s.get("response");
-        if (response != null) {
-            Ruby runtime = runenv.getRuntime(s);
-            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, new RubyJxpOutputStream(response.getJxpWriter())));
-        }
     }
 }

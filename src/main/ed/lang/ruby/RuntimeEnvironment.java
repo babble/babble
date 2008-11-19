@@ -143,7 +143,7 @@ class RuntimeEnvironment {
             forgetRuntimeInstance((AppContext)s.get("__instance__"));
     }
 
-    void commonSetup(Scope s) {
+    void commonSetup(Scope s, InputStream stdin, OutputStream stdout) {
         resetOnFileChange(s);
         addJSFileLibrariesToPath(s);
 
@@ -151,6 +151,7 @@ class RuntimeEnvironment {
         runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
         exposeScopeFunctions(s);
         patchRequireAndLoad(s);
+        setIO(stdin, stdout);
     }
 
     IRubyObject commonRun(Node node, Scope s) {
@@ -233,6 +234,18 @@ class RuntimeEnvironment {
                     return new Loader(scope).load(context, self, module, name, args, block);
                 }
             });
+    }
+
+
+    /**
+     * Set Ruby's $stdin and $stdout so that reading and writing go to the
+     * right place.
+     */
+    protected void setIO(InputStream stdin, OutputStream stdout) {
+        if (stdin != null)
+            runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
+        if (stdout != null)
+            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
     }
 
     /**

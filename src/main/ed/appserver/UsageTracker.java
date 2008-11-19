@@ -73,7 +73,7 @@ public class UsageTracker {
             }
             
             try {
-                JSDate now = (new JSDate()).roundMinutes( 5 );
+                JSDate now = (new JSDate()).roundDay();
                 DBCollection db = theDB.getCollection( "_system" );
                 db = db.getCollection( "usage" );
                 for ( String s : counts.keySet() ){

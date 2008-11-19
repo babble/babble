@@ -17,10 +17,12 @@
 package ed.lang.ruby;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.jruby.Ruby;
 import org.jruby.RubyIO;
 import org.jruby.ast.Node;
+import org.jruby.runtime.builtin.IRubyObject;
 
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
@@ -29,7 +31,6 @@ import ed.js.JSFunction;
 import ed.js.PrintBuffer;
 import ed.js.engine.Scope;
 import ed.lang.ruby.RubyJxpSource;
-import ed.lang.ruby.RubyJxpOutputStream;
 import ed.net.httpserver.JxpWriter;
 
 /** Makes RubyJxpSource testable by letting us control input and capture output. */
@@ -41,10 +42,12 @@ class TestRubyJxpSource extends RubyJxpSource {
     }
     protected String getContent() { return _content; }
     protected Node getAST() throws IOException { return parseContent("fake_file_path"); }
-    protected void setOutput(Scope s) {
+    protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
         _writer = new JxpWriter.Basic();
-        Ruby runtime = runenv.getRuntime(s);
-        runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, new RubyJxpOutputStream(_writer)));
+        runenv.commonSetup(s, null, new OutputStream() {
+                public void write(int b) { _writer.write(b); }
+            });
+        return runenv.commonRun(node, s);
     }
     protected String getOutput() { return _writer.getContent(); }
 }
