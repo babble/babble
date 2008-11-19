@@ -28,10 +28,25 @@ import ed.util.*;
 
 public class GitDir {
     
+    public GitDir( File parent , String name ){
+        this( new File( parent , name ) );
+    }
+    
     public GitDir( File f ){
         _root = f;
         _dotGit = new File( _root , ".git" );
         _logger = _rootLog.getChild( _root.getAbsolutePath().replaceAll( "[\\/]" , "_" ) );
+    }
+
+    public File getRoot(){
+        return _root;
+    }
+
+    /**
+     * whether or not the directory exists.  says nothing about the existance of git
+     */
+    public boolean exists(){
+        return _root.exists();
     }
 
     public boolean isValid(){
@@ -213,6 +228,30 @@ public class GitDir {
         return pull( true );
     }
     
+    /**
+     * this will switch to a branch or tag
+     * it may do a fetch if it doesn't have it on a local list
+     */
+    public void findAndSwitchTo( final String what ){
+
+        if ( getTags().contains( what ) ){
+            checkout( what );
+            return;
+        }
+        
+        if ( getLocalBranches().contains( what ) ){
+            if ( checkout( what ) )
+                return;
+            throw new RuntimeException( "error pulling branch [" + what + "] on [" + _root + "]" );
+        }
+        
+        fullUpdate();
+        if ( checkout( what ) )
+            return;
+        
+        throw new RuntimeException( "can't find [" + what + "] in [" + _root + "]" );
+    }
+    
     /** Tries a "git pull" on the given directory.
      * @param careAboutError if errors should be logged
      * @return if the pull was successful
@@ -289,6 +328,10 @@ public class GitDir {
 
     SysExec.Result _exec( String cmd , String[] env , String toSend ){
         return SysExec.exec( cmd , env , _root , toSend );
+    }
+
+    public String toString(){
+        return _root.toString();
     }
 
     final File _root;

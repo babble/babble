@@ -265,21 +265,21 @@ public class AppContextHolder {
     }
 
     File getBranch( File root , String subdomain , String siteName ){
-        File f = _getBranch( root , subdomain , siteName );
+        GitDir git = _getBranch( root , subdomain , siteName );
 
         JSObject envConfig = getEnvironmentFromCloud( siteName , subdomain );
         if ( envConfig != null ){
-            GitUtils.fullUpdate( f );
             String branch = envConfig.get( "branch" ).toString() ;
             if ( D ) System.out.println( "\t using branch [" + branch + "]" );
-            _checkout( f , branch );
+            
+            git.findAndSwitchTo( branch );
         }
-
-        return f;
+        
+        return git.getRoot();
     }
 
-    File _getBranch( File root , String subdomain , String siteName ){
-        File test = new File( root , subdomain );
+    GitDir _getBranch( File root , String subdomain , String siteName ){
+        GitDir test = new GitDir( root , subdomain );
         if ( test.exists() )
             return test;
 
@@ -294,21 +294,23 @@ public class AppContextHolder {
                 if ( envConfig != null ){
 
                     if ( D ) System.out.println( "\t found an env in grid" );
-                    if ( ! GitUtils.clone( giturl , root , subdomain ) )
-                        throw new RuntimeException( "couldn't clone [" + siteName + "] from [" + giturl + "]" );
-
-                    _checkout( test , envConfig.get( "branch" ).toString() );
+                    test.clone( giturl );
+                    
+                    String branch = envConfig.get( "branch" ).toString();
+                    if ( ! test.checkout( branch ) )
+                        throw new RuntimeException( "couldn't checkout [" + branch + "] for [" + test + "]" );
+                         
                     return test;
                 }
             }
         }
 
         if ( subdomain.equals( "dev" ) ){
-            test = new File( root , "master" );
+            test = new GitDir( root , "master" );
             if ( test.exists() )
                 return test;
         }
-
+        
         String searchList[] = null;
 
         if ( subdomain.equals( "local" ) )
@@ -318,7 +320,7 @@ public class AppContextHolder {
 
         if ( searchList != null ){
             for ( int i=0; i<searchList.length; i++ ){
-                test = new File( root , searchList[i] );
+                test = new GitDir( root , searchList[i] );
                 if ( test.exists() )
                     return test;
             }
@@ -326,18 +328,6 @@ public class AppContextHolder {
 
         throw new RuntimeException( "can't find environment [" + subdomain + "] in [" + root + "]  siteName [" + siteName + "] found site:" + ( site != null )  );
     }
-
-    static void _checkout( File f , String what ){
-        GitDir gd = new GitDir( f );
-        if ( ! gd.isValid() )
-            throw new RuntimeException( f + " is not a valid git repo" );
-        
-        if ( gd.checkout( what ) )
-            return;
-
-        throw new RuntimeException( "couldn't checkout [" + what + "] for [" + f + "]" );
-    }
-
 
     private synchronized AppContext _getDefaultContext(){
         if ( _defaultWebRoot == null )
