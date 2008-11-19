@@ -6,7 +6,7 @@ export ED_HOME=.
 # TODO get rid of this?
 export TZ=America/New_York
 
-export CLASSPATH=.:build:conf:"$CLASSPATH"
+export CLASSPATH=.:build/jython:build:conf:"$CLASSPATH"
 for j in `find include \( -name webtest -type d \) -prune -o -type f -name '*.jar' -print`; do
     export CLASSPATH="$CLASSPATH":$j
 done
