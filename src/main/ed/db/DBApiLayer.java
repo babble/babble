@@ -247,7 +247,7 @@ public abstract class DBApiLayer extends DBBase {
 
         public JSObject save( JSObject o , boolean shouldApply ){
 
-            if ( SHOW ) System.out.println( "save: " + JSON.serialize( o ) );
+            if ( SHOW ) System.out.println( "save:  " + _fullNameSpace + " " + JSON.serialize( o ) );
 
             if ( shouldApply ){
                 apply( o );
@@ -271,7 +271,7 @@ public abstract class DBApiLayer extends DBBase {
 
         public int remove( JSObject o ){
 
-            if ( SHOW ) System.out.println( "remove: " + JSON.serialize( o ) );
+            if ( SHOW ) System.out.println( "remove: " + _fullNameSpace + " " + JSON.serialize( o ) );
 
             ByteEncoder encoder = ByteEncoder.get();
             encoder._buf.putInt( 0 ); // reserved
@@ -334,7 +334,7 @@ public abstract class DBApiLayer extends DBBase {
 
         public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
 
-            if ( SHOW ) System.out.println( "find: " + JSON.serialize( ref ) );
+            if ( SHOW ) System.out.println( "find: " + _fullNameSpace + " " JSON.serialize( ref ) );
 
             _cleanCursors();
 
@@ -374,7 +374,7 @@ public abstract class DBApiLayer extends DBBase {
         
         public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
 
-            if ( SHOW ) System.out.println( "update: " + JSON.serialize( query ) );
+            if ( SHOW ) System.out.println( "update: " + _fullNameSpace + " " JSON.serialize( query ) );
 
             if ( apply ){
                 apply( o );
