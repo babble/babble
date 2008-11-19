@@ -334,7 +334,7 @@ public abstract class DBApiLayer extends DBBase {
 
         public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
 
-            if ( SHOW ) System.out.println( "find: " + _fullNameSpace + " " JSON.serialize( ref ) );
+            if ( SHOW ) System.out.println( "find: " + _fullNameSpace + " " + JSON.serialize( ref ) );
 
             _cleanCursors();
 
@@ -374,7 +374,7 @@ public abstract class DBApiLayer extends DBBase {
         
         public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
 
-            if ( SHOW ) System.out.println( "update: " + _fullNameSpace + " " JSON.serialize( query ) );
+            if ( SHOW ) System.out.println( "update: " + _fullNameSpace + " " + JSON.serialize( query ) );
 
             if ( apply ){
                 apply( o );
