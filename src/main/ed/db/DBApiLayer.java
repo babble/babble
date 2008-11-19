@@ -329,7 +329,7 @@ public abstract class DBApiLayer extends DBBase {
 
             ByteEncoder encoder = ByteEncoder.get();
 
-            encoder._buf.putInt( 0 ); // reserved
+            encoder._buf.putInt( 0 ); // options
             encoder._put( _fullNameSpace );
 
             encoder._buf.putInt( numToSkip );
