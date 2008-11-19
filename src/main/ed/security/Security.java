@@ -48,6 +48,7 @@ public class Security {
     final static String SECURE[] = new String[]{
         Config.getDataRoot() + "corejs/" ,
         Config.getDataRoot() + "core-modules/admin/",
+        Config.getDataRoot() + "core-modules/cloudsignup/",
         Config.getDataRoot() + "sites/admin/",
         Config.getDataRoot() + "sites/www/",
         Config.getDataRoot() + "sites/grid/",
