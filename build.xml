@@ -59,6 +59,17 @@
       <classpath refid="classpath"/>
     </javac>
 
+    <!--
+       Run a post-process on the Jython @ExposedType classes to generate
+       Jython PyTypes for each Java class we wish to expose. This is the
+       preferred form for making use of these annotations. The process
+       creates inner classes in these classes and generates a whole bunch
+       more classes, so we put them in a new directory which has to come first
+       on the classpath.
+
+       FIXME: delete the old ones, so that we fail immediately if this
+       task doesn't get run.
+      -->
     <taskdef name="expose" classname="org.python.expose.generate.ExposeTask">
       <classpath>
         <path refid="classpath" />
