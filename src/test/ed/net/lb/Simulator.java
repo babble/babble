@@ -44,42 +44,18 @@ public class Simulator {
 
     private static DBBase db;
 
-    public Simulator() 
-        throws IOException {
-
-        // connect to db
-        db = (DBBase)Cloud.getInstance().getScope().get("db");
-
-        // set up local pseudo servers
-        Iterator<JSObject> pools;
-        for( pools = db.getCollection( "pools" ).find(); pools.hasNext(); ) {
-            JSObject pool = pools.next();
-
-            // "machines" should never be null
-            if( pool.get( "machines" ) == null ) 
-                continue;
-
-            // find the port of each machine
-            for( Object o : (JSArray)pool.get( "machines" ) ) {
-                String s = o.toString();
-                int port = Integer.parseInt( s.substring( s.indexOf( ":" ) + 1 ) );
-                if( !_portsUsed.contains( port ) ) {
-                    _servers.add( new HttpServer( port ) );
-                    _portsUsed.add( port );
-                }
-                _basePort = Math.max( port, _basePort );
-            }
+    public static void clearDB() {
+        JSObject empty = new JSObjectBase();
+        if( db == null ) {
+            db = (DBBase)Cloud.getInstance().getScope().get("db");
         }
-
-        // set up router
-        _router = new Router( new GridMapping.Factory() );
+        db.getCollection( "pools" ).remove( empty );
+        db.getCollection( "sites" ).remove( empty );
     }
 
-    public void doStuff() 
+    public static void simulate( InputStreamReader isr ) 
         throws IOException,
                InterruptedException {
-
-        // get db connection
 
         // default strings
         String url = null;
@@ -93,13 +69,14 @@ public class Simulator {
             "p - add/edit/remove pools\n" + 
             "s - add/edit/remove sites\n" +
             "v - view current configuration\n" +
-            "k - kill/raise a server\n" +
+            "k - kill a server\n" +
+            "u - unkill a server\n" +
+            "x - exit\n" +
             "\nWhat would you like to do? ";
         System.out.print( intro );
 
-        InputStreamReader isr = new InputStreamReader( System.in );
         char r;
-        while( ( r = getChar( isr ) ) != -1 ) {
+        while( (short)( r = getChar( isr ) ) != -1 ) {
             switch ( r ) {
             //request
             case 'r' :
@@ -147,7 +124,7 @@ public class Simulator {
                 }
                 while( current < end );
 
-                System.out.println(  );
+                System.out.println();
                 break;
 
             // add/remove pool
@@ -215,8 +192,26 @@ public class Simulator {
                 break;
 
             case 'k' :
-                killAddress( isr );
+                printPools();
+                
+                System.out.print( "which address would you like to kill? " );
+                int port = Integer.parseInt( readOpt( isr, "" ) );
+                
+                System.out.print( "for how long? (ms, leave blank for forever) " );
+                long time = Long.parseLong( readOpt( isr, "0" ) );
+
+                killAddress( port, time );
                 break;
+
+            case 'u' :
+                printPools();
+                System.out.print( "which server would you like to unkill? " );
+                int port2 = Integer.parseInt( readOpt( isr, "0" ) );
+                unkillAddress( port2 );
+                break;
+
+            case 'x' :
+                return;
 
             default :
                 break;
@@ -285,16 +280,12 @@ public class Simulator {
         }
     }
 
-    private static void killAddress( InputStreamReader isr ) 
+    public static void unkillAddress( int port ) {
+        _deadAddresses.remove( new Integer( port ) );
+    }
+
+    public static void killAddress( int port, long time ) 
         throws IOException {
-        printPools();
-
-        System.out.print( "which address would you like to kill? " );
-        int port = Integer.parseInt( readOpt( isr, "" ) );
-
-        System.out.print( "for how long? (ms, leave blank for forever) " );
-        long time = Long.parseLong( readOpt( isr, "0" ) );
-
         Strangler s = new Strangler( port, time );
         s.setDaemon( true );
         s.start();
@@ -369,7 +360,7 @@ public class Simulator {
     private static char getChar( InputStreamReader isr ) 
         throws IOException {
         char r = (char) isr.read();
-        while( r != '\n' && isr.read() != '\n' );
+        while( (short)r != -1 && r != '\n' && isr.read() != '\n' );
         return r;
     }
 
@@ -394,8 +385,38 @@ public class Simulator {
         _timed = true;
         _memTracked = true;
 
-        Simulator sim = new Simulator();
-        sim.doStuff();
+        InputStreamReader isr = new InputStreamReader( System.in );
+
+        // connect to db
+        if( db == null ) {
+            db = (DBBase)Cloud.getInstance().getScope().get("db");
+        }
+
+        // set up local pseudo servers
+        Iterator<JSObject> pools;
+        for( pools = db.getCollection( "pools" ).find(); pools.hasNext(); ) {
+            JSObject pool = pools.next();
+
+            // "machines" should never be null
+            if( pool.get( "machines" ) == null ) 
+                continue;
+
+            // find the port of each machine
+            for( Object o : (JSArray)pool.get( "machines" ) ) {
+                String s = o.toString();
+                int port = Integer.parseInt( s.substring( s.indexOf( ":" ) + 1 ) );
+                if( !_portsUsed.contains( port ) ) {
+                    _servers.add( new HttpServer( port ) );
+                    _portsUsed.add( port );
+                }
+                _basePort = Math.max( port, _basePort );
+            }
+        }
+
+        // set up router
+        _router = new Router( new GridMapping.Factory() );
+
+        simulate( isr );
     }
 
     private static int _port = 8080;
@@ -407,7 +428,7 @@ public class Simulator {
     private static ArrayList<Integer> _deadAddresses = new ArrayList<Integer>();
     private static ArrayList<Integer> _portsUsed = new ArrayList<Integer>();
 
-    private Router _router;
-    private ArrayList<HttpServer> _servers = new ArrayList<HttpServer>();
+    private static Router _router;
+    private static ArrayList<HttpServer> _servers = new ArrayList<HttpServer>();
 }
 

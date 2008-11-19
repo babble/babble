@@ -223,6 +223,9 @@ public abstract class MappingBase implements Mapping {
     }
 
     boolean rejectUrl( String host , String uri ){
+        if ( host == null )
+            return false;
+        
         Set<String> s = _blockedUrls.get( host );
         if ( s == null )
             return false;

@@ -1,0 +1,39 @@
+s (create alleyinsider site)
+alleyinsider
+dev
+dev1
+
+www
+prod1
+
+test
+test1
+y
+www.test
+
+
+p (pool creation)
+prod1
+2
+14521
+request with both servers up
+www.alleyinsider.local.10gen.com
+100
+4000
+k
+14521
+3000
+request with one server down
+www.alleyinsider.local.10gen.com
+100
+4000
+k
+14521
+3000
+k
+14522
+3000
+request with both servers down
+www.alleyinsider.local.10gen.com
+1000
+40000

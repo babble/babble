@@ -20,6 +20,8 @@ public abstract class DBApiLayer extends DBBase {
     static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
     /** The maximum number of cursors allowed */
     static final int NUM_CURSORS_BEFORE_KILL = 100;
+    
+    static final boolean SHOW = Boolean.getBoolean( "DB.SHOW" );
 
     /** Initializes a new API layer for a database with a given name.
      * @param root name of the database
@@ -244,6 +246,9 @@ public abstract class DBApiLayer extends DBBase {
         }
 
         public JSObject save( JSObject o , boolean shouldApply ){
+
+            if ( SHOW ) System.out.println( "save:  " + _fullNameSpace + " " + JSON.serialize( o ) );
+
             if ( shouldApply ){
                 apply( o );
                 ((ObjectId)o.get( "_id" ) )._new = false;
@@ -265,6 +270,9 @@ public abstract class DBApiLayer extends DBBase {
         }
 
         public int remove( JSObject o ){
+
+            if ( SHOW ) System.out.println( "remove: " + _fullNameSpace + " " + JSON.serialize( o ) );
+
             ByteEncoder encoder = ByteEncoder.get();
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );
@@ -325,6 +333,9 @@ public abstract class DBApiLayer extends DBBase {
         }
 
         public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
+
+            if ( SHOW ) System.out.println( "find: " + _fullNameSpace + " " + JSON.serialize( ref ) );
+
             _cleanCursors();
 
             ByteEncoder encoder = ByteEncoder.get();
@@ -360,8 +371,11 @@ public abstract class DBApiLayer extends DBBase {
 
             return new Result( this , res , numToReturn );
         }
-
+        
         public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
+
+            if ( SHOW ) System.out.println( "update: " + _fullNameSpace + " " + JSON.serialize( query ) );
+
             if ( apply ){
                 apply( o );
                 ObjectId id = ((ObjectId)o.get( "_id" ));
