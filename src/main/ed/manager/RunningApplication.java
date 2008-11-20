@@ -161,6 +161,7 @@ public class RunningApplication extends Thread {
     
     private void _kill(){
         final Process p = _process;
+        _done = true;
 
         if ( p == null )
             return;
