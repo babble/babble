@@ -479,7 +479,7 @@ module XGen
           str.gsub(/:(\w+)/) do
             match = $1.to_sym
             if h.include?(match)
-              quote(h[match])
+              quoted_bind_var(h[match])
             else
               raise PreparedStatementInvalid, "missing value for :#{match} in #{str}" # TODO this gets swallowed in find()
             end
@@ -489,7 +489,16 @@ module XGen
         def replace_bind_variables(str, values) # :nodoc:
           raise "parameter count does not match value count" unless str.count('?') == values.length
           bound = values.dup
-          str.gsub('?') { quote(bound.shift) }
+          str.gsub('?') { quoted_bind_var(bound.shift) }
+        end
+
+        def quoted_bind_var(val) # :nodoc:
+          case val
+          when Array
+            "(#{val.collect{|v| quote(v)}.join(',')})"
+          else
+            quote(val)
+          end
         end
 
         # Returns value quoted if appropriate (if it's a string).

@@ -22,6 +22,7 @@ import java.util.*;
 
 import org.jruby.*;
 import org.jruby.ast.Node;
+import org.jruby.internal.runtime.GlobalVariables;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -238,14 +239,29 @@ class RuntimeEnvironment {
 
 
     /**
-     * Set Ruby's $stdin and $stdout so that reading and writing go to the
-     * right place.
+     * Set Ruby's $stdin, $stdout, STDIN, and STDOUT so that reading and
+     * writing go to the right place.
      */
     protected void setIO(InputStream stdin, OutputStream stdout) {
-        if (stdin != null)
-            runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
-        if (stdout != null)
-            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
+        GlobalVariables gvars = runtime.getGlobalVariables();
+
+        /* Ignore warnings about redefining STDIN and STDOUT by sending
+         * $stderr to a dummy output stream. */
+        IRubyObject oldStderr = gvars.get("$stderr");
+        gvars.set("$stderr", new RubyIO(runtime, new ByteArrayOutputStream()));
+
+        if (stdin != null)  {
+            RubyIO rstdin = new RubyIO(runtime, stdin);
+            runtime.getObject().setConstant("STDIN", rstdin);
+            gvars.set("$stdin", rstdin);
+        }
+        if (stdout != null) {
+            RubyIO rstdout = new RubyIO(runtime, stdout);
+            runtime.getObject().setConstant("STDOUT", rstdout);
+            gvars.set("$stdout", rstdout);
+        }
+
+        gvars.set("$stderr", oldStderr);
     }
 
     /**

@@ -468,6 +468,18 @@ EOS
     assert str.include?('King For A Day')
   end
 
+  def test_in_array
+    str = Track.find(:all, :conditions => ["song in ?", [@mayor_song, 'King For A Day']]).inject('') { |str, t| str + t.to_s }
+    assert str.include?(@mayor_song)
+    assert str.include?('King For A Day')
+  end
+
+  def test_in_named_array
+    str = Track.find(:all, :conditions => ["song in :songs", {:songs => [@mayor_song, 'King For A Day']}]).inject('') { |str, t| str + t.to_s }
+    assert str.include?(@mayor_song)
+    assert str.include?('King For A Day')
+  end
+
   def test_where
     str = Track.find(:all, :where => "function() { return obj.song == '#{@mayor_song}'; }").inject('') { |str, t| str + t.to_s }
     assert_equal @mayor_str, str
