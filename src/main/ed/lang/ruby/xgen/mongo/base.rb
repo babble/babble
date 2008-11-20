@@ -156,6 +156,15 @@ module XGen
           end
         end
 
+        # Tells Mongo that this object has and many belongs to another object.
+        # A no-op.
+        def has_and_belongs_to_many(name, options={})
+        end
+
+        # Tells Mongo that this object belongs to another. A no-op.
+        def belongs_to(name, options={})
+        end
+
         # The collection object.
         def coll
           @coll ||= $db[@coll_name.to_s]
