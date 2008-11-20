@@ -95,6 +95,10 @@ public class AppContextHolder {
                     IdentitySet seen = new IdentitySet();
 		    
                     for ( AppContext ac : all ){
+                        
+                        if ( ac == null )
+                            continue;
+
                         mr.startData( ac.getName() + ":" + ac.getEnvironmentName() );
                         mr.addData( "Num Requests" , ac._numRequests );
                         mr.addData( "Created" , ac._created );
