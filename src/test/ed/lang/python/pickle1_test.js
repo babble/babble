@@ -28,4 +28,6 @@ jsObj = {
   attribute : 'value'
 };
 
+jsObjectId = ObjectId();
+
 local.src.test.ed.lang.python.pickle1_helper();
