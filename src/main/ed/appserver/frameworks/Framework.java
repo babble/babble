@@ -38,7 +38,7 @@ public abstract class Framework {
      *
      * @param name name of framework to configure
      * @param version of named framework to use
-     * @return framewok object for the given name and version
+     * @return framework object for the given name and version
      */
     public static Framework byName(String name, String version) {
         if (name == null) {
@@ -51,7 +51,7 @@ public abstract class Framework {
     /**
      *   Load a framework by custom class.  The class must be in the appserver classpath,
      *   and must extend Framework
-     * 
+     *
      * @param classname name of class to use
      * @return instantiated framework class
      */
