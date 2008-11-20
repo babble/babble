@@ -38,6 +38,7 @@
       <class name="ed.lang.python.PythonResetTest" />
       <class name="ed.lang.python.PythonFileTest" />
       <class name="ed.manager.ManagerTest" />
+      <class name="ed.manager.RunningApplicationTest" />
       <class name="ed.net.CookieJarTest" />
       <class name="ed.net.httpserver.PostDataInMemoryTest"/>
       <class name="ed.appserver.framework.AppContextFrameworkTest"/>

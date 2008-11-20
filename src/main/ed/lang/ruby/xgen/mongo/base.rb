@@ -14,30 +14,8 @@
 
 require 'xgen/mongo/oid'
 require 'xgen/mongo/cursor'
+require 'xgen/mongo/convert'
 require 'xgen/sql'
-
-class Object
-  def to_mongo_value
-    self
-  end
-end
-class Array
-  def to_mongo_value
-    self.collect {|v| v.to_mongo_value}
-  end
-end
-class JSFunction
-  def to_mongo_value
-    self
-  end
-end
-class Hash
-  def to_mongo_value
-    h = {}
-    self.each {|k,v| h[k] = v.to_mongo_value}
-    h
-  end
-end
 
 module XGen
 
@@ -563,6 +541,11 @@ module XGen
           end
         end
 
+        # Overwrite the default class equality method to provide support for association proxies.
+        def ===(object)
+          object.is_a?(self)
+        end      
+
       end                       # End of class methods
 
       public
@@ -597,6 +580,26 @@ module XGen
       def id=(val); @_id = (val == '' ? nil : val); end
       # You'll get a deprecation warning if you call this outside of Rails.
       def id; @_id ? @_id.to_s : nil; end
+
+      # Returns true if the +comparison_object+ is the same object, or is of
+      # the same type and has the same id.
+      def ==(comparison_object)
+        comparison_object.equal?(self) ||
+          (comparison_object.instance_of?(self.class) && 
+            comparison_object.id == id && 
+            !comparison_object.new_record?)
+      end
+
+      # Delegates to ==
+      def eql?(comparison_object)
+        self == (comparison_object)
+      end
+
+      # Delegates to id in order to allow two records of the same type and id to work with something like:
+      #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
+      def hash
+        id.hash
+      end
 
       # Rails convenience method.
       def to_param

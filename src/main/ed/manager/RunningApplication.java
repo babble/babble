@@ -119,8 +119,8 @@ public class RunningApplication extends Thread {
         stderr.join();
         
         log.close();
-            
-        return _process.waitFor();
+
+        return _done ? _exitValue : _process.waitFor();
     }
 
     void restart(){
@@ -161,6 +161,7 @@ public class RunningApplication extends Thread {
     
     private void _kill(){
         final Process p = _process;
+        _done = true;
 
         if ( p == null )
             return;
@@ -180,14 +181,13 @@ public class RunningApplication extends Thread {
             return;
         }
         
-        if ( SysExec.waitFor( p , _app.timeToShutDown() + 300 ) ){
+        if ( ( _exitValue = SysExec.waitFor( p , _app.timeToShutDown() + 300, true ) ) == 0 ){
             _logger.info( "shutdown cleanly" );
             return;
         }
 
         _logger.error( "didn't shutdown.  destroying" );
         _destroy();
-
     }
     
     private void _destroy(){
@@ -196,11 +196,13 @@ public class RunningApplication extends Thread {
         
         try {
             _process.destroy();
+            _exitValue = _process.exitValue();
         }
         catch ( Exception e ){
             _logger.error( "destory had an error" , e );
         }
         _process = null;
+        _done = true;
     }
 
     public int hashCode(){
@@ -266,6 +268,7 @@ public class RunningApplication extends Thread {
     private Process _process;
     private long _lastStart;
     private int _timesStarted = 0;
+    private int _exitValue = 0;
 
     class OutputLine {
         OutputLine( String line , boolean out ){
