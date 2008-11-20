@@ -469,23 +469,22 @@ Cloud.Site.prototype.getGitBranchNames = function( force , sortFunc ){
     var base = javaCreate( "java.io.File" , "/data/tmp/externalgit/" );
     base.mkdirs();
     var root = javaCreate( "java.io.File" , base , this.name );
+
+    var git = javaCreate( "ed.git.GitDir" , root );
     
-    if ( root.exists() ){
-        var conf = javaStatic( "ed.util.GitUtils" , "readConfig" , root );
+    if ( git.exists() ){
+        var conf = git.readConfig();
         if ( conf.remote.origin.url != this.giturl ){
             log.git.info( "giturl changed for site [" + this.name + "]  was [" + conf.remote.origin.url + "] now is [" + this.giturl + "]" );
             javaStatic( "ed.io.FileUtil" , "deleteDirectory" , root );
         }
     }
     
-    if ( ! root.exists() ){
+    if ( ! git.exists() ){
         var msg = "clone [" + this.giturl + "] to [" + root + "]";
         
         log.git.info( msg );
-        if ( ! javaStatic( "ed.util.GitUtils" , "clone" , this.giturl , base , this.name ) ){
-            log.git.error( "failed " + msg );
-            throw "couldn't " + msg;
-        }
+        git.clone( this.giturl );
         force = true;
     }
     
@@ -503,11 +502,11 @@ Cloud.Site.prototype.getGitBranchNames = function( force , sortFunc ){
 
     if ( force ){
         log.git.info( " doing full update for [" + this.name + "]" );
-        javaStatic( "ed.util.GitUtils" , "fullUpdate" , root );
+        git.fullUpdate();
         ts.setLastModified( now.getTime() );
     }
     
-    return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root ).sort( sortFunc || Cloud.Git.tagNameSortFunc );
+    return git.getAllBranchAndTagNames().sort( sortFunc || Cloud.Git.tagNameSortFunc );
 };
 
 Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun ){

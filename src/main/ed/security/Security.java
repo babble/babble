@@ -55,11 +55,12 @@ public class Security {
         Config.getDataRoot() + "sites/modules/",
         "lastline",
         "src/main/ed/",
+        "src/test/ed/",
         "/home/yellow/code_for_hudson/",
         new File( "src/test/ed/" ).getAbsolutePath(),
         "./src/test/ed/lang/python/", // FIXME?
         Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed",
-            "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
+        "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
     };
 
     public static boolean isCoreJS(){

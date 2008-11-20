@@ -106,6 +106,7 @@ public class PythonJxpSource extends JxpSource implements Sizable {
         ss.ensurePath( lib.getRoot().getAbsolutePath() );
         ss.ensurePath( lib.getTopParent().getRoot().getAbsolutePath() );
 
+        PyObject oldMain = ss.getPyState().modules.__finditem__( Py.newString( "__main__" ) );
         PyObject result = null;
 
         try {
@@ -127,16 +128,7 @@ public class PythonJxpSource extends JxpSource implements Sizable {
                    We already set a reasonable __file__, so whatever */
             }
 
-            String name;
-            if (main) {
-                name = "__main__";
-            } else {
-                // FIXME: Needs to use path info, so foo/bar.py -> foo.bar
-                // Right now I only want this for _init.py
-                name = file.getName();
-                if( name.endsWith( ".py" ) )
-                    name = name.substring( 0 , name.length() - 3 );
-            }
+            String name = "__main__";
 
             /*
              * In order to track dependencies, we need to know what module is doing imports
@@ -144,13 +136,17 @@ public class PythonJxpSource extends JxpSource implements Sizable {
              */
             PyModule module = new PyModule( name , globals );
 
+            ss.getPyState().modules.__setitem__( Py.newString( "__main__" ) , module );
+
             PyObject locals = module.__dict__; // FIXME: locals == globals ?
             result = Py.runCode( code, locals, globals );
-            if( ac != null ) ss.addRecursive( "_init" , ac );
+            if( file.toString().endsWith( "_init.py" ) )
+                ss.addRecursive( "__main__" , ac );
         }
         finally {
             Py.setSystemState( pyOld );
             ss.removePath( file.getParent() );
+            ss.getPyState().modules.__setitem__( Py.newString( "__main__" ) , oldMain );
         }
         return result;
     }

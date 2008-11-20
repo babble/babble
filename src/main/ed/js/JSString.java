@@ -527,7 +527,7 @@ public class JSString extends JSObjectBase implements Comparable {
                                         end++;
 
                                     int num = Integer.parseInt( foo.substring( i , end ) );
-                                    buf.append( m.group( num ) );
+                                    buf.append( m.group( num ) == null ? "" : m.group( num ) );
 
                                     i = end - 1;
                                 }

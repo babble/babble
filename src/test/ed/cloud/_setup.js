@@ -6,8 +6,8 @@ function checkDB( name , length ){
     if ( Cloud.findDBByName( name ) )
         return;
 
-    assert.eq( length , db.dbs.find().toArray().length , "no [" + name + "] db, but lengths don't match for creating new one" );
-
+    assert.eq( length , db.dbs.find().toArray().length , "no [" + name + "] db, but lengths don't match for creating new one.  existing:"  + db.dbs.find().toArray().map( function(z){ return z.name; } ) );
+    
     log( "adding fake db [" + name + "]" );
     db.dbs.save( { name : name , type : "TEST" , server : "FAKE" } );
 }
