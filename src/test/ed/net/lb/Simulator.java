@@ -33,6 +33,7 @@ import ed.js.JSArray;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.net.DNSUtil;
+import ed.net.httpserver.DummyHttpResponse;
 import ed.net.httpserver.HttpRequest;
 import ed.net.httpserver.HttpResponse;
 import ed.net.httpserver.HttpServer;
@@ -94,35 +95,7 @@ public class Simulator {
                 System.out.print( "\tfor: (ms) " );
                 totalTime = Long.parseLong( readOpt( isr, totalTime+"" ) );
 
-                HttpRequest request = HttpRequest.getDummy( url, "Host: "+url );
-
-                _cal = Calendar.getInstance();
-                long current = _cal.getTimeInMillis();
-                long end = current + totalTime;
-                do {
-                    InetSocketAddress addr = _router.chooseAddress( request, false );
-                    System.out.println( "chosen address: "+addr );
-                    if( addr == null ) {
-                        System.out.println( "no viable server found." );
-                    }
-                    else if( _deadAddresses.contains( addr.getPort() ) ) {
-                        _router.error( request, 
-                                       (HttpResponse)null, 
-                                       addr, 
-                                       NIOClient.ServerErrorType.SOCK_TIMEOUT, 
-                                       new RuntimeException( "faking pool outage at " + addr ) );
-                    }
-                    else {
-                        _router.success( request, (HttpResponse)null, addr );
-                    }
-
-                    try { Thread.sleep( interval ); }
-                    catch( InterruptedException e ) {}
-
-                    _cal = Calendar.getInstance();
-                    current = _cal.getTimeInMillis();
-                }
-                while( current < end );
+                sendRequest( url, interval, totalTime );
 
                 System.out.println();
                 break;
@@ -195,7 +168,7 @@ public class Simulator {
                 printPools();
                 
                 System.out.print( "which address would you like to kill? " );
-                int port = Integer.parseInt( readOpt( isr, "" ) );
+                int port = Integer.parseInt( readOpt( isr, "0" ) );
                 
                 System.out.print( "for how long? (ms, leave blank for forever) " );
                 long time = Long.parseLong( readOpt( isr, "0" ) );
@@ -355,6 +328,38 @@ public class Simulator {
         pool.set( "name", name );
 
         return pool;
+    }
+
+    public static void sendRequest( String url, long interval, long totalTime ) {
+        HttpRequest request = HttpRequest.getDummy( url, "Host: "+url );
+
+        _cal = Calendar.getInstance();
+        long current = _cal.getTimeInMillis();
+        long end = current + totalTime;
+        do {
+            InetSocketAddress addr = _router.chooseAddress( request, false );
+            System.out.println( "chosen address: "+addr );
+            if( addr == null ) {
+                System.out.println( "no viable server found." );
+            }
+            else if( _deadAddresses.contains( addr.getPort() ) ) {
+                _router.error( request, 
+                               new DummyHttpResponse( request, true ), 
+                               addr, 
+                               NIOClient.ServerErrorType.SOCK_TIMEOUT, 
+                               new RuntimeException( "faking pool outage at " + addr ) );
+            }
+            else {
+                _router.success( request, new DummyHttpResponse( request, false ), addr );
+            }
+
+            try { Thread.sleep( interval ); }
+            catch( InterruptedException e ) {}
+
+            _cal = Calendar.getInstance();
+            current = _cal.getTimeInMillis();
+        }
+        while( current < end );
     }
 
     private static char getChar( InputStreamReader isr ) 
