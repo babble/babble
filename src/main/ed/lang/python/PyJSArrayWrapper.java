@@ -78,6 +78,18 @@ public class PyJSArrayWrapper extends PyList {
     }
 
     @ExposedMethod
+    public PyObject jsarraywrapper___reduce_ex__(int version){
+        PyObject arguments = new PyTuple();
+        PyObject state = Py.None;
+        PyObject iterator = __iter__();
+        return new PyTuple( PyList.TYPE , arguments , state , iterator );
+    }
+
+    public PyObject __iter__(){
+        return jsarraywrapper___iter__();
+    }
+
+    @ExposedMethod
     public PyObject jsarraywrapper___iter__(){
         return new PySequenceIter( this );
     }
