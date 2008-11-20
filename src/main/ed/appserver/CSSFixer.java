@@ -50,6 +50,25 @@ public class CSSFixer {
 
     }
 
+    /**
+     * Remove quotes surrounding a url in a CSS url() declaration.
+     *
+     * @see <a href="http://www.w3.org/TR/CSS2/syndata.html#uri">CSS Spec</a>
+     */
+    private String removeSurroundingQuotes(String url) {
+        url = url.trim();
+        if (url.startsWith("'")) {
+            if (url.endsWith("'")) {
+                url = url.substring(1, url.length() - 1);
+            }
+        } else if (url.startsWith("\"")) {
+            if (url.endsWith("\"")) {
+                url = url.substring(1, url.length() - 1);
+            }
+        }
+        return url;
+    }
+
     public Appendable fix( String line , Appendable out )
         throws IOException {
 
@@ -71,6 +90,7 @@ public class CSSFixer {
             out.append( line.substring( 0 , idx + 4 ) );
 
             String url = line.substring( idx + 4 , end );
+            url = removeSurroundingQuotes(url);
             _fixer.fix( url , out );
 
             line = line.substring( end );
