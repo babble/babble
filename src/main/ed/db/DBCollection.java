@@ -600,12 +600,27 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
             
             JSObject n = toSearch.remove(0);
             for ( String name : n.keySet( false ) ){
-                Object foo = n.get( name );
+                Object foo;
+                
+                if ( n.getClass() == JSObjectBase.class ){
+                    foo = ((JSObjectBase)n)._simpleGet( name );
+                }
+                else {
+                    foo = n.get( name );
+                }
+                
                 if ( foo == null )
                     continue;
-
+                
                 if ( ! ( foo instanceof JSObject ) )
                     continue;
+                
+                if ( foo instanceof DBRef ){
+                    DBRef ref = (DBRef)foo;
+                    if ( ! ref.isDirty() )
+                        continue;
+                    foo = ref.getRealObject();
+                }
 
                 if ( foo instanceof JSFunction )
                     continue;
@@ -615,12 +630,14 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                      || foo instanceof JSDate )
 		    continue;
                 
-                if ( foo instanceof DBCollection )
+                if ( foo instanceof DBCollection || 
+                     foo instanceof DBBase )
                     continue;
                 
                 JSObject e = (JSObject)foo;
                 if ( e instanceof JSObjectBase )
                     ((JSObjectBase)e).prefunc();
+
                 if ( n.get( name ) == null )
                     continue;
 
