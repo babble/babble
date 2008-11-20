@@ -50,6 +50,7 @@ public class SiteSystemState implements Sizable {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SITESYSTEMSTATE" );
     static final String COREMODULES_STRING = "COREMODULES_10GEN";
     static final String CORE_MODULES_MARKER = "I AM IN A CORE MODULE";
+    static final String VIRTUAL_MODULE = "<10gen_virtual>";
 
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
@@ -375,7 +376,7 @@ public class SiteSystemState implements Sizable {
                 int period = modName.indexOf('.');
                 String path = modName.substring( period + 1 );
                 path = path.replaceAll( "\\." , "/" );
-                return new JSLibraryLoader( _core, path );
+                return new JSLibraryLoader( (JSFileLibrary)_core, path );
             }
 
             if( DEBUG ){
@@ -419,7 +420,7 @@ public class SiteSystemState implements Sizable {
             PyObject __path__ = mod.__findattr__( "__path__".intern() );
             if( __path__ != null ) return mod; // previously imported
 
-            mod.__setattr__( "__file__".intern() , new PyString( "<10gen_virtual>" ) );
+            mod.__setattr__( "__file__".intern() , new PyString( VIRTUAL_MODULE ) );
             mod.__setattr__( "__loader__".intern() , this );
             PyList pathL = new PyList( PyString.TYPE );
             pathL.append( new PyString( _root.getRoot().toString() ) );
@@ -431,9 +432,9 @@ public class SiteSystemState implements Sizable {
 
     @ExposedType(name="_10gen_module_js_loader")
     public class JSLibraryLoader extends PyObject {
-        JSLibrary _root;
+        JSFileLibrary _root;
         String _path;
-        public JSLibraryLoader( JSLibrary root , String path ){
+        public JSLibraryLoader( JSFileLibrary root , String path ){
             _root = root;
             _path = path;
         }
@@ -456,7 +457,7 @@ public class SiteSystemState implements Sizable {
                 run( mod , (JSFunction)o );
             }
 
-            mod.__setattr__( "__file__".intern() , new PyString( _root + ":" + _path ) );
+            mod.__setattr__( "__file__".intern() , new PyString( _root.getFileFromPath( _path ).toString() ) );
             mod.__setattr__( "__path__".intern() , pathL );
             mod.__setattr__( "__name__".intern() , pyName );
             return mod;

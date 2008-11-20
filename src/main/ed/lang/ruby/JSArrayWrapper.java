@@ -20,7 +20,6 @@ import java.lang.reflect.Array;
 import java.util.*;
 
 import org.jruby.*;
-import org.jruby.internal.runtime.methods.DynamicMethod;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -45,12 +44,12 @@ public class JSArrayWrapper extends JSArray {
 
     private Scope _scope;
     private RubyArray _rarray;
-    private RubyModule _xgenModule; // cached copy for quick access
+    private WrappedRuby _wrappedRuby;
 
     public JSArrayWrapper(Scope scope, RubyArray rarray) {
         _scope = scope;
         _rarray = rarray;
-        _xgenModule = _rarray.getRuntime().getOrCreateModule(RuntimeEnvironment.XGEN_MODULE_NAME);
+        _wrappedRuby = new WrappedRuby(rarray);
     }
 
     public RubyObject getRubyObject() { return _rarray; }
@@ -58,51 +57,6 @@ public class JSArrayWrapper extends JSArray {
     protected Ruby getRuntime() { return _rarray.getRuntime(); }
 
     protected ThreadContext context() { return _rarray.getRuntime().getCurrentContext(); }
-
-    protected IRubyObject ivarName(Object key) {
-        String str = key.toString();
-        if (!str.startsWith("@"))
-            str = "@" + str;
-        return getRuntime().newString(str);
-    }
-
-    /**
-     * Returns <code>true</code> if the metaclass of _rarray has a method named
-     * <var>name</var> and it is not implemented only in the XGen module. In
-     * other words, we want to return <code>true</code> if the method exists
-     * but it is not a top-level JavaScript method that was imported early on
-     * (either it is not a JS method or it was overridden).
-     */
-    protected boolean respondsToAndIsNotXGen(String name) {
-        if (!_rarray.respondsTo(name))
-            return false;
-        DynamicMethod dm = _rarray.getMetaClass().searchMethod(name);
-        return !dm.getImplementationClass().equals(_xgenModule);
-    }
-
-    protected void _removeIvarIfExists(String skey) {
-        IRubyObject name = ivarName(skey);
-        if (_rarray.instance_variable_defined_p(context(), name).isTrue())
-            _rarray.remove_instance_variable(context(), name, Block.NULL_BLOCK);
-        _removeMethodIfExists(skey);
-        _removeMethodIfExists(skey + "=");
-    }
-
-    protected void _removeMethodIfExists(String skey) {
-        if (respondsToAndIsNotXGen(skey)) {
-            ThreadContext context = context();
-            IRubyObject[] names = new IRubyObject[] {getRuntime().newString(skey)};
-            try {
-                _rarray.getSingletonClass().remove_method(context, names);
-            }
-            catch (Exception e) {
-                try {
-                    _rarray.type().remove_method(context, names);
-                }
-                catch (Exception e2) {}
-            }
-        }
-    }
 
     /** See {@link JSArray#set} */
     public Object set(Object n, Object v) {
@@ -129,11 +83,11 @@ public class JSArrayWrapper extends JSArray {
         if (_rarray.respondsTo(skey))
             return toJS(_scope, _rarray.callMethod(context(), skey, JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK));
         else if (skey.equals("_id")) {
-            IRubyObject val = _rarray.instance_variable_get(context(), ivarName(skey));
+            IRubyObject val = _rarray.instance_variable_get(context(), _wrappedRuby.ivarName(skey));
             return (val == null || val.isNil()) ? toJS(_scope, null) : new ObjectId(val.toString());
         }
         else if (skey.startsWith("_")) // Assume it's an internal field; return the ivar value
-            return toJS(_scope, _rarray.instance_variable_get(context(), ivarName(skey)));
+            return toJS(_scope, _rarray.instance_variable_get(context(), _wrappedRuby.ivarName(skey)));
         else
             return toJS(_scope, null);
     }
@@ -328,8 +282,8 @@ public class JSArrayWrapper extends JSArray {
         int i = _getInt(n);
         if (i < 0) {
             Object o = get(n);
-            _removeIvarIfExists(n.toString());
-            _removeMethodIfExists(n.toString());
+            _wrappedRuby.removeIvarIfExists(n.toString());
+            _wrappedRuby.removeMethodIfExists(n.toString());
             return o;
         }
         if (i >= _rarray.getLength())
@@ -357,7 +311,7 @@ public class JSArrayWrapper extends JSArray {
             return i < _rarray.getLength();
 
         return _rarray.hasInstanceVariable("@" + s) ||
-            respondsToAndIsNotXGen(s);
+            _wrappedRuby.respondsToAndIsNotXGen(s);
     }
 
     public Set<String> keySet(boolean includePrototype) {
@@ -375,7 +329,7 @@ public class JSArrayWrapper extends JSArray {
 
         if (includePrototype)
             for (Object name : ((RubyArray)_rarray.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)))
-                if (respondsToAndIsNotXGen(name.toString()))
+                if (_wrappedRuby.respondsToAndIsNotXGen(name.toString()))
                     names.add(name.toString());
 
         return names;
@@ -391,7 +345,7 @@ public class JSArrayWrapper extends JSArray {
     }
 
     public JSFunction getFunction(String name) {
-        if (respondsToAndIsNotXGen(name))
+        if (_wrappedRuby.respondsToAndIsNotXGen(name))
             return (JSFunction)toJS(_scope, _rarray.method(getRuntime().newString(name)));
         else
             return null;

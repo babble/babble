@@ -19,7 +19,6 @@ package ed.lang.ruby;
 import java.util.*;
 
 import org.jruby.*;
-import org.jruby.internal.runtime.methods.DynamicMethod;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -44,68 +43,23 @@ public class JSObjectWrapper implements JSObject {
 
     private Scope _scope;
     private RubyObject _robj;
-    private RubyModule _xgenModule; // cached copy for quick access
+    private WrappedRuby _wrappedRuby;
 
     public JSObjectWrapper(Scope scope, RubyObject robj) {
         _scope = scope;
         _robj = robj;
-        _xgenModule = _robj.getRuntime().getOrCreateModule(RuntimeEnvironment.XGEN_MODULE_NAME);
+        _wrappedRuby = new WrappedRuby(robj);
     }
 
     public RubyObject getRubyObject() { return _robj; }
 
     protected ThreadContext context() { return _robj.getRuntime().getCurrentContext(); }
 
-    protected IRubyObject ivarName(Object key) {
-        String str = key.toString();
-        if (!str.startsWith("@"))
-            str = "@" + str;
-        return _robj.getRuntime().newString(str);
-    }
-
-    /**
-     * Returns <code>true</code> if the metaclass of _robj has a method named
-     * <var>name</var> and it is not implemented only in the XGen module. In
-     * other words, we want to return <code>true</code> if the method exists
-     * but it is not a top-level JavaScript method that was imported early on
-     * (either it is not a JS method or it was overridden).
-     */
-    protected boolean respondsToAndIsNotXGen(String name) {
-        if (!_robj.respondsTo(name))
-            return false;
-        DynamicMethod dm = _robj.getMetaClass().searchMethod(name);
-        return !dm.getImplementationClass().equals(_xgenModule);
-    }
-
-    protected void _removeIvarIfExists(String skey) {
-        IRubyObject name = ivarName(skey);
-        if (_robj.instance_variable_defined_p(context(), name).isTrue())
-            _robj.remove_instance_variable(context(), name, Block.NULL_BLOCK);
-        _removeMethodIfExists(skey);
-        _removeMethodIfExists(skey + "=");
-    }
-
-    protected void _removeMethodIfExists(String skey) {
-        if (respondsToAndIsNotXGen(skey)) {
-            ThreadContext context = context();
-            IRubyObject[] names = new IRubyObject[] {_robj.getRuntime().newString(skey)};
-            try {
-                _robj.getSingletonClass().remove_method(context, names);
-            }
-            catch (Exception e) {
-                try {
-                    _robj.type().remove_method(context, names);
-                }
-                catch (Exception e2) {}
-            }
-        }
-    }
-
     public Object set(Object n, Object v) {
         String skey = n.toString();
 
         if ("_id".equals(skey) && v instanceof ObjectId) // needed so database can update object's id on save
-            _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v.toString()));
+            _robj.instance_variable_set(_wrappedRuby.ivarName(n), toRuby(_scope, _robj.getRuntime(), v.toString()));
         else if (isCallableJSFunction(v)) {
             toRuby(_scope, _robj.getRuntime(), (JSFunction)v, skey, _robj, this); // attaches method to eigenclass of _robj
         }
@@ -114,7 +68,7 @@ public class JSObjectWrapper implements JSObject {
             if (_robj.respondsTo(skey))
                 return toJS(_scope, _robj.callMethod(context(), skey, new IRubyObject[] {toRuby(_scope, _robj.getRuntime(), v, skey, _robj)}, Block.NULL_BLOCK));
             else if (skey.startsWith("_")) // Assume it's an internal field; let it set the ivar
-                return toJS(_scope, _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v)));
+                return toJS(_scope, _robj.instance_variable_set(_wrappedRuby.ivarName(n), toRuby(_scope, _robj.getRuntime(), v)));
             else
                 throw new IllegalArgumentException("no such method: " + skey);
         }
@@ -126,11 +80,11 @@ public class JSObjectWrapper implements JSObject {
         if (_robj.respondsTo(skey))
             return toJS(_scope, _robj.callMethod(context(), skey, JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK));
         else if (skey.equals("_id")) {
-            IRubyObject val = _robj.instance_variable_get(context(), ivarName(skey));
+            IRubyObject val = _robj.instance_variable_get(context(), _wrappedRuby.ivarName(skey));
             return (val == null || val.isNil()) ? toJS(_scope, null) : new ObjectId(val.toString());
         }
         else if (skey.startsWith("_")) // Assume it's an internal field; return the ivar value
-            return toJS(_scope, _robj.instance_variable_get(context(), ivarName(skey)));
+            return toJS(_scope, _robj.instance_variable_get(context(), _wrappedRuby.ivarName(skey)));
         else
             return toJS(_scope, null);
     }
@@ -145,8 +99,8 @@ public class JSObjectWrapper implements JSObject {
 
     public Object removeField(Object n) {
         Object o = get(n);
-        _removeIvarIfExists(n.toString());
-        _removeMethodIfExists(n.toString());
+        _wrappedRuby.removeIvarIfExists(n.toString());
+        _wrappedRuby.removeMethodIfExists(n.toString());
         return o;
     }
 
@@ -158,7 +112,7 @@ public class JSObjectWrapper implements JSObject {
 
     public boolean containsKey(String s, boolean includePrototype) {
         return _robj.hasInstanceVariable("@" + s) ||
-            respondsToAndIsNotXGen(s);
+            _wrappedRuby.respondsToAndIsNotXGen(s);
     }
 
     public Set<String> keySet() {
@@ -177,7 +131,7 @@ public class JSObjectWrapper implements JSObject {
 
         if (includePrototype)
             for (Object name : ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)))
-                if (respondsToAndIsNotXGen(name.toString()))
+                if (_wrappedRuby.respondsToAndIsNotXGen(name.toString()))
                     names.add(name.toString());
         return names;
     }
@@ -192,7 +146,7 @@ public class JSObjectWrapper implements JSObject {
     }
 
     public JSFunction getFunction(String name) {
-        if (respondsToAndIsNotXGen(name))
+        if (_wrappedRuby.respondsToAndIsNotXGen(name))
             return (JSFunction)toJS(_scope, _robj.method(_robj.getRuntime().newString(name)));
         else
             return null;
