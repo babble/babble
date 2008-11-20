@@ -186,21 +186,30 @@ public class HttpServer extends NIOServer {
             catch ( IOException ioe ){
                 throw ioe;
             }
+            catch ( HttpExceptions.BadRequest br ){
+                _handleError( br.getResponseCode() , br.getBodyContent() , br );
+            }
             catch ( RuntimeException re ){
                 LOGGER.error( "_gotData error" , re );
-                
-                if ( _lastRequest == null )
-                    throw re;
-                
-                if ( _lastResponse == null )
-                    _lastResponse = new HttpResponse( _lastRequest );
-
-                _lastResponse.setResponseCode( 500 );
-                _lastResponse.getJxpWriter().print( "error : " + re + "\n\n" );
-                _lastResponse.done();
+                _handleError( 500 , re.toString() , re );
             }
             
             return false;
+        }
+        
+        private void _handleError( int errorCode , String msg , RuntimeException exception )
+            throws IOException {
+            if ( _lastRequest == null ){
+                LOGGER.error( "in handleError and no _lastRequest" , exception );
+                throw exception;
+            }
+            
+            if ( _lastResponse == null )
+                _lastResponse = new HttpResponse( _lastRequest );
+            
+            _lastResponse.setResponseCode( errorCode );
+            _lastResponse.getJxpWriter().print( "error : " + msg + "\n\n" );
+            _lastResponse.done();
         }
         
         protected boolean _gotData( ByteBuffer inBuf )
