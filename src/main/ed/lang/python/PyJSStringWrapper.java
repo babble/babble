@@ -29,19 +29,7 @@ import ed.js.*;
 @ExposedType(name = "jsstringwrapper")
 public class PyJSStringWrapper extends PyString {
 
-    static {
-        try {
-            ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSStringWrapper.class.getClassLoader()
-                                                                .getResourceAsStream("ed/lang/python/PyJSStringWrapper.class"));
-            TypeBuilder t = etp.getTypeExposer().makeBuilder();
-            PyType.addBuilder(PyJSStringWrapper.class, t);
-            PyType js = PyType.fromClass(PyJSStringWrapper.class);
-            PyObject dict = t.getDict(js);
-        }
-        catch(java.io.IOException e){
-            throw new RuntimeException("Couldn't expose PyJSStringWrapper as Python type");
-        }
-    }
+    public static PyType TYPE = Python.exposeClass(PyJSStringWrapper.class);
 
     public PyJSStringWrapper( JSString s ){
         super( s.toString() );
@@ -55,6 +43,7 @@ public class PyJSStringWrapper extends PyString {
     @ExposedMethod
     public PyObject jsstringwrapper_iteritems(){ return _p.iteritems(); }
 
+    // FIXME: don't use integer indices as valid keys
     public PyList keys(){ return _p.keys(); }
     public PyList values(){ return _p.values(); }
 
@@ -69,7 +58,7 @@ public class PyJSStringWrapper extends PyString {
 
     public PyObject __dir__(){ return _p.__dir__(); }
 
-    public PyObject __findattr_ex__(String name){ 
+    public PyObject __findattr_ex__(String name){
         PyObject result = super.__findattr_ex__( name );
         if( result != null ) return result;
         return _p.__findattr_ex__(name);
