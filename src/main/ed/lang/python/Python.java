@@ -723,6 +723,16 @@ public class Python extends Language {
      * @return jythonic interpretation of the class c
      */
     public static PyType exposeClass( Class c ){
+        String fileName = c.getName().replaceAll( "\\.", "/" ) + ".class";
+        try {
+            ExposedTypeProcessor etp = new ExposedTypeProcessor( c.getClassLoader()
+                                                                 .getResourceAsStream( fileName ));
+            TypeBuilder t = etp.getTypeExposer().makeBuilder();
+            PyType.addBuilder( c, t );
+        }
+        catch( IOException e ){
+            throw new RuntimeException( "Couldn't expose " + c.getName() );
+        }
         return PyType.fromClass( c );
     }
 

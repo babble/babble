@@ -29,7 +29,19 @@ import ed.js.*;
 @ExposedType(name = "jsstringwrapper")
 public class PyJSStringWrapper extends PyString {
 
-    public static PyType TYPE = Python.exposeClass( PyJSStringWrapper.class );
+    static {
+        try {
+            ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSStringWrapper.class.getClassLoader()
+                                                                .getResourceAsStream("ed/lang/python/PyJSStringWrapper.class"));
+            TypeBuilder t = etp.getTypeExposer().makeBuilder();
+            PyType.addBuilder(PyJSStringWrapper.class, t);
+            PyType js = PyType.fromClass(PyJSStringWrapper.class);
+            PyObject dict = t.getDict(js);
+        }
+        catch(java.io.IOException e){
+            throw new RuntimeException("Couldn't expose PyJSStringWrapper as Python type");
+        }
+    }
 
     public PyJSStringWrapper( JSString s ){
         super( s.toString() );

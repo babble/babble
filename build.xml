@@ -5,9 +5,6 @@
   <property name="testdir" location="${targetdir}/test"/>
 
   <property name="codeRoot" location="/data/"/>
-  <property name="base.dir" location="."/>
-  <property name="compile.dir" location="build"/>
-  <property name="exposed.dir" location="${compile.dir}/jython"/>
 
   <!-- Override on command line with -Druby.groups=foo -->
   <property name="ruby.groups" value="ruby,ruby.db"/>
@@ -18,7 +15,6 @@
       <include name="**/*.jar"/>
     </fileset>
     <pathelement path="conf" />
-    <pathelement path="${exposed.dir}" />
     <pathelement path="build" />
 
   </path>
@@ -27,7 +23,6 @@
     <mkdir dir="build" />
     <mkdir dir="logs" />
     <mkdir dir="${testdir}" />
-    <mkdir dir="${exposed.dir}" />
   </target>
 
   <target name="clean">
@@ -58,28 +53,6 @@
            debug="on" >
       <classpath refid="classpath"/>
     </javac>
-
-    <!--
-       Run a post-process on the Jython @ExposedType classes to generate
-       Jython PyTypes for each Java class we wish to expose. This is the
-       preferred form for making use of these annotations. The process
-       creates inner classes in these classes and generates a whole bunch
-       more classes, so we put them in a new directory which has to come first
-       on the classpath.
-
-       FIXME: delete the old ones, so that we fail immediately if this
-       task doesn't get run.
-      -->
-    <taskdef name="expose" classname="org.python.expose.generate.ExposeTask">
-      <classpath>
-        <path refid="classpath" />
-        <pathelement path="${compile.dir}" />
-      </classpath>
-    </taskdef>
-
-    <expose srcdir="${compile.dir}"
-            destdir="${exposed.dir}"
-            includesfile="${base.dir}/JythonExposed.includes"/>
 
     <copy todir="build">
       <fileset dir="src/main" includes="**/*.properties"/>
