@@ -33,9 +33,28 @@ public class AppContextHolder {
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
 
-    static String OUR_DOMAINS[] = new String[]{ ".local." + Config.getExternalDomain() , "." + Config.getExternalDomain() };
-    static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
+    static final String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
+    static final String OUR_DOMAINS[];
+    static {
+        Set<String> ourDomains = new HashSet<String>();
 
+        ourDomains.add( ".local." + Config.getExternalDomain() );
+        ourDomains.add( "." + Config.getExternalDomain() );
+        
+        String externalDomainAliases = Config.get().getProperty( "externalDomainAliases" );
+        if ( externalDomainAliases != null ){
+            for ( String s : externalDomainAliases.split( "," ) ){
+                s = s.trim();
+                if ( s.length() == 0 )
+                    continue;
+                
+                ourDomains.add( "." + s );
+            }
+        }
+
+        OUR_DOMAINS = ourDomains.toArray( new String[ ourDomains.size() ] );
+    }
+    
     static final Set<String> CDN_HOSTNAMES;
     static {
         Set<String> s = new HashSet<String>();
