@@ -434,8 +434,8 @@ public class AppContextHolder {
             final int idx = uri.indexOf( "/" , 1 );
 	    
             if ( idx < 0 )
-                throw new RuntimeException( "static host without valid  host:[" + host + "] uri:[" + uri + "]" );
-
+                throw new HttpExceptions.BadRequest( 410 , "static host without valid  host:[" + host + "] uri:[" + uri + "]" );
+            
             host = uri.substring( 1 , idx );
             uri = uri.substring( idx  );
         }
