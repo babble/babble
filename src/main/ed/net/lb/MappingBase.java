@@ -252,15 +252,28 @@ public abstract class MappingBase implements Mapping {
         }
         
         void addAlias( String alias , String real ){
-            _aliases.put( alias , real );
+            if ( alias.equals( "*" ) )
+                _wildcardEnv = real;
+            else 
+                _aliases.put( alias , real );
         }
 
         String getAlias( String alias ){
-            return _aliases.get( alias );
-        }
 
+            String real = _aliases.get( alias );
+
+            if ( real != null )
+                return real;
+
+            if ( _environmentsToPools.containsKey( alias ) )
+                return null;
+
+            return _wildcardEnv;
+        }
+        
         final Map<String,String> _environmentsToPools = new TreeMap<String,String>();
         final Map<String,String> _aliases = new TreeMap<String,String>();
+        String _wildcardEnv = null;
     }
     
     protected final String _name;
