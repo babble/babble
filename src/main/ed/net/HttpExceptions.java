@@ -22,6 +22,29 @@ import java.io.*;
 import java.net.*;
 
 public class HttpExceptions {
+    
+    /**
+     * use this to get an error back to the client
+     */
+    public static class BadRequest extends RuntimeException {
+        public BadRequest( int responseCode , String body ){
+            super( responseCode + ": " + body );
+            _responseCode = responseCode;
+            _body = body;
+        }
+
+        public int getResponseCode(){
+            return _responseCode;
+        }
+
+        public String getBodyContent(){
+            return toString();
+        }
+
+        final int _responseCode;
+        final String _body;
+        
+    }
 
     public static class ConnectionError extends RuntimeException {
         public ConnectionError( String msg , InetSocketAddress addr , IOException cause ){
