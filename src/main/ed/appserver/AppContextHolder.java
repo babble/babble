@@ -37,14 +37,14 @@ public class AppContextHolder {
     static final String OUR_DOMAINS[];
     static {
         Set<String> ourDomains = new HashSet<String>();
-
-        ourDomains.add( ".local." + Config.getExternalDomain() );
-        ourDomains.add( "." + Config.getExternalDomain() );
+        
+        ourDomains.add( ".local." + Config.getExternalDomain().toLowerCase() );
+        ourDomains.add( "." + Config.getExternalDomain().toLowerCase() );
         
         String externalDomainAliases = Config.get().getProperty( "externalDomainAliases" );
         if ( externalDomainAliases != null ){
             for ( String s : externalDomainAliases.split( "," ) ){
-                s = s.trim();
+                s = s.trim().toLowerCase();
                 if ( s.length() == 0 )
                     continue;
                 
