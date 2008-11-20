@@ -15,6 +15,7 @@
 require 'xgen/sql'
 require 'xgen/mongo/oid'
 require 'xgen/mongo/cursor'
+require 'xgen/mongo/convert'
 
 class JSObject
   def to_ar_hash
@@ -28,24 +29,6 @@ class XGen::Mongo::Cursor
     @cursor.forEach { |row|
       yield @model_class.instantiate(row.to_ar_hash)
     }
-  end
-end
-
-class Object
-  def to_mongo_value
-    self
-  end
-end
-class Array
-  def to_mongo_value
-    self.collect {|v| v.to_mongo_value}
-  end
-end
-class Hash
-  def to_mongo_value
-    h = {}
-    self.each {|k,v| h[k] = v.to_mongo_value}
-    h
   end
 end
 
