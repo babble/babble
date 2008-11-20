@@ -65,11 +65,16 @@ public class SysExec extends ed.js.func.JSFunctionCalls5 {
         
         return arr;
     }
+
+    public static int waitFor( final Process p , final long timeout ) {
+        return waitFor( p, timeout, false );
+    }
+
     
-    public static boolean waitFor( final Process p , final long timeout ){
+    public static int waitFor( final Process p , final long timeout, boolean forceDestroy ){
         final boolean[] going = new boolean[]{ true };
         final Thread main = Thread.currentThread();
-    
+
         final Thread t = new Thread(){
                 public void run(){
                     try {
@@ -86,16 +91,16 @@ public class SysExec extends ed.js.func.JSFunctionCalls5 {
         t.start();
         
         try {
-            p.waitFor();
-            return true;
+            return p.waitFor();
         }
         catch ( InterruptedException ie ){
-            return false;
+            if( forceDestroy ) 
+                p.destroy();
+            return 143;
         }
         finally {
             going[0] = false;
         }
-                
     }
     
 
