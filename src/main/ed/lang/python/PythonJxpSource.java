@@ -114,10 +114,12 @@ public class PythonJxpSource extends JxpSource implements Sizable {
             globals.__setitem__( "__file__", Py.newString( file.getAbsolutePath() ) );
             try {
                 String canonical = file.getCanonicalPath();
-                String root = ac.getFile( "." ).getCanonicalPath();
-                if( canonical.startsWith( root ) ){
-                    String relative = canonical.substring( root.length() + 1 );
-                    globals.__setitem__( "__file__", Py.newString( relative.toString() ) );
+                if( ac != null ){
+                    String root = ac.getFile( "." ).getCanonicalPath();
+                    if( canonical.startsWith( root ) ){
+                        String relative = canonical.substring( root.length() + 1 );
+                        globals.__setitem__( "__file__", Py.newString( relative.toString() ) );
+                    }
                 }
             }
             catch(IOException e){
