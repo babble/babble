@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -38,29 +38,29 @@ public class CSSFixer {
         }
         return buf.toString();
     }
-    
+
     public void fix( InputStream inRaw , Appendable out )
         throws IOException {
-        
+
         BufferedReader in = new BufferedReader( new InputStreamReader( inRaw ) );
         String line;
         while ( ( line = in.readLine() ) != null ){
             fix( line , out ).append( "\n" );
         }
-        
+
     }
-    
+
     public Appendable fix( String line , Appendable out )
         throws IOException {
-        
+
         if ( line.indexOf( "\n" ) > 0 )
             throw new IllegalArgumentException( "line has to be 1 line" );
-        
+
         while ( true ){
             int idx = line.indexOf( "url(" );
             if ( idx < 0 )
                 idx = line.indexOf( "URL(" );
-            
+
             if ( idx < 0 )
                 return out.append( line );
 
