@@ -115,6 +115,11 @@ public class PythonModuleTracker extends PyStringMap {
                 continue;
             }
 
+            if( __file__.toString().equals( SiteSystemState.VIRTUAL_MODULE ) ){
+                // FIXME: might have to somehow refresh these someday
+                continue;
+            }
+
             if( needsRefresh( __file__.toString() ) ){
                 newer.add( s );
             }

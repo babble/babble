@@ -98,6 +98,14 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     @ExposedMethod
+    public PyObject jswrapper___reduce_ex__(int version){
+        PyObject arguments = new PyTuple();
+        PyObject state = Py.None;
+        PyObject iterator = iteritems();
+        return new PyTuple( PyDictionary.TYPE , arguments , state , Py.None , iterator );
+    }
+
+    @ExposedMethod
     public boolean jswrapper_has_key(PyObject key){
         return jswrapper___contains__( key );
     }
