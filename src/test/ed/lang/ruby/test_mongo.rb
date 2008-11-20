@@ -550,6 +550,19 @@ EOS
     assert_equal 'changed', s.scores.first.for_course.name
   end
 
+  def test_subobjects_have_no_ids
+    @spongebob_addr.id
+  rescue => ex
+    assert_match /Subobjects don't have ids/, ex.to_s # ' <= for Emacs font-lock mode
+  end
+
+  def test_can_not_save_subobject
+    @spongebob_addr.save
+    fail "expected failed save of address"
+  rescue => ex
+    assert_match /Subobjects/, ex.to_s
+  end
+
   def assert_all_songs(str)
     assert_match(/song: The Ability to Swing/, str)
     assert_match(/song: Budapest by Blimp/, str)
