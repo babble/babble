@@ -153,6 +153,14 @@ class RuntimeEnvironment {
         exposeScopeFunctions(s);
         patchRequireAndLoad(s);
         setIO(stdin, stdout);
+
+        /* Create class objects. */
+        RubyDBCursorWrapper.getDBCursorClass(runtime);
+        RubyJSArrayWrapper.getJSArrayClass(runtime);
+        RubyJSFileLibraryWrapper.getJSFileLibraryClass(runtime);
+        RubyJSFunctionWrapper.getJSFunctionClass(runtime);
+        RubyJSObjectWrapper.getJSObjectClass(runtime);
+        RubyObjectIdWrapper.getObjectIdClass(runtime);
     }
 
     IRubyObject commonRun(Node node, Scope s) {
