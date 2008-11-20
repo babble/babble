@@ -124,17 +124,22 @@ Cloud.Site.prototype.findEnvironmentByName = function( name ){
     
     var ret = null;
     var ali = null;
+    var wildcard = null;
     this.environments.forEach( function(z){
 
         if ( z.name == name )
             ret = z;
         
-        if ( z.aliases && z.aliases.contains( name ) )
-            ali = z;
-
+        if ( z.aliases ){
+            if ( z.aliases.contains( name ) )
+                ali = z;
+            if ( z.aliases.contains( "*" ) )
+                wildcard = z;
+        }
+        
     } );
     
-    return ret || ali;
+    return ( ret || ali ) || wildcard;
 };
 
 Cloud.Site.prototype.findEnvironmentById = function( id ){
