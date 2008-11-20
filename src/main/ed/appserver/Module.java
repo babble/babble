@@ -179,7 +179,7 @@ public class Module {
         if ( min == null )
             return want;
         
-        if ( compareVersions( want , min.toString() ) < 0 ){
+        if ( parseVersion( want ) > 0 && compareVersions( want , min.toString() ) < 0 ){
             _log.getChild( _name ).error( "wanted version [" + want + "] but min version is [" + min + "] so upgrading" );
             return min.toString();
         }

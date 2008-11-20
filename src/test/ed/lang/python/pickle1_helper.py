@@ -20,3 +20,4 @@ import pickle
 pyPickleString = pickle.dumps(_10gen.jsString)
 pyPickleArray = pickle.dumps(_10gen.jsArray)
 pyPickleObj = pickle.dumps(_10gen.jsObj)
+pyPickleId = pickle.dumps(_10gen.jsObjectId)
