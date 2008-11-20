@@ -26,7 +26,7 @@ import ed.db.*;
 public class PythonSmallWrappers {
     
 
-    static class PyObjectId extends PyObject {
+    public static class PyObjectId extends PyObject {
         PyObjectId( ObjectId id ){
             _id = id;
         }
@@ -34,7 +34,11 @@ public class PythonSmallWrappers {
         public String toString(){
             return _id.toString();
         }
-        
+
+        public PyObject __reduce_ex__(int arg){
+            return new PyTuple( PyString.TYPE , new PyTuple( Py.newString( toString() ) ) );
+        }
+
         final ObjectId _id;
     }
 
