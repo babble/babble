@@ -97,6 +97,12 @@ public class PyJSObjectWrapper extends PyDictionary {
         return jswrapper_values();
     }
 
+    /**
+     * Note: our pickle support is very limited! We just pickle
+     * wrappers into appropriate "plain" types --
+     * PyJSObjectWrapper->dict, PyJSStringWrapper->str, etc. If you actually
+     * need this to be smarter, let us know!
+     */
     @ExposedMethod
     public PyObject jswrapper___reduce_ex__(int version){
         PyObject arguments = new PyTuple();
