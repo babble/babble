@@ -23,22 +23,11 @@ import java.util.*;
 
 import ed.util.*;
 
-public class AppServerApp extends JavaApplication {
+public class AppServerApp extends XGenJavaApp {
 
     AppServerApp( String name , OptionMap options ){
-        super( "appserver" , name , "ed.appserver.AppServer" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
-    }
-    
-    static int _howMuchMemory( OptionMap options ){
-        return options.getInt( "memory" , 1200 );
-    }
-    
-    static String[] _getArgs( OptionMap options ){
-        return new String[]{};
-    }
-
-    static String[] _getJvmArgs( OptionMap options ){
-        return new String[]{};
+        super( "appserver" , name , "ed.appserver.AppServer" , options , new LinkedList<String>() );
+        //super( "appserver" , name , "ed.appserver.AppServer" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
     }
 
 }

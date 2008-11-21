@@ -26,7 +26,7 @@ import static ed.util.MemUtil.*;
 
 public class JavaApplication extends SimpleApplication {
 
-    public final static String JAVA = "./runLight.bash";
+    public final static String JAVA = "java";
 
     public JavaApplication( String type , String id , String className ){
         this( type , id , className , -1 , null , null );
@@ -79,6 +79,7 @@ public class JavaApplication extends SimpleApplication {
         List<String> commands = new ArrayList<String>();
         
         commands.add( JAVA );
+
         if ( gc ){ 
             commands.add( "-verbose:gc" );
             commands.add( "-XX:+PrintGCDetails" );

@@ -1,4 +1,4 @@
-// LBApp.java
+// XGenJavaApp.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -23,21 +23,27 @@ import java.util.*;
 
 import ed.util.*;
 
-public class LBApp extends XGenJavaApp {
+public abstract class XGenJavaApp extends JavaApplication {
 
-    LBApp( String name , OptionMap options ){
-        super( "lb" , name , "ed.net.lb.LB" , options , _getArgs( options ) );
-        //super( "lb" , name , "ed.net.lb.LB" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
+    XGenJavaApp( String type , String name , String className , OptionMap options , List<String> args ){
+        super( type , name , className , _howMuchMemory( options ) , args , _getJvmArgs( options ) , true );
     }
     
-    static List<String> _getArgs( OptionMap options ){
+    static int _howMuchMemory( OptionMap options ){
+        return options.getInt( "memory" , 300 );
+    }
+    
+    static List<String> _getJvmArgs( OptionMap options ){
         List<String> l = new ArrayList<String>();
 
-        if ( options.getInt( "port" , 0 ) > 0 ){
-            l.add( "--port" );
-            l.add( options.get( "port" ) );
-        }
-        
+        l.add( "-enableassertions" );
+        l.add( "-Djava.library.path=include" );
+        l.add( "-Djava.awt.headless=true" );
+        l.add( "-Djruby.home=./include/ruby" );
+        l.add( "-XX:MaxDirectMemorySize=600M" );
+
+
         return l;
     }
+
 }
