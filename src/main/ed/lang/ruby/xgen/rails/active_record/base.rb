@@ -108,7 +108,9 @@ module ActiveRecord
         collection.remove(XGen::SQL::Parser.parse_where(conditions, true) || {})
       end
 
-      def count(options)
+      def count(*args)
+        # Ignore first arg if it is not a Hash
+        column_name, options = *construct_count_options_from_legacy_args(*args)
         find_every(options).count()
       end
 
