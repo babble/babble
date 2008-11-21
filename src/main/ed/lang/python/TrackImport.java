@@ -43,14 +43,6 @@ public class TrackImport extends PyObject {
         PyObject fromlist = (argc > 3) ? args[3] : null;
 
         SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
-        if( DEBUG ){
-            PySystemState current = Py.getSystemState();
-            PySystemState sssPy = sss.getPyState();
-            System.out.println("Overrode import importing. import " + args[0]);
-            System.out.println("globals? " + (globals == null ? "null" : "not null, file " + globals.__finditem__("__file__")));
-            System.out.println("Scope : " + Scope.getThreadLocal() + " PyState: " + sssPy + "  id: " + __builtin__.id(sssPy) + " current id: " + __builtin__.id(current) );
-            System.out.println("Modules are " + sssPy.modules);
-        }
 
         AppContext ac = sss.getContext();
         PyObject targetP = args[0];
@@ -76,6 +68,12 @@ public class TrackImport extends PyObject {
             explicit = true;
         }
 
+        if( DEBUG ){
+            PySystemState current = Py.getSystemState();
+            PySystemState sssPy = sss.getPyState();
+            System.out.println("Overrode import importing. import " + target + " from " + __name__ + " (explicit " + explicit + ")");
+        }
+
         if( explicit ){
             // Check site imports first -- perhaps some core-module is trying
             // to load user code
@@ -85,6 +83,7 @@ public class TrackImport extends PyObject {
         if( m == null ){
             m = tryImportSitename( sss , target , globals , locals , fromlist , ac );
         }
+
         // If you're in a core-module called foo, in a package
         // called bar.baz, and you do an import for moo, and there is
         // no sensible choice for foo.bar.moo or whatever,
