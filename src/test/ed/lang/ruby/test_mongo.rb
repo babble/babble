@@ -56,6 +56,9 @@ EOS
     @mayor_str = "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2"
     @mayor_song = 'The Mayor Of Simpleton'
 
+    XGen::Mongo::Base.connection = 123 # DEBUG
+    XGen::Mongo::Base.connection = $db
+
     @spongebob_addr = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
     @bender_addr = Address.new(:street => "Planet Express", :city => "New New York", :state => "NY", :postal_code => "10001")
     @course1 = Course.new(:name => 'Introductory Testing')
@@ -564,15 +567,24 @@ EOS
   end
 
   def test_alternate_connection
-    alt_db = $db
+    old_db = XGen::Mongo::Base.connection
+    assert_equal $db, old_db
+    alt_db = connect('test-alternate-connection')
+    assert_not_equal old_db, alt_db
+    alt_db.rubytest_students.drop()
     begin
       $db = nil
       XGen::Mongo::Base.connection = alt_db
-      t = Track.find(@mayor_id)
-      assert_not_nil t
-      assert_match /song: The Mayor Of Simpleton/, t.to_s
+      assert_equal alt_db, XGen::Mongo::Base.connection
+
+      assert_equal 0, alt_db.students.find().count()
+      s = Student.new(:name => 'Spongebob Squarepants', :address => @spongebob_addr)
+      assert s.save, "save failed"
+      assert_equal 1, alt_db.rubytest_students.find().count()
     ensure
-      $db = alt_db
+      $db = old_db
+      XGen::Mongo::Base.connection = $db
+      alt_db.rubytest_students.drop()
     end
   end
 

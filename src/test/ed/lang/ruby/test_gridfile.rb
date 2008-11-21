@@ -98,14 +98,28 @@ class GridFileTest < RubyTest
   end
 
   def test_alternate_connection
-    alt_db = $db
+    $db._files.remove({})
+    $db._chunks.remove({})
+    assert_equal 0, $db._files.find().count()
+    old_db = $db
+    alt_db = connect('test-alternate-connection')
+    assert_not_equal old_db, alt_db
     begin
       $db = nil
       GridFile.connection = alt_db
+      assert_equal alt_db, GridFile.connection
+
+      GridFile.open('myfile', 'w') { |f| f.write @str }
       read_str = GridFile.open('myfile', 'r') { |f| f.read }
       assert_equal @str, read_str
+
+      assert_equal 0, old_db._files.find().count()
+      assert_equal 1, alt_db._files.find().count()
     ensure
-      $db = alt_db
+      $db = old_db
+      GridFile.connection = $db
+      alt_db._chunks.drop()
+      alt_db._files.drop()
     end
   end
 

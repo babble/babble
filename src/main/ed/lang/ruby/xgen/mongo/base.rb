@@ -61,9 +61,9 @@ module XGen
       class << self # Class methods
 
         def connection
-          @@connection ||= $db
-          raise "connection not defined" unless @@connection
-          @@connection
+          conn = @@connection || $db
+          raise "connection not defined" unless conn
+          conn
         end
 
         def connection=(val)
@@ -164,7 +164,7 @@ module XGen
 
         # The collection object.
         def coll
-          @coll ||= connection[@coll_name.to_s]
+          connection[@coll_name.to_s]
         end
 
         # Find one or more database objects.
