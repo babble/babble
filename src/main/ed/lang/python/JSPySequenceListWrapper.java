@@ -287,8 +287,20 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
           }*/
 
     public Iterator iterator(){
-        // FIXME
-        return null;
+        return new Iterator(){
+            int i = 0;
+            public boolean hasNext(){
+                return i < size();
+            }
+
+            public Object next(){
+                return toJS( _pSeq.pyget( i++ ) );
+            }
+
+            public void remove(){
+                throw new UnsupportedOperationException( "don't wanna" );
+            }
+        };
     }
 
     public boolean remove( Object o ){
