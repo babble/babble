@@ -196,6 +196,10 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         return name;
     }
 
+    public void setHintFields( List<JSObject> lst ){
+        _hintFields = lst;
+    }
+
     /** Queries for an object in this collection.
      * @param ref object for which to search
      * @return an iterator over the results
@@ -841,6 +845,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
     final protected String _fullName;
 
     protected JSFunction _constructor;
+    protected List<JSObject> _hintFields;
 
     private boolean _anyUpdateSave = false;
 
