@@ -23,11 +23,8 @@ else:
     raise AssertionError
 
 import import3_help
-m = __import__('import3_help', {}, {}, [])
-assert m == import3_help
-m = __import__('import3_help', {}, {}, ['foo'])
-assert m == import3_help
-m = __import__('import3_help', None, None, [])
-assert m == import3_help
-m = __import__('import3_help', None, None, ['foo'])
-assert m == import3_help
+for globals in [{}, None]:
+    for locals in [{}, None]:
+        for fromlist in [[]]: # could try None here too
+            m = __import__('import3_help', globals, locals, fromlist)
+            assert m == import3_help
