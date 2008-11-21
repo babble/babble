@@ -95,18 +95,10 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         if ( _collection != null && _query != null ){
             JSObject foo = _query;
-            if ( _orderBy != null && _orderBy.keySet( false ).size() > 0 ){
-
+            if ( hasSpecialQueryFields() ){
                 foo = new JSObjectBase();
-
-                if ( _query != null ){
-                    _noRefCheck( _query );
-                    foo.set( "query" , _query );
-                }
-                
-                _noRefCheck( _orderBy );
-                foo.set( "orderby" , _orderBy );
-
+                _addToQueryObject( foo , "query" , _query , true );
+                _addToQueryObject( foo , "orderby" , _orderBy , false );
             }
 
             final long start = System.currentTimeMillis();
@@ -119,6 +111,25 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         if ( _it == null )
             _it = (new LinkedList<JSObject>()).iterator();
+    }
+
+    boolean hasSpecialQueryFields(){
+        if ( _orderBy != null && _orderBy.keySet( false ).size() > 0 )
+            return true;
+        
+        return false;
+    }
+
+    void _addToQueryObject( JSObject query , String field , JSObject thing , boolean sendEmpty ){
+
+        if ( thing == null )
+            return;
+        
+        if ( ! sendEmpty && thing.keySet( false ).size() == 0 )
+            return;
+        
+        _noRefCheck( thing );
+        query.set( field , thing );
     }
 
     void _noRefCheck( JSObject o ){
