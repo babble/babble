@@ -65,7 +65,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public DBCursor hint( JSObject indexKeys ){
         if ( _it != null )
-            throw new RuntimeException( "can't sort after executing query" );
+            throw new RuntimeException( "can't hint after executing query" );
         
         if ( indexKeys == null )
             _hint = null;
@@ -76,7 +76,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public DBCursor hint( Scope scope , JSString indexName ){
         if ( _it != null )
-            throw new RuntimeException( "can't sort after executing query" );
+            throw new RuntimeException( "can't hint after executing query" );
         
         String s = null;
         if ( indexName != null )
@@ -87,7 +87,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public DBCursor hint( String indexName ){
         if ( _it != null )
-            throw new RuntimeException( "can't sort after executing query" );
+            throw new RuntimeException( "can't hint after executing query" );
 
         _hint = indexName;
         return this;

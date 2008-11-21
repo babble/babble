@@ -21,3 +21,13 @@ except ImportError, e:
     pass
 else:
     raise AssertionError
+
+import import3_help
+m = __import__('import3_help', {}, {}, [])
+assert m == import3_help
+m = __import__('import3_help', {}, {}, ['foo'])
+assert m == import3_help
+m = __import__('import3_help', None, None, [])
+assert m == import3_help
+m = __import__('import3_help', None, None, ['foo'])
+assert m == import3_help
