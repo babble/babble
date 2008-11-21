@@ -13,7 +13,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require 'base64'
-require 'xgen/mongo/oid'        # defines ObjectId.marshal_{dump,load}
+require 'xgen/oid'              # defines ObjectId.marshal_{dump,load}
 
 module XGen
 

@@ -13,7 +13,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require 'xgen/sql'
-require 'xgen/mongo/oid'
+require 'xgen/oid'
 require 'xgen/mongo/cursor'
 require 'xgen/mongo/convert'
 

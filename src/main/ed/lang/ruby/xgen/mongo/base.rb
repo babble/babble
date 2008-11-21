@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require 'xgen/mongo/oid'
+require 'xgen/oid'
 require 'xgen/mongo/cursor'
 require 'xgen/mongo/convert'
 require 'xgen/sql'
