@@ -38,6 +38,8 @@ public class RubyObjectIdWrapper extends RubyObject {
             }
         };
 
+    protected static final String NULL_OBJECT_ID_STRING = "ObjectId(null)";
+
     public static synchronized RubyClass getObjectIdClass(final Ruby runtime) {
         WeakReference<RubyClass> ref = klassDefs.get(runtime);
         if (ref == null) {
@@ -48,19 +50,14 @@ public class RubyObjectIdWrapper extends RubyObject {
                         return obj instanceof RubyObjectIdWrapper;
                     }
                 };
-            runtime.getKernel().defineAnnotatedMethods(RubyObjectIdWrapper.class);
             klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
+
+            klazz.defineAnnotatedMethods(RubyObjectIdWrapper.class);
         }
         return ref.get();
     }
 
     protected ObjectId _oid;
-
-    @JRubyMethod(name = "ObjectId", required = 1, module = true, visibility = PRIVATE)
-    public static IRubyObject new_objectid(ThreadContext context, IRubyObject recv, IRubyObject object) {
-        ObjectId oid = new ObjectId(object.toString());
-        return new RubyObjectIdWrapper(context.getRuntime(), oid);
-    }
 
     private RubyObjectIdWrapper(Ruby runtime) {
         super(runtime, getObjectIdClass(runtime));
@@ -90,6 +87,37 @@ public class RubyObjectIdWrapper extends RubyObject {
     public ObjectId getObjectId() { return _oid; }
 
     public IRubyObject to_s() {
-        return getRuntime().newString(_oid == null ? "ObjectId(null)" : _oid.toString());
+        return getRuntime().newString(_oid == null ? NULL_OBJECT_ID_STRING : _oid.toString());
+    }
+
+    /** "==" */
+    public IRubyObject op_equal(ThreadContext context, IRubyObject obj) {
+        if (this == obj)
+            return getRuntime().getTrue();
+        if (!(obj instanceof RubyObjectIdWrapper))
+            return getRuntime().getFalse();
+        RubyObjectIdWrapper other = (RubyObjectIdWrapper)obj;
+        if (this._oid == null)
+            return other._oid == null ? getRuntime().getTrue() : getRuntime().getFalse();
+        return this._oid.equals(other._oid) ? getRuntime().getTrue() : getRuntime().getFalse();
+    }
+
+    /** "equal?" */
+    public IRubyObject equal_p(ThreadContext context, IRubyObject obj) { return op_equal(context, obj); }
+
+    /** Used for Hash key comparison. */
+    public boolean eql(IRubyObject other) { return op_equal(getRuntime().getCurrentContext(), other).isTrue(); }
+
+    /** "eql?" */
+    public IRubyObject eql_p(IRubyObject obj) { return op_equal(getRuntime().getCurrentContext(), obj); }
+
+    /* "===" */
+    public IRubyObject op_eqq(ThreadContext context, IRubyObject other) { return op_equal(context, other); }
+
+    /** Only for use by ObjectId.marshal_load, defined in oid.rb. */
+    @JRubyMethod(name = "_internal_oid_set", required = 1, visibility = org.jruby.runtime.Visibility.PRIVATE)
+    public IRubyObject internal_oid_set(ThreadContext context, IRubyObject value) {
+        _oid = new ObjectId(value.toString());
+        return this;
     }
 }

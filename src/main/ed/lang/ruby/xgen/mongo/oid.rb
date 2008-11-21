@@ -14,7 +14,7 @@
 
 class Object
   def to_oid
-    ObjectId(self.to_s)
+    ObjectId.new(self.to_s)
   end
 end
 
@@ -22,5 +22,11 @@ end
 class ObjectId
   def to_oid
     self
+  end
+  def marshal_dump
+    to_s
+  end
+  def marshal_load(oid)
+    _internal_oid_set(oid.to_s)
   end
 end

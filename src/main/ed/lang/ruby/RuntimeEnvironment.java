@@ -154,12 +154,8 @@ class RuntimeEnvironment {
         patchRequireAndLoad(s);
         setIO(stdin, stdout);
 
-        /* Create class objects. */
-        RubyDBCursorWrapper.getDBCursorClass(runtime);
-        RubyJSArrayWrapper.getJSArrayClass(runtime);
-        RubyJSFileLibraryWrapper.getJSFileLibraryClass(runtime);
-        RubyJSFunctionWrapper.getJSFunctionClass(runtime);
-        RubyJSObjectWrapper.getJSObjectClass(runtime);
+        /* Create class objects that might be needed in Ruby code before ever
+         * being loaded from Java. Note: could use const_missing instead. */
         RubyObjectIdWrapper.getObjectIdClass(runtime);
     }
 
