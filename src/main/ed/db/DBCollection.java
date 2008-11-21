@@ -183,7 +183,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
      * @param keys the names of the fields used in this index
      * @return a string representation of this index's fields
      */
-    public String genIndexName( JSObject keys ){
+    public static String genIndexName( JSObject keys ){
         String name = "";
         for ( String s : keys.keySet( false ) ){
             if ( name.length() > 0 )
