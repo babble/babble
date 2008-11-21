@@ -563,6 +563,19 @@ EOS
     assert_match /Subobjects/, ex.to_s
   end
 
+  def test_alternate_connection
+    alt_db = $db
+    begin
+      $db = nil
+      XGen::Mongo::Base.connection = alt_db
+      t = Track.find(@mayor_id)
+      assert_not_nil t
+      assert_match /song: The Mayor Of Simpleton/, t.to_s
+    ensure
+      $db = alt_db
+    end
+  end
+
   def assert_all_songs(str)
     assert_match(/song: The Ability to Swing/, str)
     assert_match(/song: Budapest by Blimp/, str)

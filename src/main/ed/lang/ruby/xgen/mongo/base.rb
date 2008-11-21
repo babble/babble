@@ -49,7 +49,19 @@ module XGen
     #    puts track.to_s
     class Base
 
+      @@connection = nil
+
       class << self # Class methods
+
+        def connection
+          @@connection ||= $db
+          raise "connection not defined" unless @@connection
+          @@connection
+        end
+
+        def connection=(val)
+          @@connection = val
+        end
 
         # This method only exists so that XGen::Mongo::Base and
         # ActiveRecord::Base can live side by side.
@@ -145,7 +157,7 @@ module XGen
 
         # The collection object.
         def coll
-          @coll ||= $db[@coll_name.to_s]
+          @coll ||= connection[@coll_name.to_s]
         end
 
         # Find one or more database objects.
