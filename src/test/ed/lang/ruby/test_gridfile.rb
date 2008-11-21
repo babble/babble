@@ -71,12 +71,14 @@ class GridFileTest < RubyTest
 
   def test_raise_if_no_db
     old_db = $db
+    $db = nil
     begin
-      $db = nil
+      GridFile.connection = nil
       f = GridFile.open('myfile', 'r')
+      f.close
       fail 'should have raised an error'
     rescue => ex
-      assert_equal '$db not defined', ex.to_s
+      assert_equal 'connection not defined', ex.to_s
     ensure
       $db = old_db
     end
@@ -93,6 +95,18 @@ class GridFileTest < RubyTest
       f.each { |line| assert_equal "line #{i}\n", line; i += 1 }
       assert_equal 4, i
     }
+  end
+
+  def test_alternate_connection
+    alt_db = $db
+    begin
+      $db = nil
+      GridFile.connection = alt_db
+      read_str = GridFile.open('myfile', 'r') { |f| f.read }
+      assert_equal @str, read_str
+    ensure
+      $db = alt_db
+    end
   end
 
 end

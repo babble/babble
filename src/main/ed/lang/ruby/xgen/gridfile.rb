@@ -47,13 +47,23 @@ class GridFile < StringIO
 
   RESERVED_KEYS = %w(_ns _id filename contentType length chunkSize next uploadDate _save _update)
 
+  @@connection = nil
+
   class << self                 # Class methods
+
+    def connection
+      @@connection ||= $db
+      raise "connection not defined" unless @@connection
+      @@connection
+    end
+    def connection=(val)
+      @@connection = val
+    end
 
     # Reads a GridFile from the database and returns it, or +nil+ if is not
     # found.
     def find(name)              # :nodoc:
-      raise "$db not defined" unless $db
-      $db['_files'].findOne({:filename => name})
+      connection['_files'].findOne({:filename => name})
     end
 
     # Opens a GridFile with the given mode. If a block is given then the file
@@ -73,8 +83,7 @@ class GridFile < StringIO
 
     # Delete the named GridFile from the database.
     def unlink(name)
-      raise "$db not defined" unless $db
-      Java::EdLangRuby::GridFS.remove($db, name)
+      Java::EdLangRuby::GridFS.remove(connection, name)
     end
     alias_method :delete, :unlink
 
@@ -127,8 +136,7 @@ class GridFile < StringIO
   def close
     rewind()
     if @mode == :write || @mode == :append
-      raise "$db not defined" unless $db
-      Java::EdLangRuby::GridFS.save($scope, $db, self)
+      Java::EdLangRuby::GridFS.save($scope, self.class.connection, self)
     end
     super
   end
