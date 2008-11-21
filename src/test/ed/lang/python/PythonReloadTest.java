@@ -33,7 +33,7 @@ public class PythonReloadTest extends PythonTestCase {
     private static final String TEST_DIR_SUB = "/tmp/pyreload/mymodule";
     private static final File testDir = new File(TEST_DIR);
     private static final File testDirSub = new File(TEST_DIR_SUB);
-    
+
     //time to wait between file modifications to allow the fs to update the timestamps
     private static final long SLEEP_MS = 2000;
 
@@ -44,19 +44,19 @@ public class PythonReloadTest extends PythonTestCase {
         // Mark as a module
         new File(testDirSub, "__init__.py").createNewFile();
     }
-        
+
     @Test
     public void test() throws IOException, InterruptedException {
         Scope globalScope = initScope(testDir, "python-reload-test");
         JSFileLibrary fileLib = (JSFileLibrary)globalScope.get("local");
-        
+
         writeTest1File1();
         writeTest1File2();
         writeTest1File3();
 
         Scope oldScope = Scope.getThreadLocal();
         globalScope.makeThreadLocal();
-        
+
         try {
             globalScope.eval("local.file1();");
             assertRan3(globalScope);
@@ -147,13 +147,17 @@ public class PythonReloadTest extends PythonTestCase {
             writeTest6File1();
             writeTest6File2();
             writeTest6File3();
+            writeTest6File4();
             shouldRun3(globalScope);
             // make sure right module was getting run
             assertEquals(globalScope.get("ranSubFile3"), 100);
+            assertEquals(globalScope.get("ranModule"), 1);
             globalScope.set("ranSubFile3", 0);
+            globalScope.set("ranModule", 0);
 
             shouldRun1(globalScope);
             assertEquals(globalScope.get("ranSubFile3"), 0);
+            assertEquals(globalScope.get("ranModule"), 0);
 
             Thread.sleep(SLEEP_MS);
             writeTest6File2();
@@ -164,6 +168,9 @@ public class PythonReloadTest extends PythonTestCase {
             writeTest6File3();
             shouldRun3(globalScope);
             shouldRun1(globalScope);
+
+            writeTest6File4();
+            shouldRun3(globalScope);
 
             new File(testDirSub, "file3.py").delete();
             new File(testDirSub, "file3$py.class").delete();
@@ -182,7 +189,7 @@ public class PythonReloadTest extends PythonTestCase {
                 oldScope.makeThreadLocal();
             else
                 Scope.clearThreadLocal();
-            
+
             try {
                 rdelete(testDir);
             } catch (Exception e) {
@@ -291,6 +298,7 @@ public class PythonReloadTest extends PythonTestCase {
         writer.println("import _10gen");
         writer.println("_10gen.ranFile2 = 1");
         writer.println("import mymodule.file3");
+        writer.println("assert mymodule.file3.someConstant == 4");
         writer.close();
     }
 
@@ -300,6 +308,15 @@ public class PythonReloadTest extends PythonTestCase {
         writer.println("import _10gen");
         writer.println("_10gen.ranFile3 = 1");
         writer.println("_10gen.ranSubFile3 = 100");
+        writer.println("someConstant = 4");
+        writer.close();
+    }
+
+    private void writeTest6File4() throws IOException {
+        File f = new File(testDirSub, "__init__.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranModule = 1");
         writer.close();
     }
 

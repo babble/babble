@@ -122,6 +122,15 @@ public class PythonModuleTracker extends PyStringMap {
 
             if( needsRefresh( __file__.toString() ) ){
                 newer.add( s );
+                for( Object o2 : keys() ){
+                    if( ! (o2 instanceof String) ){
+                        throw new RuntimeException( "got a non-string key " + o.getClass() ); // can't happen
+                    }
+                    String s2 = (String)o2;
+                    if( s2.startsWith( s + "." ) ) // "child" of flushed module
+                        newer.add( s2 );
+                }
+
             }
         }
 
