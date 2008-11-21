@@ -213,13 +213,17 @@ public class MemUtil {
             return true;
         }
 
+        public void reset(){
+            _last.clear();
+        }
+
         public void add( GCLine line ){
             _last.add( line );
         }
 
         public double fullGCPercentage(){
             final int size = _last.size();
-
+            
             if ( size < _last.capacity() )
                 return 0;
 
