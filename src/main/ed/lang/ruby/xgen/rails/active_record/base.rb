@@ -52,13 +52,17 @@ module ActiveRecord
 
       # Return the Mongo collection for this class.
       def collection
-        $db[table_name]
+        connection.db[table_name]
       end
 
       # ================ relational database connection handling ================
 
       def connection
-        @@mongo_connection ||= ActiveRecord::ConnectionAdapters::MongoPseudoConnection.new
+        @@mongo_connection ||= ActiveRecord::ConnectionAdapters::MongoPseudoConnection.new($db)
+      end
+
+      def connection=(db)
+        @@mongo_connection = ActiveRecord::ConnectionAdapters::MongoPseudoConnection.new(db || $db)
       end
 
       def establish_connection(spec = nil); end

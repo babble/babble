@@ -28,8 +28,11 @@ module ActiveRecord
 
     class MongoPseudoConnection
 
-      def initialize
+      attr_reader :db
+
+      def initialize(db)
         @runtime = 0
+        @db = db
       end
 
       def method_missing(sym, *args)
