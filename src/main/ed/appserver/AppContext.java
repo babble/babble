@@ -1182,18 +1182,22 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
      * @return the name of the git branch, or null if there isn't any
      */
     public String getCurrentGitBranch() {
+        return getCurrentGitBranch( false );
+    }
+    
+    public String getCurrentGitBranch( boolean forceUpdate ){
         if (_gitBranch == null)
             return null;
-
+        
         if (_gitFile == null)
             _gitFile = new File(_rootFile, ".git/HEAD");
 
         if (!_gitFile.exists())
             throw new RuntimeException("this should be impossible");
 
-        if (_lastScopeInitTime < _gitFile.lastModified())
+        if ( forceUpdate || _lastScopeInitTime < _gitFile.lastModified() )
             _gitBranch = _git.getBranchOrTagName();
-
+        
         return _gitBranch;
     }
 
@@ -1226,14 +1230,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         JSObject env = getEnvironmentObject();
         if (env == null)
             return null;
-
+        
         String branch = env.get("branch").toString();
         _logger.info("updating to [" + branch + "]");
         
         _git.checkout( branch );
         Python.deleteCachedJythonFiles(_rootFile);
         
-        return getCurrentGitBranch();
+        return getCurrentGitBranch( true );
     }
 
     private JSObject getSiteObject(){
