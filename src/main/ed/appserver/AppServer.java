@@ -420,6 +420,11 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         // or the server is screwed.
 
         MemUtil.checkMemoryAndHalt( "AppServer" , oom , this );
+        
+        if ( response.isCommitted() ){
+            // not much we can do with this
+            return;
+        }
 
         // either this thread was the problem, or whatever
 
@@ -442,16 +447,21 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
      * @param ctxt The app context to use for logging
      */
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
-
+        
+        final Logger myLogger = ctxt == null ? _noContextLogger : ctxt.getLogger();
+        
+        
         if ( t.getCause() instanceof OutOfMemoryError ){
             handleOutOfMemoryError( (OutOfMemoryError)t.getCause() , response );
             return;
         }
 
-        if ( ctxt == null )
-	    Logger.getLogger( "appserver.nocontext" ).error( request.getURI() , t );
-	else
-	    ctxt.getLogger().error( request.getURL() , t );
+        myLogger.error( request.getFullURL() , t );
+
+        if ( response.isCommitted() ){
+            myLogger.error( "handleError called but response already commited.  request:" + request.getFullURL() );
+            return;
+        }
 
         response.setResponseCode( 500 );
 
@@ -687,6 +697,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
     private final IdentitySet<AppRequest> _currentRequests = new IdentitySet<AppRequest>();
 
     protected final static String _X10GEN_DEBUG = "X-10gen-Debug"; // private header - if set, user/profile/timing info won't be appended to response
+
+    static final Logger _noContextLogger = Logger.getLogger( "appserver.nocontext" );
     
     // ---------
 

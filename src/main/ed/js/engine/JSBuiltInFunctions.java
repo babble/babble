@@ -170,7 +170,36 @@ public class JSBuiltInFunctions {
 
                         String msg = "not the same [" + a + "] != [" + b + "]";
                         //msg += " (" + _getClass( a ) + ") (" + _getClass(b) + ")";
+                        
+                        if ( extraMsg != null )
+                            msg += " " + extraMsg;
+                        
+			throw new JSException( msg );
+		    }
+		} );
 
+
+	    set( "lt" , new JSFunctionCalls3(){
+		    public Object call( Scope scope , Object a , Object b , Object extraMsg , Object extra[] ){
+			if ( JSInternalFunctions.JS_lt( a , b ) )
+			    return true;
+                        
+                        String msg = "[" + a + "] is not less than [" + b + "]";
+                        
+                        if ( extraMsg != null )
+                            msg += " " + extraMsg;
+                        
+			throw new JSException( msg );
+		    }
+		} );
+
+	    set( "gt" , new JSFunctionCalls3(){
+		    public Object call( Scope scope , Object a , Object b , Object extraMsg , Object extra[] ){
+			if ( JSInternalFunctions.JS_gt( a , b ) )
+			    return true;
+                        
+                        String msg = "[" + a + "] is not greater than [" + b + "]";
+                        
                         if ( extraMsg != null )
                             msg += " " + extraMsg;
                         
