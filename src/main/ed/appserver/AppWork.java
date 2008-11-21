@@ -24,6 +24,7 @@ import java.util.concurrent.*;
 
 import ed.util.*;
 import ed.js.*;
+import ed.js.engine.*;
 import ed.db.*;
 
 public abstract class AppWork implements Comparable<AppWork> {
@@ -121,7 +122,14 @@ public abstract class AppWork implements Comparable<AppWork> {
         }
         
         public Object run(){
-            return _func.call( _context.getScope() , _args );
+            final Scope s = _context.getScope().child( "work scope" );
+            s.makeThreadLocal();
+            try {
+                return _func.call( _context.getScope() , _args );
+            }
+            finally {
+                Scope.clearThreadLocal();
+            }
         }
         
         final JSFunction _func;
