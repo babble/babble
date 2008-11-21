@@ -47,6 +47,13 @@ module XGen
     #
     #    track = MP3Track.find_by_song('She Blinded Me With Science')
     #    puts track.to_s
+    #
+    # The database connection defaults to the global $db. You can set the
+    # connection using XGen::Mongo::Base.connection= and read it with
+    # XGen::Mongo::Base.connection.
+    #
+    #   # Set the connection to something besides $db
+    #   XGen::Mongo::Base.connection = connect('my-database')
     class Base
 
       @@connection = nil

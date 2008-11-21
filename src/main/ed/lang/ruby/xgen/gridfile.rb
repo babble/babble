@@ -41,6 +41,12 @@ require 'stringio'
 # A GridFile is a StringIO that reads from the database when it is created and
 # writes to the database when it is closed.
 #
+# The database connection defaults to the global $db. You can set the
+# connection using GridFile.connection= and read it with GridFile.connection.
+#
+#   # Set the connection to something besides $db
+#   GridFile.connection = connect('my-database')
+#
 # TODO: allow retrieval by _id, return _id on close, expose _id, more modes,
 # perhaps use delegation instead of inheritance.
 class GridFile < StringIO
