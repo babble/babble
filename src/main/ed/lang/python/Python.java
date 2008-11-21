@@ -352,11 +352,11 @@ public class Python extends Language {
             // I guess this class is treated specially, has a return value, etc.
             Expression expr = new Expression( new PythonTree() , ((Expr)mod.body[0]).value );
 
-            pycode = (PyCode)Py.compile( expr , filename );
+            pycode = (PyCode)Py.compile_flags( expr , filename , "eval" , null);
         }
         else {
             // Otherwise compile the whole module
-            pycode = (PyCode)Py.compile( mod , filename );
+            pycode = (PyCode)Py.compile_flags( mod , filename , "exec" , null );
         }
 
         try {
