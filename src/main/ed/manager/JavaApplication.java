@@ -42,8 +42,14 @@ public class JavaApplication extends SimpleApplication {
 
     public JavaApplication( String type , String id , String className , int maxMemory , String[] args , String[] jvmArgs , boolean gc ){
         super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , gc ) );
+        
+        String cp = System.getenv( "CLASSPATH" );
+        if ( cp == null ){
+            cp = "build";
+        }
+        _environment.put( "CLASSPATH" , cp );
     }
-
+    
     public boolean gotOutputLine( String line )
         throws RestartApp {
         return ! handleGCLine( line );
