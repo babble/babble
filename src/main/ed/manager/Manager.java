@@ -84,7 +84,7 @@ public class Manager extends Thread {
             for ( Application app : _factory.getApplications() ){
 
                 try {
-                    _logger.info( "manager checking apps" );
+                    _logger.debug( "manager checking apps" );
                     
                     RunningApplication run = _running.get( app );
                     

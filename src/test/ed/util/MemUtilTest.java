@@ -91,6 +91,12 @@ public class MemUtilTest extends ed.TestCase {
 
     }
     
+    @Test
+    public void testparse3(){
+        _testParse( "120.944: [Full GC [PSYoungGen: 482K->0K(80768K)] [PSOldGen: 199383K->184138K(204800K)] 199865K->184138K(285568K) [PSPermGen: 39425K->39425K(47168K)], 0.6940380 secs]" ,
+                    120944 , true , 694 );
+    }
+
     void _testParse( String line , long when , boolean full , long howLong ){
         GCLine l = GCLine.parse( line );
         assert( l != null );
