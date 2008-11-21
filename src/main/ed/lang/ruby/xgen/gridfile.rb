@@ -56,6 +56,7 @@ class GridFile < StringIO
       raise "connection not defined" unless @@connection
       @@connection
     end
+
     def connection=(val)
       @@connection = val
     end
