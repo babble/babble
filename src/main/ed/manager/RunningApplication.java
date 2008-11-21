@@ -161,7 +161,6 @@ public class RunningApplication extends Thread {
     
     private void _kill(){
         final Process p = _process;
-        _done = true;
 
         if ( p == null )
             return;
@@ -311,7 +310,7 @@ public class RunningApplication extends Thread {
                         }
                     }
                     catch ( Application.RestartApp ra ){
-                        _logger.error( "got app restart because of line [" + line + "] beacuse of [" + ra._why + "]" );
+                        _logger.alert( "got app restart because of line [" + line + "] beacuse of [" + ra._why + "]" );
                         restart();
                     }
                     
