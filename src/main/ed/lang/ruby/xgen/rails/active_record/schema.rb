@@ -37,7 +37,7 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, options = {})
-        $db[table_name].ensureIndex(column_name.to_s => 1)
+        ActiveRecord::Base.connection.db[table_name].ensureIndex(column_name.to_s => 1)
       end
     end
 
