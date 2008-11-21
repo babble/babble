@@ -74,7 +74,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         return this;
     }
 
-    public DBCursor hint( JSString indexName ){
+    public DBCursor hint( Scope scope , JSString indexName ){
         if ( _it != null )
             throw new RuntimeException( "can't sort after executing query" );
         
