@@ -47,9 +47,28 @@ module XGen
     #
     #    track = MP3Track.find_by_song('She Blinded Me With Science')
     #    puts track.to_s
+    #
+    # The database connection defaults to the global $db. You can set the
+    # connection using XGen::Mongo::Base.connection= and read it with
+    # XGen::Mongo::Base.connection.
+    #
+    #   # Set the connection to something besides $db
+    #   XGen::Mongo::Base.connection = connect('my-database')
     class Base
 
+      @@connection = nil
+
       class << self # Class methods
+
+        def connection
+          conn = @@connection || $db
+          raise "connection not defined" unless conn
+          conn
+        end
+
+        def connection=(val)
+          @@connection = val
+        end
 
         # This method only exists so that XGen::Mongo::Base and
         # ActiveRecord::Base can live side by side.
@@ -145,7 +164,7 @@ module XGen
 
         # The collection object.
         def coll
-          @coll ||= $db[@coll_name.to_s]
+          connection[@coll_name.to_s]
         end
 
         # Find one or more database objects.

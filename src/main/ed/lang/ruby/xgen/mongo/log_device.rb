@@ -28,9 +28,32 @@ module XGen
     # Example:
     #
     #   logger = Logger.new(XGen::Mongo::LogDevice('my_log_name'))
+    #
+    # The database connection defaults to the global $db. You can set the
+    # connection using XGen::Mongo::LogDevice.connection= and read it with
+    # XGen::Mongo::LogDevice.connection.
+    #
+    #   # Set the connection to something besides $db
+    #   XGen::Mongo::LogDevice.connection = connect('my-database')
     class LogDevice
 
       DEFAULT_CAP_SIZE = (10 * 1024 * 1024)
+
+      @@connection = nil
+
+      class << self # Class methods
+
+        def connection
+          conn = @@connection || $db
+          raise "connection not defined" unless conn
+          conn
+        end
+
+        def connection=(val)
+          @@connection = val
+        end
+
+      end
 
       # +name+ is the name of the Mongo database collection that will hold all
       # log messages. +options+ is a hash that may have the following entries:
@@ -60,7 +83,7 @@ module XGen
         # Note we can't use the name "create_collection" because a DB JSObject
         # does not have normal keys and returns collection objects as the
         # value of all unknown names.
-        $db.createCollection(@collection_name, options)
+        self.class.connection.createCollection(@collection_name, options)
 
         # If we are running outside of the cloud, echo all log messages to
         # $stderr. If app_context is nil we are outside the cloud, too, but we
@@ -72,7 +95,7 @@ module XGen
 
       def write(str)
         $stderr.puts str if @console
-        $db[@collection_name].save({:time => Time.now, :msg => str})
+        self.class.connection[@collection_name].save({:time => Time.now, :msg => str})
       end
 
       def close
