@@ -26,8 +26,7 @@ import ed.util.*;
 public class AppServerApp extends XGenJavaApp {
 
     AppServerApp( String name , OptionMap options ){
-        super( "appserver" , name , "ed.appserver.AppServer" , options , new LinkedList<String>() );
-        //super( "appserver" , name , "ed.appserver.AppServer" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
+        super( "appserver" , name , "ed.appserver.AppServer" , options , new LinkedList<String>() , 1200 );
     }
 
 }

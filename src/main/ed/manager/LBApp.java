@@ -26,8 +26,7 @@ import ed.util.*;
 public class LBApp extends XGenJavaApp {
 
     LBApp( String name , OptionMap options ){
-        super( "lb" , name , "ed.net.lb.LB" , options , _getArgs( options ) );
-        //super( "lb" , name , "ed.net.lb.LB" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
+        super( "lb" , name , "ed.net.lb.LB" , options , _getArgs( options ) , 300 );
     }
     
     static List<String> _getArgs( OptionMap options ){

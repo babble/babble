@@ -25,12 +25,8 @@ import ed.util.*;
 
 public abstract class XGenJavaApp extends JavaApplication {
 
-    XGenJavaApp( String type , String name , String className , OptionMap options , List<String> args ){
-        super( type , name , className , _howMuchMemory( options ) , args , _getJvmArgs( options ) , true );
-    }
-    
-    static int _howMuchMemory( OptionMap options ){
-        return options.getInt( "memory" , 300 );
+    XGenJavaApp( String type , String name , String className , OptionMap options , List<String> args , int memory ){
+        super( type , name , className , memory , args , _getJvmArgs( options ) , true );
     }
     
     static List<String> _getJvmArgs( OptionMap options ){
