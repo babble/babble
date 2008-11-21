@@ -22,6 +22,8 @@ _10gen.assert.eq( _10gen.jsString.jsAttr , 42 )
 pyS = _10gen.jsStringProcess("a new string");
 
 _10gen.assert.eq( pyS.someAttr , 13 );
+assert pyS.keys()
+#assert pyS.keys() == ['someAttr']
 
 pyS = ''
 

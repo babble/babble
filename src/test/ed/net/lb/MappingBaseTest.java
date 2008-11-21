@@ -151,6 +151,41 @@ public class MappingBaseTest extends TestCase {
 
     }
 
+
+    @Test(groups = {"basic"})
+    public void testAliasWildCard()
+        throws IOException {
+        String s = 
+            "site foo\n" + 
+            "   www : prod1\n" + 
+            "   dev : prod2\n" + 
+
+            "site-alias foo\n" + 
+            "   real : www\n" +
+            "   * : dev\n" +
+            "   play : dev\n" + 
+            "   me.play : dev\n" + 
+
+            "pool prod1\n" + 
+            "   n1\n" + 
+            "pool prod2\n" + 
+            "   n2\n";       
+        
+        TextMapping tm = create( s );
+
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: www.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
+
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: real.foo.com" ) ) , "foo" , "www" , "www.foo.com" , "www.foo" + Environment._internalDomain );
+
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: dev.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: me.play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo" + Environment._internalDomain );
+        assertEquals( tm.getEnvironment( HttpRequest.getDummy( "/" , "Host: measdjasd.play.foo.com" ) ) , "foo" , "dev" , "dev.foo.com" , "dev.foo" + Environment._internalDomain );
+
+    }
+
     @Test(groups = {"basic"})
     public void testAlias2()
         throws IOException {

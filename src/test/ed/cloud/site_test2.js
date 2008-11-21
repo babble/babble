@@ -56,6 +56,12 @@ assert.eq( "v1" , s.findEnvironment( "play" ).name );
 
 assert.eq( 2 , s.environments.length );
 
+// wild card test
+assert( ! s.findEnvironment( "asdasd" ) );
+s.findEnvironment( "play" ).aliases.add( "*" );
+assert.eq( "v1" , s.findEnvironment( "assert" ).name );
+
+
 assert.raises(
     function(){
         s.removeDB( "www" );
