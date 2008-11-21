@@ -10,6 +10,7 @@
 *.d
 *.class*
 .cvsignore*
+.svn
 .#*
 .git
 *#
