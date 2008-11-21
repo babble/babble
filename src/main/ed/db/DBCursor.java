@@ -42,6 +42,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     public DBCursor copy(){
 	DBCursor c = new DBCursor( _collection , _query , _keysWanted , _constructor );
 	c._orderBy = _orderBy;
+        c._hint = _hint;
 	c._numWanted = _numWanted;
 	c._skip = _skip;
 	return c;
@@ -60,6 +61,42 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         _orderBy = orderBy;
         return this;
+    }
+
+    public DBCursor hint( JSObject indexKeys ){
+        if ( _it != null )
+            throw new RuntimeException( "can't sort after executing query" );
+        
+        if ( indexKeys == null )
+            _hint = null;
+        else 
+            _hint = DBCollection.genIndexName( indexKeys );
+        return this;
+    }
+
+    public DBCursor hint( JSString indexName ){
+        if ( _it != null )
+            throw new RuntimeException( "can't sort after executing query" );
+        
+        String s = null;
+        if ( indexName != null )
+            s = indexName.toString();
+        
+        return hint( s );
+    }
+
+    public DBCursor hint( String indexName ){
+        if ( _it != null )
+            throw new RuntimeException( "can't sort after executing query" );
+
+        _hint = indexName;
+        return this;
+    }
+
+    public JSObject explain(){
+        DBCursor c = copy();
+        c._explain = true;
+        return c.next();
     }
 
     /** Limits the number of elements returned.
@@ -92,13 +129,16 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private void _check(){
         if ( _it != null )
             return;
-
+        
         if ( _collection != null && _query != null ){
             JSObject foo = _query;
             if ( hasSpecialQueryFields() ){
                 foo = new JSObjectBase();
                 _addToQueryObject( foo , "query" , _query , true );
                 _addToQueryObject( foo , "orderby" , _orderBy , false );
+                _addToQueryObject( foo , "$hint" , _hint );
+                if ( _explain )
+                    foo.set( "$explain" , true );
             }
 
             final long start = System.currentTimeMillis();
@@ -117,18 +157,29 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         if ( _orderBy != null && _orderBy.keySet( false ).size() > 0 )
             return true;
         
-        return false;
+        if ( _hint != null )
+            return true;
+        
+        return _explain;
     }
 
     void _addToQueryObject( JSObject query , String field , JSObject thing , boolean sendEmpty ){
-
         if ( thing == null )
             return;
         
         if ( ! sendEmpty && thing.keySet( false ).size() == 0 )
             return;
-        
+    
         _noRefCheck( thing );
+    
+        _addToQueryObject( query , field , thing );
+    }
+
+    void _addToQueryObject( JSObject query , String field , Object thing ){
+
+        if ( thing == null )
+            return;
+        
         query.set( field , thing );
     }
 
@@ -431,6 +482,8 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     final JSFunction _constructor;
     
     private JSObject _orderBy;
+    private String _hint;
+    private boolean _explain = false;
     private int _numWanted = 0;
     private int _skip = 0;
 
