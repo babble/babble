@@ -151,7 +151,7 @@ public class RunningApplication extends Thread {
         _kill();
 
         try {
-            Thread.sleep( 2 );
+            Thread.sleep( 20 );
         }
         catch ( InterruptedException ie ){}
         
