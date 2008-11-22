@@ -221,6 +221,20 @@ public class MemUtil {
             _last.add( line );
         }
 
+        public int fullGCsInARow(){
+            final int size = _last.size();
+            
+            int num = 0;
+           
+            for ( int i=0; i<size; i++ ){
+                GCLine l = _last.get( i );
+                if ( ! l.full() )
+                    break;
+                num++;
+            }         
+            return num;
+        }
+
         public double fullGCPercentage(){
             final int size = _last.size();
             
@@ -235,7 +249,11 @@ public class MemUtil {
             for ( int i=0; i<size; i++ ){
                 GCLine l = _last.get( i );
                 
-                assert( l.when() <= end );
+                if ( l.when() > end ){
+                    // means there was a restart
+                    break;
+                }
+
                 if ( end - l.when() > 27000 )
                     break;
 
@@ -247,7 +265,7 @@ public class MemUtil {
 
             return time / ( end - start );
         }
-
+        
         final CircularList<GCLine> _last = new CircularList<GCLine>( 20 , true );
     }
 }
