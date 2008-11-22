@@ -65,6 +65,8 @@ public class JavaApplication extends SimpleApplication {
         if ( ! _gcStream.add( line ) )
             return false;
         
+        _gcs.add( line );
+
         final double fullGCPer = _gcStream.fullGCPercentage();
 
         if ( fullGCPer > .8 ){
@@ -77,7 +79,8 @@ public class JavaApplication extends SimpleApplication {
     }
 
     final GCStream _gcStream = new GCStream();
-    
+    final CircularList<String> _gcs = new CircularList<String>( 10000 , true );
+
     static String[] _getCommands( String type , String className , String[] args , String[] jvmArgs , int maxMemory , boolean gc ){
 
         if ( className == null )

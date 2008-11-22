@@ -31,6 +31,7 @@ public class WebView extends HttpMonitor {
         super( BASE_NAME );
         _manager = manager;
         _detail = new Detail();
+        _javaApps = new JavaApps();
     }
     
     public void handle( MonitorRequest request ){
@@ -65,49 +66,105 @@ public class WebView extends HttpMonitor {
     void add(){
         HttpServer.addGlobalHandler( this );
         HttpServer.addGlobalHandler( _detail );
+        HttpServer.addGlobalHandler( _javaApps );
     }
     
-    class Detail extends HttpMonitor {
-        Detail(){
-            super( BASE_NAME + "-detail" );
+    abstract class ProcessViewer extends HttpMonitor {
+        ProcessViewer( String name ){
+            super( BASE_NAME + "-" + name );
         }
         
         public void handle( MonitorRequest request ){
             String fullId = request.getRequest().getParameter( "id" );
             if ( fullId == null ){
-                request.print( "<ul>" );
-                for ( Application app : _manager.getApplications() ){
-                    request.print( "<li>" );
-                    request.print( "<a href='" + getURI() + "?id=" + app.getFullId() + "'>" + 
-                                   app.getType() + "." + app.getId() + 
-                                   "</a>" );
-                    request.print( "</li>" );
-                }  
-                request.print( "</ul>" );
+                printList( request );
             }
             else {
-                
-                Application app = _manager.findApplication( fullId );
-                
-                if ( app == null )
-                    request.print( "can't find app [" + fullId + "]" );
-                else {
-
-                    request.print( "Command: <b>" + Arrays.toString( app.getCommand() ) + "</b><br>" );
-
-                    request.print( "<pre>\n" );
-                    RunningApplication ra = _manager.getRunning( app );
-                    for ( int i=0; i<ra._lastOutput.size(); i++ ){
-                        request.print( ra._lastOutput.get(i) );
-                        request.print( "\n" );
-                    }
-                    request.print( "\n</pre>\n" );
-                }
-
+                printApp( request , fullId );
             }
+        }
+        
+        void printApp( MonitorRequest request , String fullId ){
+            Application app = _manager.findApplication( fullId );
+            if ( app == null ){
+                request.print( "can't find app [" + fullId + "]" );
+                return;
+            }
+            
+            RunningApplication ra = _manager.getRunning( app );
+            if ( ra == null ){
+                request.print( "can't find running app for [" + fullId + "]" );
+                return;
+            }
+            
+            print( request , app , ra );
+        }
+
+        void printList( MonitorRequest request ){
+            request.print( "<ul>" );
+            for ( Application app : getApps() ){
+                request.print( "<li>" );
+                request.print( "<a href='" + getURI() + "?id=" + app.getFullId() + "'>" + 
+                               app.getType() + "." + app.getId() + 
+                               "</a>" );
+                request.print( "</li>" );
+            }  
+            request.print( "</ul>" );
+        }
+        
+        abstract List<? extends Application> getApps();
+        abstract void print( MonitorRequest request , Application app , RunningApplication ra );
+    }
+    
+    class Detail extends ProcessViewer {
+        Detail(){
+            super( "detail" );
+        }
+        
+        List<Application> getApps(){
+            return _manager.getApplications();
+        }
+        
+        void print( MonitorRequest request , Application app , RunningApplication ra ){
+            request.print( "Command: <b>" + Arrays.toString( app.getCommand() ) + "</b><br>" );
+            
+            request.print( "<pre>\n" );
+            for ( int i=0; i<ra._lastOutput.size(); i++ ){
+                request.print( ra._lastOutput.get(i) );
+                request.print( "\n" );
+            }
+            request.print( "\n</pre>\n" );            
+        }
+        
+    }
+
+    class JavaApps extends ProcessViewer {
+        JavaApps(){
+            super( "javaApps" );
+        }
+
+        void print( MonitorRequest request , Application app , RunningApplication ra ){
+            JavaApplication j = (JavaApplication)app;
+            request.print( "<pre>\n" );
+
+            int size = j._gcs.size();
+            for ( int i=0; i<size; i++ )
+                request.print( j._gcs.get(i) + "\n" );
+
+            request.print( "</pre>\n" );
+        }
+
+        List<JavaApplication> getApps(){
+            List<JavaApplication> j = new ArrayList<JavaApplication>();
+            for ( Application app : _manager.getApplications() ){
+                if ( app instanceof JavaApplication )
+                    j.add( (JavaApplication)app );
+            }
+            return j;
         }
     }
 
     final Manager _manager;
     final Detail _detail;
+    final JavaApps _javaApps;
 }
