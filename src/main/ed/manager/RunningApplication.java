@@ -128,6 +128,8 @@ public class RunningApplication extends Thread {
     }
 
     void restart( Application app ){
+        _logger.info( "got restart request" );
+
         if ( _done )
             throw new RuntimeException( "can't restart because done" );
 
@@ -172,6 +174,7 @@ public class RunningApplication extends Thread {
         }
         
         try {
+            _logger.info( "trying to kill" );
             SysExec.exec( "kill " + _pid );
         }
         catch ( Exception e ){
