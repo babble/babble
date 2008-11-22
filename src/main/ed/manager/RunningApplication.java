@@ -44,7 +44,7 @@ public class RunningApplication extends Thread {
             _pid = -1;
                 
             final Application app = _app;
-            int exitValue = 0;
+            int exitValue;
                 
             _logger.info( "STARTING" );
                 
@@ -120,7 +120,7 @@ public class RunningApplication extends Thread {
         
         log.close();
 
-        return _done ? _exitValue : _process.waitFor();
+        return _done || _process == null ? _exitValue : _process.waitFor();
     }
 
     void restart(){
@@ -198,7 +198,7 @@ public class RunningApplication extends Thread {
         
         try {
             _process.destroy();
-            _exitValue = _process.exitValue();
+            _exitValue = _process.waitFor();
         }
         catch ( Exception e ){
             _logger.error( "destory had an error" , e );
@@ -269,7 +269,7 @@ public class RunningApplication extends Thread {
     private Process _process;
     private long _lastStart;
     private int _timesStarted = 0;
-    private int _exitValue = 0;
+    private int _exitValue = -1;
 
     class OutputLine {
         OutputLine( String line , boolean out ){
