@@ -201,7 +201,6 @@ public class RunningApplication extends Thread {
             _logger.error( "destory had an error" , e );
         }
         _process = null;
-        _done = true;
     }
 
     public int hashCode(){
