@@ -33,7 +33,11 @@ public class WebView extends HttpMonitor {
         _detail = new Detail();
         _javaApps = new JavaApps();
     }
-    
+
+    protected boolean uriOK( String uri ){ 
+        return uri.equals( "/" );
+    }
+
     public void handle( MonitorRequest request ){
         
         final String restartId = request.getRequest().getParameter( "restart" );
@@ -56,11 +60,19 @@ public class WebView extends HttpMonitor {
             request.addData( app.getType() + "." + app.getId() , 
                              app.getType() , app.getId() , new Date( ra.getLastStart() ) , ra.getUptimeMinutes() , ra.timesStarted() , 
                              "<a href='" + _detail.getURI() + "?id=" + app.getFullId() + "'>detail</a> | " + 
-                             "<a href='" + getURI() + "?restart=" + app.getFullId() + "'>restart</a>"
+                             _action( "restart" , app )
                              );
         }
-
+        
         request.endData();
+    }
+
+    String _action( String name , Application app ){
+        StringBuilder buf = new StringBuilder( "<form action='" + getURI() + "' method='POST'>" );
+        buf.append( "<input type='hidden' name='" + name + "' value='" + app.getFullId() + "' >" );
+        buf.append( "<input type='submit' name='action' value='" + name + "'>" );
+        buf.append( "</form>" );
+        return buf.toString();
     }
     
     void add(){
