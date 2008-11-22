@@ -50,6 +50,7 @@ public abstract class HttpMonitor implements HttpHandler {
         buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
         buf.append( " table { font-size: 10px; }\n" );
         buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
+        buf.append( " form { display: inline; }\n" );
         buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
         buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
         buf.append( " .warn { color: #FF6600; }\n" );
@@ -105,12 +106,13 @@ public abstract class HttpMonitor implements HttpHandler {
         return false;
     }
     
+    protected boolean uriOK( String uri ){ return false; };
     protected void addStyle( StringBuilder buf ){}
     public abstract void handle( MonitorRequest request );
     
     public boolean handles( HttpRequest request , Info info ){
         
-        if ( ! request.getURI().equalsIgnoreCase( _uri ) )
+        if ( ! ( request.getURI().equalsIgnoreCase( _uri ) || uriOK( request.getURI() ) ) )
             return false;
 
         if ( ! allowed( request ) )
