@@ -30,7 +30,7 @@ public class JSAppender extends JSObjectWrapper implements Appender  {
 
     public void append( Event e ){
         if ( _func.getNumParameters() > 1 )
-            _func.call( Scope.getThreadLocal() , e._loggerName , e._date , e._level , e._msg , e._throwable , e._thread , EMPTY );
+            _func.call( Scope.getThreadLocal() , e._loggerName , e._date , e._level , e._msg , e._throwable , e._threadName , EMPTY );
         else 
             _func.call( Scope.getThreadLocal() , e , EMPTY );
     }
