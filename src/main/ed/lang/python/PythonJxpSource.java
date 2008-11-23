@@ -106,7 +106,7 @@ public class PythonJxpSource extends JxpSource implements Sizable {
         ss.ensurePath( lib.getRoot().getAbsolutePath() );
         ss.ensurePath( lib.getTopParent().getRoot().getAbsolutePath() );
 
-        PyObject oldMain = ss.getPyState().modules.__finditem__( Py.newString( "__main__" ) );
+        PyObject oldMain = ss.getPyState().modules.__finditem__( Py.newString( _MAIN ) );
         PyObject result = null;
 
         try {
@@ -128,25 +128,23 @@ public class PythonJxpSource extends JxpSource implements Sizable {
                    We already set a reasonable __file__, so whatever */
             }
 
-            String name = "__main__";
-
             /*
              * In order to track dependencies, we need to know what module is doing imports
              * We just care that _init doing imports is registered at all.
              */
-            PyModule module = new PyModule( name , globals );
+            PyModule module = new PyModule( _MAIN, globals );
 
-            ss.getPyState().modules.__setitem__( Py.newString( "__main__" ) , module );
+            ss.getPyState().modules.__setitem__( Py.newString(_MAIN) , module );
 
             PyObject locals = module.__dict__; // FIXME: locals == globals ?
             result = Py.runCode( code, locals, globals );
             if( file.toString().endsWith( "_init.py" ) )
-                ss.addRecursive( "__main__" , ac );
+                ss.addRecursive(_MAIN, ac );
         }
         finally {
             Py.setSystemState( pyOld );
             ss.removePath( file.getParent() );
-            ss.getPyState().modules.__setitem__( Py.newString( "__main__" ) , oldMain );
+            ss.getPyState().modules.__setitem__( Py.newString(_MAIN) , oldMain );
         }
         return result;
     }
@@ -217,4 +215,6 @@ public class PythonJxpSource extends JxpSource implements Sizable {
     }
     // static b/c it has to use ThreadLocal anyway
     final static Logger _log = Logger.getLogger( "python" );
+
+    private static final String _MAIN = "__main__";
 }
