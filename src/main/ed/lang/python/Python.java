@@ -36,6 +36,7 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
 import ed.appserver.*;
+import ed.security.*;
 import ed.appserver.adapter.AdapterType;
 import ed.appserver.jxp.JxpSource;
 
@@ -754,5 +755,22 @@ public class Python extends Language {
         public boolean removeSTElement( StackTraceElement element ){
             return false;
         }
+    }
+
+    public static void checkSafeImport( PyObject m ){
+        if( m instanceof PyJavaPackage || m instanceof PyJavaClass ){
+            PyObject __name__ = m.__findattr__( "__name__" );
+            if( ! ( __name__ instanceof PyString ) ){
+                throw new RuntimeException("Ethan's code got confused -- how can " + m + " have a name of " + __name__ + "?");
+            }
+
+            if( ImportHelper.getBuiltin( __name__.toString() ) != null )
+                // Safe -- builtin that Jython recognizes
+                return;
+
+            if( ! Security.inTrustedCode() )
+                throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
+        }
+
     }
 }
