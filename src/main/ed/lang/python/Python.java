@@ -58,6 +58,7 @@ public class Python extends Language {
         StackTraceHolder h = StackTraceHolder.getInstance();
         h.setPackage( "org.python.pycode" , _stackFixer );
         h.setPackage( "org.python.core" , _stackFixer );
+        h.setFileType( "py" , _stackFixer );
     }
 
     public static PyCode compile( File f )
@@ -745,7 +746,7 @@ public class Python extends Language {
             String fn = element.getFileName();
             int ln = element.getLineNumber();
 
-            if( cn.startsWith("org.python.pycode._pyx") )
+            if( cn.startsWith("org.python.pycode._pyx") || cn.endsWith("$py") )
                 return new StackTraceElement(fn, "___", fn, ln);
             return element;
         }

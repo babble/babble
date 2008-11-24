@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -43,16 +43,20 @@ public class StackTraceHolder {
     private StackTraceHolder(){
 
     }
-    
+
     public void setPackage( String pack , StackTraceFixer fixer ){
         _packs.put( pack , fixer );
+    }
+
+    public void setFileType( String ext , StackTraceFixer fixer ){
+        _fileexts.put( ext , fixer );
     }
 
     public void set( String fullName , StackTraceFixer fixer ){
         if ( DEBUG ) System.out.println( "set [" + fullName + "] " + fixer );
         _fixers.put( fullName , fixer );
     }
-    
+
     List<StackTraceFixer> getRelevant( StackTraceElement element ){
         List<StackTraceFixer> l = new LinkedList<StackTraceFixer>(){
             public boolean add( StackTraceFixer f ){
@@ -81,13 +85,22 @@ public class StackTraceHolder {
                 l.add( _packs.get( p ) );
             }
         }
-        
+
+        final String fn = element.getFileName();
+        {
+            final int idx = fn.lastIndexOf( "." );
+            if( idx > 0 ){
+                String ext = fn.substring( idx+1 );
+                l.add( _fileexts.get( ext ) );
+            }
+        }
+
         if ( l.size() == 0 )
             return null;
 
         return l;
     }
-    
+
     /**
      * Fixes a given stack trace element.
      *
@@ -98,40 +111,40 @@ public class StackTraceHolder {
      * @return null if should be removed, or the correct thing
     */
     public StackTraceElement fix( StackTraceElement element ){
-        
+
         if ( RAW_EXCPETIONS )
             return element;
-        
-	if ( element == null )
-	    return null;
-        
-	fixerLoop:
-	while ( true ){
+
+        if ( element == null )
+            return null;
+
+        fixerLoop:
+        while ( true ){
 
             List<StackTraceFixer> fixers = getRelevant( element );
             if ( fixers == null )
                 return element;
-    
-	    for ( StackTraceFixer f : fixers )
-		if ( f.removeSTElement( element ) )
-		    return null;
-	    
-	    for ( StackTraceFixer f : fixers ){
-		StackTraceElement n = f.fixSTElement( element );
-		if ( n == null || n == element )
-		    continue;
-		
+
+            for ( StackTraceFixer f : fixers )
+                if ( f.removeSTElement( element ) )
+                    return null;
+
+            for ( StackTraceFixer f : fixers ){
+                StackTraceElement n = f.fixSTElement( element );
+                if ( n == null || n == element )
+                    continue;
+
                 if ( DEBUG ) System.out.println( element + " -->> " + n );
 
-		element = n;
-		continue fixerLoop;
-	    }    
-            
-	    break;
-	}
-	return element;
+                element = n;
+                continue fixerLoop;
+            }
+
+            break;
+        }
+        return element;
     }
-    
+
     public void fix( Throwable t ){
         fix(t, true);
     }
@@ -139,48 +152,48 @@ public class StackTraceHolder {
 
         if ( t instanceof NoFix )
             return;
-        
+
         while(t != null) {
             _fix(t);
-            
+
             if(!recurse)
                 break;
-            
+
             t = t.getCause();
         }
     }
     private void _fix( Throwable t ){
         if ( t == null )
             return;
-        
+
         if ( RAW_EXCPETIONS )
             return;
-        
+
         boolean removeThings = false;
         boolean changed = false;
-        
+
         StackTraceElement stack[] = t.getStackTrace();
 
         for ( int i=0; i<stack.length; i++ ){
-            
+
             final StackTraceElement element = stack[i];
             if ( element == null )
                 continue;
-	    
-	    final StackTraceElement n = fix( element );
-	    if ( n == element )
-		continue;
 
-	    stack[i] = n;
-	    changed = true;
-	    
-	    if ( n == null )
-		removeThings = true;
+            final StackTraceElement n = fix( element );
+            if ( n == element )
+                continue;
+
+            stack[i] = n;
+            changed = true;
+
+            if ( n == null )
+                removeThings = true;
         }
-        
+
         if ( removeThings ){
             changed = true;
-            
+
             List<StackTraceElement> lst = new ArrayList<StackTraceElement>();
             for ( StackTraceElement s : stack ){
                 if ( s == null )
@@ -191,11 +204,12 @@ public class StackTraceHolder {
             for ( int i=0; i<stack.length; i++ )
                 stack[i] = lst.get(i);
         }
-            
+
         if ( changed )
             t.setStackTrace( stack );
     }
- 
+
     final Map<String,StackTraceFixer> _fixers = Collections.synchronizedMap( new HashMap<String,StackTraceFixer>() );
     final Map<String,StackTraceFixer> _packs = Collections.synchronizedMap( new TreeMap<String,StackTraceFixer>() );
+    final Map<String,StackTraceFixer> _fileexts = Collections.synchronizedMap( new HashMap<String,StackTraceFixer>() );
 }

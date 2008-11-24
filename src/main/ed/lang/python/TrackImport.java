@@ -26,6 +26,7 @@ import org.python.core.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.appserver.*;
+import ed.security.*;
 
 public class TrackImport extends PyObject {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.TRACKIMPORT" );
@@ -393,10 +394,18 @@ public class TrackImport extends PyObject {
      * import implementation.
      */
     PyObject tryFallThrough(SiteSystemState sss, PyObject[] args, String[] keywords){
+        PyObject m = null;
         PySystemState oldPyState = Py.getSystemState();
         try {
             Py.setSystemState( sss.getPyState() );
-            return _import.__call__( args, keywords );
+            m = _import.__call__( args, keywords );
+            if( m instanceof PyJavaPackage || m instanceof PyJavaClass ){
+                // FIXME: PySystemState.getBuiltin -- static??
+                if( ImportHelper.getBuiltin( m.__findattr__( "__name__" ).toString() ) == null &&
+                    ! Security.inTrustedCode() )
+                    throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
+            }
+            return m;
         }
         finally {
             Py.setSystemState( oldPyState );
