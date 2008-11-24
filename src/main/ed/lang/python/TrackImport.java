@@ -188,6 +188,11 @@ public class TrackImport extends PyObject {
             return _finish( target , siteModule , m );
         }
 
+        if( m == null ){
+            // FIXME: Track failed import
+            return _finish( target , siteModule , m );
+        }
+
         // gets the module name -- __file__ is the file
         String importer = getName( globals , target );
         if( importer == null )
@@ -231,7 +236,11 @@ public class TrackImport extends PyObject {
             imported = __name__.toString();
         }
         else {
-            String startName = m.__findattr__("__name__").toString();
+            PyObject __name__ = m.__findattr__("__name__");
+            if( __name__ == null ){
+                throw new RuntimeException("imported a module differently without __name__ : " + m );
+            }
+            String startName = __name__.toString();
             String [] modNames = target.split("\\.");
 
             // We got an import for "foo.bar". But Jython might
@@ -398,12 +407,12 @@ public class TrackImport extends PyObject {
         try {
             Py.setSystemState( sss.getPyState() );
             m = _import.__call__( args, keywords );
-            Python.checkSafeImport( m );
-            return m;
         }
         finally {
             Py.setSystemState( oldPyState );
         }
+        Python.checkSafeImport( m );
+        return m;
     }
 
     /**

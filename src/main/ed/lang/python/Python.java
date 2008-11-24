@@ -764,20 +764,28 @@ public class Python extends Language {
     }
 
     public static boolean isSafeImport( PyObject m ){
-        if( m instanceof PyJavaPackage || m instanceof PyJavaClass ){
-            PyObject __name__ = m.__findattr__( "__name__" );
-            if( ! ( __name__ instanceof PyString ) ){
-                throw new RuntimeException("Ethan's code got confused -- how can " + m + " have a name of " + __name__ + "?");
-            }
-
-            if( ImportHelper.getBuiltin( __name__.toString() ) != null )
-                // Safe -- builtin that Jython recognizes
-                return true;
-
-            if( ! Security.inTrustedCode() )
-                return false;
+        if( ! ( m instanceof PyJavaPackage || m instanceof PyJavaClass ) ){
+            return true;
         }
-        return true;
 
+        String name = null;
+        if( m instanceof PyJavaPackage )
+            name = ((PyJavaPackage)m).__name__;
+        else
+            name = ((PyJavaClass)m).__name__;
+
+        if( ImportHelper.getBuiltin( name ) != null )
+            // Safe -- builtin that Jython recognizes
+            return true;
+
+        if( m instanceof PyJavaClass &&
+            ( name.equals( "Time" ) || name.equals( "RandomModule" ) ) ){
+            return true;
+        }
+
+        if( ! Security.inTrustedCode() )
+            return false;
+
+        return true;
     }
 }
