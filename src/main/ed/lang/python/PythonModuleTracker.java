@@ -25,6 +25,11 @@ import java.io.*;
 import ed.appserver.*;
 import ed.util.*;
 
+/**
+ * Replacement class for sys.modules. Can flush outdated modules, and
+ * prevents untrusted code from getting access to Java
+ * packages/classes.
+ */
 public class PythonModuleTracker extends PyStringMap {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.PYTHONMODULETRACKER" );
 
@@ -99,6 +104,19 @@ public class PythonModuleTracker extends PyStringMap {
                 v.append(val);
         }
         return v;
+    }
+
+    public PyObject pop( PyObject key ){
+        return pop( key , Py.None );
+    }
+
+    public PyObject pop( PyObject key , PyObject value ){
+        PyObject m = super.__finditem__( key );
+        // Don't pop unless safe
+        if( Python.isSafeImport( m ) )
+            return handleReturn( super.pop( key , value ) );
+        Python.checkSafeImport( m ); // raises exception
+        return null;
     }
 
     public void __setitem__( String key , PyObject value ){
