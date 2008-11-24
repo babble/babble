@@ -48,6 +48,10 @@ public class StackTraceHolder {
         _packs.put( pack , fixer );
     }
 
+    public void setFileType( String ext , StackTraceFixer fixer ){
+        _fileexts.put( ext , fixer );
+    }
+
     public void set( String fullName , StackTraceFixer fixer ){
         if ( DEBUG ) System.out.println( "set [" + fullName + "] " + fixer );
         _fixers.put( fullName , fixer );
@@ -81,7 +85,16 @@ public class StackTraceHolder {
                 l.add( _packs.get( p ) );
             }
         }
-        
+
+        final String fn = element.getFileName();
+        {
+            final int idx = fn.lastIndexOf( "." );
+            if( idx > 0 ){
+                String ext = fn.substring( idx+1 );
+                l.add( _fileexts.get( ext ) );
+            }
+        }
+
         if ( l.size() == 0 )
             return null;
 
@@ -198,4 +211,5 @@ public class StackTraceHolder {
  
     final Map<String,StackTraceFixer> _fixers = Collections.synchronizedMap( new HashMap<String,StackTraceFixer>() );
     final Map<String,StackTraceFixer> _packs = Collections.synchronizedMap( new TreeMap<String,StackTraceFixer>() );
+    final Map<String,StackTraceFixer> _fileexts = Collections.synchronizedMap( new HashMap<String,StackTraceFixer>() );
 }
