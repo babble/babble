@@ -885,16 +885,27 @@ public class JSObjectBase implements JSObject {
     /** Lock this object to prevent setting fields. Makes the object immutable. */
     public void lock(){
         setReadOnly( true );
+        _locked = true;
     }
-
+    
+    /** Return if the array is locked.
+     * @return If the array is locked.
+     */
+    public boolean isLocked(){
+        return _readOnly;
+    }
+    
     /** Sets if an object is locked or not.
      * @param readOnly If this object's fields should be read-only.
      */
     public void setReadOnly( boolean readOnly ){
+        if ( readOnly == _readOnly )
+            return;
+        _readOnlyCheck();
         _readOnly = readOnly;
     }
 
-    private final void _readOnlyCheck(){
+    protected final void _readOnlyCheck(){
         if ( _readOnly )
             throw new RuntimeException( "can't modify JSObject - read only" );
     }
@@ -1163,6 +1174,7 @@ public class JSObjectBase implements JSObject {
     private JSFunction _constructor;
     private JSObject __proto__ = null;
     private boolean _readOnly = false;
+    private boolean _locked = false;
     private String _name;
 
     private boolean _dirty = true;

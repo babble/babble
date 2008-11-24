@@ -673,8 +673,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return The inserted object, <tt>v</tt>.
      */
     public Object setInt( int pos , Object v ){
-        if ( _locked )
-            throw new JSException( "locked" );
+        _readOnlyCheck();
         while ( _array.size() <= pos )
             _array.add( null );
         _array.set( pos , v );
@@ -830,8 +829,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return true
      */
     public boolean add( Object o ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
         return _array.add( o );
     }
 
@@ -840,8 +838,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return true
      */
     public void add( int index , Object o ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
         _array.add( index , o );
     }
 
@@ -869,8 +866,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return If the array changed.
      */
     public boolean addAll( Collection c ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
         return _array.addAll( c );
     }
 
@@ -880,22 +876,19 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return If the array changed.
      */
     public boolean addAll( int idx , Collection c ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
         return _array.addAll( idx , c );
     }
 
     public void addAll( Enumeration e ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
         
         while ( e.hasMoreElements() )
             add( e.nextElement() );
     }
 
     public void addAll( Iterator i ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
         
         while ( i.hasNext() )
             add( i.next() );
@@ -978,8 +971,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return The element that was removed from the array.
      */
     public Object remove( int i ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
+
         return _array.remove( i );
     }
 
@@ -988,8 +981,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return If the array contained the given element.
      */
     public boolean remove( Object o ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
+        _readOnlyCheck();
+
         return _array.remove( o );
     }
 
@@ -1069,21 +1062,9 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return this;
     }
 
-    /** Make this array mostly immutable. */
-    public void lock(){
-        _locked = true;
-    }
-
     /** Remove all array elements. */
     public void clear(){
         _array.clear();
-    }
-
-    /** Return if the array is locked.
-     * @return If the array is locked.
-     */
-    public boolean isLocked(){
-        return _locked;
     }
 
     /** Return array getter of a given name
@@ -1131,7 +1112,6 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return hash;
     }
 
-    private boolean _locked = false;
     private boolean _new = false;
     /** @unexpose */
     final ArrayList<Object> _array;
