@@ -87,7 +87,7 @@ public class StackTraceHolder {
         }
 
         final String fn = element.getFileName();
-        {
+        if ( fn != null ){
             final int idx = fn.lastIndexOf( "." );
             if( idx > 0 ){
                 String ext = fn.substring( idx+1 );
