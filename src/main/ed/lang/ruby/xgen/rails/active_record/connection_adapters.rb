@@ -56,6 +56,11 @@ module ActiveRecord
       def supports_count_distinct?
         false
       end
+
+      def transaction(start_db_transaction=true)
+        # Transactions are not yet supported by Mongo.
+        yield
+      end
     end
   end
 end

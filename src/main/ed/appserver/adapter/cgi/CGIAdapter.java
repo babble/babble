@@ -39,7 +39,7 @@ public abstract class CGIAdapter extends JxpSource {
     }
 
     public abstract void handleCGI( EnvMap env , InputStream stdin , OutputStream stdout , AppRequest ar );
-    
+
     public JSFunction getFunction() throws IOException {
         return _dontCall;
     }
@@ -56,9 +56,9 @@ public abstract class CGIAdapter extends JxpSource {
         InputStream stdin = null;
         if ( ar.getRequest().getPostData() != null )
             stdin = ar.getRequest().getPostData().getInputStream();
-        else 
+        else
             stdin = new ByteArrayInputStream( new byte[0] );
-        
+
         OutputStream stdout = new CGIOutputStream( ar.getResponse() , ar.getResponse().getOutputStream() );
 
         handleCGI( env , stdin , stdout , ar );
@@ -110,7 +110,7 @@ public abstract class CGIAdapter extends JxpSource {
         env.set("REQUEST_METHOD",req.getMethod());
         env.set("REQUEST_URI", req.getURI());
         env.set("REQUEST_URL", req.getURL());
-        env.set("SCRIPT_NAME","");       // TODO - fix
+        env.set("SCRIPT_NAME", req.getServletPath());
 
         env.set("SCRIPT_FILENAME","###FIXME2###");   // TODO -fix
 
@@ -144,29 +144,29 @@ public abstract class CGIAdapter extends JxpSource {
 
 
     public static class CGIOutputStream extends OutputStream {
-        
+
         public CGIOutputStream( HttpResponse response ){
             this( response , response.getOutputStream() );
         }
-        
+
         public CGIOutputStream( HttpResponse response , OutputStream body ){
             _response = response;
             _body = body;
         }
-        
+
         public void write(byte[] b)
             throws IOException {
             if ( _inHeader )
                 super.write( b );
-            else 
+            else
                 _body.write( b );
         }
-        
+
         public void write(byte[] b, int off, int len)
             throws IOException {
             if ( _inHeader )
                 super.write( b , off , len );
-            else 
+            else
                 _body.write( b , off , len );
         }
 
@@ -177,26 +177,26 @@ public abstract class CGIAdapter extends JxpSource {
                 _body.write( i );
                 return;
             }
-            
+
             byte b = (byte)(i & 0xFF);
             if ( b == '\r' )
                 return;
-            
+
             if ( b != '\n' ){
                 _line.append( (char)b );
                 return;
             }
-            
+
             if ( _line.length() == 0 ){
                 _inHeader = false;
                 return;
             }
-            
+
             String s = _line.toString();
             int idx = s.indexOf( ":" );
             if ( idx < 0 )
                 throw new RuntimeException( "invalid cgi header line [" + s + "]" );
-            
+
             String key = s.substring( 0 , idx ).trim();
             String val = s.substring( idx + 1 ).trim();
             _response.addHeader( key , val );
@@ -205,7 +205,7 @@ public abstract class CGIAdapter extends JxpSource {
 
             _line.setLength( 0 );
         }
-        
+
         protected void _setStatus( String val ) {
             String[] words = val.split(" ");
             if (words.length > 0 && Character.isDigit(words[0].charAt(0))) {
@@ -223,7 +223,7 @@ public abstract class CGIAdapter extends JxpSource {
         private boolean _inHeader = true;
         private StringBuilder _line = new StringBuilder();
     }
-    
+
     class MyServlet extends JxpServlet {
         MyServlet( AppContext context ){
             super( context , _dontCall );
@@ -237,7 +237,7 @@ public abstract class CGIAdapter extends JxpSource {
     protected String getContent() throws IOException {
         throw new RuntimeException( "not supported" );
     }
-    
+
     protected InputStream getInputStream() throws IOException {
         throw new RuntimeException( "not supported" );
     }

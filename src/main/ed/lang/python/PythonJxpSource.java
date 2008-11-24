@@ -34,7 +34,7 @@ import ed.log.Logger;
 public class PythonJxpSource extends JxpSource implements Sizable {
 
     static {
-        System.setProperty( "python.cachedir", ed.io.WorkingFiles.TMP_DIR + "/jython-cache/" + Version.PY_VERSION );
+        System.setProperty("python.cachedir", ed.io.WorkingFiles.getTypeDir( "jython-cache" ) + Version.PY_VERSION);
     }
 
     public synchronized JSFunction getFunction()

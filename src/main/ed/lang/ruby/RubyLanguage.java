@@ -20,6 +20,7 @@ import org.jruby.Ruby;
 import org.jruby.exceptions.RaiseException;
 
 import ed.lang.Language;
+import ed.io.LineReader;
 import ed.js.engine.Scope;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.adapter.AdapterType;
@@ -90,14 +91,17 @@ public class RubyLanguage extends Language {
     /**
      * Provides a Ruby REPL by running IRB.
      */
-    public void repl(Scope s, String rubyFile) {
+    public void repl(Scope s, String rubyFile, boolean exit) throws java.io.IOException {
         StringBuilder code = new StringBuilder();
         code.append("require 'irb'\n")
             .append("class JSObject; def inspect; tojson(self); end; end\n")
             .append("ARGV[0] = '--simple-prompt'\n");
-        if (rubyFile != null)
-            code.append("ARGV[1] = '").append(rubyFile).append("'\n");
-        code.append("IRB.start\n");
+        if (rubyFile != null) {
+            for (String line : new LineReader(rubyFile))
+                code.append(line).append("\n");
+        }
+        if (!exit)
+            code.append("IRB.start\n");
         RubyJxpSource source = new RubyShellSource(code.toString());
         try {
             source._doCall(source.parseContent("(shell)"), s, RuntimeEnvironment.EMPTY_OBJECT_ARRAY);

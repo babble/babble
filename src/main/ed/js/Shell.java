@@ -328,14 +328,14 @@ public class Shell {
             }
 
         }
+        
+        if ( replLang instanceof ed.lang.ruby.RubyLanguage ) {
+            ((ed.lang.ruby.RubyLanguage)replLang).repl(s, rubyFile, exit);
+            return;
+        }
 
         if ( exit )
             return;
-        
-        if ( replLang instanceof ed.lang.ruby.RubyLanguage ) {
-            ((ed.lang.ruby.RubyLanguage)replLang).repl(s, rubyFile);
-            return;
-        }
 
         String line;
         ConsoleReader console = new ConsoleReader();
