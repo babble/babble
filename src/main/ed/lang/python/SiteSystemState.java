@@ -585,6 +585,7 @@ public class SiteSystemState implements Sizable {
 
             // FIXME: refactor out _loaded.put (somehow)
             if( packageSpec instanceof String || packageSpec instanceof JSString ){
+                System.out.println("DEPRECATED: packages is just a string for " + modName);
                 String packageName = packageSpec.toString();
                 String toLoad = null;
 

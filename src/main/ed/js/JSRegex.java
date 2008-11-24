@@ -504,9 +504,11 @@ public class JSRegex extends JSObjectBase {
      * @return If the given string contained a match for this pattern.
      */
     public boolean test( String s ){
-        Matcher m = _patt.matcher( s );
         if( s == null )
             s = getConstructor().get( "input" ) + "";
+        getConstructor().set( "input", s );
+
+        Matcher m = _patt.matcher( s );
 
         CachedResult cr = _last.get();
         
@@ -516,10 +518,10 @@ public class JSRegex extends JSObjectBase {
         boolean b = m.find( idx );
         
         if( global ) {
-            _cons.set( "lastMatch", b ? m.group(0) : null );
-            _cons.set( "lastParen", b && m.groupCount() > 0 ? m.group( m.groupCount() ) : "" );
-            _cons.set( "leftContext", b ? s.substring( 0, m.start(0) ) : "" );
-            _cons.set( "rightContext", b ? s.substring( m.end(0) ) : "" );
+            getConstructor().set( "lastMatch", b ? m.group(0) : null );
+            getConstructor().set( "lastParen", b && m.groupCount() > 0 ? m.group( m.groupCount() ) : "" );
+            getConstructor().set( "leftContext", b ? s.substring( 0, m.start(0) ) : "" );
+            getConstructor().set( "rightContext", b ? s.substring( m.end(0) ) : "" );
 
             cr.lastIndex = b ? m.end() : 0;
         }
@@ -554,15 +556,16 @@ public class JSRegex extends JSObjectBase {
         else {
             m = _patt.matcher( s );
         }
+        getConstructor().set( "input", s );
 
         if ( cr.lastIndex > s.length() || !m.find( cr.lastIndex ) ) {
             if( global ) {
                 cr.lastIndex = 0;
             }
-            _cons.set( "lastMatch", null );
-            _cons.set( "lastParen", "" );
-            _cons.set( "leftContext", "" );
-            _cons.set( "rightContext", "" );
+            getConstructor().set( "lastMatch", null );
+            getConstructor().set( "lastParen", "" );
+            getConstructor().set( "leftContext", "" );
+            getConstructor().set( "rightContext", "" );
             return null;
         }
 
@@ -574,10 +577,10 @@ public class JSRegex extends JSObjectBase {
             else
                 a.add( new JSString( temp ) );
         }
-        _cons.set( "lastMatch", m.group(0) );
-        _cons.set( "lastParen", m.groupCount() > 0 ? m.group( m.groupCount() ) : "" );
-        _cons.set( "leftContext", s.substring( 0, m.start(0) ) );
-        _cons.set( "rightContext", s.substring( m.end(0) ) );
+        getConstructor().set( "lastMatch", m.group(0) );
+        getConstructor().set( "lastParen", m.groupCount() > 0 ? m.group( m.groupCount() ) : "" );
+        getConstructor().set( "leftContext", s.substring( 0, m.start(0) ) );
+        getConstructor().set( "rightContext", s.substring( m.end(0) ) );
 
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
@@ -599,8 +602,7 @@ public class JSRegex extends JSObjectBase {
         }
         
         _lastRegex.set( this );
-        _cons.set("matchArray", new JSArray( a ) );
-
+        getConstructor().set("matchArray", new JSArray( a ) );
         return a;
     }
 
