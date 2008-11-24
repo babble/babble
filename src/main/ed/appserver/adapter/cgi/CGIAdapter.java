@@ -110,7 +110,7 @@ public abstract class CGIAdapter extends JxpSource {
         env.set("REQUEST_METHOD",req.getMethod());
         env.set("REQUEST_URI", req.getURI());
         env.set("REQUEST_URL", req.getURL());
-        env.set("SCRIPT_NAME","");       // TODO - fix
+        env.set("SCRIPT_NAME", req.getServletPath());
 
         env.set("SCRIPT_FILENAME","###FIXME2###");   // TODO -fix
 
