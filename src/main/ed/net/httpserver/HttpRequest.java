@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -38,7 +38,7 @@ import ed.net.URLDecoder;
  * @docmodule system.HTTP.request
  */
 public class HttpRequest extends JSObjectLame implements HttpServletRequest , Sizable {
-    
+
     public static final String REAL_IP_HEADER = "X-Cluster-Client-Ip";
 
     /**
@@ -59,7 +59,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public static HttpRequest getDummy( String url , String extraHeaders ){
         return getDummy( url , extraHeaders  , "GET");
     }
-    
+
     /**
      * Generate a "dummy" request, coming from a browser trying to access a
      * URL with some additional headers.
@@ -81,24 +81,24 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         int idx = header.indexOf( "\n" );
         if ( idx < 0 )
             throw new RuntimeException( "something is very wrong" );
-        
+
         _firstLine = header.substring( 0 , idx ).trim();
-        
+
         int start = idx + 1;
         while ( ( idx = header.indexOf( "\n" , start ) ) >= 0 ) {
             final String line = header.substring( start , idx ).trim();
             start = idx + 1;
             int foo = line.indexOf( ":" );
             if ( foo > 0 )
-                _headers.put( line.substring( 0 , foo ).trim() , 
+                _headers.put( line.substring( 0 , foo ).trim() ,
                               line.substring( foo + 1 ).trim() );
         }
-        
+
         // parse first line
         idx = _firstLine.indexOf( " " );
         if ( idx < 0 )
             throw new RuntimeException( "malformed" );
-        
+
         _command = _firstLine.substring( 0 , idx );
         int endURL = _firstLine.indexOf( " " , idx + 1 );
         if ( endURL < 0 ){
@@ -183,11 +183,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public String getURL(){
         return _url;
     }
-    
+
     public String getDirectory(){
         return getDirectory( _fullPath );
     }
-    
+
     public static String getDirectory( String uri ){
         String s = uri;
         int idx = s.lastIndexOf( "/" );
@@ -210,7 +210,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public String getMethod(){
         return _command;
     }
-    
+
     /**
      * Returns the query string of a request as an unparsed string.
      * For a request with URL "/foo?a=1", this method would return "a=1".
@@ -219,7 +219,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public String getQueryString(){
         return _queryString;
     }
-    
+
     /**
      * Gets the total size of the HTTP request.
      * @return the total size of the HTTP message, including header and body
@@ -245,12 +245,12 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public String getScheme(){
         return "http";
     }
-    
+
     public String getProtocol(){
         return "HTTP/1." + ( _http11 ? "1" : "0" );
     }
 
-    
+
 
     public boolean isHttp11(){
         return _http11;
@@ -265,19 +265,19 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
             return ! c.equalsIgnoreCase( "close" );
         return _http11;
     }
-    
+
     public boolean gzip(){
-	String ua = getHeader( "User-Agent" );
-	if ( ua == null )
-	    return false; // weird case, no gzip
-	
-	if ( ua.indexOf( "MSIE 4" ) >= 0 )
-	    return false;
-	
-	String ae = getHeader( "Accept-Encoding" );
-	return ae != null && ae.toLowerCase().contains( "gzip" );
+    String ua = getHeader( "User-Agent" );
+    if ( ua == null )
+        return false; // weird case, no gzip
+
+    if ( ua.indexOf( "MSIE 4" ) >= 0 )
+        return false;
+
+    String ae = getHeader( "Accept-Encoding" );
+    return ae != null && ae.toLowerCase().contains( "gzip" );
     }
-    
+
     // header stuff
 
     public String getReferer(){
@@ -288,12 +288,12 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         String s = getReferer();
         if ( s == null )
             return null;
-        
+
         if ( s.startsWith( "http://" ) || s.startsWith( "https://" ) ){
             int idx = s.indexOf( "/" , 8 );
             s = s.substring( idx );
         }
-        
+
         return s;
     }
 
@@ -319,10 +319,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
             if ( host.length() == 0 )
                 return null;
         }
-        
+
         return host;
     }
-    
+
     /**
      * Returns the port this request was directed at. This works by using the
      * Host header (mandated by HTTP/1.1), and subtracting the hostname.
@@ -336,7 +336,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         int idx = host.indexOf( ":" );
         if ( idx < 0 )
             return 0;
-        
+
         return StringParseUtil.parseInt( host.substring( idx + 1 ) , 0 );
     }
 
@@ -347,7 +347,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public int getContentLength(){
         return getIntHeader( "Content-Length" , -1 );
     }
-    
+
     public int getServerPort(){
         return getLocalPort();
     }
@@ -364,11 +364,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     public String getLocalAddr(){
-	return LOCALHOST.getHostAddress();
+    return LOCALHOST.getHostAddress();
     }
 
     public String getLocalName(){
-	return LOCALHOST.getHostName();
+    return LOCALHOST.getHostName();
     }
 
     public RequestDispatcher getRequestDispatcher( String path ){
@@ -392,7 +392,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         String v = getHeader( h );
         if ( v == null )
             return null;
-        
+
         LinkedList ll = new LinkedList();
         ll.add( v );
         return new CollectionEnumeration( ll );
@@ -420,7 +420,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         String v = getHeader( name );
         if ( v == null )
             return -1;
-        
+
         return JSDate.parseDate( v.trim() , -1 );
     }
     /**
@@ -452,13 +452,13 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
             if ( temp != null ){
 
                 for ( String thing : temp.split( ";" ) ){
-                    
+
                     int idx = thing.indexOf("=");
-                    
+
                     if ( idx < 0 )
                         continue;
 
-                    m.set( thing.substring( 0 , idx ).trim() , 
+                    m.set( thing.substring( 0 , idx ).trim() ,
                            thing.substring( idx + 1 ).trim() );
                 }
             }
@@ -498,17 +498,17 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
             cookies[i++] = new Cookie( n , _cookies.get( n ).toString() );
         return cookies;
     }
-    
+
     // param stuff
 
-    /** 
+    /**
      * Gets all the parameter names specified in this request.
      * This includes both GET and POST parameters.
      * @return an array of parameter names
      */
     public JSArray getParameterNamesArray(){
         _finishParsing();
-        
+
         JSArray a = new JSArray();
 
         for ( String s : _urlParameters.keySet() )
@@ -519,14 +519,14 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
             if ( ! a.contains( js ) )
                 a.add( js );
         }
-        
+
         return a;
     }
 
     public Enumeration getParameterNames(){
         return getParameterNamesArray().getEnumeration();
     }
-    
+
     /**
      * Parses the parameter specified by n as a boolean.
      * If it doesn't exist, or can't be parsed as a boolean, def is returned.
@@ -546,14 +546,14 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public int getInt( String n , int def ){
         return StringParseUtil.parseInt( getParameter( n ) , def );
     }
-    
+
     List<String> _getParameter( String name ){
         List<String> l = _postParameters.get( name );
         if ( l != null )
             return l;
         return _urlParameters.get( name );
     }
-    
+
 
     /**
      * Return all the parameters given for a key.
@@ -568,13 +568,13 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         List<String> lst = _getParameter( name );
         if ( lst == null )
             return null;
-        
+
         JSArray a = new JSArray();
         for ( String s : lst )
             a.add( new JSString( s ) );
-	return a;
+    return a;
     }
-    
+
     public String[] getParameterValues( String name ){
         _finishParsing();
         List<String> lst = _getParameter( name );
@@ -649,11 +649,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
         if ( lst == null )
             return null;
-        
+
         JSArray a = new JSArray();
         for ( String s : lst )
             a.add( new JSString( s ) );
-	return a;
+    return a;
     }
 
     /**
@@ -683,7 +683,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
             return lst.get(0);
         return def;
     }
-    
+
     // -
 
     /**
@@ -697,8 +697,8 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     public JSObject getPostParameters(){
-	_finishParsing();
-	return _paramsAsObject( _postParameters );
+    _finishParsing();
+    return _paramsAsObject( _postParameters );
     }
 
     /**
@@ -734,8 +734,8 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     public JSObject getURLParameters(){
-	_finishParsing();
-	return _paramsAsObject( _urlParameters );
+    _finishParsing();
+    return _paramsAsObject( _urlParameters );
     }
 
     /**
@@ -782,9 +782,9 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
      * toString() method
      */
     public Object set( Object n , Object v ){
-	return _attributes.set( n , v );
+    return _attributes.set( n , v );
     }
-    
+
     /**
      * Handler for getting an attribute from this object.
      * Equivalent to <tt>getParameter( attribute )</tt>.
@@ -793,12 +793,12 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
      * @return the value of any parameter with this name, as a string
      */
     public Object get( Object n ){
-	
-	Object blah = _attributes.get( n );
-	if ( blah != null )
-	    return blah;
 
-        final String name = n.toString();        
+    Object blah = _attributes.get( n );
+    if ( blah != null )
+        return blah;
+
+        final String name = n.toString();
 
         String foo = getParameter( name , null );
         if ( foo == null )
@@ -808,20 +808,20 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
     /**
      * attribuets are user setable things on a request
-     * you can do 
+     * you can do
      * request.foo = 5;
      * and later get
      * request.foo
      * @return an object that you can modify or access parameters on
      */
     public JSObject getAttributes(){
-	return _attributes;
+    return _attributes;
     }
 
     /**
      * Get an uploaded file field from this request, or null if none.
      * Files are uploaded in POSTs like other form fields, and have
-     * names like other form fields. This fetches a form value as a 
+     * names like other form fields. This fetches a form value as a
      * file.
      * @param name the name to look up in the POST
      * @return the file corresponding to this name
@@ -829,7 +829,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public UploadFile getFile( String name ){
         if ( _postData == null )
             return null;
-        
+
         return _postData._files.get( name );
     }
 
@@ -854,7 +854,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         Set<String> s = new HashSet<String>();
         s.addAll( _urlParameters.keySet() );
         s.addAll( _postParameters.keySet() );
-	s.addAll( _attributes.keySet() );
+    s.addAll( _attributes.keySet() );
         return s;
     }
 
@@ -869,10 +869,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         return containsKey( s );
     }
 
-    /** 
+    /**
      * Get the names of all the parameters in the URL.
      * @return the names of all the parameters in the URL
-     */    
+     */
     public Set<String> getURLParameterNames(){
         return _urlParameters.keySet();
     }
@@ -884,14 +884,14 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public Set<String> getPostParameterNames(){
         return _postParameters.keySet();
     }
-    
+
     private final String _urlDecode( String s ){
 
-	try {
+    try {
             return URLDecoder.decode( s , "UTF-8" );
-	}
-	catch ( Exception e ){}
-        
+    }
+    catch ( Exception e ){}
+
         try {
             return URLDecoder.decode( s , _characterEncoding );
         }
@@ -904,7 +904,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
         return s;
     }
-    
+
     /**
      * Sets parameters in the request according to the given regular
      * expression.  The regular expression is matched against the URI,
@@ -917,7 +917,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
      * @return true if the regular expression matched
      */
     public boolean applyServletParams( JSRegex regex , JSArray names ){
-        
+
         Matcher m = regex.getCompiled().matcher( getURI() );
         if ( ! m.find() )
             return false;
@@ -929,7 +929,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     private void _finishParsing(){
-        
+
         if ( ! _parsedURL ){
             _parsedURL = true;
             if ( _queryString != null ){
@@ -948,7 +948,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
                         while ( start < _queryString.length() && _queryString.charAt( start ) == '&' )
                             start++;
                     }
-                    
+
                     int eq = thing.indexOf( "=" );
                     if ( eq < 0 )
                         _addParm( thing , null , false );
@@ -969,11 +969,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
      * @unexpose
      */
     void _addParm( String n , String val , boolean post ){
-        
-        n = n.trim();
-	n = _urlDecode( n ); // TODO: check that i really should do this
 
-	List<String> lst = _getParamList( n , post , true );
+        n = n.trim();
+    n = _urlDecode( n ); // TODO: check that i really should do this
+
+    List<String> lst = _getParamList( n , post , true );
 
         if ( val == null ){
             lst.add( val );
@@ -981,7 +981,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         }
         val = val.trim();
         val = _urlDecode( val );
-	lst.add( val );
+    lst.add( val );
     }
 
     List<String> _getParamList( String name , boolean post , boolean create ){
@@ -997,18 +997,18 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     private JSObjectBase _paramsAsObject( Map<String,List<String>> params ){
-	JSObjectBase o = new JSObjectBase();
-	for ( String key : params.keySet() ){
-	    List<String> l = params.get( key );
-	    if ( l == null || l.size() == 0 )
-		continue;
+    JSObjectBase o = new JSObjectBase();
+    for ( String key : params.keySet() ){
+        List<String> l = params.get( key );
+        if ( l == null || l.size() == 0 )
+        continue;
 
-	    if ( l.size() == 1 )
-		o.set( key , new JSString( l.get(0) ) );
-	    else
-		o.set( key , new JSArray( l ) );
-	}
-	return o;
+        if ( l.size() == 1 )
+        o.set( key , new JSString( l.get(0) ) );
+        else
+        o.set( key , new JSArray( l ) );
+    }
+    return o;
     }
 
     public AppRequest getAppRequest(){
@@ -1045,7 +1045,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public long[] getRange(){
         if ( _rangeChecked )
             return _range;
-        
+
         String s = getHeader( "Range" );
         if ( s != null )
             _range = _parseRange( s );
@@ -1057,12 +1057,12 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public String getPhysicalRemoteAddr(){
         if ( _handler == null )
             return null;
-        
+
         InetAddress addr = _handler.getInetAddress();
         if ( addr == null )
             return null;
-        
-	return addr.getHostAddress();
+
+    return addr.getHostAddress();
     }
 
     /**
@@ -1072,11 +1072,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public String getRemoteIP(){
         if ( _remoteIP != null )
             return _remoteIP;
-	
+
         String ip = getHeader( HttpRequest.REAL_IP_HEADER );
         if ( ip == null )
             ip = getPhysicalRemoteAddr();
-        
+
         _remoteIP = ip;
         return _remoteIP;
     }
@@ -1096,28 +1096,28 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
     /**
      * @unexpose
-     */    
+     */
     public static long[] _parseRange( String s ){
         if ( s == null )
             return null;
         s = s.trim();
         if ( ! s.startsWith( "bytes=" ) )
             return null;
-        
+
         s = s.substring( 6 ).trim();
         if ( s.length() == 0 )
             return null;
-        
-        
+
+
         if ( s.matches( "\\d+" ) )
             return new long[]{ Long.parseLong( s ) , Long.MAX_VALUE };
-        
+
         String pcs[] = s.split( "," );
         if ( pcs.length == 0 )
             return null;
 
-        if ( pcs.length == 1 ){ 
-            // either has to be 
+        if ( pcs.length == 1 ){
+            // either has to be
             // -100
             s = pcs[0].trim();
 
@@ -1126,7 +1126,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
             if ( s.charAt( 0 ) == '-' ) // we don't support this
                 return null;
-            
+
             Matcher m = Pattern.compile( "(\\d+)\\-(\\d+)" ).matcher( s );
             if ( m.find() )
                 return new long[]{ Long.parseLong( m.group(1) ) , Long.parseLong( m.group(2) ) };
@@ -1138,15 +1138,15 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
         for ( int i=0; i<pcs.length; i++ ){
             String foo = pcs[i];
-            
+
             Matcher m = Pattern.compile( "(\\d+)\\-(\\d+)" ).matcher( s );
 
             if ( ! m.find() )
                 return null;
-            
+
             long l = Long.parseLong( m.group(1) );
             long h = Long.parseLong( m.group(2) );
-            
+
             min = Math.min( min , l );
             max = Math.max( min , h );
         }
@@ -1169,7 +1169,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public boolean isRequestedSessionIdFromURL(){
         return false;
     }
-    
+
     public boolean isRequestedSessionIdValid(){
         return true;
     }
@@ -1185,33 +1185,33 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public Session getSession(){
         if ( _appRequest == null )
             return null;
-        
+
         return _appRequest.getSession();
     }
 
     // ---- User ---
-    
+
     public String getAuthType(){
-	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (getAuthType)" );
-	return null;
+    System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (getAuthType)" );
+    return null;
     }
 
     public String getRemoteUser(){
-	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (getRemoteUser)" );
-	return null;
+    System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (getRemoteUser)" );
+    return null;
     }
-    
+
     public java.security.Principal getUserPrincipal(){
-	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (getUserPrincipal)" );
-	return null;
+    System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (getUserPrincipal)" );
+    return null;
     }
 
     public boolean isUserInRole( String role){
-	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (isUserInRole)" );
-	return false;
+    System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported (isUserInRole)" );
+    return false;
     }
 
-    
+
     public Locale getLocale(){
         throw new RuntimeException( "Locale stuff doesn't work yet" );
     }
@@ -1223,7 +1223,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public boolean isSecure(){
         return false;
     }
-    
+
     // ----
 
     public Object getAttribute( String name ){
@@ -1234,7 +1234,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
     public void removeAttribute( String name ){
         throw new RuntimeException( "no attribuets yet" );
-    }    
+    }
     public void setAttribute(String name,  Object o ){
         throw new RuntimeException( "no attribuets yet" );
     }
@@ -1248,7 +1248,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     public ServletInputStream getInputStream(){
         if ( _postData != null )
             return _postData.getInputStream();
-        
+
         return new EmptyInputStream();
     }
 
@@ -1279,7 +1279,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     // ----
-    
+
     final long _startTime = System.currentTimeMillis();
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
@@ -1290,7 +1290,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
     boolean _parsedPost = false;
     PostData _postData;
-    
+
     boolean _parsedURL = false;
     final JSObject _attributes = new JSObjectBase();
     final Map<String,List<String>> _urlParameters = new StringMap<List<String>>();
@@ -1304,7 +1304,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     final boolean _http11;
 
     private AppRequest _appRequest;
-    
+
     private boolean _rangeChecked = false;
     private long[] _range;
 
@@ -1312,13 +1312,13 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
     private static InetAddress LOCALHOST;
     static {
-	try {
-	    LOCALHOST = InetAddress.getLocalHost();
-	}
-	catch ( Exception e ){
-	    e.printStackTrace();
-	    System.err.println( "exiting" );
-	    System.exit(-1);
-	}
+    try {
+        LOCALHOST = InetAddress.getLocalHost();
+    }
+    catch ( Exception e ){
+        e.printStackTrace();
+        System.err.println( "exiting" );
+        System.exit(-1);
+    }
     }
 }
