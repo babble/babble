@@ -96,7 +96,7 @@ public abstract class CGIAdapter extends JxpSource {
 
         env.set("PATH_INFO", req.getPathInfo());
 
-        env.set("PATH_TRANSLATED","/");   // TODO - fix
+        env.set("PATH_TRANSLATED", req.getPathTranslated());
         env.set("QUERY_STRING",req.getQueryString());
         env.set("REMOTE_ADDR",req.getRemoteAddr());
         env.set("REMOTE_HOST",req.getRemoteHost());

@@ -22,6 +22,7 @@ import org.python.core.*;
 import java.util.*;
 import java.io.*;
 
+import ed.security.*;
 import ed.appserver.*;
 import ed.util.*;
 
@@ -44,10 +45,22 @@ public class PythonModuleTracker extends PyStringMap {
     }
 
     PyObject handleReturn( PyObject obj ){
+        if( obj instanceof PyJavaPackage || obj instanceof PyJavaClass ){
+            if( ! Security.inTrustedCode() )
+                throw new RuntimeException( "can't import Java files from " + Security.getTopJS() );
+        }
         if( ! ( obj instanceof PyModule ) ) return obj;
         // if module is outdated
         PyModule module = (PyModule)obj;
         return module;
+    }
+
+    public PyObject get( PyObject key ){
+        return get( key , Py.None );
+    }
+
+    public PyObject get( PyObject key , PyObject missing ){
+        return handleReturn( super.get( key , missing ) );
     }
 
     public void __setitem__( String key , PyObject value ){
