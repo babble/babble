@@ -39,7 +39,7 @@ ENV['RAILS_ENV'] = 'production' if ENV['RAILS_ENV'] == 'www'
 require 'logger'
 require 'xgen/mongo/log_device'
 # Default LogDevice capped collection size is 10 Mb.
-RAILS_DEFAULT_LOGGER = Logger.new(XGen::Mongo::LogDevice.new("rails_log_#{ENV['RAILS_ENV']}"))
+RAILS_DEFAULT_LOGGER = Logger.new(XGen::Mongo::LogDevice.new("rails_log_#{ENV['RAILS_ENV']}")) unless defined?(RAILS_DEFAULT_LOGGER)
 
 # XGen::Mongo classes
 require 'xgen/mongo'
