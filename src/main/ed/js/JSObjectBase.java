@@ -901,7 +901,8 @@ public class JSObjectBase implements JSObject {
     public void setReadOnly( boolean readOnly ){
         if ( readOnly == _readOnly )
             return;
-        _readOnlyCheck();
+        if ( _locked )
+            throw new RuntimeException( "locked" );
         _readOnly = readOnly;
     }
 

@@ -12,9 +12,17 @@ catch ( e ){}
 
 assert( o.a == 2 );
 
+assert.raises( 
+    function(z){
+        o.setReadOnly( false );
+    }
+);
+
+assert( o.a == 2 );
 
 try {
-    o.setReadOnly( false );
-    assert( false );
+    o.a = 3;
 }
 catch ( e ){}
+
+assert.eq( 2 , o.a );
