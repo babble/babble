@@ -604,14 +604,8 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
             
             JSObject n = toSearch.remove(0);
             for ( String name : n.keySet( false ) ){
-                Object foo;
-                
-                if ( n.getClass() == JSObjectBase.class ){
-                    foo = ((JSObjectBase)n)._simpleGet( name );
-                }
-                else {
-                    foo = n.get( name );
-                }
+
+                Object foo = Bytes.safeGet( n , name );
                 
                 if ( foo == null )
                     continue;

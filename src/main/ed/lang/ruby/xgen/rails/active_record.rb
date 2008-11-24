@@ -14,5 +14,4 @@
 
 require 'xgen/rails/active_record/connection_adapters'
 require 'xgen/rails/active_record/base'
-require 'xgen/rails/active_record/transactions'
 require 'xgen/rails/active_record/schema'

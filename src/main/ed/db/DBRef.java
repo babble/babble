@@ -11,7 +11,7 @@ import ed.appserver.*;
 
 public class DBRef extends JSObjectBase {
 
-    static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
+    static final boolean D = Boolean.getBoolean( "DEBUG.DBREF" );
 
     DBRef( JSObject parent , String fieldName , DBBase db , String ns , ObjectId id ){
         _parent = parent;
@@ -52,8 +52,6 @@ public class DBRef extends JSObjectBase {
         if ( _loaded )
             return _actual;
 
-	if ( D ) System.out.println( "following dbref" );
-        
 	JSObject o = _getPointedTo();
 
         if ( o == null ){
@@ -96,6 +94,13 @@ public class DBRef extends JSObjectBase {
         if ( _db == null )
             return this;
 
+	if ( D ){ 
+            System.out.println( "following dbref.  ns:" + _ns );
+            Throwable t = new Throwable();
+            t.fillInStackTrace();
+            t.printStackTrace();
+        }
+        
         final RefCache rc = getRefCache();
         final DBCollection coll = _db.getCollectionFromString( _ns );
         
