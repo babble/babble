@@ -154,11 +154,7 @@ public class ByteEncoder extends Bytes {
             if ( transientFields != null && transientFields.contains( s ) )
                 continue;
             
-            Object val;
-            if ( o.getClass() == JSObjectBase.class )
-                val = ((JSObjectBase)o)._simpleGet( s );
-            else
-                val = o.get( s );
+            Object val = safeGet( o , s );
 
             _putObjectField( s , val );
 

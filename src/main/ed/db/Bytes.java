@@ -110,6 +110,13 @@ public class Bytes {
         return true;
     }
 
+    public static Object safeGet( JSObject o , String field ){
+        final Class c = o.getClass();
+        if ( c == JSObjectBase.class || c == JSDict.class )
+            return ((JSObjectBase)o)._simpleGet( field );
+        return o.get( field );
+    }
+
     static final String NO_REF_HACK = "_____nodbref_____";
     static final ObjectId COLLECTION_REF_ID = new ObjectId( -1 , -1 );
 }
