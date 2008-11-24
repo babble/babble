@@ -1707,7 +1707,7 @@ public class ENode extends JSObjectBase {
                 if( child.node.getNodeType() == Node.TEXT_NODE )
                     list.add( child );
                 if( child.node.getNodeType() == Node.CDATA_SECTION_NODE )
-                    list.add( new ENode( this.node.getOwnerDocument().createTextNode(((CDATASection)child.node).getWholeText() ), null, null ) );
+                    list.add( new ENode( this.node.getOwnerDocument().createTextNode(((CDATASection)child.node).getWholeText() ), this, null ) );
             }
         }
         return list;

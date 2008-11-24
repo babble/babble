@@ -33,8 +33,6 @@ public class CompileUtil {
     
     static boolean CD = false;
     
-    static final String TMP_DIR = WorkingFiles.TMP_DIR;
-
     static class MyClassLoader extends ClassLoader {
         MyClassLoader(){
         }
@@ -79,7 +77,7 @@ public class CompileUtil {
     private static final ClassLoader _loader = new MyClassLoader();
     
     public static String getCompileSrcDir( final String pack ){
-        return TMP_DIR + pack.replace( '.' , '/' ) + "/";
+        return WorkingFiles.getTmpDir() + pack.replace( '.' , '/' ) + "/";
     }
     
     public static Class<?> compile( final String pack , final String c , final String source , final Convert convert )
