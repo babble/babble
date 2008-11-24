@@ -22,7 +22,6 @@ import org.python.core.*;
 import java.util.*;
 import java.io.*;
 
-import ed.security.*;
 import ed.appserver.*;
 import ed.util.*;
 
@@ -45,10 +44,7 @@ public class PythonModuleTracker extends PyStringMap {
     }
 
     PyObject handleReturn( PyObject obj ){
-        if( obj instanceof PyJavaPackage || obj instanceof PyJavaClass ){
-            if( ! Security.inTrustedCode() )
-                throw new RuntimeException( "can't import Java files from " + Security.getTopJS() );
-        }
+        Python.checkSafeImport( obj );
         if( ! ( obj instanceof PyModule ) ) return obj;
         // if module is outdated
         PyModule module = (PyModule)obj;
