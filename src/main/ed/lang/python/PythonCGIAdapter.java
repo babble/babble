@@ -41,7 +41,7 @@ public class PythonCGIAdapter extends CGIAdapter {
     private long _lastCompile;
 
     static {
-        System.setProperty("python.cachedir", ed.io.WorkingFiles.TMP_DIR + "/jython-cache/" + Version.PY_VERSION);
+        System.setProperty("python.cachedir", ed.io.WorkingFiles.getTypeDir( "jython-cache" ) + Version.PY_VERSION);
     }
 
     public PythonCGIAdapter(File f, JSFileLibrary lib) {
