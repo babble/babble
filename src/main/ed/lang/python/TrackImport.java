@@ -401,7 +401,8 @@ public class TrackImport extends PyObject {
             m = _import.__call__( args, keywords );
             if( m instanceof PyJavaPackage || m instanceof PyJavaClass ){
                 // FIXME: PySystemState.getBuiltin -- static??
-                if( ! Security.inTrustedCode() )
+                if( ImportHelper.getBuiltin( m.__findattr__( "__name__" ).toString() ) == null &&
+                    ! Security.inTrustedCode() )
                     throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
             }
             return m;
