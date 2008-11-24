@@ -106,6 +106,19 @@ public class PythonModuleTracker extends PyStringMap {
         return v;
     }
 
+    // FIXME: clumsy -- actually implement?
+    public PyObject iterkeys(){
+        return keys().__iter__();
+    }
+
+    public PyObject itervalues(){
+        return values().__iter__();
+    }
+
+    public PyObject iteritems(){
+        return items().__iter__();
+    }
+
     public PyObject pop( PyObject key ){
         return pop( key , Py.None );
     }
