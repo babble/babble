@@ -758,6 +758,12 @@ public class Python extends Language {
     }
 
     public static void checkSafeImport( PyObject m ){
+        if( ! isSafeImport( m ) ){
+            throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
+        }
+    }
+
+    public static boolean isSafeImport( PyObject m ){
         if( m instanceof PyJavaPackage || m instanceof PyJavaClass ){
             PyObject __name__ = m.__findattr__( "__name__" );
             if( ! ( __name__ instanceof PyString ) ){
@@ -766,11 +772,12 @@ public class Python extends Language {
 
             if( ImportHelper.getBuiltin( __name__.toString() ) != null )
                 // Safe -- builtin that Jython recognizes
-                return;
+                return true;
 
             if( ! Security.inTrustedCode() )
-                throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
+                return false;
         }
+        return true;
 
     }
 }
