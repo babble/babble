@@ -94,6 +94,10 @@ public class ImportHelper {
         return null;
     }
 
+    public static String getBuiltin(String name){
+        return PySystemState.getBuiltin(name);
+    }
+
     // Support functions I had to copy
     private static InputStream makeStream(File file) {
         try {
