@@ -156,8 +156,12 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         return _fullPath.substring( 0 , idx );
     }
 
+    /**
+     * Get translated result of getPathInfo(), after doing any
+     * virtual-to-physical mapping on it.
+     */
     public String getPathTranslated(){
-        return null;
+        return this.getPathInfo(); // TODO might need some virtual-to-physical mapping here
     }
 
     public String getPathInfo(){
