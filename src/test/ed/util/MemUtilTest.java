@@ -91,6 +91,12 @@ public class MemUtilTest extends ed.TestCase {
 
     }
     
+    @Test
+    public void testparse3(){
+        _testParse( "120.944: [Full GC [PSYoungGen: 482K->0K(80768K)] [PSOldGen: 199383K->184138K(204800K)] 199865K->184138K(285568K) [PSPermGen: 39425K->39425K(47168K)], 0.6940380 secs]" ,
+                    120944 , true , 694 );
+    }
+
     void _testParse( String line , long when , boolean full , long howLong ){
         GCLine l = GCLine.parse( line );
         assert( l != null );
@@ -146,7 +152,56 @@ public class MemUtilTest extends ed.TestCase {
 
         assertEquals( .4 , s.fullGCPercentage() , 0 );
     }
+    
+    @Test
+    public void testGCStream4(){
+        GCStream s = new GCStream();
 
+        assertEquals( 0.0 , s.fullGCPercentage() );
+    
+        long time = 1000;
+        
+        for ( int i=0; i<100; i++ ){
+            s.add( new GCLine( time , false , 100 ) );
+            time += 1000;
+        }
+        
+        assertEquals( 0.0 , s.fullGCPercentage() );
+        
+        s.add( new GCLine( time , true , 2000 ) );
+        assertEquals( 0.105 , s.fullGCPercentage() , .01 );
+    }
+
+    @Test
+    public void testGCStream5(){
+        GCStream s = new GCStream();
+        
+        assertTrue( s.add( "1313.919: [GC [PSYoungGen: 324803K->51506K(343744K)] 864899K->594837K(926976K), 0.1065260 secs]" ) );
+        assertTrue( s.add( "1319.303: [GC [PSYoungGen: 330790K->35957K(344448K)] 874121K->579345K(927680K), 0.0739770 secs]" ) );
+        assertTrue( s.add( "1321.351: [GC [PSYoungGen: 315246K->34913K(343232K)] 858633K->578404K(926464K), 0.0632070 secs]" ) );
+        assertTrue( s.add( "1325.257: [GC [PSYoungGen: 314721K->27079K(343936K)] 858212K->570594K(927168K), 0.0537650 secs]" ) );
+        assertTrue( s.add( "1327.040: [GC [PSYoungGen: 306887K->31759K(344704K)] 850402K->575290K(927936K), 0.0658280 secs]" ) );
+        assertTrue( s.add( "1332.575: [GC [PSYoungGen: 312463K->42887K(323648K)] 855994K->586450K(906880K), 0.0807930 secs]" ) );
+        assertTrue( s.add( "1335.874: [GC [PSYoungGen: 323591K->32320K(344896K)] 867154K->580044K(928128K), 0.0682390 secs]" ) );
+        assertTrue( s.add( "1342.048: [GC [PSYoungGen: 314624K->31640K(344128K)] 862348K->579711K(927360K), 0.0645430 secs]" ) );
+        assertTrue( s.add( "1342.462: [GC [PSYoungGen: 313944K->43344K(346880K)] 862015K->591536K(930112K), 0.0662180 secs]" ) );
+        assertTrue( s.add( "1342.938: [GC [PSYoungGen: 329168K->59715K(345600K)] 877360K->607949K(928832K), 0.0968700 secs]" ) );
+        assertTrue( s.add( "1343.479: [GC [PSYoungGen: 345539K->63991K(313344K)] 893773K->634916K(896576K), 0.1513180 secs]" ) );
+        assertTrue( s.add( "1344.076: [GC [PSYoungGen: 313335K->80121K(329472K)] 884260K->660739K(912704K), 0.1366180 secs]" ) );
+
+        assertTrue( s.add( "1344.213: [Full GC [PSYoungGen: 80121K->6958K(329472K)] [PSOldGen: 580618K->583232K(672064K)] 660739K->590190K(1001536K) [PSPermGen: 56203K->56203K(59392K)], 1.9110120 secs]" ) );
+        assertEquals( 0.076 , s.fullGCPercentage() , .01 );
+
+        assertTrue( s.add( "1354.213: [Full GC [PSYoungGen: 80121K->6958K(329472K)] [PSOldGen: 580618K->583232K(672064K)] 660739K->590190K(1001536K) [PSPermGen: 56203K->56203K(59392K)], 6.9110120 secs]" ) );
+        assertEquals( 0.407 , s.fullGCPercentage() , .01 );
+
+        assertTrue( s.add( "1364.213: [Full GC [PSYoungGen: 80121K->6958K(329472K)] [PSOldGen: 580618K->583232K(672064K)] 660739K->590190K(1001536K) [PSPermGen: 56203K->56203K(59392K)], 6.9110120 secs]" ) );
+        assertEquals( 0.709 , s.fullGCPercentage() , .01 );
+
+        assertTrue( s.add( "1374.213: [Full GC [PSYoungGen: 80121K->6958K(329472K)] [PSOldGen: 580618K->583232K(672064K)] 660739K->590190K(1001536K) [PSPermGen: 56203K->56203K(59392K)], 6.9110120 secs]" ) );
+        assertEquals( 1.036 , s.fullGCPercentage() , .01 );
+    }
+    
     public static void main( String args[] ){
         (new MemUtilTest()).runConsole();
     }

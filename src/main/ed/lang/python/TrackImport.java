@@ -43,6 +43,15 @@ public class TrackImport extends PyObject {
         PyObject fromlist = (argc > 3) ? args[3] : null;
 
         SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
+        /* Call from within Java. We can't be sure that this'll only
+         * get builtin (i.e. completely static and unchanging)
+         * modules, but we can't really do import tracking since we
+         * can't flush the Java code. So just get out fast, without trying
+         * anything fancy.
+         */
+        if( globals == null ){
+            return tryFallThrough( sss , args, keywords );
+        }
 
         AppContext ac = sss.getContext();
         PyObject targetP = args[0];
@@ -54,7 +63,7 @@ public class TrackImport extends PyObject {
         PyObject m = null;
 
         PyObject __name__P = null;
-        if( globals != null )
+        if( globals != null && globals != Py.None )
             __name__P = globals.__finditem__("__name__");
         String __name__ = null;
 
@@ -100,14 +109,7 @@ public class TrackImport extends PyObject {
         }
 
         if( m == null ){
-            PySystemState oldPyState = Py.getSystemState();
-            try {
-                Py.setSystemState( sss.getPyState() );
-                m = _import.__call__( args, keywords );
-            }
-            finally {
-                Py.setSystemState( oldPyState );
-            }
+            m = tryFallThrough(sss, args, keywords);
         }
 
         return trackDependency( sss , globals , target , siteModule , m , fromlist );
@@ -127,18 +129,18 @@ public class TrackImport extends PyObject {
         // __builtin__.__import__("encodings").  Python calls to
         // __import__ that don't provide an argument get supplied with
         // an empty Python dict. (And there's no way Python can
-        // explicitly provide a null.
-        if( globals == null ){
-            return null;
-        }
+        // explicitly provide a null.)
 
-        PyObject importer = globals.__finditem__( "__name__".intern() );
-        if( importer instanceof PyString ){
-            return importer.toString();
-        }
+        PyObject importer;
+        if( globals != null && globals != Py.None ){
+            importer = globals.__finditem__( "__name__".intern() );
+            if( importer instanceof PyString ){
+                return importer.toString();
+            }
 
-        if( DEBUG ){
-            System.out.println("TrackImport importing " + target + ": Couldn't understand __name__ in globals: " + importer + " -- trying frame");
+            if( DEBUG ){
+                System.out.println("TrackImport importing " + target + ": Couldn't understand __name__ in globals: " + importer + " -- trying frame");
+            }
         }
 
         // Globals was empty? Maybe we were called "manually" with
@@ -299,7 +301,7 @@ public class TrackImport extends PyObject {
         // if __name__ indicates we're in core-module named foo.bar.baz,
         // and target is "moo.boo.zoo",
         // check foo.moo.boo.zoo and try that
-        if( globals == null ) return null;
+        if( globals == null || globals == Py.None ) return null;
 
         PyObject __path__P = globals.__finditem__("__path__");
         if( __path__P instanceof PyList ){
@@ -386,6 +388,25 @@ public class TrackImport extends PyObject {
 
     }
 
+    /**
+     * Simplest __import__ possibility -- just fall through to the default
+     * import implementation.
+     */
+    PyObject tryFallThrough(SiteSystemState sss, PyObject[] args, String[] keywords){
+        PySystemState oldPyState = Py.getSystemState();
+        try {
+            Py.setSystemState( sss.getPyState() );
+            return _import.__call__( args, keywords );
+        }
+        finally {
+            Py.setSystemState( oldPyState );
+        }
+    }
+
+    /**
+     * We add some magic to make imports for "sitename.foo" and "foo" get
+     * the same module.
+     */
     public PyObject tryImportSitename( SiteSystemState sss , String target , PyObject globals , PyObject locals , PyObject fromlist , AppContext ac ){
         // We want to import "real files" in the directory, but
         // prohibit other kinds of loading, i.e. from core or a
@@ -431,6 +452,10 @@ public class TrackImport extends PyObject {
         return siteModule;
     }
 
+    /**
+     * If someone does an explicit __import__("foo", {}, {}, []) or whatever,
+     * we assume they're looking in the site first.
+     */
     public PyObject trySiteImport( SiteSystemState sss , String target ,
                                    String __name__ , boolean explicit , PyObject globals , PyObject locals , PyObject fromlist , AppContext ac ){
         // FIXME: This might only work for one-level-deep modules

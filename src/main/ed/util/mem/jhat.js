@@ -50,9 +50,13 @@ JHat.prototype.referenceToThisObject = function( id ){
     return this.parseReferencesFromPage( "object/" + id );
 }
 
-JHat.prototype.parseReferencesFromPage = function( page ){
+JHat.prototype.referenceFromThisObject = function( id ){
+    return this.parseReferencesFromPage( "object/" + id , "Instance data members" );
+}
+
+JHat.prototype.parseReferencesFromPage = function( page , section ){
     var txt = this._loadPage( page );
-    var section = this._findSection( txt , "References to this object" );
+    var section = this._findSection( txt , section || "References to this object" );
     
     var p = /<a href="(.*?)">(.*)<\/a>/g;
     var r = null;

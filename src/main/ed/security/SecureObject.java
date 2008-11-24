@@ -1,4 +1,4 @@
-// AppServerApp.java
+// SecureObject.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,17 +16,6 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.manager;
+package ed.security;
 
-import java.io.*;
-import java.util.*;
-
-import ed.util.*;
-
-public class AppServerApp extends XGenJavaApp {
-
-    AppServerApp( String name , OptionMap options ){
-        super( "appserver" , name , "ed.appserver.AppServer" , options , new LinkedList<String>() , 1200 );
-    }
-
-}
+public interface SecureObject{}

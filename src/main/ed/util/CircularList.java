@@ -31,6 +31,13 @@ public class CircularList<T> {
         _stack = stack;
     }
     
+    public void clear(){
+        _size = 0;
+        _pos = 0;
+        for ( int i=0; i<_array.length; i++ )
+            _array[i] = null;
+    }
+    
     public void add( T t ){
         
         _array[_pos++] = t;

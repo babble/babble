@@ -23,14 +23,10 @@ import java.util.*;
 
 import ed.util.*;
 
-public class LBApp extends JavaApplication {
+public class LBApp extends XGenJavaApp {
 
     LBApp( String name , OptionMap options ){
-        super( "lb" , name , "ed.net.lb.LB" , _howMuchMemory( options ) , _getArgs( options ) , _getJvmArgs( options ) , true );
-    }
-    
-    static int _howMuchMemory( OptionMap options ){
-        return options.getInt( "memory" , 300 );
+        super( "lb" , name , "ed.net.lb.LB" , options , _getArgs( options ) , 300 );
     }
     
     static List<String> _getArgs( OptionMap options ){
@@ -43,10 +39,4 @@ public class LBApp extends JavaApplication {
         
         return l;
     }
-
-    static List<String> _getJvmArgs( OptionMap options ){
-        List<String> l = new ArrayList<String>();
-        return l;
-    }
-
 }

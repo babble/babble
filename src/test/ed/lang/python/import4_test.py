@@ -21,3 +21,10 @@ except ImportError, e:
     pass
 else:
     raise AssertionError
+
+import import3_help
+for globals in [{}, None]:
+    for locals in [{}, None]:
+        for fromlist in [[]]: # could try None here too
+            m = __import__('import3_help', globals, locals, fromlist)
+            assert m == import3_help

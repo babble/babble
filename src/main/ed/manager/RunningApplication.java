@@ -44,7 +44,7 @@ public class RunningApplication extends Thread {
             _pid = -1;
                 
             final Application app = _app;
-            int exitValue = 0;
+            int exitValue;
                 
             _logger.info( "STARTING" );
                 
@@ -120,7 +120,7 @@ public class RunningApplication extends Thread {
         
         log.close();
 
-        return _done ? _exitValue : _process.waitFor();
+        return _done || _process == null ? _exitValue : _process.waitFor();
     }
 
     void restart(){
@@ -128,6 +128,8 @@ public class RunningApplication extends Thread {
     }
 
     void restart( Application app ){
+        _logger.info( "got restart request" );
+
         if ( _done )
             throw new RuntimeException( "can't restart because done" );
 
@@ -151,7 +153,7 @@ public class RunningApplication extends Thread {
         _kill();
 
         try {
-            Thread.sleep( 2 );
+            Thread.sleep( 20 );
         }
         catch ( InterruptedException ie ){}
         
@@ -161,7 +163,6 @@ public class RunningApplication extends Thread {
     
     private void _kill(){
         final Process p = _process;
-        _done = true;
 
         if ( p == null )
             return;
@@ -173,6 +174,7 @@ public class RunningApplication extends Thread {
         }
         
         try {
+            _logger.info( "trying to kill" );
             SysExec.exec( "kill " + _pid );
         }
         catch ( Exception e ){
@@ -196,13 +198,12 @@ public class RunningApplication extends Thread {
         
         try {
             _process.destroy();
-            _exitValue = _process.exitValue();
+            _exitValue = _process.waitFor();
         }
         catch ( Exception e ){
             _logger.error( "destory had an error" , e );
         }
         _process = null;
-        _done = true;
     }
 
     public int hashCode(){
@@ -268,7 +269,7 @@ public class RunningApplication extends Thread {
     private Process _process;
     private long _lastStart;
     private int _timesStarted = 0;
-    private int _exitValue = 0;
+    private int _exitValue = -1;
 
     class OutputLine {
         OutputLine( String line , boolean out ){
@@ -311,7 +312,7 @@ public class RunningApplication extends Thread {
                         }
                     }
                     catch ( Application.RestartApp ra ){
-                        _logger.error( "got app restart because of line [" + line + "] beacuse of [" + ra._why + "]" );
+                        _logger.alert( "got app restart because of line [" + line + "] beacuse of [" + ra._why + "]" );
                         restart();
                     }
                     

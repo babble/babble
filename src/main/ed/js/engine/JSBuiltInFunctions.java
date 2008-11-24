@@ -170,7 +170,36 @@ public class JSBuiltInFunctions {
 
                         String msg = "not the same [" + a + "] != [" + b + "]";
                         //msg += " (" + _getClass( a ) + ") (" + _getClass(b) + ")";
+                        
+                        if ( extraMsg != null )
+                            msg += " " + extraMsg;
+                        
+			throw new JSException( msg );
+		    }
+		} );
 
+
+	    set( "lt" , new JSFunctionCalls3(){
+		    public Object call( Scope scope , Object a , Object b , Object extraMsg , Object extra[] ){
+			if ( JSInternalFunctions.JS_lt( a , b ) )
+			    return true;
+                        
+                        String msg = "[" + a + "] is not less than [" + b + "]";
+                        
+                        if ( extraMsg != null )
+                            msg += " " + extraMsg;
+                        
+			throw new JSException( msg );
+		    }
+		} );
+
+	    set( "gt" , new JSFunctionCalls3(){
+		    public Object call( Scope scope , Object a , Object b , Object extraMsg , Object extra[] ){
+			if ( JSInternalFunctions.JS_gt( a , b ) )
+			    return true;
+                        
+                        String msg = "[" + a + "] is not greater than [" + b + "]";
+                        
                         if ( extraMsg != null )
                             msg += " " + extraMsg;
                         
@@ -248,7 +277,7 @@ public class JSBuiltInFunctions {
 
     }
 
-    public static class javaCreate extends JSFunctionCalls1 {
+    public static class javaCreate extends JSFunctionCalls1 implements SecureObject {
         public Object call( Scope scope , Object clazzNameJS , Object extra[] ){
 
             String clazzName = clazzNameJS.toString();
@@ -289,7 +318,7 @@ public class JSBuiltInFunctions {
         }
     }
 
-    public static class javaStatic extends JSFunctionCalls2 {
+    public static class javaStatic extends JSFunctionCalls2 implements SecureObject {
         public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
             final boolean debug = false;
 
@@ -342,7 +371,7 @@ public class JSBuiltInFunctions {
         }
     }
 
-    public static class javaStaticProp extends JSFunctionCalls2 {
+    public static class javaStaticProp extends JSFunctionCalls2 implements SecureObject {
         public Object call( Scope scope , Object clazzNameJS , Object fieldNameJS , Object extra[] ){
 
 

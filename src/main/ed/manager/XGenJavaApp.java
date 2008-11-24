@@ -1,4 +1,4 @@
-// AppServerApp.java
+// XGenJavaApp.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -23,10 +23,23 @@ import java.util.*;
 
 import ed.util.*;
 
-public class AppServerApp extends XGenJavaApp {
+public abstract class XGenJavaApp extends JavaApplication {
 
-    AppServerApp( String name , OptionMap options ){
-        super( "appserver" , name , "ed.appserver.AppServer" , options , new LinkedList<String>() , 1200 );
+    XGenJavaApp( String type , String name , String className , OptionMap options , List<String> args , int memory ){
+        super( type , name , className , memory , args , _getJvmArgs( options ) , true );
+    }
+    
+    static List<String> _getJvmArgs( OptionMap options ){
+        List<String> l = new ArrayList<String>();
+
+        l.add( "-enableassertions" );
+        l.add( "-Djava.library.path=include" );
+        l.add( "-Djava.awt.headless=true" );
+        l.add( "-Djruby.home=./include/ruby" );
+        l.add( "-XX:MaxDirectMemorySize=600M" );
+
+
+        return l;
     }
 
 }

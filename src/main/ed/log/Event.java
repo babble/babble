@@ -28,7 +28,7 @@ public class Event {
         _level = level;
         _msg = msg;
         _throwable = throwable;
-        _thread = thread;
+        _threadName = thread.getName();
     }
     
     public String getLoggerName(){
@@ -51,8 +51,8 @@ public class Event {
         return _throwable;
     }
 
-    public Thread getThread(){
-        return _thread;
+    public String getThreadName(){
+        return _threadName;
     }
     
     final String _loggerName;
@@ -60,7 +60,7 @@ public class Event {
     final Level _level;
     final String _msg;
     final Throwable _throwable;
-    final Thread _thread;
+    final String _threadName;
 
 
 }

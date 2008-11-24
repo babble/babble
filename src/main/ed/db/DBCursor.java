@@ -65,7 +65,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public DBCursor hint( JSObject indexKeys ){
         if ( _it != null )
-            throw new RuntimeException( "can't sort after executing query" );
+            throw new RuntimeException( "can't hint after executing query" );
         
         if ( indexKeys == null )
             _hint = null;
@@ -76,7 +76,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public DBCursor hint( Scope scope , JSString indexName ){
         if ( _it != null )
-            throw new RuntimeException( "can't sort after executing query" );
+            throw new RuntimeException( "can't hint after executing query" );
         
         String s = null;
         if ( indexName != null )
@@ -87,7 +87,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public DBCursor hint( String indexName ){
         if ( _it != null )
-            throw new RuntimeException( "can't sort after executing query" );
+            throw new RuntimeException( "can't hint after executing query" );
 
         _hint = indexName;
         return this;
@@ -131,6 +131,9 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             return;
         
         if ( _collection != null && _query != null ){
+
+            _lookForHints();
+
             JSObject foo = _query;
             if ( hasSpecialQueryFields() ){
                 foo = new JSObjectBase();
@@ -151,6 +154,31 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         if ( _it == null )
             _it = (new LinkedList<JSObject>()).iterator();
+    }
+    
+    /**
+     * if there is a hint to use, use it
+     */
+    private void _lookForHints(){
+        
+        if ( _hint != null ) // if someone set a hint, then don't do this
+            return;
+
+        if ( _collection._hintFields == null )
+            return;
+
+        Set<String> mykeys = _query.keySet( false );
+
+        for ( JSObject o : _collection._hintFields ){
+            
+            Set<String> hintKeys = o.keySet( false );
+
+            if ( ! mykeys.containsAll( hintKeys ) )
+                continue;
+
+            hint( o );
+            return;
+        }
     }
 
     boolean hasSpecialQueryFields(){

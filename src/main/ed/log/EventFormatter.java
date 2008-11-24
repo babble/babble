@@ -30,7 +30,7 @@ public interface EventFormatter {
         
         public synchronized String format( Event e ){
             _buf.append( "[" ).append( e._date.format( _format ) ).append( "] " );
-            _buf.append( e._thread.getName() ).append( " || " ).append( e._loggerName ).append( " " );
+            _buf.append( e.getThreadName() ).append( " || " ).append( e._loggerName ).append( " " );
             _buf.append( e._level ).append( " >> " ).append( e._msg ).append( "\n" );
             
             String s = _buf.toString();

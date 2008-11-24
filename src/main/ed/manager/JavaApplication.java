@@ -26,7 +26,7 @@ import static ed.util.MemUtil.*;
 
 public class JavaApplication extends SimpleApplication {
 
-    public final static String JAVA = "./runLight.bash";
+    public final static String JAVA = "java";
 
     public JavaApplication( String type , String id , String className ){
         this( type , id , className , -1 , null , null );
@@ -42,8 +42,12 @@ public class JavaApplication extends SimpleApplication {
 
     public JavaApplication( String type , String id , String className , int maxMemory , String[] args , String[] jvmArgs , boolean gc ){
         super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , gc ) );
+        
+        String cp = System.getenv( "CLASSPATH" );
+        cp += File.pathSeparator + "build";
+        _environment.put( "CLASSPATH" , cp );
     }
-
+    
     public boolean gotOutputLine( String line )
         throws RestartApp {
         return ! handleGCLine( line );
@@ -59,9 +63,12 @@ public class JavaApplication extends SimpleApplication {
         if ( ! _gcStream.add( line ) )
             return false;
         
+        _gcs.add( line );
+
         final double fullGCPer = _gcStream.fullGCPercentage();
 
-        if ( fullGCPer > .8 ){
+        if ( fullGCPer > .85 && _gcStream.fullGCsInARow() > 2 ){
+            _gcStream.reset();
             System.out.println( "GOING TO RESTART " + this + " BECAUSE OF MEMORY" );
             throw new RestartApp( "too much full gc: " + fullGCPer );
         }
@@ -70,7 +77,8 @@ public class JavaApplication extends SimpleApplication {
     }
 
     final GCStream _gcStream = new GCStream();
-    
+    final CircularList<String> _gcs = new CircularList<String>( 10000 , true );
+
     static String[] _getCommands( String type , String className , String[] args , String[] jvmArgs , int maxMemory , boolean gc ){
 
         if ( className == null )
@@ -79,6 +87,7 @@ public class JavaApplication extends SimpleApplication {
         List<String> commands = new ArrayList<String>();
         
         commands.add( JAVA );
+
         if ( gc ){ 
             commands.add( "-verbose:gc" );
             commands.add( "-XX:+PrintGCDetails" );
