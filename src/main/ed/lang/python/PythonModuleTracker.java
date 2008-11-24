@@ -74,7 +74,11 @@ public class PythonModuleTracker extends PyStringMap {
         int len = keys.__len__();
         for( int i = 0; i < len; i++ ){
             PyObject key = keys.pyget( i );
-            PyObject val = super.get( key );
+            PyObject val = null;
+            if( key instanceof PyString )
+                val = super.__finditem__( key.toString() );
+            else
+                val = super.__finditem__( key );
             if( Python.isSafeImport( val ) )
                 k.append(key);
         }
@@ -87,7 +91,11 @@ public class PythonModuleTracker extends PyStringMap {
         int len = keys.__len__();
         for( int i = 0; i < len ; i++){
             PyObject key = keys.pyget(i);
-            PyObject val = super.get(key);
+            PyObject val = null;
+            if( key instanceof PyString )
+                val = super.__finditem__( key.toString() );
+            else
+                val = super.__finditem__( key );
             PyTuple t = new PyTuple(key, val);
             l.append(t);
         }
