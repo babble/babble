@@ -44,9 +44,7 @@ public class JavaApplication extends SimpleApplication {
         super( new File( "." ) , type , id , _getCommands( type , className , args , jvmArgs , maxMemory , gc ) );
         
         String cp = System.getenv( "CLASSPATH" );
-        if ( cp == null ){
-            cp = "build";
-        }
+        cp += File.pathSeparator + "build";
         _environment.put( "CLASSPATH" , cp );
     }
     

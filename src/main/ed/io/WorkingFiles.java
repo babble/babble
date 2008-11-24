@@ -22,10 +22,14 @@ import java.io.*;
 
 public class WorkingFiles {
     
-    public static final String TMP_DIR = "/tmp/jxp/";
-    public static final File TMP_FILE = new File( TMP_DIR );
+    private static final String TMP_DIR = "/tmp/jxp-" + System.getProperty( "user.name" ) + "/";
+    private static final File TMP_FILE = new File( TMP_DIR );
     static {
         TMP_FILE.mkdirs();
+    }
+
+    public static final String getTmpDir(){
+        return TMP_DIR;
     }
 
     public static File getTypeDir( String type ){
