@@ -26,7 +26,7 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.security.*;
 
-public class SysExec extends ed.js.func.JSFunctionCalls5 {
+public class SysExec extends ed.js.func.JSFunctionCalls5 implements SecureObject {
 
     /**
      * @return the pid, or -1 if it can't find one

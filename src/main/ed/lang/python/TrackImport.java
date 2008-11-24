@@ -43,6 +43,15 @@ public class TrackImport extends PyObject {
         PyObject fromlist = (argc > 3) ? args[3] : null;
 
         SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
+        /* Call from within Java. We can't be sure that this'll only
+         * get builtin (i.e. completely static and unchanging)
+         * modules, but we can't really do import tracking since we
+         * can't flush the Java code. So just get out fast, without trying
+         * anything fancy.
+         */
+        if( globals == null ){
+            return tryFallThrough( sss , args, keywords );
+        }
 
         AppContext ac = sss.getContext();
         PyObject targetP = args[0];
@@ -100,14 +109,7 @@ public class TrackImport extends PyObject {
         }
 
         if( m == null ){
-            PySystemState oldPyState = Py.getSystemState();
-            try {
-                Py.setSystemState( sss.getPyState() );
-                m = _import.__call__( args, keywords );
-            }
-            finally {
-                Py.setSystemState( oldPyState );
-            }
+            m = tryFallThrough(sss, args, keywords);
         }
 
         return trackDependency( sss , globals , target , siteModule , m , fromlist );
@@ -384,6 +386,21 @@ public class TrackImport extends PyObject {
         target = target.replaceAll( "\\." , "/" );
         return new File( dir , target ).exists() || new File( dir , target+".py" ).exists();
 
+    }
+
+    /**
+     * Simplest __import__ possibility -- just fall through to the default
+     * import implementation.
+     */
+    PyObject tryFallThrough(SiteSystemState sss, PyObject[] args, String[] keywords){
+        PySystemState oldPyState = Py.getSystemState();
+        try {
+            Py.setSystemState( sss.getPyState() );
+            return _import.__call__( args, keywords );
+        }
+        finally {
+            Py.setSystemState( oldPyState );
+        }
     }
 
     /**

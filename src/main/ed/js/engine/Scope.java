@@ -28,6 +28,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.lang.*;
 import ed.util.*;
+import ed.security.*;
 import ed.appserver.*;
 
 public class Scope implements JSObject , Bindings {
@@ -369,8 +370,11 @@ public class Scope implements JSObject , Bindings {
             noThis = true;
             name = "print";
         }
-
-	return _get( name.hashCode() , name , alt , with , noThis , 0 );
+        
+	final Object ret = _get( name.hashCode() , name , alt , with , noThis , 0 );
+        if ( ret != null && ret instanceof SecureObject && ! Security.inTrustedCode() )
+            throw new RuntimeException( "you are not allowed to access [" + name + "] from here" );
+        return ret;
     }
     
     private Object _get( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
