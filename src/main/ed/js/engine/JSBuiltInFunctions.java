@@ -277,7 +277,7 @@ public class JSBuiltInFunctions {
 
     }
 
-    public static class javaCreate extends JSFunctionCalls1 {
+    public static class javaCreate extends JSFunctionCalls1 implements SecureObject {
         public Object call( Scope scope , Object clazzNameJS , Object extra[] ){
 
             String clazzName = clazzNameJS.toString();
@@ -318,7 +318,7 @@ public class JSBuiltInFunctions {
         }
     }
 
-    public static class javaStatic extends JSFunctionCalls2 {
+    public static class javaStatic extends JSFunctionCalls2 implements SecureObject {
         public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
             final boolean debug = false;
 
@@ -371,7 +371,7 @@ public class JSBuiltInFunctions {
         }
     }
 
-    public static class javaStaticProp extends JSFunctionCalls2 {
+    public static class javaStaticProp extends JSFunctionCalls2 implements SecureObject {
         public Object call( Scope scope , Object clazzNameJS , Object fieldNameJS , Object extra[] ){
 
 

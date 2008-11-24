@@ -63,14 +63,17 @@ public class Security {
         "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
     };
 
+    public static final boolean inTrustedCode(){
+        return isCoreJS();
+    }
+
     public static boolean isCoreJS(){
         if ( OFF )
             return true;
 
         String topjs = getTopJS();
-        if ( topjs == null ) {
-            return false;
-        }
+        if ( topjs == null )
+            return true;
         
         for ( int i=0; i<SECURE.length; i++ )
             if ( topjs.startsWith( SECURE[i] ) )
@@ -80,7 +83,10 @@ public class Security {
     }
 
     public static String getTopJS(){
-        return getTopDynamicStackFrame().getFileName();
+        StackTraceElement e = getTopDynamicStackFrame();
+        if ( e == null )
+            return null;
+        return e.getFileName();
     }
 
     public static StackTraceElement getTopDynamicStackFrame(){
