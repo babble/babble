@@ -44,6 +44,14 @@ module ActiveRecord
         "'#{val.gsub(/\'/, "\\\\'")}'" # " <= for Emacs font-lock
       end
 
+      def quote_table_name(str)
+        str.to_s
+      end
+
+      def quote_column_name(str)
+        str.to_s
+      end
+
       def reset_runtime
         rt, @runtime = @runtime, 0
         rt
