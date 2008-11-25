@@ -25,7 +25,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 /**
  * WrappedRuby is a helper for JSObjects that wrap Ruby objects, like {@link
- * JSObjectWrapper} and {@link JSArrayWrapper}. It perfoms tasks common to
+ * JSObjectWrapper} and {@link JSArrayWrapper}. It performs tasks common to
  * those wrappers, avoiding code duplication among them.
  */
 class WrappedRuby {
