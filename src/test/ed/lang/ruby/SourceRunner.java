@@ -19,15 +19,12 @@ package ed.lang.ruby;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.jruby.Ruby;
-import org.jruby.RubyIO;
 import org.jruby.ast.Node;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-import ed.js.JSFunction;
 import ed.js.PrintBuffer;
 import ed.js.engine.Scope;
 import ed.lang.ruby.RubyJxpSource;

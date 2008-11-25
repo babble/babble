@@ -20,7 +20,6 @@ import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
 import org.jruby.*;
-import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.lang.ruby.RubyJSFunctionWrapper;
 import ed.js.*;
@@ -35,7 +34,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
     @BeforeMethod(groups={"ruby", "rjby.jsfunc"})
     public void setUp() {
         super.setUp();
-        Object o = runJS("MyJSClass = function(foo) {\n" +
+        runJS("MyJSClass = function(foo) {\n" +
               "  this.foo = foo;\n" +
               "}\n" +
               "MyJSClass.prototype.reverse = function() {\n" +
