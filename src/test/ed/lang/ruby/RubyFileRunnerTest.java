@@ -45,8 +45,13 @@ public class RubyFileRunnerTest {
      * <p>
      * These tests require one or more copies of Rails itself, which we'd like
      * to keep out of the base Babble code.
+     * <p>
+     * NOTE: by default this test is not run by "ant test-ruby" for now (the
+     * definition of ruby.groups in build.xml does not include
+     * "ruby.activerecord". This is because our automated test environment's
+     * of the QA project isn't quite ready to run these tests.
      */
-    @Test(groups = {"ruby", "ruby.testunit", "ruby.activerecord"})
+    @Test(groups = {"ruby.activerecord"})
     public void testRunRailsTests() {
         File dir;
         if ((dir = new File("/data/qa", QA_RAILS_TEST_DIR_RELATIVE)).exists() ||
