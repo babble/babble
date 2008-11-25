@@ -20,6 +20,7 @@ import java.io.*;
 
 import org.jruby.*;
 import org.testng.annotations.Test;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import ed.appserver.JSFileLibrary;
@@ -32,24 +33,28 @@ import ed.lang.ruby.RubyJxpSource;
 @Test(groups = {"ruby", "ruby.testunit"})
 public class RubyFileRunnerTest {
 
-    protected static final File QA_RAILS_TEST_DIR = new File("/data/qa/modules/ruby/rails");
-    protected static final File QA_RAILS_RUBY_FILE = new File(QA_RAILS_TEST_DIR, "run_all_tests.rb");
+    protected static final String QA_RAILS_TEST_DIR_RELATIVE = "modules/ruby/rails";
 
     public void testRunRubyTests() {
         runTestsIn(new File(System.getenv("ED_HOME"), "src/test/ed/lang/ruby"));
     }
 
     /**
-     * This test runs the tests in QA_RAILS_TEST_DIR, but only if
-     * QA_RAILS_RUBY_FILE exists. These tests require one or more copies of
-     * Rails itself, which we'd like to keep out of the base Babble code.
+     * This test runs the tests in QA_RAILS_TEST_DIR_RELATIVE, but only if
+     * that directory exists. We look in two places: /data/qa and
+     * $ED_HOME/../qa.
+     * <p>
+     * These tests require one or more copies of Rails itself, which we'd like
+     * to keep out of the base Babble code.
      */
     @Test(groups = {"ruby", "ruby.testunit", "ruby.activerecord"})
     public void testRunRailsTests() {
-        if (QA_RAILS_RUBY_FILE.exists())
-            runTestsIn(QA_RAILS_TEST_DIR);
+        File dir;
+        if ((dir = new File("/data/qa", QA_RAILS_TEST_DIR_RELATIVE)).exists() ||
+            (dir = new File(new File(System.getenv("ED_HOME"), "../qa"), QA_RAILS_TEST_DIR_RELATIVE)).exists())
+            runTestsIn(dir);
         else
-            assert(true);
+            assertTrue(true);
     }
 
     protected void runTestsIn(File rootDir) {
