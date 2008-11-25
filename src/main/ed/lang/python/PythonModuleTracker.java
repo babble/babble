@@ -25,6 +25,11 @@ import java.io.*;
 import ed.appserver.*;
 import ed.util.*;
 
+/**
+ * Replacement class for sys.modules. Can flush outdated modules, and
+ * prevents untrusted code from getting access to Java
+ * packages/classes.
+ */
 public class PythonModuleTracker extends PyStringMap {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.PYTHONMODULETRACKER" );
 
@@ -57,6 +62,82 @@ public class PythonModuleTracker extends PyStringMap {
 
     public PyObject get( PyObject key , PyObject missing ){
         return handleReturn( super.get( key , missing ) );
+    }
+
+    public PyStringMap copy(){
+        return new PythonModuleTracker( this );
+    }
+
+    public PyList keys(){
+        PyList k = new PyList();
+        PyList keys = super.keys();
+        int len = keys.__len__();
+        for( int i = 0; i < len; i++ ){
+            PyObject key = keys.pyget( i );
+            PyObject val = null;
+            if( key instanceof PyString )
+                val = super.__finditem__( key.toString() );
+            else
+                val = super.__finditem__( key );
+            if( Python.isSafeImport( val ) )
+                k.append(key);
+        }
+        return k;
+    }
+
+    public PyList items(){
+        PyList l = new PyList();
+        PyList keys = keys();
+        int len = keys.__len__();
+        for( int i = 0; i < len ; i++){
+            PyObject key = keys.pyget(i);
+            PyObject val = null;
+            if( key instanceof PyString )
+                val = super.__finditem__( key.toString() );
+            else
+                val = super.__finditem__( key );
+            PyTuple t = new PyTuple(key, val);
+            l.append(t);
+        }
+        return l;
+    }
+
+    public PyList values(){
+        PyList v = new PyList();
+        PyList values = super.values();
+        int len = values.__len__();
+        for( int i = 0; i < len; ++i){
+            PyObject val = values.pyget(i);
+            if( Python.isSafeImport( val ) )
+                v.append(val);
+        }
+        return v;
+    }
+
+    // FIXME: clumsy -- actually implement?
+    public PyObject iterkeys(){
+        return keys().__iter__();
+    }
+
+    public PyObject itervalues(){
+        return values().__iter__();
+    }
+
+    public PyObject iteritems(){
+        return items().__iter__();
+    }
+
+    public PyObject pop( PyObject key ){
+        return pop( key , Py.None );
+    }
+
+    public PyObject pop( PyObject key , PyObject value ){
+        PyObject m = super.__finditem__( key );
+        // Don't pop unless safe
+        if( Python.isSafeImport( m ) )
+            return handleReturn( super.pop( key , value ) );
+        Python.checkSafeImport( m ); // raises exception
+        return null;
     }
 
     public void __setitem__( String key , PyObject value ){

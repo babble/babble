@@ -758,19 +758,44 @@ public class Python extends Language {
     }
 
     public static void checkSafeImport( PyObject m ){
-        if( m instanceof PyJavaPackage || m instanceof PyJavaClass ){
-            PyObject __name__ = m.__findattr__( "__name__" );
-            if( ! ( __name__ instanceof PyString ) ){
-                throw new RuntimeException("Ethan's code got confused -- how can " + m + " have a name of " + __name__ + "?");
-            }
+        if( ! isSafeImport( m ) ){
+            throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
+        }
+    }
 
-            if( ImportHelper.getBuiltin( __name__.toString() ) != null )
-                // Safe -- builtin that Jython recognizes
-                return;
-
-            if( ! Security.inTrustedCode() )
-                throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
+    public static boolean isSafeImport( PyObject m ){
+        if( ! ( m instanceof PyJavaPackage || m instanceof PyJavaClass ) ){
+            return true;
         }
 
+        String name = null;
+        if( m instanceof PyJavaPackage )
+            name = ((PyJavaPackage)m).__name__;
+        else
+            name = ((PyJavaClass)m).__name__;
+
+        if( ImportHelper.getBuiltin( name ) != null )
+            // Safe -- builtin that Jython recognizes
+            return true;
+
+        // FIXME!!! Is there no other way to determine which other
+        // modules are built-in but have randomly renamed themselves??
+        //
+        // This should be OK as long as the user can't inject classes
+        // onto the classpath, but if they do, it's possible for someone to
+        // import org.python.modules.leethaxor.Time
+        // but if the user can put classes on the classpath, then they could
+        // probably fake any credentials Jython built-in modules could provide,
+        // so all bets are off.
+        if( m instanceof PyJavaClass &&
+            ((PyJavaClass)m).__module__.startsWith("org.python.modules.") &&
+            ( name.equals( "Time" ) || name.equals( "RandomModule" ) ) ){
+            return true;
+        }
+
+        if( ! Security.inTrustedCode() )
+            return false;
+
+        return true;
     }
 }

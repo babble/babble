@@ -7,6 +7,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 
+import ed.log.*;
 import ed.util.*;
 
 public class DBPort {
@@ -30,6 +31,8 @@ public class DBPort {
         _array[0].order( Bytes.ORDER );
 
         _hashCode = _addr.hashCode();
+
+        _logger = _rootLogger.getChild( addr.toString() );
     }
 
     /**
@@ -115,13 +118,14 @@ public class DBPort {
                 return;
             }
             catch ( IOException ioe ){
-                lastError = ioe;
-                _error( "connect fail" );
+//  TODO  - erh to fix                lastError = new IOException( "couldn't connect to [" + _addr + "] bc:" + lastError , lastError );
+                lastError = new IOException( "couldn't connect to [" + _addr + "] bc:" + ioe);
+                _logger.error( "connect fail to : " + _addr , ioe );
             }
             
             if ( _pool != null && ! _pool._everWorked )
                 throw lastError;
-
+            
             long sleptSoFar = System.currentTimeMillis() - start;
 
             if ( sleptSoFar >= CONN_RETRY_TIME_MS )
@@ -151,9 +155,9 @@ public class DBPort {
     }
 
     void _error( String msg ){
-        System.err.println( "DBPort " + host() + " " + msg );
+        _logger.error( msg );
     }
-
+    
     protected void finalize(){
         if ( _sock != null ){
             try {
@@ -171,7 +175,11 @@ public class DBPort {
     final int _hashCode;
     final InetSocketAddress _addr;
     final DBPortPool _pool;
+    final Logger _logger;
 
     private final ByteBuffer[] _array = new ByteBuffer[]{ ByteBuffer.allocateDirect( DBMessage.HEADER_LENGTH ) , null };
     private SocketChannel _sock;
+    
+
+    private static Logger _rootLogger = Logger.getLogger( "db.port" );
 }
