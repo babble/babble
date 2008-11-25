@@ -22,6 +22,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.python.core.PyList;
+import org.python.core.PySet;
 import org.testng.ITest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -39,6 +41,7 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
+import ed.lang.python.Python;
 import ed.log.Logger;
 
 
@@ -133,7 +136,17 @@ public class Djang10TemplateTest {
                     regroup_list.add(obj);
                 }
             }
-            context.set("regroup_list", regroup_list); 
+            context.set("regroup_list", regroup_list);
+
+            PyList pyList = new PyList();
+            pyList.add( "foo" );
+            pyList.add( "bar" );
+            context.set( "pyList" , pyList );
+
+            PySet pySet = new PySet();
+            pySet.add( "foo" );
+            pySet.add( "bar" );
+            context.set( "pySet" , Python.toJS( pySet ) );
 
             //load the tests =========================
             final File dir = new File("src/test/ed/appserver/templates/djang10");

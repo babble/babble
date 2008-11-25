@@ -207,9 +207,8 @@ ForNode.prototype = {
             values.reverse();
 
         var loop_dict = context["forloop"] = {parentloop: parentloop};
-        for(var i=0; i<count; i++) {
-            var item = values[i];
-
+        var i = 0;
+        for each(var item in values) {
             loop_dict['counter0'] = i;
             loop_dict['counter'] = i+1;
             loop_dict['revcounter'] = count - i;
@@ -224,6 +223,8 @@ ForNode.prototype = {
                     context[this.loopvars[j]] = item[j];
 
             this.nodelist_loop.__render(context, printer);
+
+            i++;
         }
         context.pop();
     }
