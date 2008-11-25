@@ -27,7 +27,7 @@ end
 class XGen::Mongo::Cursor
   def each
     @cursor.forEach { |row|
-      yield @model_class.instantiate(row.to_ar_hash)
+      yield @model_class.send(:instantiate, row.to_ar_hash)
     }
   end
 end
@@ -104,13 +104,16 @@ module ActiveRecord
       # Deletes all the records that match the +condition+ without instantiating the objects first (and hence not
       # calling the destroy method). Example:
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
-      def delete_all(conditions = {})
+      def delete_all(conditions = "")
         collection.remove(XGen::SQL::Parser.parse_where(conditions, true) || {})
       end
 
       def count(*args)
         # Ignore first arg if it is not a Hash
-        column_name, options = *construct_count_options_from_legacy_args(*args)
+        a = self.respond_to?(:construct_count_options_from_legacy_args) ?
+            construct_count_options_from_legacy_args(*args) :
+            construct_count_options_from_args(*args)
+        column_name, options = *a
         find_every(options).count()
       end
 
@@ -182,7 +185,7 @@ module ActiveRecord
         criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
         fields = fields_from(options[:select])
         row = collection.find_one(criteria, fields)
-        (row.nil? || row['_id'] == nil) ? nil : self.instantiate(row.to_ar_hash)
+        (row.nil? || row['_id'] == nil) ? nil : self.send(:instantiate, row.to_ar_hash)
       end
 
       def find_every(options)
@@ -211,7 +214,7 @@ module ActiveRecord
         sort_by = sort_by_from(options[:order]) if options[:order]
         db_cursor.sort(sort_by) if sort_by
         cursor = XGen::Mongo::Cursor.new(db_cursor, self)
-        ids.length == 1 ? self.instantiate(cursor[0].to_ar_hash) : cursor
+        ids.length == 1 ? self.send(:instantiate, cursor[0].to_ar_hash) : cursor
       end
 
       def ids_clause(ids)

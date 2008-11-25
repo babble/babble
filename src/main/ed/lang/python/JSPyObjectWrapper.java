@@ -262,12 +262,29 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
             pykeys = new String[0];
         }
 
-        return _p.__call__( pParams , pykeys );
+        PySystemState oldState = Py.getSystemState();
+        SiteSystemState sss = getSiteSystemState( null , s );
+        try {
+            /**
+             * FIXME: This kind of set-system-state really ought to be
+             * more pervasive -- any attribute fetch could cause code
+             * to execute, and we need to make sure the right system
+             * state is in place.  But to wrap every cross-language
+             * fetch with that kind of wrapping would be slow and
+             * complicated. I'm not sure what the right fix is, but
+             * for now I'm leaving it here.
+             */
+            Py.setSystemState( sss.getPyState() );
+            return _p.__call__( pParams , pykeys );
+        }
+        finally {
+            Py.setSystemState(oldState);
+        }
     }
 
     public Set<String> keySet( boolean includePrototype ){
         Set<String> keys = new OrderedSet<String>();
-    
+
         if ( _p instanceof PyDictionary ){
             for ( Object o : ((PyDictionary)_p).keySet() )
                 keys.add( o.toString() );
