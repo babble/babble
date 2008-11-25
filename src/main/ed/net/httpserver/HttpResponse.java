@@ -1008,6 +1008,7 @@ response.setCookie({
 
 	    if ( _writer != null ){
 		_writer._push();
+                _charBufPool.done( _writer._cur );
 		_writer = null;
 	    }
 
@@ -1281,9 +1282,13 @@ response.setCookie({
     
     static final int CHAR_BUFFER_SIZE = 1024 * 128;
     static final int MAX_STRING_SIZE = CHAR_BUFFER_SIZE / 4;
-    static SimplePool<CharBuffer> _charBufPool = new SimplePool<CharBuffer>( "Response.CharBufferPool" , 50 , -1 ){
+    static SimplePool<CharBuffer> _charBufPool = new WatchedSimplePool<CharBuffer>( "Response.CharBufferPool" , 50 , -1 ){
         public CharBuffer createNew(){
             return CharBuffer.allocate( CHAR_BUFFER_SIZE );
+        }
+
+        protected long memSize( CharBuffer cb ){
+            return CHAR_BUFFER_SIZE * 2;
         }
 
         public boolean ok( CharBuffer buf ){
@@ -1292,8 +1297,8 @@ response.setCookie({
             return true;
         }
     };
-    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 4  );
-    static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
+    static ByteBufferPool _bbPool = new ByteBufferPool( "HttpResponse" , 50 , CHAR_BUFFER_SIZE * 4  );
+    static StringBuilderPool _headerBufferPool = new StringBuilderPool( "HttpResponse" , 25 , 1024 );
     static Charset _defaultCharset = Charset.forName( DEFAULT_CHARSET );
 
     static final Properties _responseMessages = new Properties();

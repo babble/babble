@@ -18,15 +18,14 @@
 
 package ed.util;
 
-/** @expose */
-public class StringBuilderPool extends SimplePool<StringBuilder> {
+public class StringBuilderPool extends WatchedSimplePool<StringBuilder> {
 
     /** Initializes a pool of a given number of StringBuilders, each of a certain size.
      * @param maxToKeep the number of string builders in the pool
      * @param maxSize the size of each string builder
      */
-    public StringBuilderPool( int maxToKeep , int maxSize ){
-        super( "StringBuilderPool" , maxToKeep , -1  );
+    public StringBuilderPool( String name , int maxToKeep , int maxSize ){
+        super( "StringBuilderPool-" + name , maxToKeep , -1  );
         _maxSize = maxSize;
     }
 
@@ -48,6 +47,9 @@ public class StringBuilderPool extends SimplePool<StringBuilder> {
         return true;
     }
 
-    /** @unexpose */
+    protected long memSize( StringBuilder buf ){
+        return buf.length() * 2;
+    }
+
     final int _maxSize;
 }

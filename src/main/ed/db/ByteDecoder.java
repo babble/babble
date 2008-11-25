@@ -27,10 +27,15 @@ public class ByteDecoder extends Bytes {
     }
 
     private final static int _poolSize = 6 * BUFS_PER_50M;
-    private final static SimplePool<ByteDecoder> _pool = new SimplePool<ByteDecoder>( "ByteDecoders" , _poolSize , -1 ){
+    private final static SimplePool<ByteDecoder> _pool = new WatchedSimplePool<ByteDecoder>( "ByteDecoders" , _poolSize , -1 ){
+
         protected ByteDecoder createNew(){
 	    if ( D ) System.out.println( "creating new ByteDecoder" );
             return new ByteDecoder();
+        }
+
+        protected long memSize( ByteDecoder d ){
+            return BUF_SIZE + ( 2 * MAX_STRING ) + 1024;
         }
     };
 
