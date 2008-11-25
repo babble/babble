@@ -131,15 +131,15 @@ module ActiveRecord
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
-        rec = collection.find(id)
-        rec.instance_variable_set("@#{counter_name}", rec.instance_variable_get("@#{counter_name}") + 1)
+        rec = collection.findOne({:_id => id})
+        rec[counter_name] += 1
         collection.save(rec)
       end
 
       # Works like increment_counter, but decrements instead.
       def decrement_counter(counter_name, id)
-        rec = collection.find(id)
-        rec.instance_variable_set("@#{counter_name}", rec.instance_variable_get("@#{counter_name}") - 1)
+        rec = collection.findOne({:_id => id})
+        rec[counter_name] -= 1
         collection.save(rec)
       end
 

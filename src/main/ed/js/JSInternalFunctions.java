@@ -627,15 +627,15 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @return The values
      * @throws RuntimeException If <tt>o</tt> exists but doesn't have values
      */
-    public static final Collection JS_collForForEach( Object o ){
+    public static final Iterable JS_collForForEach( Object o ){
         if ( o == null )
             return new LinkedList();
 
         if ( o instanceof ENode )
             return ((ENode)o).valueSet();
-        
-        if ( o instanceof Collection )
-            return (Collection)o;
+
+        if ( o instanceof Iterable )
+            return (Iterable)o;
 
         if ( o instanceof JSObject ){
             JSObject j = (JSObject)o;
