@@ -110,7 +110,10 @@ module ActiveRecord
 
       def count(*args)
         # Ignore first arg if it is not a Hash
-        column_name, options = *construct_count_options_from_legacy_args(*args)
+        a = self.respond_to?(:construct_count_options_from_legacy_args) ?
+            construct_count_options_from_legacy_args(*args) :
+            construct_count_options_from_args(*args)
+        column_name, options = *a
         find_every(options).count()
       end
 
