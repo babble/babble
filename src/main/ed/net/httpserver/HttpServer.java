@@ -371,7 +371,7 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
     
-    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new WatchedSimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolds" , 20 , -1 ){
+    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new WatchedSimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolders" , 20 , -1 ){
 
         public ByteBufferHolder createNew(){
             return new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
