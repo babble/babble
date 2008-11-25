@@ -118,7 +118,8 @@ public class DBPort {
                 return;
             }
             catch ( IOException ioe ){
-                lastError = new IOException( "couldn't connect to [" + _addr + "] bc:" + lastError , lastError );
+//  TODO  - erh to fix                lastError = new IOException( "couldn't connect to [" + _addr + "] bc:" + lastError , lastError );
+                lastError = new IOException( "couldn't connect to [" + _addr + "] bc:" + ioe);
                 _logger.error( "connect fail to : " + _addr , ioe );
             }
             
