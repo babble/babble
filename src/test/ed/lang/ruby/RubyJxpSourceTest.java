@@ -16,14 +16,9 @@
 
 package ed.lang.ruby;
 
-import java.io.File;
-
-import org.jruby.runtime.builtin.IRubyObject;
-
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-import ed.appserver.JSFileLibrary;
 import ed.js.*;
 import ed.js.engine.Scope;
 
