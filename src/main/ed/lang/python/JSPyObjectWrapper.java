@@ -163,14 +163,16 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
             if ( D ) System.out.println("JSPyObjectWrapper.get FIXME: " + e.type);
         }
 
-        if( n.toString().equals("length" ) ){
+        if( o != null )
+            return toJS( o );
+
+        o = super.get( n );
+        if( o != null ) return o; // could check containsKey()
+
+        if( n.toString().equals("length") )
             return _p.__len__();
-        }
 
-        if ( o == null )
-            return super.get( n );
-
-        return toJS( o );
+        return null;
     }
 
     public Object _simpleGet( String s ){
