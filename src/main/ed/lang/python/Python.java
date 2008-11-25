@@ -50,6 +50,8 @@ public class Python extends Language {
     
     static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
 
+    static final PyString __ITER__ = Py.newString( "__iter__" );
+
     static {
         Options.includeJavaStackInExceptions = true;
         PySystemState.initialize();
@@ -162,6 +164,9 @@ public class Python extends Language {
 
             return new JSRegex(re.pattern.toString(), flags);
         }
+
+        if ( p instanceof PyObject && __builtin__.hasattr( (PyObject)p , __ITER__ ) )
+            return new JSPyIterableObject( (PyObject)p );
 
         // Insufficiently Pythonic?
         if ( p instanceof PyObjectDerived ){
