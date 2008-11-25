@@ -22,15 +22,14 @@ import java.nio.*;
 
 import ed.io.*;
 
-/** @expose */
-public class ByteBufferPool extends SimplePool<ByteBuffer> implements ByteBufferFactory {
+public class ByteBufferPool extends WatchedSimplePool<ByteBuffer> implements ByteBufferFactory {
 
     /** Initializes this pool with a given number of byte buffers to keep and size.
      * @param maxToKeep The number of byte buffers allowed
      * @param size The size for buffers this pool creates, in bytes
      */
-    public ByteBufferPool( int maxToKeep , int size ){
-        this( maxToKeep , size , null );
+    public ByteBufferPool( String name , int maxToKeep , int size ){
+        this( name , maxToKeep , size , null );
     }
 
     /** Initializes this pool with a given number of byte buffers, size, and ordering.
@@ -38,8 +37,8 @@ public class ByteBufferPool extends SimplePool<ByteBuffer> implements ByteBuffer
      * @param size The size for buffers this pool creates, in bytes
      * @param order The ordering of the buffers (big or little endian)
      */
-    public ByteBufferPool( int maxToKeep , int size , ByteOrder order ){
-        super( "ByteBufferPool" , maxToKeep , -1  );
+    public ByteBufferPool( String name , int maxToKeep , int size , ByteOrder order ){
+        super( "ByteBufferPool-" + name , maxToKeep , -1  );
         _size = size;
         _order = order;
     }
@@ -64,8 +63,10 @@ public class ByteBufferPool extends SimplePool<ByteBuffer> implements ByteBuffer
         return true;
     }
 
-    /** @unexpose */
+    protected long memSize( ByteBuffer buf ){
+        return _size;
+    }
+
     final int _size;
-    /** @unexpose */
     final ByteOrder _order;
 }

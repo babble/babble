@@ -9,7 +9,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-class DBPortPool extends SimplePool<DBPort> {
+class DBPortPool extends WatchedSimplePool<DBPort> {
 
     public final long _maxWaitTime = 1000 * 60 * 2;
 
@@ -50,9 +50,13 @@ class DBPortPool extends SimplePool<DBPort> {
     // ----
     
     DBPortPool( InetSocketAddress addr ){
-        super( addr.toString() , Bytes.CONNECTIONS_PER_HOST , Bytes.CONNECTIONS_PER_HOST );
+        super( "DBPortPool-" + addr.toString() , Bytes.CONNECTIONS_PER_HOST , Bytes.CONNECTIONS_PER_HOST );
         _addr = addr;
 	_waitingSem = new Semaphore( Math.min( ed.net.httpserver.HttpServer.WORKER_THREAD_QUEUE_MAX / 2 , Bytes.CONNECTIONS_PER_HOST * 5 ) );
+    }
+
+    protected long memSize( DBPort p ){
+        return 0;
     }
     
     public DBPort get(){

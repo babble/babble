@@ -20,18 +20,17 @@ package ed.util;
 
 import java.util.*;
 
-/** @expose */
 public abstract class SimplePool<T> {
 
     static long _sleepTime = 15;
-
+    
     /** 
      * See full constructor docs
      */
     public SimplePool( String name , int maxToKeep , int maxTotal ){
         this( name , maxToKeep , maxTotal , false , false );
-    }
-
+    } 
+    
     /** Initializes a new pool of objects.
      * @param name name for the pool
      * @param maxToKeep max to hold to at any given time. if < 0 then no limit

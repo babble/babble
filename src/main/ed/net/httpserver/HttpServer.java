@@ -371,7 +371,7 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
     
-    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new SimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolds" , 20 , -1 ){
+    private final SimplePool<ByteBufferHolder> _connectionByteBufferHolder = new WatchedSimplePool<ByteBufferHolder>( "HttpServer._connectionByteBufferHolds" , 20 , -1 ){
 
         public ByteBufferHolder createNew(){
             return new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
@@ -381,7 +381,11 @@ public class HttpServer extends NIOServer {
             holder.position( 0 );
             return holder.capacity() < 1024 * 1024;
         }
-        
+    
+        protected long memSize( ByteBufferHolder holder ){
+            return holder.capacity();
+        }
+
     };
     
     private int _lastHandlerHash = 0;
@@ -567,6 +571,7 @@ public class HttpServer extends NIOServer {
         addGlobalHandler( new HttpMonitor.ThreadMonitor() );
         addGlobalHandler( new HttpMonitor.FavIconHack() );
         addGlobalHandler( new HttpMonitor.LogMonitor() );
+        addGlobalHandler( new WatchedSimplePool.WebView() );
     }
     
     private static int _numRequests = 0;
