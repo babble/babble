@@ -28,6 +28,16 @@ public class JSPyIterableObject extends JSPyObjectWrapper implements Iterable {
     }
 
     public Iterator iterator(){
-        return _p.asIterable().iterator();
+        return new IterWrapper( _p.asIterable().iterator() );
+    }
+
+    class IterWrapper implements Iterator {
+        Iterator _iter;
+        IterWrapper( Iterator i ){
+            _iter = i;
+        }
+        public Object next(){
+            return Python.toJS( next() );
+        }
     }
 }
