@@ -6,9 +6,9 @@ for each (var file in tmp.listFiles()){
 
 var recurse = function(){
     sysexec('./runAnt.bash ed.js.Shell src/test/ed/js/eval1.js -exit');
-    var out = sysexec('sh -c "stat -f %m /tmp/'+jxpDirectory+'/ed/js/gen/src_test_ed_js_eval1_js1.java"');
-    //print("FUCK " + tojson (out));
-    return out.out;
+    var translatedFile = openFile('/tmp/'+jxpDirectory+'/ed/js/gen/src_test_ed_js_eval1_js1.java');
+
+    return translatedFile.lastModified().getTime();
 }
 
 var old = recurse();
