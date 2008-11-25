@@ -169,7 +169,11 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
             return toJS( o );
 
         /* Really this should be unequivocal, but aim for a JS-ish
-         * "try as much as we can, and then behave randomly" */
+         * "try as much as we can, and then behave randomly".  If
+         * someone sets a JS "length", they'll be surprised, but we
+         * can't fetch from JS first since we'll just fetch it from
+         * the constructor.
+         */
         if( n.toString().equals("length") && __builtin__.hasattr( _p , __LEN__ ) )
             return _p.__len__();
 
