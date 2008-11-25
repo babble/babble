@@ -24,6 +24,7 @@ import org.python.core.*;
 
 import ed.util.*;
 import ed.js.*;
+import ed.appserver.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import static ed.lang.python.Python.*;
@@ -31,6 +32,8 @@ import static ed.lang.python.Python.*;
 public class JSPyObjectWrapper extends JSFunctionCalls0 {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.JSPYOBJECTWRAPPER" );
+
+    static PyString __LEN__ = new PyString( "__len__" );
 
 
     static JSFunction _apply = new ed.js.func.JSFunctionCalls3(){
@@ -162,10 +165,22 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
             if ( D ) System.out.println("JSPyObjectWrapper.get FIXME: " + e.type);
         }
 
-        if ( o == null )
-            return super.get( n );
+        if( o != null )
+            return toJS( o );
 
-        return toJS( o );
+        /* Really this should be unequivocal, but aim for a JS-ish
+         * "try as much as we can, and then behave randomly".  If
+         * someone sets a JS "length", they'll be surprised, but we
+         * can't fetch from JS first since we'll just fetch it from
+         * the constructor.
+         */
+        if( n.toString().equals("length") && __builtin__.hasattr( _p , __LEN__ ) )
+            return _p.__len__();
+
+        o = super.get( n );
+        if( o != null ) return o; // could check containsKey()
+
+        return null;
     }
 
     public Object _simpleGet( String s ){
@@ -213,8 +228,8 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         return toJS( callPython( s , params , null , _passThis ) );
     }
 
-    public PyObject callPython( Object [] params, JSObject kwargs ){
-        return callPython( null , params , kwargs , false );
+    public PyObject callPython( Scope s, Object [] params, JSObject kwargs ){
+        return callPython( s , params , kwargs , false );
     }
 
     public PyObject callPython( Scope s , Object [] params , JSObject kwargs , boolean passThis ){
@@ -263,7 +278,8 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         }
 
         PySystemState oldState = Py.getSystemState();
-        SiteSystemState sss = getSiteSystemState( null , s );
+        AppContext ac = AppContext.findThreadLocal();
+        SiteSystemState sss = getSiteSystemState( ac , s );
         try {
             /**
              * FIXME: This kind of set-system-state really ought to be

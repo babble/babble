@@ -19,11 +19,7 @@ package ed.lang.ruby;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-import org.jruby.runtime.builtin.IRubyObject;
-
 import ed.lang.ruby.JSFunctionWrapper;
-import ed.js.*;
-import ed.js.engine.Scope;
 
 @Test(groups = {"ruby", "ruby.block"})
 public class JSFunctionWrapperTest extends SourceRunner {

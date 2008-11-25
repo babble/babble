@@ -107,7 +107,7 @@ public class JSObjectWrapper implements JSObject {
     // TODO ignore top-level (Kernel) methods defined from JavaScript
 
     public boolean containsKey(String s) {
-        return containsKey( s , true );
+        return containsKey(s , true);
     }
 
     public boolean containsKey(String s, boolean includePrototype) {

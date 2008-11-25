@@ -27,6 +27,7 @@ import ed.net.httpserver.*;
 import ed.log.*;
 import ed.git.*;
 import ed.util.*;
+import ed.lang.*;
 import ed.cloud.*;
 
 public class AppContextHolder {
@@ -36,7 +37,7 @@ public class AppContextHolder {
     static final String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
     static final String OUR_DOMAINS[];
     static {
-        Set<String> ourDomains = new HashSet<String>();
+        List<String> ourDomains = new ArrayList<String>();
         
         ourDomains.add( ".local." + Config.getExternalDomain().toLowerCase() );
         ourDomains.add( "." + Config.getExternalDomain().toLowerCase() );
@@ -53,6 +54,7 @@ public class AppContextHolder {
         }
 
         OUR_DOMAINS = ourDomains.toArray( new String[ ourDomains.size() ] );
+        if ( D ) System.out.println( "OUR_DOMAINS: " + ourDomains );
     }
     
     static final Set<String> CDN_HOSTNAMES;
@@ -103,7 +105,17 @@ public class AppContextHolder {
                         mr.addData( "Num Requests" , ac._numRequests );
                         mr.addData( "Created" , ac._created );
                         try {
+                            int before = seen.size();
                             mr.addData( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
+                            mr.addData( "Number Objects" , seen.size() - before );
+
+                            if ( mr.getRequest().getBoolean( "reflect" , false ) ){
+                                ReflectionVisitor.Reachable r = new AppContext.AppContextReachable();
+                                ReflectionWalker walker = new ReflectionWalker( r );
+                                walker.walk( ac );
+                                mr.addData( "Reflection Object Count" , r.seenSize() );
+                            }
+
                         }
                         catch ( Exception e ){
                             e.printStackTrace();
@@ -162,6 +174,8 @@ public class AppContextHolder {
         Info info = fixBase( host , uri );
         host = info.host;
         uri = info.uri;
+
+        if ( D ) System.out.println( "\t fixed host [" + host + "]" );
 
         AppContext ac = _getContextFromMap( host );
         if ( ac != null ){

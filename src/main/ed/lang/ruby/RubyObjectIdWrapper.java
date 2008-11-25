@@ -23,7 +23,6 @@ import org.jruby.*;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
-import static org.jruby.runtime.Visibility.PRIVATE;
 
 import ed.db.ObjectId;
 

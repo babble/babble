@@ -101,8 +101,7 @@ public abstract class HttpMonitor implements HttpHandler {
         
         if ( DNSUtil.isDottedQuad( host ) )
             return true;
-
-        System.out.println( "bad host [" + host + "]" );
+        
         return false;
     }
     

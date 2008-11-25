@@ -420,6 +420,7 @@ response.setCookie({
         if ( _doneHooks != null ){
             for ( Pair<Scope,JSFunction> p : _doneHooks ){
                 try {
+                    p.first.makeThreadLocal();
                     p.second.call( p.first );
                 }
                 catch ( Throwable t ){
@@ -427,6 +428,9 @@ response.setCookie({
                     if ( p.first.get( "log" ) instanceof Logger )
                         l = (Logger)p.first.get( "log" );
                     l.error( "error running done hook" , t );
+                }
+                finally {
+                    p.first.clearThreadLocal();
                 }
             }
         }

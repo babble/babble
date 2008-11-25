@@ -22,8 +22,8 @@ import java.util.*;
 
 public class IdentitySet<T> implements Iterable<T> {
 
-    public void add( T t ){
-        _map.put( t , "a" );
+    public boolean add( T t ){
+        return _map.put( t , "a" ) == null;
     }
 
     public boolean contains( T t ){
