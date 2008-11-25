@@ -24,7 +24,6 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import ed.appserver.JSFileLibrary;
-import ed.appserver.Module;
 import ed.js.*;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
