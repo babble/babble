@@ -298,7 +298,7 @@ public class JSArrayWrapper extends JSArray {
     // TODO ignore top-level (Kernel) methods defined from JavaScript
 
     public boolean containsKey(String s) {
-        return containsKey( s , true );
+        return containsKey(s , true);
     }
 
     /** See {@link JSArray#containsKey(String)} */
