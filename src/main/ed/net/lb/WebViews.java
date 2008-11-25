@@ -242,11 +242,11 @@ public class WebViews {
         final Router _router;
     }
 
-    static void displayLast( HttpMonitor.MonitorRequest mr , LB lb ){
+    static void displayLast( MonitorRequest mr , LB lb ){
 	displayLast( mr , lb , lb._lastCalls.size() );
     }
 
-    static void displayLast( HttpMonitor.MonitorRequest mr , LB lb , int num ){
+    static void displayLast( MonitorRequest mr , LB lb , int num ){
 	JxpWriter out = mr.getWriter();
 	
 	out.print( "<table border='1' >" );
