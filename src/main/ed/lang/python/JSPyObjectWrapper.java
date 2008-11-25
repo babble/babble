@@ -214,8 +214,8 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         return toJS( callPython( s , params , null , _passThis ) );
     }
 
-    public PyObject callPython( Object [] params, JSObject kwargs ){
-        return callPython( null , params , kwargs , false );
+    public PyObject callPython( Scope s, Object [] params, JSObject kwargs ){
+        return callPython( s , params , kwargs , false );
     }
 
     public PyObject callPython( Scope s , Object [] params , JSObject kwargs , boolean passThis ){
