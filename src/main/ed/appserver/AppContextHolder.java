@@ -27,6 +27,7 @@ import ed.net.httpserver.*;
 import ed.log.*;
 import ed.git.*;
 import ed.util.*;
+import ed.lang.*;
 import ed.cloud.*;
 
 public class AppContextHolder {
@@ -107,6 +108,14 @@ public class AppContextHolder {
                             int before = seen.size();
                             mr.addData( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
                             mr.addData( "Number Objects" , seen.size() - before );
+
+                            if ( mr.getRequest().getBoolean( "reflect" , false ) ){
+                                ReflectionVisitor.Reachable r = new AppContext.AppContextReachable();
+                                ReflectionWalker walker = new ReflectionWalker( r );
+                                walker.walk( ac );
+                                mr.addData( "Reflection Object Count" , r.seenSize() );
+                            }
+
                         }
                         catch ( Exception e ){
                             e.printStackTrace();
