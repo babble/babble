@@ -32,16 +32,35 @@ import ed.lang.ruby.RubyJxpSource;
 @Test(groups = {"ruby", "ruby.testunit"})
 public class RubyFileRunnerTest {
 
-    public void testRunAllRubyFiles() {
+    protected static final File QA_RAILS_TEST_DIR = new File("/data/qa/modules/ruby/rails");
+    protected static final File QA_RAILS_RUBY_FILE = new File(QA_RAILS_TEST_DIR, "run_all_tests.rb");
+
+    public void testRunRubyTests() {
+        runTestsIn(new File(System.getenv("ED_HOME"), "src/test/ed/lang/ruby"));
+    }
+
+    /**
+     * This test runs the tests in QA_RAILS_TEST_DIR, but only if
+     * QA_RAILS_RUBY_FILE exists. These tests require one or more copies of
+     * Rails itself, which we'd like to keep out of the base Babble code.
+     */
+    @Test(groups = {"ruby", "ruby.testunit", "ruby.activerecord"})
+    public void testRunRailsTests() {
+        if (QA_RAILS_RUBY_FILE.exists())
+            runTestsIn(QA_RAILS_TEST_DIR);
+        else
+            assert(true);
+    }
+
+    protected void runTestsIn(File rootDir) {
         String edHome = System.getenv("ED_HOME");
-        File here = new File(edHome, "src/test/ed/lang/ruby");
-        File f = new File(here, "run_all_tests.rb");
+        File f = new File(rootDir, "run_all_tests.rb");
 
         Scope s = createScope(f.getParentFile());
 
         RubyJxpSource source = new RubyJxpSource(f, Ruby.newInstance());
         addRubyLoadPath(s, source, new File(edHome, "build").getPath()); // for xgen.rb and files it includes
-        addRubyLoadPath(s, source, here.getPath());
+        addRubyLoadPath(s, source, rootDir.getPath());
 
         try {
             source.getFunction().call(s, new Object[0]);
@@ -57,6 +76,7 @@ public class RubyFileRunnerTest {
         s = new Scope("test", s); // child of global scope
         Shell.addNiceShellStuff(s);
         s.set("local", new JSFileLibrary(localRootDir, "local", s));
+        s.set("rails_local", new JSFileLibrary(new File(localRootDir, "rails-test-app"), "local", s));
         s.set("core", CoreJS.get().getLibrary(null, null, s, false));
 
         s.set("jsout", ""); // initial value; used by tests; will be written over later
