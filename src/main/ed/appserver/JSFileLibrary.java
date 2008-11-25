@@ -201,7 +201,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return get( n , true );
     }
 
-    public synchronized Object get( final Object n , final boolean doInit ){
+    public Object get( final Object n , final boolean doInit ){
 
         if (n == null) {
             throw new IllegalArgumentException("Filename cannot be null.");    
@@ -212,25 +212,29 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         if ( "$".equals( n.toString() ) )
             return findPath();
+        
+        final String lock = _getLock( n );
 
-        Object foo = _get( n );
-        if ( foo instanceof JxpSource ){
-            JxpSource source = (JxpSource)foo;
-
-            if ( ! _initStack.get().empty() )
-                _initStack.get().peek().add( source );
-
-            try {
-                JSFunction func = source.getFunction();
-                func.setName( _uriBase + "." + n.toString() );
-                addPath( func , this );
-                foo = func;
+        synchronized( lock ){
+            Object foo = _get( n );
+            if ( foo instanceof JxpSource ){
+                JxpSource source = (JxpSource)foo;
+                
+                if ( ! _initStack.get().empty() )
+                    _initStack.get().peek().add( source );
+                
+                try {
+                    JSFunction func = source.getFunction();
+                    func.setName( _uriBase + "." + n.toString() );
+                    addPath( func , this );
+                    foo = func;
+                }
+                catch ( IOException ioe ){
+                    throw new RuntimeException( ioe );
+                }
             }
-            catch ( IOException ioe ){
-                throw new RuntimeException( ioe );
-            }
+            return foo;
         }
-        return foo;
     }
 
     public File getFileFromPath( final String path ){
@@ -247,7 +251,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         }
 
         JxpSource js = null;
-
+        
         if ( o instanceof JxpSource )
             js = (JxpSource)o;
         else if ( o instanceof JSObject )
@@ -558,11 +562,20 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return key;
         
         String k = key.toString();
-
+        
         if ( key.equals( "constructor" ) ||
              key.equals( "prototype" )  )
             return "_________" + key;
         return key;
+    }
+
+    private String _getLock( Object key ){
+        String s = "random";
+
+        if ( key instanceof String || key instanceof JSString )
+            s = key.toString();
+        
+        return ( _base.getAbsolutePath() + "-" + s ).intern();
     }
 
     final JSFileLibrary _parent;
@@ -571,7 +584,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     final AppContext _context;
     final Scope _scope;
     final boolean _doInit;
-
+    
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
 
     private JxpSource _mySource;

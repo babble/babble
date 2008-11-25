@@ -19,7 +19,6 @@ package ed.lang.ruby;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-import org.jruby.Ruby;
 import org.jruby.RubyClass;
 
 import ed.lang.ruby.RubyDBCursorWrapper;

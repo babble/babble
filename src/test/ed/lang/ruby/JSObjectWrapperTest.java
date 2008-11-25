@@ -20,9 +20,7 @@ import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
 import ed.lang.ruby.JSFunctionWrapper;
-import ed.lang.ruby.JSObjectWrapper;
 import ed.js.JSObject;
-import ed.js.engine.Scope;
 
 @Test(groups = {"ruby", "ruby.jsobj"})
 public class JSObjectWrapperTest extends SourceRunner {

@@ -30,7 +30,6 @@ import ed.db.ObjectId;
 import ed.js.*;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
-import ed.lang.ruby.RubyObjectWrapper;
 import static ed.lang.ruby.RubyObjectWrapper.*;
 
 @Test(groups = {"ruby", "ruby.convert"})

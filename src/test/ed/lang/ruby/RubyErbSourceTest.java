@@ -17,7 +17,6 @@
 package ed.lang.ruby;
 
 import org.testng.annotations.*;
-import static org.testng.Assert.*;
 
 @Test(groups = {"ruby", "ruby.erbsource"})
 public class RubyErbSourceTest extends ErbSourceRunner {

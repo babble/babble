@@ -20,28 +20,51 @@ import java.io.*;
 
 import org.jruby.*;
 import org.testng.annotations.Test;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import ed.appserver.JSFileLibrary;
-import ed.appserver.Module;
 import ed.js.*;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.lang.ruby.RubyJxpSource;
 
-@Test(groups = {"ruby", "ruby.testunit"})
 public class RubyFileRunnerTest {
 
-    public void testRunAllRubyFiles() {
+    protected static final String QA_RAILS_TEST_DIR_RELATIVE = "modules/ruby/rails";
+
+    @Test(groups = {"ruby", "ruby.testunit"})
+    public void testRunRubyTests() {
+        runTestsIn(new File(System.getenv("ED_HOME"), "src/test/ed/lang/ruby"));
+    }
+
+    /**
+     * This test runs the tests in QA_RAILS_TEST_DIR_RELATIVE, but only if
+     * that directory exists. We look in two places: /data/qa and
+     * $ED_HOME/../qa.
+     * <p>
+     * These tests require one or more copies of Rails itself, which we'd like
+     * to keep out of the base Babble code.
+     */
+    @Test(groups = {"ruby", "ruby.testunit", "ruby.activerecord"})
+    public void testRunRailsTests() {
+        File dir;
+        if ((dir = new File("/data/qa", QA_RAILS_TEST_DIR_RELATIVE)).exists() ||
+            (dir = new File(new File(System.getenv("ED_HOME"), "../qa"), QA_RAILS_TEST_DIR_RELATIVE)).exists())
+            runTestsIn(dir);
+        else
+            assertTrue(true);
+    }
+
+    protected void runTestsIn(File rootDir) {
         String edHome = System.getenv("ED_HOME");
-        File here = new File(edHome, "src/test/ed/lang/ruby");
-        File f = new File(here, "run_all_tests.rb");
+        File f = new File(rootDir, "run_all_tests.rb");
 
         Scope s = createScope(f.getParentFile());
 
         RubyJxpSource source = new RubyJxpSource(f, Ruby.newInstance());
         addRubyLoadPath(s, source, new File(edHome, "build").getPath()); // for xgen.rb and files it includes
-        addRubyLoadPath(s, source, here.getPath());
+        addRubyLoadPath(s, source, rootDir.getPath());
 
         try {
             source.getFunction().call(s, new Object[0]);
@@ -57,6 +80,7 @@ public class RubyFileRunnerTest {
         s = new Scope("test", s); // child of global scope
         Shell.addNiceShellStuff(s);
         s.set("local", new JSFileLibrary(localRootDir, "local", s));
+        s.set("rails_local", new JSFileLibrary(new File(localRootDir, "rails-test-app"), "local", s));
         s.set("core", CoreJS.get().getLibrary(null, null, s, false));
 
         s.set("jsout", ""); // initial value; used by tests; will be written over later

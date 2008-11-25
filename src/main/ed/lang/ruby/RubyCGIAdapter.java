@@ -17,8 +17,6 @@
 package ed.lang.ruby;
 
 import org.jruby.ast.Node;
-import org.jruby.RubyIO;
-import org.jruby.Ruby;
 
 import ed.appserver.AppRequest;
 import ed.appserver.adapter.cgi.EnvMap;

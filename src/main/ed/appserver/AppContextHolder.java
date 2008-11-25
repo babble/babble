@@ -103,7 +103,9 @@ public class AppContextHolder {
                         mr.addData( "Num Requests" , ac._numRequests );
                         mr.addData( "Created" , ac._created );
                         try {
+                            int before = seen.size();
                             mr.addData( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
+                            mr.addData( "Number Objects" , seen.size() - before );
                         }
                         catch ( Exception e ){
                             e.printStackTrace();
