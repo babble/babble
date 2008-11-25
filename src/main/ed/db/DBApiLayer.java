@@ -261,10 +261,13 @@ public abstract class DBApiLayer extends DBBase {
 
             encoder.putObject( o );
             encoder.flip();
-
-            doInsert( encoder._buf );
-
-            encoder.done();
+            
+            try {
+                doInsert( encoder._buf );
+            }
+            finally {
+                encoder.done();
+            }
 
             return o;
         }
@@ -288,9 +291,13 @@ public abstract class DBApiLayer extends DBBase {
 
             encoder.putObject( o );
             encoder.flip();
-
-            doDelete( encoder._buf );
-            encoder.done();
+            
+            try {
+                doDelete( encoder._buf );
+            }
+            finally {
+                encoder.done();
+            }
 
             return -1;
         }
@@ -326,10 +333,14 @@ public abstract class DBApiLayer extends DBBase {
             encoder._buf.putInt( all.size() );
             for ( int i=0; i<all.size(); i++ )
                 encoder._buf.putLong( all.get( i  ) );
-
-            doKillCursors( encoder._buf );
-
-            encoder.done();
+            
+            try {
+                doKillCursors( encoder._buf );
+            }
+            finally {
+                encoder.done();
+            }
+            
         }
 
         public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
@@ -352,24 +363,27 @@ public abstract class DBApiLayer extends DBBase {
 
             ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _fullNameSpace , _constructor );
 
-            int len = doQuery( encoder._buf , decoder._buf );
-            decoder.doneReading( len );
-	    
-            SingleResult res = new SingleResult( _fullNameSpace , decoder , null );
-
-            decoder.done();
-            encoder.done();
-
-            if ( res._lst.size() == 0 )
-                return null;
-
-	    if ( res._lst.size() == 1 ){
-		Object err = res._lst.get(0).get( "$err" );
-		if ( err != null )
-		    throw new JSException( "db error [" + err + "]" );
-	    }
-
-            return new Result( this , res , numToReturn );
+            try {
+                int len = doQuery( encoder._buf , decoder._buf );
+                decoder.doneReading( len );
+                
+                SingleResult res = new SingleResult( _fullNameSpace , decoder , null );
+                
+                if ( res._lst.size() == 0 )
+                    return null;
+                
+                if ( res._lst.size() == 1 ){
+                    Object err = res._lst.get(0).get( "$err" );
+                    if ( err != null )
+                        throw new JSException( "db error [" + err + "]" );
+                }
+                
+                return new Result( this , res , numToReturn );
+            }
+            finally {
+                decoder.done();
+                encoder.done();
+            }
         }
         
         public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
@@ -394,9 +408,12 @@ public abstract class DBApiLayer extends DBBase {
 
             encoder.flip();
 
-            doUpdate( encoder._buf );
-
-            encoder.done();
+            try {
+                doUpdate( encoder._buf );
+            }
+            finally {
+                encoder.done();
+            }
 
             return o;
         }
@@ -554,14 +571,18 @@ public abstract class DBApiLayer extends DBBase {
 	    encoder.flip();
 
 	    ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _collection._fullNameSpace , _collection._constructor );
-	    int len = doGetMore( encoder._buf , decoder._buf );
-	    decoder.doneReading( len );
 
-	    SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder , _seen );
-	    init( res );
-
-	    decoder.done();
-	    encoder.done();
+            try {
+                int len = doGetMore( encoder._buf , decoder._buf );
+                decoder.doneReading( len );
+                
+                SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder , _seen );
+                init( res );
+            }
+            finally {
+                decoder.done();
+                encoder.done();
+            }
 
 	}
 
