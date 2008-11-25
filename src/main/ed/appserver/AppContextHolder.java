@@ -36,7 +36,7 @@ public class AppContextHolder {
     static final String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
     static final String OUR_DOMAINS[];
     static {
-        Set<String> ourDomains = new HashSet<String>();
+        List<String> ourDomains = new ArrayList<String>();
         
         ourDomains.add( ".local." + Config.getExternalDomain().toLowerCase() );
         ourDomains.add( "." + Config.getExternalDomain().toLowerCase() );
@@ -53,6 +53,7 @@ public class AppContextHolder {
         }
 
         OUR_DOMAINS = ourDomains.toArray( new String[ ourDomains.size() ] );
+        if ( D ) System.out.println( "OUR_DOMAINS: " + ourDomains );
     }
     
     static final Set<String> CDN_HOSTNAMES;
@@ -164,6 +165,8 @@ public class AppContextHolder {
         Info info = fixBase( host , uri );
         host = info.host;
         uri = info.uri;
+
+        if ( D ) System.out.println( "\t fixed host [" + host + "]" );
 
         AppContext ac = _getContextFromMap( host );
         if ( ac != null ){
