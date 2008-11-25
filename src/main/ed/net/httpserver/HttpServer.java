@@ -505,10 +505,6 @@ public class HttpServer extends NIOServer {
             
         }
         
-        public boolean uriOK( String uri ){
-            return uri.equals( "/" );
-        }
-        
         public void handle( MonitorRequest mr ){
             mr.addHeader( "stats" );
             

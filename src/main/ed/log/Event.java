@@ -28,7 +28,7 @@ public class Event {
         _level = level;
         _msg = msg;
         _throwable = throwable;
-        _threadName = thread.getName();
+        _threadName = thread == null ? null : thread.getName();
     }
     
     public String getLoggerName(){
