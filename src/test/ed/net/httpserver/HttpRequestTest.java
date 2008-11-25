@@ -97,6 +97,22 @@ public class HttpRequestTest extends TestCase {
     }
 
     @Test(groups = {"basic"})
+    public static void testRefererNoHost () {
+        HttpRequest r;
+        r = HttpRequest.getDummy("/?f=data", "Referer: /blah/huh");
+        assertEquals("/blah/huh", r.getRefererNoHost());
+
+        r = HttpRequest.getDummy("/?f=data", "Referer: http://www.10gen.com/blah/huh");
+        assertEquals("/blah/huh", r.getRefererNoHost());
+
+        r = HttpRequest.getDummy("/?f=data", "Referer: http://www.10gen.com/");
+        assertEquals("/", r.getRefererNoHost());
+
+        r = HttpRequest.getDummy("/?f=data", "Referer: http://www.10gen.com");
+        assertEquals("/", r.getRefererNoHost());
+    }
+
+    @Test(groups = {"basic"})
     public static void testMonitorGetFilter(){
         // yes, this shouldn't be here.
 
