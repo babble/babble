@@ -19,6 +19,7 @@
 
 package ed.lang;
 
+import java.util.*;
 import java.lang.reflect.*;
 
 import ed.util.*;
@@ -30,12 +31,26 @@ public interface ReflectionVisitor {
 
 
     public static class Reachable implements ReflectionVisitor {
+
+        public Reachable(){
+            this( false );
+        }
+        
+        public Reachable( boolean followWeakRefs ){
+            _followWeakRefs = followWeakRefs;
+        }
         
         public boolean visit( Object o , Class c ){
             if ( _seen.contains( o ) )
                 return false;
-
+            
             _seen.add( o );
+            
+            if ( ! _seenClasses.contains( c ) ){
+                _seenClasses.add( c );
+                System.out.println( c.getName() );
+            }
+            
             return true;
         }
         
@@ -44,8 +59,17 @@ public interface ReflectionVisitor {
                  o instanceof Boolean || 
                  o instanceof String || 
                  o instanceof Byte || 
+                 o instanceof Class || 
+                 o instanceof ClassLoader || 
                  o instanceof Character )
                 return false;
+            
+            if ( ! _followWeakRefs && o instanceof java.lang.ref.WeakReference )
+                return false;
+            
+            if ( _stoppers.contains( c ) )
+                return false;
+
             return true;
         }
 
@@ -53,7 +77,16 @@ public interface ReflectionVisitor {
             return _seen.size();
         }
         
+        public void addStopper( Class c ){
+            _stoppers.add( c );
+        }
+        
+        
+        final boolean _followWeakRefs;
         final IdentitySet _seen = new IdentitySet();
+        final Set<Class> _seenClasses = new HashSet<Class>();
+
+        final Set<Class> _stoppers = new HashSet<Class>();
     }
 }
 

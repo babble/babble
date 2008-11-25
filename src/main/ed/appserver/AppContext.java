@@ -1569,4 +1569,29 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _knownInitScopeThings.add(INIT_ADAPTER_TYPE);
         _knownInitScopeThings.add(INIT_ADAPTER_SELECTOR);
     }
+
+    public static final class AppContextReachable extends ReflectionVisitor.Reachable {
+        public boolean follow( Object o , Class c , java.lang.reflect.Field f ){
+            
+            if ( _reachableStoppers.contains( c ) )
+                return false;
+
+            if ( f != null && _reachableStoppers.contains( f.getType() ) )
+                return false;
+
+            return super.follow( o , c , f );
+        }
+
+    }
+    private static final Set<Class> _reachableStoppers = new HashSet<Class>();
+    static {
+        _reachableStoppers.add( HttpServer.class );
+        _reachableStoppers.add( AppServer.class );
+        _reachableStoppers.add( DBTCP.class );
+        _reachableStoppers.add( Mongo.class );
+        _reachableStoppers.add( WeakBag.class );
+        _reachableStoppers.add( WeakValueMap.class );
+    }
+    
+    
 }

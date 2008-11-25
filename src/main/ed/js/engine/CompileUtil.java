@@ -262,7 +262,7 @@ public class CompileUtil {
     private static final String _globalLock = "CompileUtil-GlobalLock-123";
     private static final Set<File> _dependFiles = new HashSet<File>();
     private static final String _possibleRoots[] = new String[]{ 
-        "" ,
+        "./" ,
         "../ed" ,
         "../../ed" ,
     };
@@ -309,7 +309,7 @@ public class CompileUtil {
                 }
                 
                 for ( File f : dir.listFiles() ){
-                    if ( ! f.getName().endsWith( ".java" ) )
+                    if ( f.getName().endsWith( ".java" ) )
                         _dependFiles.add( f );
                 }
             }

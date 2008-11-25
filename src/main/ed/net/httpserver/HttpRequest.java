@@ -295,7 +295,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
         if ( s.startsWith( "http://" ) || s.startsWith( "https://" ) ){
             int idx = s.indexOf( "/" , 8 );
-            s = s.substring( idx );
+            if (idx != -1) {
+                s = s.substring(idx);
+            } else {
+                s = "/";
+            }
         }
 
         return s;
