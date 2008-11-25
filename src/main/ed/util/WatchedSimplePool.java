@@ -25,9 +25,9 @@ import ed.net.httpserver.*;
 public abstract class WatchedSimplePool<T> extends SimplePool<T> {
 
     public WatchedSimplePool( String name , int maxToKeep , int maxTotal ){
-        super( name , maxToKeep , maxTotal );
+        super( _fixName( name ) , maxToKeep , maxTotal );
 
-        if ( _pools.put( name , this ) != null )
+        if ( _pools.put( _name , this ) != null )
             throw new RuntimeException( "already had a WatchedSimplePool for [" + name + "]" );
         
         
@@ -48,7 +48,7 @@ public abstract class WatchedSimplePool<T> extends SimplePool<T> {
 
         return size;
     }
-    
+
     public static class WebView extends HttpMonitor {
         public WebView(){
             super( "watchedPools" );
@@ -64,6 +64,12 @@ public abstract class WatchedSimplePool<T> extends SimplePool<T> {
             request.endData();
         }
         
+    }
+
+    static final String _fixName( String name ){
+        if ( _pools.containsKey( name ) )
+            return _fixName( name + "X" );
+        return name;
     }
 
     private static final Map<String,WatchedSimplePool> _pools = new TreeMap<String,WatchedSimplePool>();
