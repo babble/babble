@@ -33,6 +33,8 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.JSPYOBJECTWRAPPER" );
 
+    static PyString __LEN__ = new PyString( "__len__" );
+
 
     static JSFunction _apply = new ed.js.func.JSFunctionCalls3(){
             public Object call( Scope s , Object obj , Object args , Object explodeArgs , Object [] foo ){
@@ -163,14 +165,22 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
             if ( D ) System.out.println("JSPyObjectWrapper.get FIXME: " + e.type);
         }
 
-        if( n.toString().equals("length" ) ){
+        if( o != null )
+            return toJS( o );
+
+        /* Really this should be unequivocal, but aim for a JS-ish
+         * "try as much as we can, and then behave randomly".  If
+         * someone sets a JS "length", they'll be surprised, but we
+         * can't fetch from JS first since we'll just fetch it from
+         * the constructor.
+         */
+        if( n.toString().equals("length") && __builtin__.hasattr( _p , __LEN__ ) )
             return _p.__len__();
-        }
 
-        if ( o == null )
-            return super.get( n );
+        o = super.get( n );
+        if( o != null ) return o; // could check containsKey()
 
-        return toJS( o );
+        return null;
     }
 
     public Object _simpleGet( String s ){

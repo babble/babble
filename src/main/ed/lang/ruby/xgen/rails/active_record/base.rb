@@ -120,8 +120,9 @@ module ActiveRecord
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
       #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
+        count(sql)
         sql =~ /.*\bwhere\b(.*)/i
-        collection.find(XGEN::SQL::Parser.parse_where(conditions, true) || {}).count()
+        count(:conditions => $1 || "")
       end
 
       # Increments the specified counter by one. So <tt>DiscussionBoard.increment_counter("post_count",
@@ -130,15 +131,15 @@ module ActiveRecord
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
-        rec = collection.find(id)
-        rec.instance_variable_set("@#{counter_name}", rec.instance_variable_get("@#{counter_name}") + 1)
+        rec = collection.findOne({:_id => id})
+        rec[counter_name] += 1
         collection.save(rec)
       end
 
       # Works like increment_counter, but decrements instead.
       def decrement_counter(counter_name, id)
-        rec = collection.find(id)
-        rec.instance_variable_set("@#{counter_name}", rec.instance_variable_get("@#{counter_name}") - 1)
+        rec = collection.findOne({:_id => id})
+        rec[counter_name] -= 1
         collection.save(rec)
       end
 
