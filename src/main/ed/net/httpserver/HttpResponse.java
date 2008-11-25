@@ -1008,6 +1008,7 @@ response.setCookie({
 
 	    if ( _writer != null ){
 		_writer._push();
+                _charBufPool.done( _writer._cur );
 		_writer = null;
 	    }
 
