@@ -30,11 +30,11 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.lang.ruby.RubyJxpSource;
 
-@Test(groups = {"ruby", "ruby.testunit"})
 public class RubyFileRunnerTest {
 
     protected static final String QA_RAILS_TEST_DIR_RELATIVE = "modules/ruby/rails";
 
+    @Test(groups = {"ruby", "ruby.testunit"})
     public void testRunRubyTests() {
         runTestsIn(new File(System.getenv("ED_HOME"), "src/test/ed/lang/ruby"));
     }
