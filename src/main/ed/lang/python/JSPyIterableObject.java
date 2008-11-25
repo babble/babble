@@ -1,4 +1,4 @@
-// JSPyObjectWrapper.java
+// JSPyIterableObject.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -21,13 +21,6 @@ package ed.lang.python;
 import java.util.*;
 
 import org.python.core.*;
-
-import ed.util.*;
-import ed.js.*;
-import ed.appserver.*;
-import ed.js.func.*;
-import ed.js.engine.*;
-import static ed.lang.python.Python.*;
 
 public class JSPyIterableObject extends JSPyObjectWrapper implements Iterable {
     public JSPyIterableObject( PyObject p ){
