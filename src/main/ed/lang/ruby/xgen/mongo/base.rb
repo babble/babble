@@ -163,7 +163,7 @@ module XGen
         end
 
         # The collection object.
-        def coll
+        def collection
           connection[@coll_name.to_s]
         end
 
@@ -258,7 +258,7 @@ module XGen
 
         # Deletes the record with the given id from the collection.
         def delete(id)
-          coll.remove({:_id => id})
+          collection.remove({:_id => id})
         end
         alias_method :remove, :delete
 
@@ -281,7 +281,7 @@ module XGen
         #   Person.destroy_all ["name = ?", 'Fred']  # Rails condition
         #   Person.destroy_all {:name => 'Fred'}     # Mongo hash
         def delete_all(conditions=nil)
-          coll.remove(criteria_from(conditions))
+          collection.remove(criteria_from(conditions))
         end
 
         # Creates, saves, and returns a new database object.
@@ -350,7 +350,7 @@ module XGen
           # is not allowed).
           criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           fields = fields_from(options[:select])
-          row = coll.find_one(criteria, fields)
+          row = collection.find_one(criteria, fields)
           (row.nil? || row['_id'] == nil) ? nil : self.new(row)
         end
 
@@ -360,7 +360,7 @@ module XGen
           # is not allowed).
           criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           fields = fields_from(options[:select])
-          db_cursor = coll.find(criteria, fields)
+          db_cursor = collection.find(criteria, fields)
           db_cursor.limit(options[:limit].to_i) if options[:limit]
           db_cursor.skip(options[:offset].to_i) if options[:offset]
           sort_by = sort_by_from(options[:order]) if options[:order]
@@ -380,11 +380,11 @@ module XGen
           fields = fields_from(options[:select])
 
           if ids.length == 1
-            row = coll.findOne(criteria, fields)
+            row = collection.findOne(criteria, fields)
             raise RecordNotFound, "Couldn't find #{name} with ID=#{ids[0]} #{criteria.inspect}" if row == nil || row.empty?
             self.new(row)
           else
-            db_cursor = coll.find(criteria, fields)
+            db_cursor = collection.find(criteria, fields)
             sort_by = sort_by_from(options[:order]) if options[:order]
             db_cursor.sort(sort_by) if sort_by
             Cursor.new(db_cursor, self)
@@ -649,7 +649,7 @@ module XGen
       # Saves self to the database.
       def create
         set_create_times
-        row = self.class.coll.save(to_mongo_value)
+        row = self.class.collection.save(to_mongo_value)
         @_id = row._id
         self
       end
@@ -657,7 +657,7 @@ module XGen
       # Saves self to the database. Returns false if there was an error.
       def update
         set_update_times
-        row = self.class.coll.save(to_mongo_value)
+        row = self.class.collection.save(to_mongo_value)
         if row._id.to_s != @_id.to_s
           return false
         end
@@ -668,7 +668,7 @@ module XGen
       # @_id, does nothing.
       def delete
         if @_id
-          self.class.coll.remove({:_id => self._id})
+          self.class.collection.remove({:_id => self._id})
           @_id = nil
         end
       end
