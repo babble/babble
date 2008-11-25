@@ -120,8 +120,9 @@ module ActiveRecord
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
       #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
+        count(sql)
         sql =~ /.*\bwhere\b(.*)/i
-        collection.find(XGEN::SQL::Parser.parse_where(conditions, true) || {}).count()
+        count(:conditions => $1 || "")
       end
 
       # Increments the specified counter by one. So <tt>DiscussionBoard.increment_counter("post_count",
