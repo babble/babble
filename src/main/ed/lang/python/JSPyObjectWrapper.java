@@ -24,6 +24,7 @@ import org.python.core.*;
 
 import ed.util.*;
 import ed.js.*;
+import ed.appserver.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import static ed.lang.python.Python.*;
@@ -263,7 +264,8 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         }
 
         PySystemState oldState = Py.getSystemState();
-        SiteSystemState sss = getSiteSystemState( null , s );
+        AppContext ac = AppContext.findThreadLocal();
+        SiteSystemState sss = getSiteSystemState( ac , s );
         try {
             /**
              * FIXME: This kind of set-system-state really ought to be
