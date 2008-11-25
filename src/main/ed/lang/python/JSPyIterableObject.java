@@ -37,7 +37,7 @@ public class JSPyIterableObject extends JSPyObjectWrapper implements Iterable {
             _iter = i;
         }
         public Object next(){
-            return Python.toJS( next() );
+            return Python.toJS( _iter.next() );
         }
 
         public void remove(){
