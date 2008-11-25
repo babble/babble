@@ -1,0 +1,7 @@
+{% for a in pyList %}
+    {{ forloop.revcounter }}:{{ a }}
+{% endfor %}
+
+{% for a in pySet %}
+    {{ forloop.revcounter }}:{{ a }}
+{% endfor %}

@@ -1,21 +1,21 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var defaulttags =
-    djang10.defaulttags = 
+    djang10.defaulttags =
     {};
 
 register = new djang10.Library();
@@ -30,7 +30,7 @@ var AutoEscapeControlNode =
 };
 AutoEscapeControlNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<AutoEscapeControlNode: " + this.setting + ">";
     },
@@ -51,7 +51,7 @@ var CommentNode =
 
 CommentNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<Comment Node>";
     },
@@ -64,25 +64,25 @@ CommentNode.prototype = {
 var CycleNode =
     defaulttags.CycleNode =
     function(cyclevars, variable_name) {
-        
+
     this.cyclevars = cyclevars;
     this.i = 0;
     this.variable_name = variable_name;
 };
 CycleNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
-    toString: function() {        
-        return "<Cycle Node: cycleVars: " + this.cyclevars + ", name: " + this.variable_name + ">"; 
+
+    toString: function() {
+        return "<Cycle Node: cycleVars: " + this.cyclevars + ", name: " + this.variable_name + ">";
     },
     __render: function(context, printer) {
         var template_vars = context["__render_vars"];
         if(template_vars == null)
             template_vars = context["__render_vars"] = new Map();
-        
+
         var i = template_vars.get(this) || 0;
 
-        
+
         var value = this.cyclevars[i].resolve(context);
 
         if(++i >= this.cyclevars.length)
@@ -91,7 +91,7 @@ CycleNode.prototype = {
 
         if(this.variable_name)
             context[this.variable_name] = value;
-        
+
         printer(value);
     }
 };
@@ -99,24 +99,24 @@ CycleNode.prototype = {
 var FilterNode =
     defaulttags.FilterNode =
     function(filter_expr, nodelist) {
-        
+
         this.filter_expr = filter_expr;
         this.nodelist = nodelist;
 };
 FilterNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<Filter Node: " + this.filter_expr + ">";
     },
-    
+
     __render: function(context, printer) {
         context.push();
         var output = this.nodelist.render(context);
         context["temp"] = output;
         var filtered = this.filter_expr.resolve(context);
         context.pop();
-        
+
         printer(filtered);
     }
 };
@@ -124,16 +124,16 @@ FilterNode.prototype = {
 var FirstOfNode =
     defaulttags.FirstOfNode =
     function(exprs) {
-        
+
     this.exprs = exprs;
 };
 FirstOfNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<FirstOf Node: " + this.exprs.join(",").substring(0, 25) + "...>";
     },
-    
+
     __render: function(context, printer) {
         for(var i=0; i<this.exprs.length; i++) {
             var expr = this.exprs[i];
@@ -154,41 +154,41 @@ FirstOfNode.prototype = {
 var ForNode =
     defaulttags.ForNode =
     function(loopvars, sequence, is_reversed, nodelist_loop) {
-    
+
     this.loopvars = loopvars;
     this.sequence = sequence;
     this.is_reversed = is_reversed;
     this.nodelist_loop = nodelist_loop;
-    
+
 };
 
 ForNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         var rev_text = this.is_reversed? " reversed" : "";
-        return "<For Node: for " + tojson(this.loopvars) 
-            + " in " + this.sequence 
-            + ", tail_len: " + this.nodelist_loop.length 
-            + rev_text + ">"; 
+        return "<For Node: for " + tojson(this.loopvars)
+            + " in " + this.sequence
+            + ", tail_len: " + this.nodelist_loop.length
+            + rev_text + ">";
     },
     get_nodes_by_type: function(constructor) {
         var nodes = [];
         if(isinstance(this, constructor))
             nodes.push(this);
-        
+
         nodes.addAll(this.nodelist_loop.get_nodes_by_type(constructor));
-        
+
         return nodes;
     },
     __render: function(context, printer) {
         var parentloop;
-        
+
         parentloop = ("forloop" in context)? parentloop = context["forloop"] : {};
         context.push();
-        
+
         var values;
-        
+
         try {
             values = this.sequence.resolve(context);
         } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
@@ -200,30 +200,31 @@ ForNode.prototype = {
                 values = values.toArray();
             } catch(e) {}
         }
-        
+
         var count = values.length;
-        
+
         if( this.is_reversed )
             values.reverse();
-        
+
         var loop_dict = context["forloop"] = {parentloop: parentloop};
-        for(var i=0; i<count; i++) {
-            var item = values[i];
-            
+        var i = 0;
+        for each(var item in values) {
             loop_dict['counter0'] = i;
             loop_dict['counter'] = i+1;
             loop_dict['revcounter'] = count - i;
             loop_dict['revcounter0'] = count - i - 1;
             loop_dict['first'] = (i==0);
             loop_dict['last'] = (i== (count - 1));
-            
+
             if(this.loopvars.length == 1)
                 context[this.loopvars[0]] = item;
             else
                 for(var j=0;j<this.loopvars.length; j++)
                     context[this.loopvars[j]] = item[j];
-            
+
             this.nodelist_loop.__render(context, printer);
+
+            i++;
         }
         context.pop();
     }
@@ -234,7 +235,7 @@ var IfChangedNode =
     function(nodelist, exprs) {
 
     this.nodelist = nodelist;
-    this._varlist = exprs;    
+    this._varlist = exprs;
 };
 IfChangedNode.are_equal = function(a, b){
     if(typeof(a) != typeof(b))
@@ -248,20 +249,20 @@ IfChangedNode.are_equal = function(a, b){
         for(var i=0; i<a.length; i++)
             if(!IfChangedNode.are_equal(a[i], b[i]))
                 return false;
-        return true; 
+        return true;
     }
-        
+
     if(a.equals instanceof Function)
         return a.equals(b);
-    
+
     if(b.equals instanceof Function)
         return b.equals(a);
-    
+
     return a == b;
 };
 IfChangedNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<IfChanged Node: " + tojson(this.exprs) + ">";
     },
@@ -271,7 +272,7 @@ IfChangedNode.prototype = {
             template_vars = context["__render_vars"] = new Map();
 
         var last_seen = (("forloop" in context) && context.forloop.first)? null : template_vars.get(this);
-        
+
         var compare_to;
         var is_same;
         try {
@@ -282,12 +283,12 @@ IfChangedNode.prototype = {
         } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
             compare_to = null;
         }
-            
+
         if(!IfChangedNode.are_equal(last_seen, compare_to)) {
             var firstloop = (last_seen == null);
             last_seen = compare_to;
             template_vars.set(this, last_seen);
-            
+
             context.push();
             context["ifchanged"] = {"firstloop": firstloop};
             this.nodelist.__render(context, printer);
@@ -302,34 +303,34 @@ var IfEqualNode =
 
     this.var1 = var1;
     this.var2 = var2;
-    
+
     this.nodelist_true = nodelist_true;
     this.nodelist_false = nodelist_false;
     this.negate = negate;
 };
 IfEqualNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<IfEqualNode>";
     },
-    
+
     __render: function(context, printer) {
         var value1;
         var value2;
-        
+
         try {
             value1 = this.var1.resolve(context);
         } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
             value1 = null;
         }
-        
+
         try {
             value2 = this.var2.resolve(context);
         } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
             value2 = null;
         }
-        
+
         if(this.negate != IfChangedNode.are_equal(value1, value2)) {
             this.nodelist_true.__render(context, printer);
         }
@@ -364,22 +365,22 @@ IfNode.BoolExpr.prototype = {
 };
 IfNode.prototype = {
     __proto: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<If node: " + this.bool_exprs + ">";
     },
-    
+
     get_nodes_by_type: function(constructor) {
         var nodes = [];
         if(isinstance(this, constructor))
             nodes.push(this);
-        
+
         nodes.addAll(this.nodelist_true.get_nodes_by_type(constructor));
         nodes.addAll(this.nodelist_false.get_nodes_by_type(constructor));
-        
+
         return nodes;
     },
-    
+
     __render: function(context, printer) {
         if(this.link_type == IfNode.LinkTypes.or_) {
 
@@ -424,7 +425,7 @@ var RegroupNode =
 };
 RegroupNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<Regroup Node: " + this.the_list + " by " + this.prop_name + " as " + this.var_name +">";
     },
@@ -434,12 +435,12 @@ RegroupNode.prototype = {
             context[this.var_name] = [];
             return;
         }
-        
+
         var grouped = [];
         var group = null;
-        
+
         var prop_name = this.prop_name;
-        
+
         if(prop_name) {
             obj_list.each(function(item){
                 if (group == null || group.grouper != item[prop_name]) {
@@ -463,7 +464,7 @@ var LoadNode =
 };
 LoadNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<Load Node>";
     },
@@ -479,7 +480,7 @@ var NowNode =
 };
 NowNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<Now Node: " + this.format_Expr + ">";
     },
@@ -498,7 +499,7 @@ var SpacelessNode =
 };
 SpacelessNode.prototype ={
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<Spaceless Node>";
     },
@@ -528,7 +529,7 @@ TemplateTagNode.mapping = {
 };
 TemplateTagNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<TemplateTag Node: '" + this.tagtype + "'>"
     },
@@ -547,7 +548,7 @@ var WidthRatioNode =
 };
 WidthRatioNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<WidthRatio Node: val_expr: " + this.val_expr + ", max_expr: " + this.max_expr + ", max_width: " + this.max_width + ">";
     },
@@ -556,8 +557,8 @@ WidthRatioNode.prototype = {
             var value = parseFloat( this.val_expr.resolve(context) );
             var maxvalue = parseFloat( this.max_expr.resolve(context) );
             var ratio = (value/maxvalue) * parseInt(this.max_width);
-            
-            if(!isNaN(ratio))            
+
+            if(!isNaN(ratio))
                 printer(Math.round(ratio) );
         }
         catch(e) {
@@ -576,7 +577,7 @@ var WithNode =
 };
 WithNode.prototype = {
     __proto__: djang10.Node.prototype,
-    
+
     toString: function() {
         return "<WithNode>";
     },
@@ -590,7 +591,7 @@ WithNode.prototype = {
 }
 
 //Registration
-//{% autoescape\s+(on)|(off) %} 
+//{% autoescape\s+(on)|(off) %}
 //Only literal on or off is supported ...no expressions, variables or quotes
 var autoescape =
     defaulttags.autoescape =
@@ -603,10 +604,10 @@ var autoescape =
     var arg = args[1];
     if(! ["on", "off"].contains(arg))
         throw new djang10.TemplateSyntaxError("'"+args[0]+"' argument should be 'on' or 'off'", token);
-    
+
     var nodelist = parser.parse(["end"+args[0]]);
     parser.delete_first_token();
-    
+
     return new AutoEscapeControlNode(arg == "on", nodelist);
 };
 register.tag("autoescape", autoescape);
@@ -615,7 +616,7 @@ register.tag("autoescape", autoescape);
 var comment =
     defaulttags.comment =
     function(parser, token) {
-    
+
     parser.skip_past("endcomment");
     return new CommentNode();
 };
@@ -627,22 +628,22 @@ register.tag("comment", comment);
  * old style definition: params are unquoted strings w/o spaces, delimited y commas
  * {% cycle a,b,c %} => {% cycle "a" "b" "c" %}
  * {% cycle literal1,literal2,literal3 as cycle1 %}  => {% cycle "a" "b" "c" as cycle1 %}
- * 
+ *
  * new style definition: params delimited by spaces and either quoted strings or variables
- * {% cycle cycle1 %} 
+ * {% cycle cycle1 %}
  * {% cycle var1 "str1" foo.bar %}
- * 
+ *
  * {% cycle cycleName %}
- * 
+ *
  * expressions with spaces or commas are not supported!!!!:
  *  Need much more sophisticated parsing...
  */
 var cycle =
     defaulttags.cycle =
     function(parser, token) {
- 
+
     var args = token.split_contents();
-    
+
     if(args.length < 2)
         throw new djang10.TemplateSyntaxError("'cycle' tag requires at least two arguments", token);
 
@@ -650,7 +651,7 @@ var cycle =
     //backward compatibility: {% cycle a,b %} or {% cycle a,b as foo %}
     if(args[1].indexOf(',') > -1) {
         var parts = args[1].split(",").map(quote)
-        
+
         args.splice.apply(args, [1,1].concat(parts));
     }
 
@@ -663,7 +664,7 @@ var cycle =
         return parser["_namedCycleNodes"][name];
     }
 
-    //named cycle definition: {% cycle arg as name %} or {% cycle arg arg2 as name %} case 
+    //named cycle definition: {% cycle arg as name %} or {% cycle arg arg2 as name %} case
     if (args.length > 4 && args[args.length - 2] == "as") {
         var name = args[args.length - 1];
 
@@ -671,9 +672,9 @@ var cycle =
         var cycle_exprs = args.slice(1, -2).map(function(item) { return parser.compile_expression(item); });
 
         var node = new CycleNode(cycle_exprs, name);
-        if (!("_namedCycleNodes" in parser)) 
+        if (!("_namedCycleNodes" in parser))
             parser["_namedCycleNodes"] = {};
-        
+
         parser["_namedCycleNodes"][name] = node;
         return node;
     }
@@ -695,7 +696,7 @@ register.tag("cycle", cycle);
 var do_filter =
     defaulttags.do_filter =
     function(parser, token) {
-        
+
     var rest = token.contents.replace(/^\S+\s+/, "");
     var filter_expr = parser.compile_filter("temp|" + rest);
     var nodelist = parser.parse(["endfilter"]);
@@ -712,30 +713,30 @@ register.tag("filter", do_filter);
 var do_for =
     defaulttags.do_for =
     function(parser, token) {
-        
+
     var bits = token.split_contents();
     if(bits.length < 4)
         throw new djang10.TemplateSyntaxError("'for' statements should have at least four words: " + token.contents, token);
-    
+
     var is_reversed = (bits[bits.length - 1] == "reversed");
     var in_index = bits.lastIndexOf("in");
-    
+
     if(in_index < 2)
         throw new djang10.TemplateSyntaxError("'for' statements should use the format 'for x in y': " + token.contents, token);
-    
-    
-    
+
+
+
     var loopvars = bits.slice(1, in_index).join(" ").split(",").map(function(bit) { return bit.trim(); } );
-    
+
     if(loopvars.some(function(bit) { return !bit || bit.contains(" "); } ))
         throw new djang10.TemplateSyntaxError("'for' tag received and invalid argument:" + token.contents, token)
-    
+
     var sequenceStr = bits.slice(in_index+1, is_reversed? -1 : bits.length).join(" ");
     var sequence = parser.compile_filter(sequenceStr);
- 
+
     var nodelist_loop = parser.parse(["endfor"]);
     parser.delete_first_token();
-    
+
 
     return new ForNode(loopvars, sequence, is_reversed, nodelist_loop);
 };
@@ -743,19 +744,19 @@ register.tag("for", do_for);
 
 //TODO: needs split by expression (spaces)
 /*
- * {% ifequal NO_SPACE_EXPRESSION NO_SPACE_EXPRESSION %} 
+ * {% ifequal NO_SPACE_EXPRESSION NO_SPACE_EXPRESSION %}
  */
 var do_ifequal =
     defaulttags.do_ifequal =
     function(parser, token, negate) {
-        
+
     var bits = token.split_contents();
     if(bits.length != 3)
         throw new djang10.TemplateSyntaxError(bits[0] + " takes two arguments", token);
 
     var var1 = parser.compile_expression(bits[1]);
     var var2 = parser.compile_expression(bits[2]);
-    
+
     var end_tag = "end" + bits[0];
     var nodelist_true = parser.parse(["else", "end"+bits[0]]);
     var nodelist_false;
@@ -770,10 +771,10 @@ var do_ifequal =
     return new IfEqualNode(var1, var2, nodelist_true, nodelist_false, negate);
 };
 var ifequal =
-    defaulttags.ifequal = 
+    defaulttags.ifequal =
     function(parser, token) {
 
-    return do_ifequal(parser, token, false);    
+    return do_ifequal(parser, token, false);
 };
 register.tag("ifequal", ifequal);
 
@@ -781,10 +782,10 @@ var ifnotequal =
     defaulttags.ifnotequal =
     function(parser, token) {
 
-    return do_ifequal(parser, token, true);        
+    return do_ifequal(parser, token, true);
 };
 register.tag("ifnotequal", ifnotequal);
-  
+
 
 //TODO: spaces in expressions are not supported
 /*
@@ -800,7 +801,7 @@ var firstof =
     var bits = token.split_contents().slice(1);
     if(bits.length < 1)
         throw new djang10.TemplateSyntaxError("'firstof' statement requires at least one argument", token);
-    
+
     var exprs = bits.map(function(bit) { return parser.compile_expression(bit); });
     return new FirstOfNode(exprs);
 };
@@ -811,17 +812,17 @@ register.tag("firstof", firstof);
 /*
  * {% if NO_SPACE_FILTER_EXPRESSION %}
  * {% if NO_SPACE_FILTER_EXPRESSION or not NO_SPACE_FILTER_EXPRESSION or ... %}
- * {% if NO_SPACE_FILTER_EXPRESSION and not NO_SPACE_FILTER_EXPRESSION and ... %} 
+ * {% if NO_SPACE_FILTER_EXPRESSION and not NO_SPACE_FILTER_EXPRESSION and ... %}
  */
 var do_if =
     defaulttags.do_if =
     function(parser, token) {
-        
+
     var bits = token.split_contents();
     bits.shift();
     if(bits.length == 0)
         throw new djang10.TemplateSyntaxError("'if' statement requires at least one argument", token);
-    
+
     var bitstr = "" + bits.join(" ");
     var boolpairs = djang10.smart_split(bitstr, [" and "]);
 
@@ -836,14 +837,14 @@ var do_if =
         if(djang10.smart_split(bitstr, [" or "]).length > 1)
             throw new djang10.TemplateSyntaxError("'if' tags can't mix 'and' and 'or'", token);
     }
-    
+
     for(var i=0; i<boolpairs.length; i++) {
         var boolpair = boolpairs[i];
 
-        
+
         if( boolpair.indexOf(" ") > -1) {
             var boolpair_parts =  /\s*not\s+(.+)$/.exec(boolpair);
-            
+
             if(boolpair_parts != null)
                 boolvars.push(new IfNode.BoolExpr(true, parser.compile_filter(boolpair_parts[1])));
             else
@@ -864,7 +865,7 @@ var do_if =
     else {
         nodelist_false = parser.create_nodelist();
     }
-    
+
     return new IfNode(boolvars, nodelist_true, nodelist_false, link_type);
 };
 register.tag("if", do_if);
@@ -880,12 +881,12 @@ var ifchanged =
     var bits = token.split_contents();
     var nodelist = parser.parse(["endifchanged"]);
     parser.delete_first_token();
-    
+
     var exprs = [];
     for(var i=1; i<bits.length; i++) {
         exprs.push(parser.compile_expression(bits[i]) );
     }
-    
+
     return new IfChangedNode(nodelist, exprs);
 };
 register.tag("ifchanged", ifchanged);
@@ -901,7 +902,7 @@ var load =
     var bits = token.split_contents();
     for(var i=1; i<bits.length; i++) {
         var library = djang10.loadLibrary(bits[i]);
-        
+
         parser.add_library(library.getLibrary());
         parser.add_dependency(library.getSource());
     }
@@ -918,11 +919,11 @@ var now =
     function(parser, token) {
 
     var m = /\S+\s+(.+)$/.exec(token.contents);
-    
+
     if(m == null)
         throw new djang10.TemplateSyntaxError("'now' statement takes one argument", token);
     var expr = parser.compile_filter(m[1]);
-    
+
     return new NowNode(expr);
 };
 register.tag("now", now);
@@ -936,14 +937,14 @@ var regroup =
 
     var pattern = /^\s*\S+\s+(.+?)\s+by\s+(\S+)\s+as\s+(\S+)\s*$/;
     var match = pattern.exec(token.contents);
-    
+
     if(match == null)
         throw new djang10.TemplateSyntaxError("'regroup' tag requires the format: {% regroup list_expression|optional_filter:with_optional_param by prop_name as result_var_name %}. got: " + token, token);
-    
+
     var list_expr = parser.compile_filter(match[1]);
     var prop_name = match[2];
     var var_name = match[3];
-    
+
     return new RegroupNode(list_expr, prop_name, var_name);
 };
 register.tag("regroup", regroup);
@@ -954,7 +955,7 @@ register.tag("regroup", regroup);
 var spaceless =
     defaulttags.spaceless =
     function(parser, token) {
-    
+
     var nodelist = parser.parse(["endspaceless"]);
     parser.delete_first_token();
     return new SpacelessNode(nodelist);
@@ -979,11 +980,11 @@ var templatetag =
 
     if(bits.length != 2)
         throw new djang10.TemplateSyntaxError("'templatetag' statement takes one argument", token)
-    
+
     var tag = bits[1];
     if(!(tag in TemplateTagNode.mapping))
         throw new djang10.TemplateSyntaxError("Invalid templatetag argument: '"+tag+"'. Must be one of: " + TemplateTagNode.mapping.keySet().join(", "), token);
-    
+
     return new TemplateTagNode(tag);
 };
 register.tag("templatetag", templatetag);
@@ -1005,14 +1006,14 @@ var widthratio =
     var this_value_expr = bits[1];
     var max_value_expr = bits[2];
     var max_width = bits[3];
-    
+
     try {
         max_width = parseInt(max_width);
     }
     catch(e) {
         throw new djang10.TemplateSyntaxError("widthratio final argument must be an integer", token);
     }
-    
+
     return new WidthRatioNode(parser.compile_filter(this_value_expr), parser.compile_filter(max_value_expr), max_width);
 };
 register.tag("widthratio", widthratio);
@@ -1023,18 +1024,18 @@ register.tag("widthratio", widthratio);
 var do_with =
     defaulttags.do_with =
     function(parser, token) {
-    
+
     var m = /(\S+)\s+(.+)\s+as\s+([\w_\$]+)$/.exec(token.contents);
-    
+
     if(m == null)
         throw new djang10.TemplateSyntaxError("with expected format is 'value as name'", token);
-    
+
     var command = m[1];
     var var_ = parser.compile_filter(m[2]);
     var name = m[3];
     var nodelist = parser.parse([ "end" + command ]);
     parser.delete_first_token();
-    
+
     return new WithNode(var_, name, nodelist);
 };
 register.tag("with", do_with);
@@ -1044,7 +1045,7 @@ var quote = function(str) { return '"' + str + '"';};
 
 var isinstance = function(object, constructor){
     while (object != null && (typeof object == "object")) {
-        if (object == constructor.prototype) 
+        if (object == constructor.prototype)
             return true;
         object = object.__proto__;
     }
