@@ -73,12 +73,12 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                         mr.addHeader( "App Server Stats" );
                         mr.addHeader( "30 second intervals" );
                     }
-                    
+
                     List<String> lst = new ArrayList<String>();
                     lst.addAll( _stats.keySet() );
-                    
+
                     Collections.sort( lst );
-                    
+
                     for ( String site : lst ){
                         _stats.get( site ).displayGraph( mr.getWriter() , _displayOptions );
                     }
@@ -87,7 +87,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             );
         _contextHolder.addToServer();
     }
-    
+
     /** Creates a new AppRequest using the given HttpRequest.
      * @param request The HTTP request that needs to be processed
      * @return The corresponding AppRequest
@@ -162,7 +162,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
         final AppContext ctxt = ar.getContext();
 
-	ar.setResponse( response );
+        ar.setResponse( response );
         ar.getScope().makeThreadLocal();
         ctxt.getLogger().makeThreadLocal();
 
@@ -175,7 +175,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             usage.hit( "requests" , 1 );
         }
 
-	ctxt.setTLPreferredScope( ar , ar.getScope() );
+        ctxt.setTLPreferredScope( ar , ar.getScope() );
 
         response.setHeader( "X-ctx" , ctxt._root );
         response.setHeader( "X-git" , ctxt.getGitBranch() );
@@ -183,22 +183,22 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         response.setHeader( "X-ctxhash" , String.valueOf( System.identityHashCode( ctxt ) ) ); // this is kind of tempoary until AppContextHolder is totally vettedx
 
         response.setAppRequest( ar );
-        
+
         ar.turnOnDevFeatures();
-            
+
         final ed.db.DBBase db = ctxt.getDB();
         try {
             ar.makeThreadLocal();
             _requestMonitor.watch( ar );
             db.requestStart();
             AppSecurityManager.READY = true;
-            
+
             _handle( request , response , ar );
         }
         finally {
             db.requestDone();
             ar.unmakeThreadLocal();
-            Logger.setThreadLocalAppender( null );            
+            Logger.setThreadLocalAppender( null );
 
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
@@ -211,7 +211,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                 usage.hit( "cpu_millis" , t );
                 usage.hit( "bytes_out" , outSize );
             }
-            
+
             stats.hit( request , response );
             Scope.clearThreadLocal();
         }
@@ -238,7 +238,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             if ( ar.getURI().equals( "/~f" ) ){
                 JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
                 if ( f == null ){
-		    handle404( ar , request , response , null );
+            handle404( ar , request , response , null );
                     return;
                 }
                 response.sendFile( f );
@@ -284,7 +284,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
             JxpServlet servlet = ar.getServlet( f );
             if ( servlet == null ){
-		handle404( ar , request , response , null );
+                handle404( ar , request , response , null );
             }
             else {
                 servlet.handle( request , response , ar );
@@ -304,7 +304,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             handleOutOfMemoryError( oom , response );
         }
         catch ( FileNotFoundException fnf ){
-	    handle404( ar , request , response , fnf.getMessage() );
+            handle404( ar , request , response , fnf.getMessage() );
         }
         catch ( JSException.Quiet q ){
             response.setHeader( "X-Exception" , "quiet" );
@@ -324,7 +324,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             _currentRequests.remove( ar );
         }
     }
-    
+
     void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){
 
         if ( response.getHeader( "Content-Type" ).indexOf( "text/html" ) < 0 )
@@ -338,17 +338,17 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         if ( response.getHeader( "Content-Length" ) != null )
             return;
 
-        final JSObject user; 
+        final JSObject user;
         {
             Object userMaybe = ar.getScope().get( "user" );
             if ( userMaybe instanceof JSObject )
                 user = (JSObject)userMaybe;
             else
-                user = null; 
+                user = null;
         }
-        
+
         final JxpWriter out = response.getJxpWriter();
-        
+
         out.print( "\n<!-- " );
         out.print( DNSUtil.getLocalHostString() );
         out.print( "  " );
@@ -370,18 +370,18 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             out.print( ar._appenderStream.toString() );
             out.print( "\n-->\n" );
         }
-        
+
     }
 
     boolean showProfilingInfo( HttpRequest request , JSObject user ){
         if ( request.getBoolean( "profile" , false ) )
             return true;
 
-        if ( user != null && 
+        if ( user != null &&
              ( user.get( "permissions" ) instanceof JSArray ) &&
              ((JSArray)(user.get( "permissions" ) ) ).contains( "admin" ) )
             return true;
-            
+
         return false;
     }
 
@@ -391,8 +391,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
      * @param extra any extra text to add to the response
      */
     void handle404( AppRequest ar , HttpRequest request , HttpResponse response , String extra ){
-	response.setResponseCode( 404 );
-        
+        response.setResponseCode( 404 );
+
         if ( ar.getFromInitScope( "handle404" ) instanceof JSFunction){
             JSFunction func = (JSFunction)ar.getFromInitScope( "handle404" );
             JxpServlet serv = new JxpServlet( ar.getContext() , func );
@@ -400,12 +400,12 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             return;
         }
 
-	response.getJxpWriter().print( "not found<br>" );
+        response.getJxpWriter().print( "not found<br>" );
 
-	if ( extra != null )
-	    response.getJxpWriter().print( extra + "<BR>" );
+        if ( extra != null )
+            response.getJxpWriter().print( extra + "<BR>" );
 
-	response.getJxpWriter().print( request.getRawHeader().replaceAll( "[\r\n]+" , "<br>" ) );
+        response.getJxpWriter().print( request.getRawHeader().replaceAll( "[\r\n]+" , "<br>" ) );
 
     }
 
@@ -420,7 +420,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         // or the server is screwed.
 
         MemUtil.checkMemoryAndHalt( "AppServer" , oom , this );
-        
+
         if ( response.isCommitted() ){
             // not much we can do with this
             return;
@@ -447,10 +447,10 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
      * @param ctxt The app context to use for logging
      */
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
-        
+
         final Logger myLogger = ctxt == null ? _noContextLogger : ctxt.getLogger();
-        
-        
+
+
         if ( t.getCause() instanceof OutOfMemoryError ){
             handleOutOfMemoryError( (OutOfMemoryError)t.getCause() , response );
             return;
@@ -475,7 +475,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             writer.print( "<b>Message:</b> " + jce.getError() + "<BR>" );
             writer.print( "<b>File Name:</b> " + jce.getFileName() + "<BR>" );
             writer.print( "<b>Line # :</b> " + jce.getLineNumber() + "<BR>" );
-            
+
             writer.print( "<!--\n" );
             for ( StackTraceElement element : t.getStackTrace() ){
                 writer.print( element + "<BR>\n" );
@@ -486,30 +486,30 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             writer.print( "\n<br><br><hr><b>Error</b><br>" );
             writer.print("<pre>\n");
 
-            
+
             StackTraceElement[] parentTrace = new StackTraceElement[0];
             while(t != null) {
                 //message
                 writer.print( Encoding._escapeHTML(t.toString()) + "\n");
-                
+
                 //Compute # frames in common
                 StackTraceElement[] currentTrace = t.getStackTrace();
-                
+
                 int m = currentTrace.length-1, n = parentTrace.length-1;
                 while (m >= 0 && n >=0 && currentTrace[m].equals(parentTrace[n])) {
                     m--; n--;
                 }
                 int framesInCommon = currentTrace.length - 1 - m;
-                
+
                 //print the frames
                 for(int i=0; i<= m; i++)
                     writer.print("\tat " + Encoding._escapeHTML(currentTrace[i].toString()) +"\n");
                 if(framesInCommon != 0)
                     writer.print("\t... " + framesInCommon + " more\n");
-                
+
                 parentTrace = currentTrace;
                 t = t.getCause();
-                
+
                 if(t != null)
                     writer.print("Caused by: ");
             }
@@ -517,7 +517,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             writer.print("</pre>\n");
         }
     }
-    
+
     void handleNoSite( HttpRequest request , HttpResponse response ){
         response.setResponseCode( 404 );
         response.getJxpWriter().print( "No site for <b>" + request.getHost() + "</b>" );
@@ -540,7 +540,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                     return ((Number)ret).intValue();
             }
         }
-        
+
         if ( ar.isStatic() && request.getParameter( "lm" ) != null && request.getParameter( "ctxt" ) != null )
             return 3600;
 
@@ -619,39 +619,39 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
 
     }
-    
+
     void handleAdmin( AppRequest ar , HttpRequest request , HttpResponse response ){
-    
-        JxpWriter out = response.getJxpWriter();        
-        
+
+        JxpWriter out = response.getJxpWriter();
+
         if ( ! _administrativeAllowed( request ) ){
             out.print( "you are not allowed here" );
             return;
         }
-        
-        
+
+
         out.print( "<html><head>" );
         out.print( "<title>admin | " + request.getHost() + "</title>" );
         out.print( "</head><body>" );
-        
+
         out.print( "<h1>Quick Admin</h1>" );
 
         out.print( "<table border='1'>" );
         out.print( "<tr><th>Created</th><td>" + ar.getContext()._created + "</td></tr>" );
         out.print( "<tr><th>Memory (kb)</th><td>" + ( ar.getContext().approxSize() / 1024 ) + "</td></tr>" );
         out.print( "</table>" );
-        
+
         out.print( "<h3>Stats</h3>" );
         getTracker( ar.getContext() ).displayGraph( out , _displayOptions );
-        
+
         out.print( "<hr>" );
-        
+
         out.print( "<a href='/~update'>Update Code</a> | " );
         out.print( "<a href='/~reset'>Reset Site (include code update)</a> | " );
 
         out.print( "</body></html>" );
     }
-    
+
     boolean _administrativeAllowed( HttpRequest request ){
         return
             request.getPhysicalRemoteAddr().equals( "127.0.0.1" ) &&
@@ -666,7 +666,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         HttpLoadTracker t = _stats.get( name );
         if ( t != null )
             return t;
-        
+
         synchronized ( _stats ){
             t = _stats.get( name );
             if ( t == null ){
@@ -674,7 +674,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                 _stats.put( name , t );
             }
         }
-        
+
         return t;
     }
 
@@ -687,7 +687,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             System.err.print( ar._uri );
             System.err.println();
         }
-            
+
     }
 
     private final AppContextHolder _contextHolder;
@@ -699,7 +699,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
     protected final static String _X10GEN_DEBUG = "X-10gen-Debug"; // private header - if set, user/profile/timing info won't be appended to response
 
     static final Logger _noContextLogger = Logger.getLogger( "appserver.nocontext" );
-    
+
     // ---------
 
     /** @unexpose */
@@ -709,7 +709,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
         String webRoot = null;
         String sitesRoot = "/data/sites";
-        
+
         int portNum = DEFAULT_PORT;
         boolean secure = false;
 
@@ -731,11 +731,11 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                 portNum = Integer.valueOf(args[++i]);
             }
             else if ("--serverroot".equals(args[i])) {
-            	JSHook.whereIsEd = args[++i];
+                JSHook.whereIsEd = args[++i];
             }
-	    else if ( "--sitesRoot".equals( args[i] ) ){
-		sitesRoot = args[++i];
-	    }
+            else if ( "--sitesRoot".equals( args[i] ) ){
+                sitesRoot = args[++i];
+            }
             else if ( "--secure" .equals( args[i] ) ){
                 secure = true;
             }
@@ -749,7 +749,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                 }
             }
         }
-	
+
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
         System.out.println("     listen port = " + portNum);
@@ -758,10 +758,10 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
         System.out.println("==================================");
-        
+
         AppServer as = new AppServer( webRoot , sitesRoot );
         as.addToServer();
-        
+
         HttpServer hs = new HttpServer(portNum);
         if ( secure )
             System.setSecurityManager( new AppSecurityManager() );
