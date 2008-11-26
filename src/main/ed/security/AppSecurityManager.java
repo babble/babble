@@ -16,7 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver;
+package ed.security;
 
 import java.io.*;
 import java.util.*;
@@ -28,12 +28,17 @@ import ed.js.engine.*;
 import ed.log.*;
 import ed.lang.*;
 import ed.util.*;
+import ed.appserver.*;
 
 public final class AppSecurityManager extends SecurityManager {
 
-    static boolean READY = false;
+    private static boolean READY = false;
     
-    AppSecurityManager(){
+    public static void ready(){
+        READY = true;
+    }
+
+    public AppSecurityManager(){
         _os = Machine.getOSType();
         _logger = Logger.getLogger( "security" );
         _javaRoot = (new File(".")).getAbsolutePath().replaceAll( "\\.$" , "" );

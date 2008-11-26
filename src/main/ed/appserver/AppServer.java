@@ -30,6 +30,7 @@ import ed.net.*;
 import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
+import ed.security.*;
 
 /** The server to handle HTTP requests.
  */
@@ -191,7 +192,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             ar.makeThreadLocal();
             _requestMonitor.watch( ar );
             db.requestStart();
-            AppSecurityManager.READY = true;
+            AppSecurityManager.ready();
 
             _handle( request , response , ar );
         }
