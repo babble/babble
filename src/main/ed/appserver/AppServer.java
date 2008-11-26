@@ -319,7 +319,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
         catch ( Exception e ){
             handleError( request , response , e , ar.getContext() );
-            return;
         }
         finally {
             _currentRequests.remove( ar );
@@ -379,15 +378,13 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         if ( request.getBoolean( "profile" , false ) )
             return true;
 
-        if ( user != null &&
-             ( user.get( "permissions" ) instanceof JSArray ) &&
-             ((JSArray)(user.get( "permissions" ) ) ).contains( "admin" ) )
-            return true;
-
-        return false;
+        return user != null &&
+                (user.get("permissions") instanceof JSArray) &&
+                ((JSArray) (user.get("permissions"))).contains("admin");
     }
 
     /** Creates a 404 (page not found) response.
+     * @param ar the server's request object
      * @param request the HTTP request for the non-existent page
      * @param response the HTTP response to send back to the client
      * @param extra any extra text to add to the response
@@ -557,7 +554,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
     /** Resets the app content.
      * @param ar Used to find the context to reset and logger
-     * @param request
+     * @param request object representing client request
      * @param response Set to inform the user what happens
      */
     void handleReset( AppRequest ar , HttpRequest request , HttpResponse response ){
