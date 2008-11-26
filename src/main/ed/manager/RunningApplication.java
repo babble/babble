@@ -198,7 +198,8 @@ public class RunningApplication extends Thread {
         
         try {
             _process.destroy();
-            _exitValue = _process.waitFor();
+            if ( _process != null )
+                _exitValue = _process.waitFor();
         }
         catch ( Exception e ){
             _logger.error( "destory had an error" , e );
