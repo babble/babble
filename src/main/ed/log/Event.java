@@ -19,8 +19,9 @@
 package ed.log;
 
 import ed.js.*;
+import ed.util.*;
 
-public class Event {
+public class Event implements Sizable {
 
     public Event( String loggerName , JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
         _loggerName = loggerName;
@@ -53,6 +54,16 @@ public class Event {
 
     public String getThreadName(){
         return _threadName;
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return 
+            JSObjectSize.size( _loggerName , seen ) + 
+            JSObjectSize.size( _date , seen ) + 
+            JSObjectSize.size( _level , seen ) + 
+            JSObjectSize.size( _msg , seen ) + 
+            JSObjectSize.size( _throwable , seen ) + 
+            JSObjectSize.size( _threadName , seen );
     }
     
     final String _loggerName;

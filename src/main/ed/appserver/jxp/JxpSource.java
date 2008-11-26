@@ -208,6 +208,12 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         return _context;
     }
     
+    public long approxSize( IdentitySet seen ){
+        if ( _func == null )
+            return 0;
+        return _func.approxSize( seen );
+    }
+
     protected long _lastParse = 0;
     protected List<Dependency> _dependencies = new ArrayList<Dependency>();
     
@@ -219,7 +225,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     
     // -------------------
     
-    public static class JxpFileSource extends JxpSource {
+    public static class JxpFileSource extends JxpSource implements Sizable {
         protected JxpFileSource( File f ){
             _f = f;
         }
@@ -240,7 +246,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         
         public long lastUpdated(Set<Dependency> visitedDeps){
             visitedDeps.add(this);
-
+            
             long lastUpdated = _f.lastModified();
             for(Dependency dep : _dependencies)
                 if(!visitedDeps.contains(dep))

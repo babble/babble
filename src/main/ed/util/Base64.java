@@ -69,8 +69,11 @@ package ed.util;
  * @owner avery
  * @expose
  */
-public class Base64
-{
+public class Base64 implements Sizable {
+
+    public long approxSize( IdentitySet seen ){
+        return 300;
+    }
 
 /* ********  P U B L I C   F I E L D S  ******** */
 

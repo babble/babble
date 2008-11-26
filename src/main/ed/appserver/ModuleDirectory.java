@@ -21,10 +21,11 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
+import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 
-public class ModuleDirectory extends JSObjectLame implements JSLibrary {
+public class ModuleDirectory extends JSObjectLame implements JSLibrary , Sizable {
     
     public ModuleDirectory( String root , String name , AppContext context , Scope scope ){
         this( new File( Module._defaultBase , root ) , name , context , scope );
@@ -124,6 +125,11 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
 
     public Set<String> keySet( boolean includePrototype ){
         return new HashSet<String>();
+    }
+
+    public long approxSize( IdentitySet seen ){
+        // this should have no real memory
+        return 200;
     }
     
     final String _name;

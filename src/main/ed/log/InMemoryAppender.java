@@ -22,7 +22,7 @@ import ed.js.*;
 import ed.util.*;
 import ed.net.httpserver.*;
 
-public class InMemoryAppender implements Appender {
+public class InMemoryAppender implements Appender , Sizable {
 
     static final InMemoryAppender INSTANCE = new InMemoryAppender();
     public static InMemoryAppender getInstance(){
@@ -38,6 +38,13 @@ public class InMemoryAppender implements Appender {
 
     public CircularList<Event> getRecent(){
         return _list;
+    }
+
+    public long approxSize( IdentitySet seen ){
+        long size = 0;
+        for ( int i=0; i<_list.size(); i++ )
+            size += _list.get( i ).approxSize( seen );
+        return size;
     }
     
     private final CircularList<Event> _list = new CircularList<Event>( 1000 , true );
