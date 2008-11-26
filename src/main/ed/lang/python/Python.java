@@ -533,6 +533,16 @@ public class Python extends Language {
             return temp;
         }
 
+        if( o instanceof PyInstance ){
+            // public transient PyClass instclass
+            // public PyObject __dict__
+            // FIXME: Object javaProxy
+            PyInstance inst = (PyInstance)o;
+            return JSObjectSize.OBJ_OVERHEAD +
+                JSObjectSize.size( inst.__dict__ , seen ) +
+                JSObjectSize.size( inst.instclass , seen );
+        }
+
         if( o instanceof PyFunction ){
             // public String __name__
             // public PyObject __doc__
@@ -629,8 +639,13 @@ public class Python extends Language {
             return temp;
         }
 
+        /* These are all private classes in Jython code */
         /*
         if( o instanceof PySystemStateFunctions ){
+            return JSObjectSize.OBJ_OVERHEAD;
+        }
+
+        if( o instanceof AnyFunction || o instanceof AllFunction || o instanceof MaxFunction || o instanceof MinFunction || o instanceof RoundFunction || o instanceof ImportFunction || o instanceof SortedFunction ){
             return JSObjectSize.OBJ_OVERHEAD;
         }
         */
@@ -639,6 +654,35 @@ public class Python extends Language {
             return systemStateSize( (PySystemState)o , seen );
         }
 
+        if( o instanceof PySingleton ){
+            long temp = JSObjectSize.OBJ_OVERHEAD + JSObjectSize.size( ((PySingleton)o).toString() , seen );
+            /* "Whitelist" of singletons that don't have anything unusual */
+            if( o instanceof PyEllipsis || o instanceof PyNotImplemented ){
+                return temp;
+            }
+
+            return _unknownClass( o );
+        }
+
+        if( o instanceof PyBuiltinFunctionSet ){
+            // protected int index
+            // private PyObject doc
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            temp += 4;
+            temp += JSObjectSize.size( ((PyBuiltinFunctionSet)o).fastGetDoc() , seen);
+            return temp;
+        }
+
+        if( o instanceof PyCell ){
+            return JSObjectSize.OBJ_OVERHEAD + JSObjectSize.size( ((PyCell)o).getCellContents() , seen );
+        }
+
+        // TODO: PyType, PyStringMap
+
+        return _unknownClass( o );
+    }
+
+    static long _unknownClass( Object o ){
         String blah = o.getClass().toString();
         if ( ! _seenClasses.contains( blah ) ){
             System.out.println("Python bridge couldn't figure out size of " + blah);

@@ -340,8 +340,8 @@ public class GitDir {
             File hash = new File( _dotGit, head );
             if ( ! hash.exists() )
                 throw new RuntimeException( "why doesn't [" + hash.getAbsolutePath() + "] exist" );
-
-            return StreamUtil.readFully( hash );
+            
+            return StreamUtil.readFully( hash ).trim();
         }
         catch ( IOException ioe ){
             throw new RuntimeException( "can't read head files" , ioe );
