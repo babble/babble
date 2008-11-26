@@ -119,20 +119,34 @@ public class PostDataInMemoryTest {
             pdim.put(b);
         }
 
-        File f = File.createTempFile(this.getClass().getName(), ".dat");
+        File f = null;
 
-        pdim.writeTo(f);
+        try {
+            f = File.createTempFile(this.getClass().getName(), ".dat");
 
-        FileInputStream fis = new FileInputStream(f);
+            pdim.writeTo(f);
 
-        final byte barr[] = new byte[s.length() * 2];
+            FileInputStream fis = new FileInputStream(f);
 
-        int len = fis.read(barr);
+            final byte barr[] = new byte[s.length() * 2];
 
-        assert(len == buff.length);
+            int len = fis.read(barr);
 
-        for (int i = 0; i < buff.length; i++) {
-            assertTrue(buff[i] == barr[i]);
+            assert(len == buff.length);
+
+            for (int i = 0; i < buff.length; i++) {
+                assertTrue(buff[i] == barr[i]);
+            }
+        }
+        finally {
+            try {
+                if (f != null) {
+                    f.delete();
+                }
+            }
+            catch(Exception e) {
+                // feh...
+            }
         }
     }
 
