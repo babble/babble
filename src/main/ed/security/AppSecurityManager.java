@@ -42,14 +42,26 @@ public final class AppSecurityManager extends SecurityManager {
         _logger = Logger.getLogger( "security" );
         _file = new FileSecurity();
     }
-
+    
     public void checkPermission(Permission perm) {
-        if ( ! READY )
+        if ( ! READY || perm == null )
             return;
         
+        final AppContext context = AppContext.findThreadLocal();
+        if ( context == null ){
+            // this means we have to be in core server code
+            // TODO: make sure there is no way for a user to unset
+            return;
+        }
+
         if ( perm instanceof FilePermission )
             checkFilePermission( (FilePermission)perm );
-        
+        else {
+            if ( ! _seenPermissions.contains( perm.getClass() ) ){
+                _seenPermissions.add( perm.getClass() );
+                _logger.getChild( "unknown-perm" ).info( perm.getClass().toString() );
+            }
+        }
     }
 
     public void checkPermission(Permission perm, Object context){}
@@ -79,6 +91,8 @@ public final class AppSecurityManager extends SecurityManager {
     
     final Logger _logger;
     final FileSecurity _file;
+
+    final Set<Class> _seenPermissions = new HashSet<Class>();
 
     static class NotAllowed extends AccessControlException implements StackTraceHolder.NoFix {
         NotAllowed( String msg , Permission p ){
