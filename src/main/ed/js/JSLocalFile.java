@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -124,12 +124,12 @@ public class JSLocalFile extends JSNewFile {
      * @throws JSException If the file couldn't be read
      */
     public String getDataAsString(){
-	try {
-	    return StreamUtil.readFully( new FileInputStream( _file ) );
-	}
-	catch ( IOException ioe ){
-	    throw new JSException( "couldn't read : " + _file , ioe );
-	}
+    try {
+        return StreamUtil.readFully( new FileInputStream( _file ) );
+    }
+    catch ( IOException ioe ){
+        throw new JSException( "couldn't read : " + _file , ioe );
+    }
     }
 
     /** Gets the filename.
@@ -242,8 +242,13 @@ public class JSLocalFile extends JSNewFile {
      */
     public boolean touch(){
         try {
-            _file.createNewFile();
-            return true;
+            if( _file.createNewFile() )
+                return true;
+
+            if( _file.exists() )
+                return _file.setLastModified( System.currentTimeMillis() );
+
+            return false;
         }
         catch ( IOException ioe ){
             return false;
@@ -251,7 +256,7 @@ public class JSLocalFile extends JSNewFile {
     }
 
     public String getAbsolutePath(){
-	return _file.getAbsolutePath();
+    return _file.getAbsolutePath();
     }
 
     final File _file;
