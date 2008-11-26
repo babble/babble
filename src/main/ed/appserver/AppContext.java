@@ -131,7 +131,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
         _moduleRegistry = ModuleRegistry.getNewGlobalChild();
 
-        _gitBranch = _git.isValid() ? _git.getBranchOrTagName() : null;
+        if ( _git.isValid() ){
+            _gitBranch = _git.getBranchOrTagName();
+            _gitHash = _git.getCurrentHash();
+        }
 
         _isGrid = name.equals("grid");
 
@@ -147,7 +150,8 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         _contextReachable = new IdentitySet();
 
-        _logger.info("Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch);
+        if ( ! _admin )
+            _logger.info("Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch);
     }
 
     /**
@@ -1176,6 +1180,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         return _gitBranch;
     }
 
+    public String getGitHash(){
+        return _gitHash;
+    }
+
     /**
      * Update the git branch that we're running and return it.
      *
@@ -1195,8 +1203,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         if (!_gitFile.exists())
             throw new RuntimeException("this should be impossible");
 
-        if ( forceUpdate || _lastScopeInitTime < _gitFile.lastModified() )
+        if ( forceUpdate || _lastScopeInitTime < _gitFile.lastModified() ){
             _gitBranch = _git.getBranchOrTagName();
+            _gitHash = _git.getCurrentHash();
+        }
         
         return _gitBranch;
     }
@@ -1499,6 +1509,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     final GitDir _git;
 
     private String _gitBranch;
+    private String _gitHash;
     final String _environment;
     final boolean _admin;
 

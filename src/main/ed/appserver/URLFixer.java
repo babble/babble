@@ -213,7 +213,7 @@ public class URLFixer {
 
     static String getStaticSuffix( HttpRequest request , AppRequest ar ){
         final AppContext ctxt = ar.getContext();
-        return "ctxt=" + ctxt.getEnvironmentName() + "" + ctxt.getGitBranch() ;
+        return "ctxt=" + ctxt.getEnvironmentName() + "-" + ctxt.getGitBranch() + "-" + ctxt.getGitHash();
     }
 
     private final AppContext _context;
