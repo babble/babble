@@ -567,6 +567,23 @@ public class Python extends Language {
             return temp;
         }
 
+        if( o instanceof PyClass ){
+            // public PyObject __dict__
+            // public PyTuple __bases__
+            // public String __name__
+            // FIXME:
+            // PyObject __getattr__, __setattr__, __delattr__, __tojava__,
+            //   __dell__, __contains__
+            // FIXME: protected Class proxyClass
+            // FIXME: protected java.util.HashMap super__methods
+            PyClass c = (PyClass)o;
+            long temp = JSObjectSize.OBJ_OVERHEAD;
+            temp += JSObjectSize.size( c.__dict__ , seen );
+            temp += JSObjectSize.size( c.__bases__ , seen );
+            temp += JSObjectSize.size( c.__name__ , seen );
+            return temp;
+        }
+
         if( o instanceof PyModule ){
             // public PyObject __dict__
             PyModule m = (PyModule)o;
