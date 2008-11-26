@@ -533,6 +533,16 @@ public class Python extends Language {
             return temp;
         }
 
+        if( o instanceof PyInstance ){
+            // public transient PyClass instclass
+            // public PyObject __dict__
+            // FIXME: Object javaProxy
+            PyInstance inst = (PyInstance)o;
+            return JSObjectSize.OBJ_OVERHEAD +
+                JSObjectSize.size( inst.__dict__ , seen ) +
+                JSObjectSize.size( inst.instclass , seen );
+        }
+
         if( o instanceof PyFunction ){
             // public String __name__
             // public PyObject __doc__
@@ -645,7 +655,7 @@ public class Python extends Language {
         }
 
         if( o instanceof PySingleton ){
-            long temp = JSObjectSize.OBJ_OVERHEAD + JSObjectSize.size( ((PySingleton)o).toString() );
+            long temp = JSObjectSize.OBJ_OVERHEAD + JSObjectSize.size( ((PySingleton)o).toString() , seen );
             /* "Whitelist" of singletons that don't have anything unusual */
             if( o instanceof PyEllipsis || o instanceof PyNotImplemented ){
                 return temp;
@@ -659,11 +669,15 @@ public class Python extends Language {
             // private PyObject doc
             long temp = JSObjectSize.OBJ_OVERHEAD;
             temp += 4;
-            temp += JSObjectSize.size( ((PyBuiltinFunctionSet)o).fastGetDoc() );
+            temp += JSObjectSize.size( ((PyBuiltinFunctionSet)o).fastGetDoc() , seen);
             return temp;
         }
 
-        // TODO: PyType, PyCell, PyStringMap
+        if( o instanceof PyCell ){
+            return JSObjectSize.OBJ_OVERHEAD + JSObjectSize.size( ((PyCell)o).getCellContents() , seen );
+        }
+
+        // TODO: PyType, PyStringMap
 
         return _unknownClass( o );
     }
