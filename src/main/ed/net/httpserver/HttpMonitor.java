@@ -187,7 +187,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	    out.print( "<bR>" );
 	    out.print( DNSUtil.getLocalHostString() );
 
-            out.print( "\n</body></html>" );
+            out.print( "\n<div id='debugjs'></div></body></html>" );
 	}
         
         return true;
