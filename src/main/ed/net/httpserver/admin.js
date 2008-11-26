@@ -1,0 +1,4 @@
+// admin js
+
+function adminOnLoad(){
+}
