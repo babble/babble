@@ -328,6 +328,9 @@ public class GitDir {
     }
 
     public String getCurrentHash(){
+        if ( ! isValid() )
+            throw new RuntimeException( "[" + _root + "] is not valid git dir" );
+
         try {
             String head = readHead();
             if ( ! head.startsWith( "ref: " ) )
