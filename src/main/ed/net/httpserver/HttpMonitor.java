@@ -18,6 +18,7 @@
 
 package ed.net.httpserver;
 
+import java.io.*;
 import java.util.*;
 import javax.servlet.http.*;
 
@@ -43,28 +44,20 @@ public abstract class HttpMonitor implements HttpHandler {
 
         StringBuilder buf = new StringBuilder();
         buf.append( "<html>" );
-        
         buf.append( "<head>" );
+        
         buf.append( "<title>" ).append( DNSUtil.getLocalHost() ).append( " " ).append( _name ).append( "</title>" );
+
+        buf.append( "<link rel=\"shortcut icon\" href=\"http://static.10gen.com/www.10gen.com/assets/images/favicon.ico\" />\n" );
+        buf.append( "<link rel=\"stylesheet\" type=\"text/css\" href=\"/~_admin.css\" >\n" );
+        buf.append( "<script src=\"/~_admin.js\" ></script>\n" );
+
         buf.append( "<style>\n" );
-        buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
-        buf.append( " table { font-size: 10px; }\n" );
-        buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
-        buf.append( " form { display: inline; }\n" );
-        buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
-        buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
-        buf.append( " .warn { color: #FF6600; }\n" );
-        buf.append( " .error { color: red; font-decoration: bold; }\n" );
-        buf.append( " .fatal { color: red; font-decoration: bold; }\n" );
         addStyle( buf );
         buf.append( "</style>\n" );
         
-        buf.append( "<link rel=\"shortcut icon\" href=\"http://static.10gen.com/www.10gen.com/assets/images/favicon.ico\" />" );
-        
-        
-        buf.append( "</head>" );            
-        
-        buf.append( "<body>" );
+        buf.append( "</head>\n" );            
+        buf.append( "<body onLoad='adminOnLoad()'>\n" );
         _header = buf.toString();
         
         _addAll( name );
@@ -194,7 +187,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	    out.print( "<bR>" );
 	    out.print( DNSUtil.getLocalHostString() );
 
-            out.print( "\n</body></html>" );
+            out.print( "\n<div id='debugjs'></div></body></html>" );
 	}
         
         return true;
@@ -484,4 +477,42 @@ public abstract class HttpMonitor implements HttpHandler {
             return Double.MIN_VALUE;
         }
     }
+    
+    public static class AdminStaticFile implements HttpHandler {
+
+        public AdminStaticFile( String name ){
+            this( name , new File( "src/main/ed/net/httpserver/" + name ) );
+        }
+
+        public AdminStaticFile( String name , File file ){
+            _name = name;
+            _uri = "/~_" + _name;
+            _file = file;
+        }
+
+        public boolean handles( HttpRequest request , Info info ){
+            if ( ! request.getURI().equals( _uri ) )
+                return false;
+            
+            info.fork = false;
+            info.admin = true;
+            
+            return true;
+        }
+        
+        public boolean handle( HttpRequest request , HttpResponse response ){
+            response.setCacheTime( 3600 );
+            response.sendFile( _file );
+            return true;
+        }
+        
+        public double priority(){
+            return Double.MIN_VALUE;
+        }
+
+        final String _name;
+        final String _uri;
+        final File _file;
+    }
+
 }

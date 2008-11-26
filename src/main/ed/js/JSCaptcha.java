@@ -38,8 +38,9 @@ import nl.captcha.sandbox.*;
 import com.sun.image.codec.jpeg.*;
 
 import ed.net.httpserver.*;
+import ed.util.*;
 
-public class JSCaptcha {
+public class JSCaptcha implements Sizable {
 
     /** Creates a captcha image from a string and adds it to the HTTP response.
      * @param s String to use for the captcha text
@@ -63,6 +64,10 @@ public class JSCaptcha {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         _producer.createImage( out , s );
         return out.toByteArray();
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return 1024;
     }
 
     /** @unexpose */

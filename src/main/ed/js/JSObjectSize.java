@@ -65,6 +65,8 @@ public class JSObjectSize {
              || o instanceof JSDate
              || o instanceof Number
              || o instanceof JSDate
+             || o instanceof java.io.File
+             || o instanceof ed.log.Level
              || o instanceof ObjectId )
             return OBJ_OVERHEAD + 16;
         

@@ -568,6 +568,9 @@ public class HttpServer extends NIOServer {
         addGlobalHandler( new HttpMonitor.FavIconHack() );
         addGlobalHandler( new HttpMonitor.LogMonitor() );
         addGlobalHandler( new WatchedSimplePool.WebView() );
+
+        addGlobalHandler( new HttpMonitor.AdminStaticFile( "admin.css" ) );
+        addGlobalHandler( new HttpMonitor.AdminStaticFile( "admin.js" ) );
     }
     
     private static int _numRequests = 0;

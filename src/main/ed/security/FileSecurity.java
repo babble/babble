@@ -1,4 +1,5 @@
-// AppSecurityManager.java
+// FileSecurity.java
+
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,7 +17,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver;
+package ed.security;
 
 import java.io.*;
 import java.util.*;
@@ -28,14 +29,13 @@ import ed.js.engine.*;
 import ed.log.*;
 import ed.lang.*;
 import ed.util.*;
+import ed.appserver.*;
 
-public final class AppSecurityManager extends SecurityManager {
+class FileSecurity {
 
-    static boolean READY = false;
-    
-    AppSecurityManager(){
+    public FileSecurity(){
         _os = Machine.getOSType();
-        _logger = Logger.getLogger( "security" );
+        _logger = Logger.getLogger( "security.filesystem" );
         _javaRoot = (new File(".")).getAbsolutePath().replaceAll( "\\.$" , "" );
 
         List<String> okRead = new ArrayList<String>();
@@ -81,67 +81,46 @@ public final class AppSecurityManager extends SecurityManager {
             _publicClasses[i] = Convert.cleanName( _publicDirs[i] );
     }
 
-    public void checkPermission(Permission perm) {
-        if ( ! READY )
-            return;
-        
-        if ( perm instanceof FilePermission )
-            checkFilePermission( (FilePermission)perm );
-        
-    }
-
-    public void checkPermission(Permission perm, Object context){}
-
-    
-    final void checkFilePermission( FilePermission fp ){
-        final AppRequest ar = AppRequest.getThreadLocal();
-        if ( ar == null )
-            return;
-        
-        final AppContext ctxt = ar.getContext();
-
-        final String file = fp.getName();
-        final String action = fp.getActions();
-        final boolean read = action.equals( "read" );
+    final boolean allowed( AppContext ctxt , String file , boolean read ){
         final String ctxtRoot = ctxt.getRoot();
-
+        
         if ( read )
             for ( int i=0; i<_okRead.length; i++ )
                 if ( file.startsWith( _okRead[i] ) )
-                    return;
+                    return true;
         
         for ( int i=0; i<_okWrite.length; i++ )
             if ( file.startsWith( _okWrite[i] ) )
-                return;
+                return true;
         
         for ( int i=0; i<_publicDirs.length; i++ )
             if ( file.contains( _publicDirs[i] ) )
-                return;
+                return true;
         
         if ( file.startsWith( ctxtRoot ) )
-            return;
+            return true;
         
         if ( ctxtRoot.startsWith( file ) && 
              ctxtRoot.length() - file.length() <= 1 && 
              ctxtRoot.endsWith( "/" ) )
-            return;
+            return true;
 
         if ( file.contains( ctxtRoot ) ){
             if ( file.startsWith( _javaRoot + ctxtRoot ) )
-                return;
+                return true;
         }
         
 
         final StackTraceElement topUser = ed.security.Security.getTopUserStackElement();
         
         if ( topUser == null )
-            return;
+            return true;
 
         if ( file.startsWith( _jsCompileRoot ) ){
             String wantSitePiece = file.substring( _jsCompileRoot.length() );
             // this is basically just the dir
             if ( wantSitePiece.length() < 3 )
-                return;
+                return true;
             
             while ( wantSitePiece.startsWith( "/" ) )
                 wantSitePiece = wantSitePiece.substring(1);
@@ -150,19 +129,16 @@ public final class AppSecurityManager extends SecurityManager {
             //        this is obviously full of holes
             for ( int i=0; i<_publicClasses.length; i++ )
                 if ( wantSitePiece.contains( _publicClasses[i] ) )
-                    return;
+                    return true;
             
             String goodSitePiece = Convert.cleanName( ctxtRoot );
             if ( wantSitePiece.startsWith( goodSitePiece ) )
-                return;
+                return true;
 
             System.err.println( "blah [" + wantSitePiece + "] [" + goodSitePiece + "]" );
         }
         
-        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + topUser + "] in site [" + ctxtRoot + "]" + fp , fp );
-        e.fillInStackTrace();
-        _logger.error( "invalid access [" + fp + "]" , e );
-        throw e;
+        return false;
     }
     
     final String[] _okRead;
@@ -173,11 +149,5 @@ public final class AppSecurityManager extends SecurityManager {
     final String _javaRoot;
 
     final String[] _publicDirs = new String[]{ "/corejs/" , "/external/" , "/core-modules/" , "/site-modules/" , "src/main/ed/" }; // site-modules is special
-    final String[] _publicClasses;
-
-    static class NotAllowed extends AccessControlException implements StackTraceHolder.NoFix {
-        NotAllowed( String msg , Permission p ){
-            super( msg , p );
-        }
-    }
+    final String[] _publicClasses;   
 }

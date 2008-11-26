@@ -88,7 +88,7 @@ Cloud.Server.prototype.isGridServer = function(){
 }
 
 Cloud.Server.prototype.toString = function(){
-    return "{Server.  location:" + this.location + " provider:" + this.provider + " n:" + this.number + "}";
+    return "{Server.  " + this.location + "-" + this.provider + "-" + this.number + "}";
 }
 
 Cloud.Server._fixHostName = function( host ){
@@ -124,8 +124,6 @@ Cloud.Server.isDomainPaired = function( domain , loc ){
 }
 
 me = new Cloud.Server( SERVER_NAME );
-log.info( "SERVER_NAME : " + SERVER_NAME );
-log.info( "me : " + me );
 
 if ( me.isMyGridDomainPaired() )
     db = connect.ms( "grid" , me.getGridLocation() );
@@ -133,4 +131,4 @@ else
     db = connect( "grid" , me.getGridLocation() );
 
 
-log.info( "grid server : " + me.getGridLocation() + " amIGrid:" + me.isGridServer() );
+log.info( "SERVER_NAME:" + SERVER_NAME + " me:" + me + " grid server : " + me.getGridLocation() + " amIGrid:" + me.isGridServer() );

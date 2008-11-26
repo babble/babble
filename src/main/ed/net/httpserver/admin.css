@@ -1,0 +1,41 @@
+
+body { 
+  font-size: .65em; 
+  font-family: Monaco; 
+}
+
+table { 
+  font-size: 10px; 
+}
+
+th { 
+  background: #dddddd; 
+  text-align:left; 
+}
+
+form { 
+  display: inline; 
+}
+
+.floatingList li { 
+  float: left; 
+  list-style-type:none; 
+}
+
+bottomLine { 
+  border-bottom: 1px solid black; 
+}
+
+.warn { 
+  color: #FF6600; 
+}
+
+.error { 
+  color: red; 
+  font-weight: bold; 
+}
+
+.fatal { 
+  color: red; 
+  font-weight: bold; 
+}

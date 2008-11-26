@@ -1,3 +1,4 @@
+/*
 var tmp = openFile('/tmp');
 for each (var file in tmp.listFiles()){
     if(file.getName().startsWith('jxp-'))
@@ -19,3 +20,4 @@ sysexec('touch src/main/ed/js/JSInternalFunctions.java');
 var foo = recurse();
 assert.lt(old, foo, "didn't recompile");
 
+*/

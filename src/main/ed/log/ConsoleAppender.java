@@ -18,10 +18,16 @@
 
 package ed.log;
 
-public class ConsoleAppender extends PrintStreamAppender {
+import ed.util.*;
+
+public class ConsoleAppender extends PrintStreamAppender implements Sizable {
 
     public ConsoleAppender(){
         super( System.out );
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return 0;
     }
 
 }

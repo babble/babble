@@ -21,7 +21,9 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
-public class MimeTypes {
+import ed.util.*;
+
+public class MimeTypes implements Sizable {
 
     public static String getExtension( File f ){
         return getExtension( f.toString() );
@@ -47,6 +49,10 @@ public class MimeTypes {
         if ( mimeType != null && mimeType.startsWith( "image/" ) )
             return "inline";
         return "attachment";
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return _mimeTypes.size() * 20;
     }
 
     static final Properties _mimeTypes;

@@ -57,7 +57,7 @@ public class GitDir {
         _assertValid();
         
         try {
-            String head = StreamUtil.readFully( new File( _dotGit , "HEAD" ) ).trim();
+            String head = readHead();
             if ( head.startsWith( "ref: refs/heads/" ) )
                 return head.substring( 16 ).trim();
             
@@ -320,6 +320,32 @@ public class GitDir {
     private void _assertValid(){
         if ( ! isValid() )
             throw new RuntimeException( "directory [" + _root + "] is not a valid git directory" );
+    }
+
+    public String readHead()
+        throws IOException {
+        return StreamUtil.readFully( new File( _dotGit , "HEAD" ) ).trim();
+    }
+
+    public String getCurrentHash(){
+        if ( ! isValid() )
+            throw new RuntimeException( "[" + _root + "] is not valid git dir" );
+
+        try {
+            String head = readHead();
+            if ( ! head.startsWith( "ref: " ) )
+                return head;
+            
+            head = head.substring( 5 ).trim();
+            File hash = new File( _dotGit, head );
+            if ( ! hash.exists() )
+                throw new RuntimeException( "why doesn't [" + hash.getAbsolutePath() + "] exist" );
+
+            return StreamUtil.readFully( hash );
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( "can't read head files" , ioe );
+        }
     }
 
     SysExec.Result _exec( String cmd ){
