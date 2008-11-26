@@ -239,7 +239,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             if ( ar.getURI().equals( "/~f" ) ){
                 JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
                 if ( f == null ){
-            handle404( ar , request , response , null );
+                    handle404( ar , request , response , null );
                     return;
                 }
                 response.sendFile( f );
@@ -373,7 +373,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             out.print( ar._appenderStream.toString() );
             out.print( "\n-->\n" );
         }
-
     }
 
     boolean showProfilingInfo( HttpRequest request , JSObject user ){
@@ -452,7 +451,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
 
         final Logger myLogger = ctxt == null ? _noContextLogger : ctxt.getLogger();
-
 
         if ( t.getCause() instanceof OutOfMemoryError ){
             handleOutOfMemoryError( (OutOfMemoryError)t.getCause() , response );
@@ -620,7 +618,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             out.print( "you suck!" );
             response.setResponseCode(403);
         }
-
     }
 
     void handleAdmin( AppRequest ar , HttpRequest request , HttpResponse response ){
@@ -631,7 +628,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             out.print( "you are not allowed here" );
             return;
         }
-
 
         out.print( "<html><head>" );
         out.print( "<title>admin | " + request.getHost() + "</title>" );
@@ -690,7 +686,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             System.err.print( ar._uri );
             System.err.println();
         }
-
     }
 
     private final AppContextHolder _contextHolder;
@@ -708,7 +703,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
     /** @unexpose */
     public static void main( String args[] )
         throws Exception {
-
 
         String webRoot = null;
         String sitesRoot = "/data/sites";
