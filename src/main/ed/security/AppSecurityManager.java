@@ -79,14 +79,13 @@ public final class AppSecurityManager extends SecurityManager {
     }
     
     public void checkPermission(Permission perm, Object context){}
-
+    
     final void checkSocketPermission( SocketPermission perm ){
-        
+
         final String action = perm.getActions();
         if ( action.contains( "listen" ) )
             throw new NotAllowed( "can't listen to a socket : " + perm , perm );
-
-
+        
         if ( action.contains( "connect" ) ){
             final String name = perm.getName();
             final int idx = name.indexOf( ":" );
@@ -178,6 +177,16 @@ public final class AppSecurityManager extends SecurityManager {
 
     public void checkAccept(String host, int port){
         rejectIfNotTrusted( "acn't access " + host + ":" + port );
+    }
+
+    public void checkConnect( String host , int port ){
+        SocketPermission sp = null;
+        checkConnect( host , port , sp );
+    }
+
+    public void checkConnect( String host , int port , Object context ){
+        SocketPermission sp = null;
+        checkConnect( host , port , sp );
     }
     
     void rejectIfNotTrusted( String msg ){
