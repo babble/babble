@@ -110,12 +110,6 @@ class FileSecurity {
                 return true;
         }
         
-
-        final StackTraceElement topUser = ed.security.Security.getTopUserStackElement();
-        
-        if ( topUser == null )
-            return true;
-
         if ( file.startsWith( _jsCompileRoot ) ){
             String wantSitePiece = file.substring( _jsCompileRoot.length() );
             // this is basically just the dir
