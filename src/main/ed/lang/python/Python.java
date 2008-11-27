@@ -825,7 +825,7 @@ public class Python extends Language {
 
     public static void checkSafeImport( PyObject m ){
         if( ! isSafeImport( m ) ){
-            throw new RuntimeException( "can't import Java files from "  + Security.getTopJS() );
+            throw new RuntimeException( "can't import Java files from "  + Security.getTopDynamicClassName() );
         }
     }
 

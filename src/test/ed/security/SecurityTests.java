@@ -40,6 +40,15 @@ public class SecurityTests extends TestCase {
         System.setSecurityManager( new AppSecurityManager() );
         AppSecurityManager.ready();
     }
+
+
+    public void testJavaClassNames(){
+        assertTrue( Security.nonSecureCanAccessClass( "java.util.List" ) );
+        assertTrue( Security.nonSecureCanAccessClass( "ed.js.JSMath" ) );
+
+        assertFalse( Security.nonSecureCanAccessClass( "ed.js.engine.Scope" ) );
+        assertFalse( Security.nonSecureCanAccessClass( "ed.db.Mongo" ) );
+    }
     
     public void testListenAllowed()
         throws IOException {
