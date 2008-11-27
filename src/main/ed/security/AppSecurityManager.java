@@ -55,11 +55,8 @@ public final class AppSecurityManager extends SecurityManager {
             return;
         }
 
-        final StackTraceElement topUser = Security.getTopUserStackElement();
-        if ( topUser == null ){
-            // this means we're in system code
+        if ( Security.inTrustedCode() )
             return;
-        }
 
         if ( perm instanceof FilePermission ){
             checkFilePermission( (FilePermission)perm );
@@ -70,7 +67,7 @@ public final class AppSecurityManager extends SecurityManager {
         else {
             if ( ! _seenPermissions.contains( perm.getClass() ) ){
                 _seenPermissions.add( perm.getClass() );
-                _logger.getChild( "unknown-perm" ).info( perm.getClass().toString() + " : " + perm );
+                _logger.getChild( "unknown-perm" ).info( perm.getClass().getName() + " [" + perm + "] from [" + Security.getTopDynamicClassName() + "]" );
             }
         }
     }
@@ -131,9 +128,7 @@ public final class AppSecurityManager extends SecurityManager {
         if ( _file.allowed( ctxt , file , read ) )
             return;
        
-        final StackTraceElement topUser = ed.security.Security.getTopUserStackElement();
-              
-        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + topUser + "] in site [" + ctxt + "]" + fp , fp );
+        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + Security.getTopDynamicStackFrame() + "] in site [" + ctxt + "]" + fp , fp );
         e.fillInStackTrace();
         _logger.error( "invalid access [" + fp + "]" , e );
         throw e;

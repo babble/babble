@@ -36,9 +36,11 @@ public class SecurityTests extends TestCase {
 
     public SecurityTests(){
         _context = new AppContext( new File( "src/test/samplewww" ) );            
-
+        
         System.setSecurityManager( new AppSecurityManager() );
         AppSecurityManager.ready();
+
+        Security.addDynamicClass( "ed.security.SecurityTests" );
     }
 
 
@@ -97,7 +99,27 @@ public class SecurityTests extends TestCase {
         DBPort p = new DBPort( new InetSocketAddress( "127.0.0.1" , 27017 ) );
         p.ensureOpen();
     }
-
+    
+    /**
+     * this test doesn't work yet
+     * SecurityManager doesn't seem to be able to control creating a thread
+     */
+    public void _testThreadOpen(){
+        _context.makeThreadLocal();
+        Thread t = new Thread(){
+                public void run(){
+                    throw new RuntimeException( "shouldn't get ehre" );
+                }
+            };
+        
+        try {
+            t.start();
+            //assert( false );
+        }
+        catch ( AccessControlException ace ){
+        }
+    }
+    
     final AppContext _context;
 
     public static void main( String args[] ){
