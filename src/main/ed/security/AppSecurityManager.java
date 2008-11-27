@@ -47,7 +47,7 @@ public final class AppSecurityManager extends SecurityManager {
     public void checkPermission(Permission perm) {
         if ( ! READY || perm == null )
             return;
-        
+
         final AppContext context = AppContext.findThreadLocal();
         if ( context == null ){
             // this means we have to be in core server code
@@ -55,22 +55,25 @@ public final class AppSecurityManager extends SecurityManager {
             return;
         }
 
-        final StackTraceElement topUser = Security.getTopUserStackElement();
-        if ( topUser == null ){
-            // this means we're in system code
+        if ( Security.inTrustedCode() )
             return;
-        }
-
+        
         if ( perm instanceof FilePermission ){
-            checkFilePermission( (FilePermission)perm );
+            checkFilePermission( context , (FilePermission)perm );
         }
         else if ( perm instanceof SocketPermission ){
             checkSocketPermission( (SocketPermission)perm );
         }
+        else if ( perm instanceof javax.security.auth.kerberos.ServicePermission || 
+                  perm instanceof javax.security.auth.PrivateCredentialPermission ){
+            // these are things that are kind of irrelevant for our security
+            // they're totally safe as far as i can tell
+            // so just allowing them all for completeness
+        }
         else {
             if ( ! _seenPermissions.contains( perm.getClass() ) ){
                 _seenPermissions.add( perm.getClass() );
-                _logger.getChild( "unknown-perm" ).info( perm.getClass().toString() + " : " + perm );
+                _logger.getChild( "unknown-perm" ).info( perm.getClass().getName() + " [" + perm + "] from [" + Security.getTopDynamicClassName() + "]" );
             }
         }
     }
@@ -117,26 +120,21 @@ public final class AppSecurityManager extends SecurityManager {
         throw new NotAllowed( "can't open connection to " + host + ":" + port + " from : " + calling , perm );
     }
     
-    final void checkFilePermission( FilePermission fp ){
-        final AppRequest ar = AppRequest.getThreadLocal();
-        if ( ar == null )
-            return;
+    final void checkFilePermission( AppContext context , FilePermission fp ){
         
-        final AppContext ctxt = ar.getContext();
-        
-        final String file = fp.getName();
         final String action = fp.getActions();
+
+        if ( action.contains( "execute" ) ){
+            throw new NotAllowed( "not allowed to exec" , fp );
+        }
+
+        final String file = fp.getName();
         final boolean read = action.equals( "read" );
-       
-        if ( _file.allowed( ctxt , file , read ) )
+        
+        if ( _file.allowed( context , file , read ) )
             return;
        
-        final StackTraceElement topUser = ed.security.Security.getTopUserStackElement();
-              
-        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + topUser + "] in site [" + ctxt + "]" + fp , fp );
-        e.fillInStackTrace();
-        _logger.error( "invalid access [" + fp + "]" , e );
-        throw e;
+        throw new NotAllowed( "not allowed to access [" + file + "] from [" + Security.getTopDynamicStackFrame() + "] in site [" + context + "]" + fp , fp );
     }
 
     StackTraceElement getCallingElement(){
@@ -159,6 +157,37 @@ public final class AppSecurityManager extends SecurityManager {
 
         return null;
     }
+
+    // --- lower level ---
+    
+    public void checkExec( String cmd ){
+        rejectIfNotTrusted( "can't exec [" + cmd + "]" );
+    }
+
+    public void checkExit( int status ){
+        rejectIfNotTrusted( "can't exit the JVM"  );
+    }
+    
+    public void checkPrintJobAccess(){
+        rejectIfNotTrusted( "you can't print silly" );
+    }
+
+    public void checkSystemClipboardAccess(){
+        rejectIfNotTrusted( "can't use system clipboard" );
+    }
+
+    public void checkAccept(String host, int port){
+        rejectIfNotTrusted( "acn't access " + host + ":" + port );
+    }
+    
+    void rejectIfNotTrusted( String msg ){
+        if ( AppContext.findThreadLocal() == null || 
+             Security.inTrustedCode() )        
+            return;
+        throw new NotAllowed( msg , null );
+    }
+
+    // -------------------
     
     final Logger _logger;
     final FileSecurity _file;

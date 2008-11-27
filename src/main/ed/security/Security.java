@@ -85,7 +85,7 @@ public class Security {
         StackTraceElement e = getTopDynamicStackFrame();
         if ( e == null )
             return null;
-        return e.getFileName();
+        return e.getClassName();
     }
 
     public static StackTraceElement getTopDynamicStackFrame(){
@@ -93,38 +93,35 @@ public class Security {
         StackTraceHolder holder = StackTraceHolder.getInstance();
 
         for ( int i=0; i<st.length; i++ ){
-            StackTraceElement e = st[i];
-            StackTraceElement n = holder.fix( e );
-            // if n == null, this was removed, which means this was internal.
-            // if n is different, e was replaced, which means e was dynamic code
-            // that someone knew how to handle.
-            if ( n == null || n == e ) continue;
-
-            return n;
-        }
-
-        return null;
-    }
-
-    public static StackTraceElement getTopUserStackElement(){
-        StackTraceElement[] st = Thread.currentThread().getStackTrace();
-        
-        for ( int i=0; i<st.length; i++ ){
-            StackTraceElement e = st[i];
-
-            final String name = e.getClassName();
-
-            if ( name.startsWith( Convert.DEFAULT_PACKAGE + "." ) )
-                return e;
             
-            if ( name.startsWith( "ed." ) || name.startsWith( "java." ) )
+            final StackTraceElement cur = st[i];
+            final String name = cur.getClassName();
+            
+            if ( _standardJavaClass( name ) )
                 continue;
             
-            return e;
+            {
+                // if fixed == null, this was removed, which means this was internal.
+                // if fixed is different, e was replaced, which means e was dynamic code
+                // that someone knew how to handle.
+                
+                final StackTraceElement fixed = holder.fix( cur );
+                if ( fixed != null && fixed != cur )
+                    return fixed;
+            }
+
+            if ( _dynamicClasses.contains( name ) )
+                return cur;
+
+            if ( name.startsWith( Convert.DEFAULT_PACKAGE + "." ) )
+                return cur;
+            
+            if ( name.startsWith( "ed." ) )
+                continue;
+                    
         }
 
         return null;
-        
     }
 
     public static boolean canAccessClass( final String c ){
@@ -141,11 +138,9 @@ public class Security {
     public static boolean nonSecureCanAccessClass( Class c ){
         return nonSecureCanAccessClass( c.getName() );
     }
-
+    
     public static boolean nonSecureCanAccessClass( final String c ){
-        if ( c.startsWith( "com.sun." ) 
-             || c.startsWith( "javax." )
-             || c.startsWith( "java." ) )
+        if ( _standardJavaClass( c ) )
             return true;
 
         if ( c.startsWith( "ed.js." ) && c.indexOf( "." , 7 ) < 0 )
@@ -153,4 +148,20 @@ public class Security {
         
         return false;
     }
+    
+    private static boolean _standardJavaClass( final String c ){
+        return 
+            c.startsWith( "com.sun." ) ||
+            c.startsWith( "sun." ) ||
+            c.startsWith( "javax." ) ||
+            c.startsWith( "java." );
+    }
+
+    /**
+     * need to be very careful with this
+     */
+    static void addDynamicClass( String c ){
+        _dynamicClasses.add( c );
+    }
+    static Set<String> _dynamicClasses = Collections.synchronizedSet( new HashSet<String>() );
 }
