@@ -1335,8 +1335,13 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             }
         };
     }
-
+    
     public static AppContext findThreadLocal() {
+        
+        AppContext context = _tl.get();
+        if ( context != null )
+            return context;
+
         AppRequest req = AppRequest.getThreadLocal();
         if (req != null)
             return req._context;
@@ -1349,6 +1354,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         }
 
         return null;
+    }
+    
+    public void makeThreadLocal(){
+        _tl.set( this );
+    }
+
+    public static void clearThreadLocal(){
+        _tl.set( null );
     }
 
     public String getInitParameter(String name) {
@@ -1568,8 +1581,9 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     static {
         _libraryLogger.setLevel(Level.INFO);
     }
-
+    
     private static final Set<String> _knownInitScopeThings = new HashSet<String>();
+    private static final ThreadLocal<AppContext> _tl = new ThreadLocal<AppContext>();
 
     static {
         _knownInitScopeThings.add("mapUrlToJxpFileCore");
