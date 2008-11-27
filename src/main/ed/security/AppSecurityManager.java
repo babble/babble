@@ -19,6 +19,7 @@
 package ed.security;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 import java.security.*;
 
@@ -54,18 +55,67 @@ public final class AppSecurityManager extends SecurityManager {
             return;
         }
 
-        if ( perm instanceof FilePermission )
+        final StackTraceElement topUser = Security.getTopUserStackElement();
+        if ( topUser == null ){
+            // this means we're in system code
+            return;
+        }
+
+        if ( perm instanceof FilePermission ){
             checkFilePermission( (FilePermission)perm );
+        }
+        else if ( perm instanceof SocketPermission ){
+            checkSocketPermission( (SocketPermission)perm );
+        }
         else {
             if ( ! _seenPermissions.contains( perm.getClass() ) ){
                 _seenPermissions.add( perm.getClass() );
-                _logger.getChild( "unknown-perm" ).info( perm.getClass().toString() );
+                _logger.getChild( "unknown-perm" ).info( perm.getClass().toString() + " : " + perm );
             }
         }
     }
-
+    
     public void checkPermission(Permission perm, Object context){}
 
+    final void checkSocketPermission( SocketPermission perm ){
+        
+        final String action = perm.getActions();
+        if ( action.contains( "listen" ) )
+            throw new NotAllowed( "can't listen to a socket : " + perm , perm );
+
+
+        if ( action.contains( "connect" ) ){
+            final String name = perm.getName();
+            final int idx = name.indexOf( ":" );
+            if ( idx < 0 )
+                throw new RuntimeException( "got a name of a SocketPermission that i don't get [" + name + "]" );
+            
+            final String host = name.substring( 0 , idx );
+            final int port = Integer.parseInt( name.substring( idx + 1 ) );
+            
+            checkConnect( host , port , perm );
+            return;
+        }
+        
+    }
+
+    final void checkConnect( String host , int port , SocketPermission perm ){
+
+        // all connections are safe except db for now
+
+        if ( port < 27000 || port > 28000 ){
+            // db port and range around it
+            return;
+        }
+
+        // db connetions have to come from ed.db
+        
+        StackTraceElement calling = getCallingElement();
+        if ( calling.getClassName().startsWith( "ed.db" ) )
+            return;
+
+        throw new NotAllowed( "can't open connection to " + host + ":" + port + " from : " + calling , perm );
+    }
     
     final void checkFilePermission( FilePermission fp ){
         final AppRequest ar = AppRequest.getThreadLocal();
@@ -87,6 +137,27 @@ public final class AppSecurityManager extends SecurityManager {
         e.fillInStackTrace();
         _logger.error( "invalid access [" + fp + "]" , e );
         throw e;
+    }
+
+    StackTraceElement getCallingElement(){
+        StackTraceElement[] st = Thread.currentThread().getStackTrace();
+        
+        for ( int i=0; i<st.length; i++ ){
+            StackTraceElement e = st[i];
+            
+            final String name = e.getClassName();
+            if ( name.startsWith( "java.lang." ) || 
+                 name.startsWith( "sun." ) )
+                continue;
+
+            if ( name.equals( "ed.security.AppSecurityManager" ) )
+                continue;
+
+            
+            return e;
+        }
+
+        return null;
     }
     
     final Logger _logger;

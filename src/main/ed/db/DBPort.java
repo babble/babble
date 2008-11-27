@@ -18,7 +18,7 @@ public class DBPort {
     static final long CONN_RETRY_TIME_MS = 15000;
     
 
-    DBPort( InetSocketAddress addr )
+    public DBPort( InetSocketAddress addr )
         throws IOException {
         this( addr , null );
     }
@@ -99,6 +99,15 @@ public class DBPort {
         buf.limit( buf.capacity() );
     }
     
+    public void ensureOpen()
+        throws IOException {
+
+        if ( _sock != null )
+            return;
+        
+        _open();
+    }
+
     void _open()
         throws IOException {
         
