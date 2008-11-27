@@ -59,7 +59,7 @@ public final class AppSecurityManager extends SecurityManager {
             return;
         
         if ( perm instanceof FilePermission ){
-            checkFilePermission( (FilePermission)perm );
+            checkFilePermission( context , (FilePermission)perm );
         }
         else if ( perm instanceof SocketPermission ){
             checkSocketPermission( (SocketPermission)perm );
@@ -120,24 +120,21 @@ public final class AppSecurityManager extends SecurityManager {
         throw new NotAllowed( "can't open connection to " + host + ":" + port + " from : " + calling , perm );
     }
     
-    final void checkFilePermission( FilePermission fp ){
-        final AppRequest ar = AppRequest.getThreadLocal();
-        if ( ar == null )
-            return;
+    final void checkFilePermission( AppContext context , FilePermission fp ){
         
-        final AppContext ctxt = ar.getContext();
-        
-        final String file = fp.getName();
         final String action = fp.getActions();
+
+        if ( action.contains( "execute" ) ){
+            throw new NotAllowed( "not allowed to exec" , fp );
+        }
+
+        final String file = fp.getName();
         final boolean read = action.equals( "read" );
-       
-        if ( _file.allowed( ctxt , file , read ) )
+        
+        if ( _file.allowed( context , file , read ) )
             return;
        
-        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + Security.getTopDynamicStackFrame() + "] in site [" + ctxt + "]" + fp , fp );
-        e.fillInStackTrace();
-        _logger.error( "invalid access [" + fp + "]" , e );
-        throw e;
+        throw new NotAllowed( "not allowed to access [" + file + "] from [" + Security.getTopDynamicStackFrame() + "] in site [" + context + "]" + fp , fp );
     }
 
     StackTraceElement getCallingElement(){
@@ -160,6 +157,16 @@ public final class AppSecurityManager extends SecurityManager {
 
         return null;
     }
+
+    // --- lower level ---
+
+    public void checkExec( String cmd ){
+        if ( AppContext.findThreadLocal() != null && ! Security.inTrustedCode() )
+            throw new NotAllowed( "can't exec [" + cmd + "]" , new FilePermission( cmd , "execute" ) );
+    }
+
+
+    // -------------------
     
     final Logger _logger;
     final FileSecurity _file;

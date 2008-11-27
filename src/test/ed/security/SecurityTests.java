@@ -120,6 +120,15 @@ public class SecurityTests extends TestCase {
         }
     }
     
+    public void testExec()
+        throws IOException {
+        try {
+            Runtime.getRuntime().exec( "ls" );
+            assert( false );
+        }
+        catch ( AccessControlException ace ){}
+    }
+    
     final AppContext _context;
 
     public static void main( String args[] ){
