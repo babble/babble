@@ -110,7 +110,10 @@ public class TestCase extends MyAsserts {
         _tests.addAll( tc._tests );
     }
 
-    public void runConsole(){
+    /**
+     * @return true if everything succeeds
+     */
+    public boolean runConsole(){
         List<Result> errors = new ArrayList<Result>();
         List<Result> fails = new ArrayList<Result>();
 
@@ -140,7 +143,7 @@ public class TestCase extends MyAsserts {
         System.out.println( "% Pass : " + ( ((double)pass*100) / _tests.size() ) );
         if ( pass == _tests.size() ){
             System.out.println( "SUCCESS" );
-            return;
+            return true;
         }
         
         System.err.println( "Num Pass : " + ( _tests.size() - ( errors.size() + fails.size() ) ) );
@@ -151,12 +154,13 @@ public class TestCase extends MyAsserts {
         System.err.println( "ERRORS" );
         for ( Result r : errors )
             System.err.println( r );
-
+        
         System.err.println( "---------" );
         System.err.println( "FAILS" );
         for ( Result r : fails )
             System.err.println( r );
         
+        return false;
     }
 
     public String toString(){
