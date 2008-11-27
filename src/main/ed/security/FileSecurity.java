@@ -63,10 +63,16 @@ class FileSecurity {
         else if ( _os.isLinux() ){
             okRead.add( "/usr/" );
         }
+        
+        {   // add the java home read only
+            final String javaHome = System.getProperty( "java.home" );
+            int idx = javaHome.lastIndexOf( File.separator );
+            okRead.add( javaHome.substring( 0 , idx ) );
+        }
 
         System.out.println( "okRead : " + okRead );
         System.out.println( "okWrite : " + okWrite );
-
+        
         _okRead = new String[okRead.size()];
         okRead.toArray( _okRead );
 
