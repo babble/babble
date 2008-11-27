@@ -128,6 +128,11 @@ public class SecurityTests extends TestCase {
         }
         catch ( AccessControlException ace ){}
     }
+
+    public void testEmptyPerm(){
+        AppSecurityManager.NotAllowed na = new AppSecurityManager.NotAllowed( "blah" , null );
+        na.fillInStackTrace();
+    }
     
     final AppContext _context;
 

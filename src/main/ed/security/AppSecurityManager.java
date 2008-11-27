@@ -165,6 +165,9 @@ public final class AppSecurityManager extends SecurityManager {
             throw new NotAllowed( "can't exec [" + cmd + "]" , new FilePermission( cmd , "execute" ) );
     }
 
+    public void checkPrintJobAccess(){
+        throw new NotAllowed( "you can't print silly" , null );
+    }
 
     // -------------------
     
