@@ -129,6 +129,17 @@ public class SecurityTests extends TestCase {
         catch ( AccessControlException ace ){}
     }
 
+    public void checkConnect( String host , int port ){
+        SocketPermission sp = null;
+        checkConnect( host , port , sp );
+    }
+
+    public void checkConnect( String host , int port , Object context ){
+        SocketPermission sp = null;
+        checkConnect( host , port , sp );
+    }
+
+
     public void testEmptyPerm(){
         AppSecurityManager.NotAllowed na = new AppSecurityManager.NotAllowed( "blah" , null );
         na.fillInStackTrace();

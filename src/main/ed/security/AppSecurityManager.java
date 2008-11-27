@@ -159,14 +159,32 @@ public final class AppSecurityManager extends SecurityManager {
     }
 
     // --- lower level ---
-
+    
     public void checkExec( String cmd ){
-        if ( AppContext.findThreadLocal() != null && ! Security.inTrustedCode() )
-            throw new NotAllowed( "can't exec [" + cmd + "]" , new FilePermission( cmd , "execute" ) );
+        rejectIfNotTrusted( "can't exec [" + cmd + "]" );
     }
 
+    public void checkExit( int status ){
+        rejectIfNotTrusted( "can't exit the JVM"  );
+    }
+    
     public void checkPrintJobAccess(){
-        throw new NotAllowed( "you can't print silly" , null );
+        rejectIfNotTrusted( "you can't print silly" );
+    }
+
+    public void checkSystemClipboardAccess(){
+        rejectIfNotTrusted( "can't use system clipboard" );
+    }
+
+    public void checkAccept(String host, int port){
+        rejectIfNotTrusted( "acn't access " + host + ":" + port );
+    }
+    
+    void rejectIfNotTrusted( String msg ){
+        if ( AppContext.findThreadLocal() == null || 
+             Security.inTrustedCode() )        
+            return;
+        throw new NotAllowed( msg , null );
     }
 
     // -------------------
