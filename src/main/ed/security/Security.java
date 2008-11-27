@@ -127,6 +127,13 @@ public class Security {
         
     }
 
+    public static boolean canAccessClass( final String c ){
+        if ( inTrustedCode() )
+            return true;
+        
+        return nonSecureCanAccessClass( c );
+    }
+
     public static boolean nonSecureCanAccess( Class c ){
         return nonSecureCanAccessClass( c.getName() );
     }

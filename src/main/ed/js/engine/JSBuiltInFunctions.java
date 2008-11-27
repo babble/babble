@@ -282,8 +282,8 @@ public class JSBuiltInFunctions {
 
             String clazzName = clazzNameJS.toString();
 
-            if ( ! Security.inTrustedCode() )
-                throw new JSException( "you can't do create a :" + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
+            if ( ! Security.canAccessClass( clazzName ) )
+                throw new JSException( "you can create a " + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
 
             Class clazz = null;
             try {
@@ -324,8 +324,8 @@ public class JSBuiltInFunctions {
 
             String clazzName = clazzNameJS.toString();
 
-            if ( ! Security.inTrustedCode() )
-                throw new JSException( "you can't use a :" + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
+            if ( ! Security.canAccessClass( clazzName ) )
+                throw new JSException( "you can't access a " + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
 
             Class clazz = null;
             try {
