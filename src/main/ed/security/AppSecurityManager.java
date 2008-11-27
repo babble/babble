@@ -47,7 +47,7 @@ public final class AppSecurityManager extends SecurityManager {
     public void checkPermission(Permission perm) {
         if ( ! READY || perm == null )
             return;
-        
+
         final AppContext context = AppContext.findThreadLocal();
         if ( context == null ){
             // this means we have to be in core server code
@@ -57,12 +57,18 @@ public final class AppSecurityManager extends SecurityManager {
 
         if ( Security.inTrustedCode() )
             return;
-
+        
         if ( perm instanceof FilePermission ){
             checkFilePermission( (FilePermission)perm );
         }
         else if ( perm instanceof SocketPermission ){
             checkSocketPermission( (SocketPermission)perm );
+        }
+        else if ( perm instanceof javax.security.auth.kerberos.ServicePermission || 
+                  perm instanceof javax.security.auth.PrivateCredentialPermission ){
+            // these are things that are kind of irrelevant for our security
+            // they're totally safe as far as i can tell
+            // so just allowing them all for completeness
         }
         else {
             if ( ! _seenPermissions.contains( perm.getClass() ) ){
