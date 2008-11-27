@@ -129,17 +129,6 @@ public class SecurityTests extends TestCase {
         catch ( AccessControlException ace ){}
     }
 
-    public void checkConnect( String host , int port ){
-        SocketPermission sp = null;
-        checkConnect( host , port , sp );
-    }
-
-    public void checkConnect( String host , int port , Object context ){
-        SocketPermission sp = null;
-        checkConnect( host , port , sp );
-    }
-
-
     public void testEmptyPerm(){
         AppSecurityManager.NotAllowed na = new AppSecurityManager.NotAllowed( "blah" , null );
         na.fillInStackTrace();
@@ -148,7 +137,8 @@ public class SecurityTests extends TestCase {
     final AppContext _context;
 
     public static void main( String args[] ){
-        (new SecurityTests()).runConsole();
+        if ( ! (new SecurityTests()).runConsole() )
+            throw new RuntimeException( "broken" );
     }
     
 }
