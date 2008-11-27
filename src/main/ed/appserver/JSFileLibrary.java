@@ -614,7 +614,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public static JSFileLibrary findPath(){
-        String topjs = Security.getTopJS();
+        String topjs = Security.getTopDynamicClassName();
         if ( topjs == null )
             return null;
 

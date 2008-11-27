@@ -1035,7 +1035,7 @@ public class Scope implements JSObject , Bindings {
     }
 
     public void setRoot( String dir ){
-	if ( ! ed.security.Security.isCoreJS() )
+	if ( ! Security.inTrustedCode() )
 	    throw new RuntimeException( "you can't set scope root" );
 	_root = new File( dir );
     }

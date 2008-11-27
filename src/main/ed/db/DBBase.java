@@ -127,7 +127,7 @@ public abstract class DBBase extends JSObjectLame implements Sizable {
     }
 
     public boolean allowedToAccess( String other ){
-        if ( Security.isCoreJS() )
+        if ( Security.inTrustedCode() )
             return true;
 
         // if you're running not in production, you can do whatever you want
