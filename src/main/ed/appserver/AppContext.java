@@ -782,6 +782,10 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     public String getRoot() {
         return _root;
     }
+    
+    public File getRootFile(){
+        return _rootFile;
+    }
 
     /**
      * Creates an new request for the app server from an HTTP request.
