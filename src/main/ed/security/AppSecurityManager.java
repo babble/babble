@@ -189,11 +189,39 @@ public final class AppSecurityManager extends SecurityManager {
         checkConnect( host , port , sp );
     }
     
+    public void checkRead(String file){
+        AppContext context = _appContext();
+        if ( context == null )
+            return;
+        
+        if ( _file.allowed( context , file , true ) )
+            return;
+
+        throw new NotAllowed( "can't read [" + file + "]" );
+    }
+    
+    public void checkWrite(String file){
+        AppContext context = _appContext();
+        if ( context == null )
+            return;
+        
+        if ( _file.allowed( context , file , false ) )
+            return;
+
+        throw new NotAllowed( "can't write [" + file + "]" );
+    }
+    
     void rejectIfNotTrusted( String msg ){
         if ( AppContext.findThreadLocal() == null || 
              Security.inTrustedCode() )        
             return;
         throw new NotAllowed( msg , null );
+    }
+
+    AppContext _appContext(){
+        if ( Security.inTrustedCode() )
+            return null;
+        return AppContext.findThreadLocal();
     }
 
     // -------------------
@@ -202,8 +230,13 @@ public final class AppSecurityManager extends SecurityManager {
     final FileSecurity _file;
 
     final Set<Class> _seenPermissions = new HashSet<Class>();
-
+    
     static class NotAllowed extends AccessControlException implements StackTraceHolder.NoFix {
+
+        NotAllowed( String msg ){
+            super( msg , null );
+        }
+        
         NotAllowed( String msg , Permission p ){
             super( msg , p );
         }

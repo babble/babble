@@ -88,6 +88,12 @@ class FileSecurity {
     }
 
     final boolean allowed( AppContext ctxt , String file , boolean read ){
+        if ( ctxt == null ){
+            ctxt = AppContext.findThreadLocal();
+            if ( ctxt == null )
+                return true;
+        }
+        
         final String ctxtRoot = ctxt.getRoot();
         
         if ( read )
