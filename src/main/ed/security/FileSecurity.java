@@ -87,9 +87,17 @@ class FileSecurity {
             _publicClasses[i] = Convert.cleanName( _publicDirs[i] );
     }
 
+    final boolean canRead( String file ){
+        return allowed( null , file , true );
+    }
+
+    final boolean canWrite( String file ){
+        return allowed( null , file , false );
+    }
+
     final boolean allowed( AppContext ctxt , String file , boolean read ){
         if ( ctxt == null ){
-            ctxt = AppContext.findThreadLocal();
+            ctxt = AppSecurityManager._appContext();
             if ( ctxt == null )
                 return true;
         }
