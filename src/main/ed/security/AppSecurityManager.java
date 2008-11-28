@@ -218,7 +218,7 @@ public final class AppSecurityManager extends SecurityManager {
         throw new NotAllowed( msg , null );
     }
 
-    AppContext _appContext(){
+    static AppContext _appContext(){
         if ( Security.inTrustedCode() )
             return null;
         return AppContext.findThreadLocal();

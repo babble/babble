@@ -65,6 +65,12 @@ public class Security {
         Config.get().getProperty("ED_HOME", "/data/ed") + "/include/jython/Lib",
         "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
     };
+    
+    static {
+        for ( int i=0; i<SECURE.length; i++ ){
+            SECURE[i] = SECURE[i].replace( '/' , File.separatorChar );
+        }
+    }
 
     public static boolean inTrustedCode(){
         if ( OFF )
