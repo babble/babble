@@ -21,6 +21,7 @@ package ed.net.lb;
 import java.io.*;
 import java.util.*;
 
+import ed.net.httpclient.*;
 import ed.util.*;
 
 public class LogReplayer {
@@ -30,9 +31,11 @@ public class LogReplayer {
         _server = server;
         _lines = LogLine.parse( log );
         _speedMultiplier = speedMultiplier;
+        _client = new AsyncClient();
     }
     
-    public void go(){
+    public void go()
+        throws IOException {
 
         Date last = null;
         
@@ -55,8 +58,10 @@ public class LogReplayer {
             
             go( ll );
             last = now;
-        }
 
+            clean();
+        }
+        
         waitTillDone();
     }
     
@@ -77,24 +82,47 @@ public class LogReplayer {
         }
 
         StringBuilder buf = new StringBuilder();
-        buf.append( "GET " ).append( url ).append( " HTTP/1.0\n" );
-        buf.append( "Host: " ).append( host ).append( "\n" );
-
         if ( ll._userAgent != null )
             buf.append( "User-Agent:" ).append( ll._userAgent ).append( "\n" );
         if ( ll._cookie != null )
             buf.append( "Cookie:" ).append( ll._cookie ).append( "\n" );
-
-        System.out.println( ll._url + "\n" + buf );
+        
+        _responses.add( _client.send( _server , "GET" , url , host , buf.toString() ) );
     }
     
-    void waitTillDone(){
+    void clean(){
+        
+        for ( Iterator<AsyncClient.DelayedHttpResponse> i = _responses.iterator(); i.hasNext(); ){
+            
+            AsyncClient.DelayedHttpResponse res = i.next();
 
+            if ( res.isDone() ){
+                
+                if ( res.getError() == null )
+                    System.out.print( "." );
+                else 
+                    System.out.print( "x" );
+
+                i.remove();
+            }
+        }
     }
-
+    
+    void waitTillDone()
+        throws IOException {
+        for ( AsyncClient.DelayedHttpResponse r : _responses ){
+            r.finish();
+            System.out.print( "." );
+        }
+    }
+    
     final Iterable<LogLine> _lines;
     final String _server;
     final int _speedMultiplier;
+
+    List<AsyncClient.DelayedHttpResponse> _responses = new ArrayList<AsyncClient.DelayedHttpResponse>();
+    
+    final AsyncClient _client;
     
     public static void main( String args[] )
         throws IOException {

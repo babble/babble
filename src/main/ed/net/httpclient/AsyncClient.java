@@ -165,8 +165,9 @@ public class AsyncClient extends NIOClient {
         public boolean isDone(){
             return _done;
         }
-
-        public void finish(){
+        
+        public void finish()
+            throws IOException {
             final Thread t = Thread.currentThread();
             
             try {
@@ -178,6 +179,21 @@ public class AsyncClient extends NIOClient {
             finally {
                 _waiters.remove( t );
             }
+            
+            if ( _error == null )
+                return;
+
+            if ( _error instanceof IOException )
+                throw (IOException)_error;
+
+            if ( _error instanceof RuntimeException )
+                throw (RuntimeException)_error;
+            
+            throw new RuntimeException( "error in client" , _error );
+        }
+
+        public Exception getError(){
+            return _error;
         }
         
         boolean hasAllData(){
@@ -186,11 +202,12 @@ public class AsyncClient extends NIOClient {
                 return false;
             
             if ( DEBUG ) System.out.println( "cl:" + cl + " pos:" + _data.position() );
-
+            
             return _data.position() >= Integer.parseInt( cl );
         }
         
         void gotError( Exception e ){
+            e.printStackTrace();
             _error = e;
             done();
         }
