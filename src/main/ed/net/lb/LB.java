@@ -215,17 +215,17 @@ public class LB extends NIOClient {
             HttpEvent e = (HttpEvent)old;
             LBCall rr = e._rr;
             
-            _buf.append( "[" ).append( e.getDate().format( _format ) ).append( "] " );
-            _buf.append( rr._request.getRemoteIP() );
-            _buf.append( " retry:" ).append( rr._numFails );
-            _buf.append( " went:" ).append( rr.lastWent() );
-            _buf.append( " " ).append( rr._response.getResponseCode() );
-            _buf.append( " " ).append( rr._request.getMethod() );
-            _buf.append( " \"" ).append( rr._request.getFullURL() ).append( "\"" );
-            _buf.append( " " ).append( rr._response.handleTime() );
-            _buf.append( " \"" ).append( rr._request.getHeader( "User-Agent" ) ).append( "\"" );
-            _buf.append( " \"" ).append( rr._request.getHeader( "Referer" ) ).append( "\"" );
-            _buf.append( " \"" ).append( rr._request.getHeader( "Cookie" ) ).append( "\"" );
+            _buf.append( "[" ).append( e.getDate().format( _dateFormat ) ).append( "] " ); // 1
+            _buf.append( rr._request.getRemoteIP() ); // 2 
+            _buf.append( " retry:" ).append( rr._numFails ); // 3
+            _buf.append( " went:" ).append( rr.lastWent() ); // 4
+            _buf.append( " " ).append( rr._response.getResponseCode() ); // 5
+            _buf.append( " " ).append( rr._request.getMethod() ); // 6
+            _buf.append( " \"" ).append( rr._request.getFullURL() ).append( "\"" ); // 7
+            _buf.append( " " ).append( rr._response.handleTime() ); // 8 
+            _buf.append( " \"" ).append( rr._request.getHeader( "User-Agent" ) ).append( "\"" ); // 9
+            _buf.append( " \"" ).append( rr._request.getHeader( "Referer" ) ).append( "\"" ); // 10 
+            _buf.append( " \"" ).append( rr._request.getHeader( "Cookie" ) ).append( "\"" ); // 11
             _buf.append( "\n" );
 
             String s = _buf.toString();
@@ -238,7 +238,6 @@ public class LB extends NIOClient {
         
         final int _bufSize = 1024;
         StringBuilder _buf = new StringBuilder( _bufSize );
-        final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
     }
     
     class HttpEvent extends Event {
@@ -260,6 +259,9 @@ public class LB extends NIOClient {
     final AsyncAppender _httpLog;
     
     final CircularList<LBCall> _lastCalls = new CircularList<LBCall>( 1000 , true );
+
+    static final SimpleDateFormat _dateFormat = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
+
 
     public static void main( String args[] )
         throws Exception {
