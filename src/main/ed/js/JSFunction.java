@@ -357,17 +357,17 @@ public abstract class JSFunction extends JSFunctionBase {
         };
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         long size = super.approxSize( seen );
         size += 1024; // for sub-type overhead
 
-        if ( _prototype != null && ! seen.contains( _prototype ) )
+        if ( seen.shouldVisit( _prototype , this ) )
             size += _prototype.approxSize( seen );
         
-        if ( _callCache != null )
+        if ( seen.shouldVisit( _callCache , this ) )
             size += _callCache.approxSize( seen );
 	
-	if ( _scope != null )
+	if ( seen.shouldVisit( _scope , this ) )
 	    size += _scope.approxSize( seen );
 
         return size;

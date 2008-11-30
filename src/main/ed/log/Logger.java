@@ -24,6 +24,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.util.*;
 
 public class Logger extends JSFunctionCalls2 {
 
@@ -391,13 +392,12 @@ public class Logger extends JSFunctionCalls2 {
         return e;
     }
 
-    public long approxSize( ed.util.IdentitySet seen ){
-
-        seen.add( this );
+    public long approxSize( SeenPath seen ){
+        seen.visited( this );
 
         long size = super.approxSize( seen );
-        size += JSObjectSize.size( _appenders , seen );
-        size += JSObjectSize.size( _levelLoggers , seen );
+        size += JSObjectSize.size( _appenders , seen , this );
+        size += JSObjectSize.size( _levelLoggers , seen , this );
 
         return size;
     }

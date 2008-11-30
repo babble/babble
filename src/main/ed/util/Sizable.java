@@ -19,5 +19,10 @@
 package ed.util;
 
 public interface Sizable {
-    public long approxSize( IdentitySet seen );
+
+    /**
+     * implemenations of this should NOT check to see if they are alredy in seen
+     * i.e. you should never have if ( seen.contains( this ) ) return 0;
+     */
+    public long approxSize( SeenPath seen );
 }

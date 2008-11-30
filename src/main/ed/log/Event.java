@@ -56,14 +56,14 @@ public class Event implements Sizable {
         return _threadName;
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return 
-            JSObjectSize.size( _loggerName , seen ) + 
-            JSObjectSize.size( _date , seen ) + 
-            JSObjectSize.size( _level , seen ) + 
-            JSObjectSize.size( _msg , seen ) + 
-            JSObjectSize.size( _throwable , seen ) + 
-            JSObjectSize.size( _threadName , seen );
+            JSObjectSize.size( _loggerName , seen , this ) + 
+            JSObjectSize.size( _date , seen , this ) + 
+            JSObjectSize.size( _level , seen , this ) + 
+            JSObjectSize.size( _msg , seen , this ) + 
+            JSObjectSize.size( _throwable , seen , this ) + 
+            JSObjectSize.size( _threadName , seen , this );
     }
     
     final String _loggerName;

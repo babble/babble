@@ -66,7 +66,7 @@ public class JSCaptcha implements Sizable {
         return out.toByteArray();
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return 1024;
     }
 

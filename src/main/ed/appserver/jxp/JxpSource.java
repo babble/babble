@@ -208,7 +208,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         return _context;
     }
     
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         if ( _func == null )
             return 0;
         return _func.approxSize( seen );

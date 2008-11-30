@@ -40,7 +40,7 @@ public class InMemoryAppender implements Appender , Sizable {
         return _list;
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         long size = 0;
         for ( int i=0; i<_list.size(); i++ )
             size += _list.get( i ).approxSize( seen );

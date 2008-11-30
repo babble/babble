@@ -1092,45 +1092,34 @@ public class JSObjectBase implements JSObject {
     }
 
     public long approxSize(){
-        return approxSize( new IdentitySet() );
+        return approxSize( new SeenPath() );
     }
     
     /** Returns the size of this object (approximately) in bytes.
      * @return The approximate size of this object.
      */
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         long size = JSObjectSize.OBJ_OVERHEAD + 128;
 
-        size += JSObjectSize.size( _name , seen );
-        size += JSObjectSize.size( _keys , seen );
-        size += JSObjectSize.size( _dontDeleteKeys , seen );
-        size += JSObjectSize.size( _readOnlyKeys , seen );
-        size += JSObjectSize.size( _dontEnum , seen );
-        size += JSObjectSize.size( _dependencies , seen );
+        size += JSObjectSize.size( _name , seen , this );
+        size += JSObjectSize.size( _keys , seen , this );
+        size += JSObjectSize.size( _dontDeleteKeys , seen , this );
+        size += JSObjectSize.size( _readOnlyKeys , seen , this );
+        size += JSObjectSize.size( _dontEnum , seen , this );
+        size += JSObjectSize.size( _dependencies , seen , this );
 
-        if ( _map != null )
+        if ( seen.shouldVisit( _map , this ) )
             size += _map.approxSize( seen );
 
         // TODO _setterAndGetters
 
-        if ( _constructor != null && ! seen.contains( _constructor ) ){
-            seen.add( _constructor );
+        if ( seen.shouldVisit( _constructor , this ) )
             size += _constructor.approxSize( seen );
-        }
 
-        if ( __proto__ != null && ! seen.contains( __proto__ ) ){
-            seen.add( __proto__ );
-            size += JSObjectSize.size( __proto__ , seen );
-        }
+        size += JSObjectSize.size( __proto__ , seen , this );
 
-        for ( int i=0; i<_placesToLook.length; i++ ){
-            if ( _placesToLook[i] == null )
-                continue;
-            if ( seen.contains( _placesToLook[i] ) )
-                continue;
-            seen.add( _placesToLook[i] );
-            size += JSObjectSize.size( _placesToLook[i] , seen );
-        }
+        for ( int i=0; i<_placesToLook.length; i++ )
+            size += JSObjectSize.size( _placesToLook[i] , seen , this );
 
         return size;
     }

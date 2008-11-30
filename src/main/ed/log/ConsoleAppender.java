@@ -26,7 +26,7 @@ public class ConsoleAppender extends PrintStreamAppender implements Sizable {
         super( System.out );
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return 0;
     }
 

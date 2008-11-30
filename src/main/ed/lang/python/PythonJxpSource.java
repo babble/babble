@@ -205,13 +205,13 @@ public class PythonJxpSource extends JxpSource implements Sizable {
         return _file;
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return // super.approxSize( seen ) +
-            JSObjectSize.size( _file , seen ) +
-            JSObjectSize.size( _lib , seen ) +
-            JSObjectSize.size( _code , seen ) +
-            JSObjectSize.size( _lastCompile , seen ) +
-            JSObjectSize.size( _log , seen );
+            JSObjectSize.size( _file , seen , this ) +
+            JSObjectSize.size( _lib , seen , this ) +
+            JSObjectSize.size( _code , seen ,this ) +
+            JSObjectSize.size( _lastCompile , seen , this ) +
+            JSObjectSize.size( _log , seen , this );
     }
     // static b/c it has to use ThreadLocal anyway
     final static Logger _log = Logger.getLogger( "python" );

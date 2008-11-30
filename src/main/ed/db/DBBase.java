@@ -145,10 +145,11 @@ public abstract class DBBase extends JSObjectLame implements Sizable {
             c.resetIndexCache();
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
 	long size = 1024;
 	for ( DBCollection c : _seenCollections )
-	    size += c.approxSize( seen );
+            if ( seen.shouldVisit( c , this ) )
+                size += c.approxSize( seen );
 	return size;
     }
 

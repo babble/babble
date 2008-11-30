@@ -71,7 +71,7 @@ package ed.util;
  */
 public class Base64 implements Sizable {
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return 300;
     }
 

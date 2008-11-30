@@ -296,13 +296,12 @@ public final class FastStringMap implements Map<String,Object> {
         
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
+
         if ( seen == null )
-            seen = new IdentitySet();
-        else if ( seen.contains( this ) )
-            return 0;
+            seen = new SeenPath();
         
-        seen.contains( this );
+        seen.visited( this );
 
         long size = 48 + ( 8 * _data.length );
         for ( int i=0; i<_data.length; i++ ){
@@ -312,8 +311,8 @@ public final class FastStringMap implements Map<String,Object> {
                 continue;
             
             size += 32;
-            size += JSObjectSize.size( e._key , seen );
-            size += JSObjectSize.size( e._value , seen );
+            size += JSObjectSize.size( e._key , seen , this );
+            size += JSObjectSize.size( e._value , seen , this );
         }
 
         return size;

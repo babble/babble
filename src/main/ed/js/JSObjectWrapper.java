@@ -115,14 +115,12 @@ public class JSObjectWrapper implements JSObject , Sizable {
         return _wrap.getFunction( name );
     }
 
-    public long approxSize( ed.util.IdentitySet seen ){
-        if ( seen.contains( _wrap ) )
-            return 0;
-        
-        final long size = 16 + JSObjectSize.size( _wrap , seen );
+    public long approxSize( ed.util.SeenPath seen ){
 
-        seen.add( this );
-        seen.add( _wrap );
+        final long size = 16 + JSObjectSize.size( _wrap , seen , this );
+
+        seen.visited( this );
+        seen.shouldVisit( _wrap , this );
         
         return size;
     }
