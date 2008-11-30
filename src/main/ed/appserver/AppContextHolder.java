@@ -89,7 +89,12 @@ public class AppContextHolder {
         HttpServer.addGlobalHandler( new HttpMonitor( "appcontextholder" ){
                 
                 public void handle( MonitorRequest mr ){
+                    
+                    if ( mr.getRequest.getBoolean( "gc" , false ) )
+                        System.gc();
+
                     IdentitySet<AppContext> all = new IdentitySet<AppContext>();
+                
                     synchronized ( _contextCreationLock ){
                         all.addAll( _contextCache.values() );
                     }
