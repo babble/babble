@@ -37,8 +37,11 @@ public class SeenPath extends IdentityHashMap {
         if ( dontTraverseSpecial( toVisit ) )
             return false;
 
+        if ( isBadWeak( from ) )
+            throw new RuntimeException( "why is a weak thing the from" );
+
         if ( from == null )
-            from = UNKNOWN;
+            from = new Unknown();
         
         final Object prev = get( toVisit );
         if ( prev == null ){
@@ -46,7 +49,7 @@ public class SeenPath extends IdentityHashMap {
             return true;
         }
 
-        if ( prev == UNKNOWN ){
+        if ( prev instanceof Unknown ){
             // we want to add some pathing info, but not follow
             put( toVisit , from );
             return false;
@@ -66,7 +69,7 @@ public class SeenPath extends IdentityHashMap {
     public void visited( Object toVisit ){
         if ( containsKey( toVisit ) )
             return;
-        put( toVisit , UNKNOWN );
+        put( toVisit , new Unknown() );
     }
 
     public void removeAll( Set objects ){
@@ -84,16 +87,22 @@ public class SeenPath extends IdentityHashMap {
     
     boolean dontTraverseSpecial( Object o ){
         
-        if ( _skipWeak && 
-             ( o instanceof WeakBag || 
-               o instanceof java.lang.ref.WeakReference || 
-               o instanceof WeakHashMap ) )
-            return false;
+        if ( isBadWeak( o ) )
+            return true;
         
         for ( Set s : _specialDontTraverse )
             if ( s.contains( o ) )
                 return true;
+        
         return false;
+    }
+
+    boolean isBadWeak( Object o ){
+        return 
+            _skipWeak && 
+            ( o instanceof WeakBag || 
+              o instanceof java.lang.ref.WeakReference || 
+              o instanceof WeakHashMap );
     }
 
     public List path( final Object from , final Object to ){
@@ -110,16 +119,18 @@ public class SeenPath extends IdentityHashMap {
             if ( next == from )
                 return path;
             
-            if ( next == UNKNOWN || next == null ){
+            if ( next == null || next instanceof Unknown ){
                 String msg = "can't find path.  last piece is a : " + cur.getClass().getName();
                 msg += " path : ";
                 for ( int i=0; i<path.size(); i++ )
                     msg += " " + path.get(i).getClass().getName();
                 
-                if ( next == UNKNOWN ) 
-                    msg += " its here, just UNKNOWN";
+                Throwable t = null;
+
+                if ( next instanceof Unknown ) 
+                    t = ((Unknown)next)._where;
     
-                throw new RuntimeException( msg );
+                throw new RuntimeException( msg , t );
             }
             
             for ( int i=0; i<path.size(); i++ )
@@ -134,9 +145,17 @@ public class SeenPath extends IdentityHashMap {
     final boolean _skipWeak;
     final List<Set> _specialDontTraverse = new ArrayList<Set>();
 
-    public static final Object UNKNOWN = new Object(){
-            public String toString(){
-                return "unkown path";
-            }
-        };
+    static class Unknown {
+
+        Unknown(){
+            _where = new Throwable( "created here" );
+            _where.fillInStackTrace();
+        }
+
+        public String toString(){
+            return "unkown path";
+        }
+        
+        final Throwable _where;
+    }
 }
