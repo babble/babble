@@ -91,9 +91,6 @@ public class JSObjectSize {
 
 
         // --------- special section for WeakReferences and other special thigns
-
-        if ( o instanceof WeakBag )
-            return OBJ_OVERHEAD + ( ((WeakBag)o).size() * OBJ_OVERHEAD );
         
         if ( o instanceof WeakReference )
             return OBJ_OVERHEAD;

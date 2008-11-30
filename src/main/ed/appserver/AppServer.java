@@ -300,7 +300,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             long sizeBefore = 0;
             if ( LEAK_HUNT ){
                 LEAK_HUNT_SEMAPHORE.acquire();
-                reachableBefore = new SeenPath();
+                reachableBefore = new SeenPath( true );
                 sizeBefore = ac.approxSize( reachableBefore );
             }
 
@@ -350,7 +350,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         if ( ac._numRequests < 2 )
             return;
 
-        SeenPath now = new SeenPath();
+        SeenPath now = new SeenPath( true );
         long sizeNow = ac.approxSize( now );
         
         if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
@@ -361,17 +361,19 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         l.error( "sizeBefore: " + sizeBefore + " sizeNow: " + sizeNow  + " delta:" + ( sizeNow - sizeBefore ) );
         l.error( "obejctsBefore: " + reachableBefore.size() + " objectsNow: " + now.size() + " delta:" + ( now.size() - reachableBefore.size() ) );
         
-        now.removeAll( reachableBefore.keySet() );
-        for ( Object o : now.keySet() ){
+        IdentitySet newThings = new IdentitySet( now.keySet() );
+        newThings.removeAll( reachableBefore.keySet() );
+
+        for ( Object o : newThings ){
             if ( o == null )
                 continue;
             System.out.println( "\t" + o.getClass() );
             if ( o instanceof Scope )
                 System.out.println( "\t\t" + o );
-
-            ed.lang.ReflectionWalker.shortestPath( ac , o );
+            
+            System.out.println( "\t\t\t" + now.path( ac , o ) );
         }
-
+        
     }
     
     void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){

@@ -22,6 +22,14 @@ import java.util.*;
 
 public class IdentitySet<T> implements Iterable<T> {
 
+    public IdentitySet(){
+    }
+
+    public IdentitySet( Iterable<T> copy ){
+        for ( T t : copy )
+            add( t );
+    }
+
     public boolean add( T t ){
         return _map.put( t , "a" ) == null;
     }
@@ -60,6 +68,11 @@ public class IdentitySet<T> implements Iterable<T> {
     public void addAll( IdentitySet<T> c ){
         for ( T t : c )
             add( t );
+    }
+
+    public void removeAll( Iterable<T> prev ){
+        for ( T t : prev )
+            remove( t );
     }
 
     final IdentityHashMap<T,String> _map = new IdentityHashMap<T,String>();
