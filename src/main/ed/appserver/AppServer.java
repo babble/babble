@@ -22,6 +22,7 @@ import ed.db.JSHook;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import ed.js.*;
 import ed.js.engine.*;
@@ -40,6 +41,9 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
     private static final int DEFAULT_PORT = 8080;
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
+
+    static final boolean LEAK_HUNT = Boolean.getBoolean( "LEAK-HUNT" );
+    static final Semaphore LEAK_HUNT_SEMAPHORE = new Semaphore( 1 );
 
     /** Constructs a newly allocated AppServer object for the site <tt>defaultWebRoot</tt>.
      * @example If one is running the appserver for the site foo.10gen.com and has the directory structure
@@ -286,11 +290,26 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             JxpServlet servlet = ar.getServlet( f );
             if ( servlet == null ){
                 handle404( ar , request , response , null );
+                return;
             }
-            else {
-                servlet.handle( request , response , ar );
-                _handleEndOfServlet( request , response , ar );
+
+            final AppContext ac = ar.getContext();
+            
+            // actually have a servlet here
+            IdentitySet reachableBefore = null;
+            long sizeBefore = 0;
+            if ( LEAK_HUNT ){
+                LEAK_HUNT_SEMAPHORE.acquire();
+                reachableBefore = new IdentitySet();
+                sizeBefore = ac.approxSize( reachableBefore );
             }
+
+            servlet.handle( request , response , ar );
+            _handleEndOfServlet( request , response , ar );
+
+            if ( LEAK_HUNT )
+                _finishLeakHunt( ac , request , reachableBefore , sizeBefore );
+               
         }
         catch ( StackOverflowError internal ){
             handleError( request , response , internal , ar.getContext() );
@@ -322,9 +341,39 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
         finally {
             _currentRequests.remove( ar );
+            if ( LEAK_HUNT )
+                LEAK_HUNT_SEMAPHORE.release();
         }
     }
 
+    void _finishLeakHunt( AppContext ac , HttpRequest request , IdentitySet reachableBefore , long sizeBefore ){
+        if ( ac._numRequests < 2 )
+            return;
+
+        IdentitySet now = new IdentitySet();
+        long sizeNow = ac.approxSize( now );
+        
+        if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
+            return;
+        
+        final Logger l = ac.getLogger( "leak" ).getChild( request.getFullURL() );
+        
+        l.error( "sizeBefore: " + sizeBefore + " sizeNow: " + sizeNow  + " delta:" + ( sizeNow - sizeBefore ) );
+        l.error( "obejctsBefore: " + reachableBefore.size() + " objectsNow: " + now.size() + " delta:" + ( now.size() - reachableBefore.size() ) );
+        
+        now.removeall( reachableBefore );
+        for ( Object o : now ){
+            if ( o == null )
+                continue;
+            System.out.println( "\t" + o.getClass() );
+            if ( o instanceof Scope )
+                System.out.println( "\t\t" + o );
+
+            ed.lang.ReflectionWalker.shortestPath( ac , o );
+        }
+
+    }
+    
     void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){
 
 
