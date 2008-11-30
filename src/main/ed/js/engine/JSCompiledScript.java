@@ -113,7 +113,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         return new JSRegex( p.first , p.second );
     }
     
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         long size = super.approxSize( seen );
 
         if ( _strings != null )

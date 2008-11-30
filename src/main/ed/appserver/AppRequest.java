@@ -354,16 +354,21 @@ public class AppRequest implements Sizable {
             ar._somethingCompiled = true;
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         
         // we don't want to count stuff reaching from context here
-        seen.addAll( _context._contextReachable );
+        seen.pushSpecialDontTraverse( _context._rootContextReachable.keySet() );
         
-        long s = 0;
-        s += JSObjectSize.size( _request , seen );
-        s += JSObjectSize.size( _scope , seen );
-        s += JSObjectSize.size( _response , seen );
-        return s;
+        try {
+            long s = 0;
+            s += JSObjectSize.size( _request , seen , this );
+            s += JSObjectSize.size( _scope , seen , this );
+            s += JSObjectSize.size( _response , seen , this );
+            return s;
+        }
+        finally {
+            seen.popSpecialDontTraverse();
+        }
     }
 
     public void setAttribute( String name , Object attr ){

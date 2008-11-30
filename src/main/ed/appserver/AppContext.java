@@ -148,7 +148,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         _adminContext = _admin ? null : new AppContext(root, rootFile, name, environment, this);
 
-        _contextReachable = new IdentitySet();
+        _rootContextReachable = new SeenPath();
 
         if ( ! _admin )
             _logger.info("Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch);
@@ -1078,7 +1078,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
             if (saveTL != null)
                 saveTL.makeThreadLocal();
 
-            this.approxSize(_contextReachable);
+            this.approxSize( _rootContextReachable );
         }
     }
 
@@ -1410,28 +1410,27 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     public long approxSize() {
-        return approxSize(new IdentitySet());
+        return approxSize( new SeenPath() );
     }
 
-    public long approxSize(IdentitySet seen) {
-        if ( seen.contains( this ) )
-            return 0;
-
+    public long approxSize( SeenPath seen ){
         long size = 0;
 
-        seen.add( this );
+        seen.visited( this );
+        
+        if ( seen.shouldVisit( _scope , this ) )
+            size += _scope.approxSize( seen, false , true );
+        if ( seen.shouldVisit( _initScope , this ) )
+             size += _initScope.approxSize( seen , true , false);
 
-        size += _scope.approxSize(seen, false, true);
-        size += _initScope.approxSize(seen, true, false);
+        size += JSObjectSize.size( _localObject , seen , this );
+        size += JSObjectSize.size( _core , seen, this );
+        size += JSObjectSize.size( _external , seen, this );
 
-        size += JSObjectSize.size(_localObject, seen);
-        size += JSObjectSize.size(_core, seen);
-        size += JSObjectSize.size(_external, seen);
-
-        if (_adminContext != null)
+        if ( seen.shouldVisit( _adminContext , this ) )
             size += _adminContext.approxSize(seen);
 
-        size += JSObjectSize.size( _logger );
+        size += JSObjectSize.size( _logger , seen , this );
 
         return size;
     }
@@ -1540,7 +1539,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     private JSFileLibrary _external;
 
     final Scope _scope;
-    final IdentitySet _contextReachable;
+    final SeenPath _rootContextReachable;
     final Scope _initScope;
     final Scope _configScope = new Scope();
     final UsageTracker _usage;

@@ -81,9 +81,9 @@ public class WeakBag<T> {
         }
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         if ( seen == null )
-            seen = new IdentitySet();
+            seen = new SeenPath();
 
         long size = 32;
 
@@ -93,7 +93,7 @@ public class WeakBag<T> {
             if ( it == null )
                 continue;
             
-            size += ed.js.JSObjectSize.size( it , seen );
+            size += ed.js.JSObjectSize.size( it , seen , this );
         }
 
         return size;

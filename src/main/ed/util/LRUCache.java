@@ -128,16 +128,12 @@ public class LRUCache<K,V> {
         return _cache.size();
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         long s = 0;
         synchronized ( _cache ){
             for ( Map.Entry<K,Entry> e : _cache.entrySet() ){
-
-                if ( ! seen.contains( e.getKey() ) )
-                    s += JSObjectSize.size( e.getKey() , seen );
-
-                if ( ! seen.contains( e.getValue() ) )
-                    s += JSObjectSize.size( e.getValue() , seen );
+                s += JSObjectSize.size( e.getKey() , seen , this );
+                s += JSObjectSize.size( e.getValue() , seen , this );
             }
         }
         return s;

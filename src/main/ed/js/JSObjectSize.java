@@ -40,20 +40,20 @@ public class JSObjectSize {
      * @return The object's size, in bytes
      */
     public static long size( Object o ){
-        return size( o , null );
+        return size( o , null , null );
     }
 
     
-    public static long size( Object o , IdentitySet seen ){
+    public static long size( Object o , SeenPath seen , Object from ){
         if ( o == null )
             return 0;
 
-        final long size = _size( o , seen );
+        final long size = _size( o , seen , from );
         //System.out.println( "\t" + o.getClass() + "\t" + size );
         return size;
     }
     
-    static long _size( Object o , IdentitySet seen ){
+    private static long _size( Object o , SeenPath seen , Object from ){
         if ( o == null )
             return 0;
         
@@ -81,16 +81,15 @@ public class JSObjectSize {
             return o.toString().length() * 4;
         }
 
-        if ( o instanceof JSFileChunk ){
-            JSFileChunk chunk = (JSFileChunk)o;
-            Object data = chunk.get( "data" );
-            if ( data == null )
-                return 32;
-            
-            return OBJ_OVERHEAD + ((JSBinaryData)data).length();
-        }
         
-        
+        // -------- this is the end of the "primitive" types ------
+
+        if ( seen == null )
+            seen = new SeenPath();
+        else if ( ! seen.shouldVisit( o , from ) )
+            return 0;
+
+
         // --------- special section for WeakReferences and other special thigns
 
         if ( o instanceof WeakBag )
@@ -103,14 +102,16 @@ public class JSObjectSize {
             return OBJ_OVERHEAD + ( ((WeakHashMap)o).size() * OBJ_OVERHEAD );
         
 
-        // -------- this is the end of the "primitive" types ------
-
-        if ( seen == null )
-            seen = new IdentitySet();
-        else if ( seen.contains( o ) )
-            return 0;
+        // --------  objects we know about --------
         
-        seen.add( o );
+        if ( o instanceof JSFileChunk ){
+            JSFileChunk chunk = (JSFileChunk)o;
+            Object data = chunk.get( "data" );
+            if ( data == null )
+                return 32;
+            
+            return OBJ_OVERHEAD + ((JSBinaryData)data).length();
+        }
         
         if ( o instanceof PyObject ){
             return Python.size( (PyObject)o , seen );
@@ -143,7 +144,7 @@ public class JSObjectSize {
                 if ( seen.contains( foo ) )
                     continue;
                 
-                temp += _size( foo , seen );
+                temp += _size( foo , seen , o );
             }
             return temp;
         }
@@ -153,7 +154,7 @@ public class JSObjectSize {
             long temp = 32;
             
             for ( Map.Entry e : (Set<Map.Entry>)m.entrySet() )
-                temp += 32 + _size( e.getKey() , seen ) + _size( e.getValue() , seen );
+                temp += 32 + _size( e.getKey() , seen , o ) + _size( e.getValue() , seen , o );
 
             return temp;
         }

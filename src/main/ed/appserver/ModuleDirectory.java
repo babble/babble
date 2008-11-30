@@ -127,7 +127,7 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary , Sizable
         return new HashSet<String>();
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         // this should have no real memory
         return 200;
     }

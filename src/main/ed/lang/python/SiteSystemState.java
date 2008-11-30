@@ -669,12 +669,12 @@ public class SiteSystemState implements Sizable {
         }
     }
 
-    public long approxSize( IdentitySet seen ){
-        return JSObjectSize.size( _log , seen ) +
-            JSObjectSize.size( globals , seen ) +
-            JSObjectSize.size( pyState , seen ) +
-            JSObjectSize.size( _context , seen ) +
-            JSObjectSize.size( _scope , seen );
+    public long approxSize( SeenPath seen ){
+        return JSObjectSize.size( _log , seen , this ) +
+            JSObjectSize.size( globals , seen , this ) +
+            JSObjectSize.size( pyState , seen , this ) +
+            JSObjectSize.size( _context , seen , this ) +
+            JSObjectSize.size( _scope , seen , this );
     }
 
     final static Logger _log = Logger.getLogger( "python" );

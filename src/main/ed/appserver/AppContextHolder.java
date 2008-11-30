@@ -94,7 +94,7 @@ public class AppContextHolder {
                         all.addAll( _contextCache.values() );
                     }
                     
-                    IdentitySet seen = new IdentitySet();
+                    SeenPath seen = new SeenPath();
 		    
                     for ( AppContext ac : all ){
                         

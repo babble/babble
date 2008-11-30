@@ -51,7 +51,7 @@ public class MimeTypes implements Sizable {
         return "attachment";
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return _mimeTypes.size() * 20;
     }
 

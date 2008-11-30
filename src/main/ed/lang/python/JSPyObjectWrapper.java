@@ -361,12 +361,12 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public long approxSize(){
-        return approxSize( new IdentitySet() );
+        return approxSize( new SeenPath() );
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         long sum = super.approxSize( seen );
-        sum += JSObjectSize.size( _p , seen );
+        sum += JSObjectSize.size( _p , seen , this );
         return sum;
     }
     

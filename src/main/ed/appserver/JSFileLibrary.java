@@ -540,14 +540,14 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return _base.getName();
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         long size = super.approxSize( seen );
         size += 1024;
 
-        size += JSObjectSize.size( _mySource , seen );
-        size += JSObjectSize.size( _initFunction , seen );
-        size += JSObjectSize.size( _initSources , seen );
-        size += JSObjectSize.size( _fileCache , seen );
+        size += JSObjectSize.size( _mySource , seen , this );
+        size += JSObjectSize.size( _initFunction , seen , this );
+        size += JSObjectSize.size( _initSources , seen , this );
+        size += JSObjectSize.size( _fileCache , seen , this );
 
         return size;
     }

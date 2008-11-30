@@ -804,14 +804,10 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         return _name;
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
 	long size = 256;
-	if ( _constructor != null ){
-	    if ( ! seen.contains( _constructor ) ){
-		seen.add( _constructor );
-		size += _constructor.approxSize( seen );
-	    }
-	}
+        if ( seen.shouldVisit( _constructor , this ) )
+            size += _constructor.approxSize( seen );
 	return size;
     }
 

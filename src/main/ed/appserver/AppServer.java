@@ -296,11 +296,11 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             final AppContext ac = ar.getContext();
             
             // actually have a servlet here
-            IdentitySet reachableBefore = null;
+            SeenPath reachableBefore = null;
             long sizeBefore = 0;
             if ( LEAK_HUNT ){
                 LEAK_HUNT_SEMAPHORE.acquire();
-                reachableBefore = new IdentitySet();
+                reachableBefore = new SeenPath();
                 sizeBefore = ac.approxSize( reachableBefore );
             }
 
@@ -346,11 +346,11 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
     }
 
-    void _finishLeakHunt( AppContext ac , HttpRequest request , IdentitySet reachableBefore , long sizeBefore ){
+    void _finishLeakHunt( AppContext ac , HttpRequest request , SeenPath reachableBefore , long sizeBefore ){
         if ( ac._numRequests < 2 )
             return;
 
-        IdentitySet now = new IdentitySet();
+        SeenPath now = new SeenPath();
         long sizeNow = ac.approxSize( now );
         
         if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
@@ -361,8 +361,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         l.error( "sizeBefore: " + sizeBefore + " sizeNow: " + sizeNow  + " delta:" + ( sizeNow - sizeBefore ) );
         l.error( "obejctsBefore: " + reachableBefore.size() + " objectsNow: " + now.size() + " delta:" + ( now.size() - reachableBefore.size() ) );
         
-        now.removeall( reachableBefore );
-        for ( Object o : now ){
+        now.removeAll( reachableBefore.keySet() );
+        for ( Object o : now.keySet() ){
             if ( o == null )
                 continue;
             System.out.println( "\t" + o.getClass() );

@@ -55,7 +55,7 @@ public class Scope implements JSObject , Bindings {
             return "This is an internal thing for Scope.  It means something is null.  You should never seen this.";
         }
 
-	public long approxSize( IdentitySet seen ){
+	public long approxSize( SeenPath seen ){
 	    return 24;
 	}
     }
@@ -1047,26 +1047,23 @@ public class Scope implements JSObject , Bindings {
     }
 
     public long approxSize(){
-        return approxSize( new IdentitySet() );
+        return approxSize( new SeenPath() );
     }
 
     public long myApproxSize(){
-	return approxSize( new IdentitySet() , true , false );
+	return approxSize( new SeenPath() , true , false );
     }
     
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return approxSize( seen , true , true );
     }
     
-    public long approxSize( IdentitySet seen , boolean includeChildren , boolean includeParents ){
+    public long approxSize( SeenPath seen , boolean includeChildren , boolean includeParents ){
 	
 	if ( seen == null )
-	    seen = new IdentitySet();
-	
-        if ( seen.contains( this ) )
-            return 0;
+	    seen = new SeenPath();
         
-        seen.add( this );
+        seen.visited( this );
 
         long size = 128;
         

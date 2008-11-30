@@ -292,16 +292,15 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private long _size( JSObject cur ){
     
         if ( _objectsSeenSoFar == null ){
-            _objectsSeenSoFar = new IdentitySet();
+            _objectsSeenSoFar = new SeenPath();
             if ( _constructor != null ){
-                _objectsSeenSoFar.add( _constructor );
-                _objectsSeenSoFar.add( _constructor.getPrototype() );
+                _objectsSeenSoFar.visited( _constructor );
+                _objectsSeenSoFar.visited( _constructor.getPrototype() );
             }
         }
 
-	if ( _objectsSeenSoFar.contains( cur ) )
+	if ( ! _objectsSeenSoFar.shouldVisit( cur , this ) )
 	    return 0;
-	_objectsSeenSoFar.add( cur );
 
         long size = 20;
 
@@ -326,7 +325,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             if ( o instanceof JSObject && ! JS.isPrimitive( o ) )
                 me = _size( (JSObject)o );
             else 
-                me = JSObjectSize.size( o , _objectsSeenSoFar );
+                me = JSObjectSize.size( o , _objectsSeenSoFar , this );
 
             size += me;
         }
@@ -523,7 +522,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private int _num = 0;
 
     private long _totalObjectSize = 0;
-    private IdentitySet _objectsSeenSoFar;
+    private SeenPath _objectsSeenSoFar;
 
     private final ArrayList<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();

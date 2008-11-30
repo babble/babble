@@ -234,7 +234,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         return size;
     }
 
-    public long approxSize( IdentitySet seen ){
+    public long approxSize( SeenPath seen ){
         return totalSize();
     }
 
