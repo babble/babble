@@ -1067,11 +1067,10 @@ public class Scope implements JSObject , Bindings {
 
         long size = 128;
         
-        if ( _objects != null ){
+        if ( seen.shouldVisit( _objects , this ) )
             size += _objects.approxSize( seen );
-	}
         
-        if ( includeChildren && _children != null ){
+        if ( includeChildren && seen.shouldVisit( _children , this ) ){
             synchronized ( _children ){
                 size += _children.approxSize( seen );
             }
