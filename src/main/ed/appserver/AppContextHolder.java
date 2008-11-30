@@ -90,7 +90,7 @@ public class AppContextHolder {
                 
                 public void handle( MonitorRequest mr ){
                     
-                    if ( mr.getRequest.getBoolean( "gc" , false ) )
+                    if ( mr.getRequest().getBoolean( "gc" , false ) )
                         System.gc();
 
                     IdentitySet<AppContext> all = new IdentitySet<AppContext>();
