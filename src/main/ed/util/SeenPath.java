@@ -21,13 +21,20 @@ package ed.util;
 import java.util.*;
 
 public class SeenPath extends IdentityHashMap {
+
+    public SeenPath(){
+        this( false );
+    }
+    
+    public SeenPath( boolean skipWeak ){
+        _skipWeak = skipWeak;
+    }
     
     public boolean shouldVisit( Object toVisit , Object from ){
-        
         if ( toVisit == null )
             return false;
 
-        if ( inSpecialDontTraverse( toVisit ) )
+        if ( dontTraverseSpecial( toVisit ) )
             return false;
 
         if ( from == null )
@@ -50,7 +57,7 @@ public class SeenPath extends IdentityHashMap {
     
     public boolean contains( Object o ){
 
-        if ( inSpecialDontTraverse( o ) )
+        if ( dontTraverseSpecial( o ) )
             return true;
 
         return containsKey( o );
@@ -75,13 +82,56 @@ public class SeenPath extends IdentityHashMap {
         _specialDontTraverse.remove( _specialDontTraverse.size() - 1 );
     }
     
-    boolean inSpecialDontTraverse( Object o ){
+    boolean dontTraverseSpecial( Object o ){
+        
+        if ( _skipWeak && 
+             ( o instanceof WeakBag || 
+               o instanceof java.lang.ref.WeakReference || 
+               o instanceof WeakHashMap ) )
+            return false;
+        
         for ( Set s : _specialDontTraverse )
             if ( s.contains( o ) )
                 return true;
         return false;
     }
 
+    public List path( final Object from , final Object to ){
+
+        if ( ! containsKey( to ) )
+            throw new RuntimeException( "the object you want to find doesn't exist" );
+        
+        Object cur = to;
+
+        List path = new ArrayList();
+        while ( true ){
+            
+            Object next = get( cur );
+            if ( next == from )
+                return path;
+            
+            if ( next == UNKNOWN || next == null ){
+                String msg = "can't find path.  last piece is a : " + cur.getClass().getName();
+                msg += " path : ";
+                for ( int i=0; i<path.size(); i++ )
+                    msg += " " + path.get(i).getClass().getName();
+                
+                if ( next == UNKNOWN ) 
+                    msg += " its here, just UNKNOWN";
+    
+                throw new RuntimeException( msg );
+            }
+            
+            for ( int i=0; i<path.size(); i++ )
+                if ( path.get(i) == next )
+                    throw new RuntimeException( "loop!" );
+
+            path.add( next );
+            cur = next;
+        }
+    }
+    
+    final boolean _skipWeak;
     final List<Set> _specialDontTraverse = new ArrayList<Set>();
 
     public static final Object UNKNOWN = new Object(){
