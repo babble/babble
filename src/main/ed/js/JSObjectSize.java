@@ -18,6 +18,7 @@
 
 package ed.js;
 
+import java.lang.ref.*;
 import java.util.*;
 
 import ed.db.*;
@@ -88,6 +89,19 @@ public class JSObjectSize {
             
             return OBJ_OVERHEAD + ((JSBinaryData)data).length();
         }
+        
+        
+        // --------- special section for WeakReferences and other special thigns
+
+        if ( o instanceof WeakBag )
+            return OBJ_OVERHEAD + ( ((WeakBag)o).size() * OBJ_OVERHEAD );
+        
+        if ( o instanceof WeakReference )
+            return OBJ_OVERHEAD;
+
+        if ( o instanceof WeakHashMap )
+            return OBJ_OVERHEAD + ( ((WeakHashMap)o).size() * OBJ_OVERHEAD );
+        
 
         // -------- this is the end of the "primitive" types ------
 
