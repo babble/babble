@@ -30,8 +30,8 @@ import ed.net.*;
 import ed.net.nioclient.*;
 
 public class AsyncClient extends NIOClient {
-    
-    static final boolean DEBUG = false;
+
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTPC" );    
     
     public AsyncClient(){
         super( "http-asyncclient" , 1000 , 0 );
@@ -82,7 +82,9 @@ public class AsyncClient extends NIOClient {
         }
         
         protected InetSocketAddress where(){
-            return new InetSocketAddress( _server , _port );
+            final InetSocketAddress where = new InetSocketAddress( _server , _port );
+            if ( DEBUG ) System.out.println( where );
+            return where;
         }
         
         protected void error( ServerErrorType type , Exception e ){

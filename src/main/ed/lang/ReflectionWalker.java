@@ -74,6 +74,14 @@ public class ReflectionWalker {
     }
 
     final ReflectionVisitor _visitor;
+
+    public static List<Object> shortestPath( Object from , Object to ){
+        ReflectionVisitor.ShortestPathFinder spf = new ReflectionVisitor.ShortestPathFinder( to );
+        ReflectionWalker walker = new ReflectionWalker( spf );
+        walker.walk( from );
+        return null;
+    }
+
     
 }
 

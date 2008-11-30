@@ -48,7 +48,6 @@ public interface ReflectionVisitor {
             
             if ( ! _seenClasses.contains( c ) ){
                 _seenClasses.add( c );
-                System.out.println( c.getName() );
             }
             
             return true;
@@ -85,8 +84,26 @@ public interface ReflectionVisitor {
         final boolean _followWeakRefs;
         final IdentitySet _seen = new IdentitySet();
         final Set<Class> _seenClasses = new HashSet<Class>();
-
+        
         final Set<Class> _stoppers = new HashSet<Class>();
+    }
+
+    public static class ShortestPathFinder extends Reachable {
+
+        ShortestPathFinder( Object ... toFind ){
+            super( false );
+            _toFind = toFind;
+        }
+
+        public boolean visit( Object o , Class c ){
+            for ( int i=0; i<_toFind.length; i++ )
+                if ( o == _toFind[i] )
+                    throw new RuntimeException( "yay!" );
+
+            return super.visit( o , c );
+        }
+
+        final Object[] _toFind;
     }
 }
 

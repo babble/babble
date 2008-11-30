@@ -34,6 +34,11 @@ public class IdentitySet<T> implements Iterable<T> {
         _map.remove( t );
     }
 
+    public void removeall( Iterable<T> coll ){
+        for ( T t : coll )
+            _map.remove( t );
+    }
+
     public void clear(){
 	_map.clear();
     }
