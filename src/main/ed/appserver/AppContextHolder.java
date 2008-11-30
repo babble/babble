@@ -226,7 +226,11 @@ public class AppContextHolder {
         if ( D ) System.out.println( "\t mapping directory [" + originalHost + "] to " + siteRoot );
 
         if ( isCodeDir( siteRoot ) ){
-            ac = new AppContext( siteRoot );
+            ac = _getContextFromMap( siteRoot.getAbsolutePath() );
+            if ( ac == null ){
+                ac = new AppContext( siteRoot );
+                _contextCache.put( siteRoot.getAbsolutePath() , ac );    
+            }
         }
         else {
 
@@ -238,12 +242,12 @@ public class AppContextHolder {
             final File envRoot = getBranch( siteRoot , env , info.host );
             if ( D ) System.out.println( "\t using full path : " + envRoot );
             
-            final String envRootString = envRoot.toString();
-
-            ac = _getContextFromMap( envRootString );
+            final String fileKey = envRoot.getAbsolutePath();
+            
+            ac = _getContextFromMap( fileKey );
             if ( ac == null ){
-                ac = new AppContext( envRootString , envRoot , siteRoot.getName() , env );
-                _contextCache.put( envRootString , ac );
+                ac = new AppContext( envRoot.toString() , envRoot , siteRoot.getName() , env );
+                _contextCache.put( fileKey , ac );
             }
             
         }
