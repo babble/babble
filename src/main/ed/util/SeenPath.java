@@ -20,7 +20,7 @@ package ed.util;
 
 import java.util.*;
 
-public class SeenPath extends IdentityHashMap {
+public class SeenPath extends IdentityHashMap<Object,List> {
 
     public SeenPath(){
         this( false );
@@ -43,17 +43,15 @@ public class SeenPath extends IdentityHashMap {
         if ( from == null )
             from = new Unknown();
         
-        final Object prev = get( toVisit );
-        if ( prev == null ){
-            put( toVisit , from );
+        final List where = get( toVisit );
+        if ( where == null ){
+            add( toVisit , from );
             return true;
         }
-
-        if ( prev instanceof Unknown ){
-            // we want to add some pathing info, but not follow
-            put( toVisit , from );
-            return false;
-        }
+        
+        // so we've seen this before
+        if ( ! ( from instanceof Unknown ) )
+            add( toVisit , from );
         
         return false;
     }
@@ -69,7 +67,7 @@ public class SeenPath extends IdentityHashMap {
     public void visited( Object toVisit ){
         if ( containsKey( toVisit ) )
             return;
-        put( toVisit , new Unknown() );
+        add( toVisit , new Unknown() );
     }
 
     public void removeAll( Set objects ){
@@ -83,6 +81,28 @@ public class SeenPath extends IdentityHashMap {
 
     public void popSpecialDontTraverse(){
         _specialDontTraverse.remove( _specialDontTraverse.size() - 1 );
+    }
+
+    private void add( final Object o , final Object from ){
+        List l = get( o );
+        if ( l == null ){
+            l = new LinkedList();
+            put( o , l );
+        }
+        else if ( ! ( from instanceof Unknown ) ){
+            for ( Iterator i = l.iterator(); i.hasNext(); ){
+                Object old = i.next();
+                
+                if ( old == from )
+                    return;
+
+                if ( old instanceof Unknown )
+                    i.remove();
+               
+            }
+        }
+
+        l.add( from );
     }
     
     boolean dontTraverseSpecial( Object o ){
