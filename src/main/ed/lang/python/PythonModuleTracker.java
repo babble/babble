@@ -158,6 +158,8 @@ public class PythonModuleTracker extends PyStringMap {
     public static boolean needsRefresh( String filename ){
         // Src for file
         File pyFile = new File( filename );
+        if( ! pyFile.isAbsolute() )
+            pyFile = new File( Py.getSystemState().getCurrentWorkingDir() , pyFile.toString() );
         String clsPath = filename.replace( ".py" , "$py.class" );
         // Compiled class file -- might not exist
         File clsFile = new File( clsPath );
