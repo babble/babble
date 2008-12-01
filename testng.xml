@@ -23,6 +23,7 @@
       <class name="ed.util.ThreadPoolTest"/>
       <class name="ed.util.SimplePoolTest"/>
       <class name="ed.util.TextSimpleConfigTest"/>
+      <class name="ed.util.SeenPathTest"/>
       <class name="ed.io.ByteBufferStreamTest"/>
       <class name="ed.appserver.AppContextTestNG" />
       <class name="ed.appserver.JSFileLibraryTest" />
