@@ -179,7 +179,7 @@ public class MonitorRequest {
         if ( data == null )
             _out.print( "null" );
         else 
-            _out.print( data.toString() );
+            _out.print( HttpMonitor.escape( data.toString() ) );
         _out.print( "</td>" );
     }
 

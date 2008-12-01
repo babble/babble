@@ -336,7 +336,7 @@ public abstract class HttpMonitor implements HttpHandler {
             
             if ( e.getThrowable() != null ){
                 out.print( "<tr><td colspan=4'>" );
-                out.print( e.getThrowable() + "<BR>" );
+                out.print( escape( e.getThrowable() ) + "<BR>" );
                 for ( StackTraceElement element : e.getThrowable().getStackTrace() )
                     out.print( element + "<BR>\n" );
                 out.print( "</td></tr>" );
@@ -344,6 +344,12 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         
         out.print( "</table>" );        
+    }
+
+    public static String escape( Object o ){
+        if ( o == null )
+            return "null";
+        return ed.js.Encoding._escapeHTML( o.toString() );
     }
     
     
