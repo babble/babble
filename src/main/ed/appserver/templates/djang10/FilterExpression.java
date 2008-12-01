@@ -24,10 +24,13 @@ import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSObjectSize;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls2;
 import ed.log.Level;
 import ed.log.Logger;
+import ed.util.SeenPath;
+import ed.util.Sizable;
 
 public class FilterExpression extends JSObjectBase {
     private final Logger log;
@@ -117,6 +120,17 @@ public class FilterExpression extends JSObjectBase {
         return str.toString();
     }
 
+
+    public long approxSize(SeenPath seen) {
+        long sum = super.approxSize( seen );
+
+        Object [] toSize = { log, expression, filterSpecs };
+        for(Object obj : toSize)
+            sum += JSObjectSize.size( obj );
+
+        return sum;
+    }
+
     public static JSFunction CONSTRUCTOR = new JSFunctionCalls2() {
         public Object call(Scope scope, Object parserObj, Object filterExpressionObj, Object[] extra) {
             throw new UnsupportedOperationException();
@@ -132,7 +146,7 @@ public class FilterExpression extends JSObjectBase {
     };
 
 
-    private static class FilterSpec {
+    private static class FilterSpec implements Sizable {
         public final String filterName;
         public final JSFunction filter;
         public final Expression param;
@@ -166,6 +180,16 @@ public class FilterExpression extends JSObjectBase {
         }
         public String toString() {
             return filterName + ":" + String.valueOf(param);
+        }
+
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            Object[] toSize = { filterName, filter, param };
+            for(Object obj : toSize)
+                sum += JSObjectSize.size( obj );
+
+            return sum;
         }
     }
 }

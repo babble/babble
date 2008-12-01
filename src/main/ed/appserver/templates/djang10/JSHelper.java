@@ -45,6 +45,7 @@ import ed.js.JSFunction;
 import ed.js.JSON;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSObjectSize;
 import ed.js.JSRegex;
 import ed.js.JSString;
 import ed.js.engine.Scope;
@@ -52,6 +53,7 @@ import ed.js.func.JSFunctionCalls1;
 import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
+import ed.util.SeenPath;
 
 public class JSHelper extends JSObjectBase {
     private final Logger log;
@@ -69,6 +71,17 @@ public class JSHelper extends JSObjectBase {
     WeakHashMap<JSFunction, JSFunction> loaderCache;
 
     private final Scope scope;
+
+    @Override
+    public long approxSize(SeenPath seen) {
+        long sum = super.approxSize( seen );
+
+        Object[] toSize = { log, librarySearchPaths, defaultLibraries, fileRoots, libraryCache, loaderCache, scope };
+        for( Object obj : toSize )
+            sum += JSObjectSize.size( obj );
+
+        return sum;
+    }
 
     public JSHelper(Scope scope, Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
         this.scope = scope;

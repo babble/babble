@@ -27,10 +27,12 @@ import java.util.Set;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSObjectSize;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
 import ed.util.OrderedSet;
+import ed.util.SeenPath;
 
 public class Context extends JSObjectBase {
     public static final String PUSH = "push";
@@ -172,5 +174,12 @@ public class Context extends JSObjectBase {
     }
     public Stack<JSObject> getRenderStack() {
         return renderStack;
+    }
+
+    public long approxSize(SeenPath seen) {
+        long sum = super.approxSize( seen );
+        sum += JSObjectSize.size( this.objectStack, seen, this );
+        sum += JSObjectSize.size( this.renderStack, seen, this );
+        return sum;
     }
 }

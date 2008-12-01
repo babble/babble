@@ -36,6 +36,7 @@ import ed.js.JSMap;
 import ed.js.JSNumericFunctions;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSObjectSize;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
@@ -43,6 +44,7 @@ import ed.js.func.JSFunctionCalls1;
 import ed.lang.python.JSPyObjectWrapper;
 import ed.log.Level;
 import ed.log.Logger;
+import ed.util.SeenPath;
 
 public class Expression extends JSObjectBase {
     private final Logger log;
@@ -690,6 +692,19 @@ public class Expression extends JSObjectBase {
         return true;
     }
 
+
+    public long approxSize(SeenPath seen) {
+        long sum = super.approxSize( seen );
+
+
+        Object[] toSize = { log, expression, token, isLiteral };
+        for(Object obj : toSize)
+            sum += JSObjectSize.size( obj );
+
+        //FIXME: need to size the parsed expression!!!
+
+        return super.approxSize( seen );
+    }
 
     //Functors
     private static class resolveFunc extends JSFunctionCalls1 {

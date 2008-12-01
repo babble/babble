@@ -27,12 +27,8 @@ import ed.js.func.JSFunctionCalls1;
 import ed.lang.StackTraceHolder;
 
 public class Djang10CompiledScript extends JSFunctionCalls1 {
-    private final NodeList nodes;
-
-
     public Djang10CompiledScript(NodeList nodes, Collection<Library> loadedLibraries) {
         super();
-        this.nodes = nodes;
 
         JSArray arr = new JSArray();
         arr.addAll(loadedLibraries);
@@ -50,7 +46,7 @@ public class Djang10CompiledScript extends JSFunctionCalls1 {
 
         //render
         try {
-            nodes.__render(scope, context, (JSFunction)scope.get("print"));
+            ((NodeList)get("nodelist")).__render(scope, context, (JSFunction)scope.get("print"));
         } catch(RuntimeException e) {
             StackTraceHolder.getInstance().fix(e);
             fix(e);
