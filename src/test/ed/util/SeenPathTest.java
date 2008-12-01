@@ -19,13 +19,16 @@
 
 package ed.util;
 
+import java.util.*;
+
 import ed.*;
 
 import org.testng.annotations.Test;
 
 public class SeenPathTest extends TestCase {
 
-
+    
+    @Test
     public void testSanity1(){
         SeenPath p = new SeenPath();
         
@@ -42,6 +45,23 @@ public class SeenPathTest extends TestCase {
 
         assertTrue( p.shouldVisit( new Object(), from ) );
     }
+
+    @Test
+    public void testBasicPathing1(){
+        SeenPath p = new SeenPath();
+
+        final Object a = "a";
+        final Object b = "b";
+        final Object c = "c";
+        
+        p.shouldVisit( b , a );
+        p.shouldVisit( c , b );
+
+        List lst = p.path( a , c );
+        assertEquals( 1 , lst.size() );
+        assertTrue( b == lst.get(0) );
+    }
+    
 
     public static void main( String args[] ){
         (new SeenPathTest()).runConsole();

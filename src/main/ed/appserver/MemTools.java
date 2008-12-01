@@ -47,27 +47,10 @@ public class MemTools {
             System.out.println( "\t" + o.getClass() );
             List path = after.path( context , o );
             
-            System.out.print( "\t\t" );
-            
-            for ( Object foo : path )
-                System.out.print( _pathToString( foo ) + " " );
-            
-            System.out.println();
+            System.out.println( "\t\t" + path );
         }
         
 
     }
     
-    static String _pathToString( Object o ){
-        String s = o.getClass().getName();
-        
-        if ( o instanceof Scope )
-            s += "(" + o + ")";
-        
-        if ( o instanceof JSObjectBase )
-            s += "(" + ((JSObjectBase)o)._getName() + ")";
-
-        return s;
-    }
-
 }
