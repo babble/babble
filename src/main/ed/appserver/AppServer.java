@@ -38,7 +38,8 @@ import ed.security.*;
 public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
     /** This appserver's default port, 8080 */
-    private static final int DEFAULT_PORT = 8080;
+    static final int DEFAULT_PORT = 8080;
+    static final int DEFAULT_CACHE_S = 3600;
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
 
@@ -264,7 +265,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                     return;
                 }
 
-                int cacheTime = getCacheTime( ar , jsURI , request , response );
+                int cacheTime = getCacheTime( ar , f , jsURI , request , response );
                 if ( cacheTime >= 0 )
                     response.setCacheTime( cacheTime );
 
@@ -566,7 +567,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
      * @param response The HTTP response to generate
      * @return The time, in seconds
      */
-    int getCacheTime( AppRequest ar , JSString jsURI , HttpRequest request , HttpResponse response ){
+    static int getCacheTime( AppRequest ar , File file , JSString jsURI , HttpRequest request , HttpResponse response ){
+
         if ( ar.getFromInitScope( "staticCacheTime" ) != null ){
             JSFunction f = (JSFunction)ar.getFromInitScope( "staticCacheTime" );
             if ( f != null ){
@@ -575,11 +577,16 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                     return ((Number)ret).intValue();
             }
         }
+        
+        if ( ! ar.isStatic() ||
+             request.getParameter( "lm" ) == null ||
+             request.getParameter( "ctxt" ) == null )
+            return -1;
 
-        if ( ar.isStatic() && request.getParameter( "lm" ) != null && request.getParameter( "ctxt" ) != null )
-            return 3600;
-
-        return -1;
+        if ( ! file.exists() )
+            return -1;
+        
+        return DEFAULT_CACHE_S;
     }
 
     /** This appserver's priority for the HTTP request handler.
