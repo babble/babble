@@ -18,9 +18,13 @@
 
 package ed.appserver;
 
+import java.io.*;
+
 import org.testng.annotations.Test;
 
+import ed.js.*;
 import static ed.appserver.AppContextHolder.Info;
+import ed.net.httpserver.*;
 
 public class AppServerTest extends ed.TestCase {
 
@@ -129,6 +133,26 @@ public class AppServerTest extends ed.TestCase {
     @Test(groups = {"basic"})
     public void testNotExist(){
         
+    }
+    
+    @Test
+    public void testGetCacheTime(){
+        final AppContext context = new AppContext( new File( "src/test/samplewww" ) );
+        
+        assertEquals( -1 , _getCacheTime( context , "/asdasdas.css" ) );
+        assertEquals( -1 , _getCacheTime( context , "/asdasdas.css?lm=123&ctxt=12" ) );
+
+        assertEquals( -1 , _getCacheTime( context , "/css.css" ) );
+        assertEquals( AppServer.DEFAULT_CACHE_S , _getCacheTime( context , "/css.css?lm=23&ctxt=12" ) );
+    }
+
+    int _getCacheTime( AppContext context , String file ){
+        HttpRequest request = HttpRequest.getDummy( file );
+        AppRequest ar = new AppRequest( context , request );
+        return AppServer.getCacheTime( ar , 
+                                       new File( context.getRootFile() , file.replaceAll( "\\?.*" , "" ) ) , 
+                                       new JSString( file ) ,
+                                       request , null );
     }
 
     public static void main( String args[] ){
