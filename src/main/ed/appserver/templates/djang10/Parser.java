@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -64,9 +64,9 @@ public class Parser extends JSObjectBase{
         regex = Pattern.compile(buffer.toString());
     }
 
-    
+
 //==============================================================================================================================
-    
+
     private final Scope scope;
     private final LinkedList<Token> tokens;
     private final Set<Library> loadedLibraries;
@@ -75,7 +75,7 @@ public class Parser extends JSObjectBase{
     private final Set<JxpSource> dependencies;
 
     private Token activeToken = null;
-    
+
     public Parser(Scope scope, String origin, String string) {
         this.scope = scope;
         this.tokens = new LinkedList<Token>();
@@ -107,18 +107,18 @@ public class Parser extends JSObjectBase{
             inTag = !inTag;
         }
     }
- 
+
     public NodeList parse(List untilTagsList ) {
         NodeList nodelist = create_nodelist();
 
         if(untilTagsList == null)
             untilTagsList = new JSArray();
-        
+
         Token parentToken = this.activeToken;
         try {
             while (!tokens.isEmpty()) {
                 Token token = this.activeToken = next_token();
-    
+
                 if (token.type == TagDelimiter.Type.Text) {
                     JSObject textNode = new Node.TextNode(token.getContents());
                     textNode = NodeWrapper.wrap(textNode, token);
@@ -127,7 +127,7 @@ public class Parser extends JSObjectBase{
                 else if (token.type == TagDelimiter.Type.Var) {
                     if (token.getContents().length() == 0)
                         throw new TemplateSyntaxError("Empty Variable Tag", token);
-    
+
                     FilterExpression variableExpression = compile_filter(token.getContents().toString());
                     JSObject varNode = new Node.VariableNode(variableExpression);
                     varNode = NodeWrapper.wrap(varNode, token);
@@ -138,14 +138,14 @@ public class Parser extends JSObjectBase{
                         prepend_token(token);
                         return nodelist;
                     }
-                    
+
                     String command = token.getContents().toString().split("\\s")[0];
                     JSFunction handler = find_taghandler(command);
                     JSObject node = (JSObject)handler.call(scope, this, token);
-                    
+
                     node = NodeWrapper.wrap(node, token);
                     extend_nodelist(nodelist, node, token);
-    
+
                 }
             }
         }
@@ -154,10 +154,10 @@ public class Parser extends JSObjectBase{
         }
         catch(JSException e) {
             RuntimeException re = JSHelper.unnestJSException(e);
-                        
+
             if(re instanceof TemplateSyntaxError)
                 throw (TemplateSyntaxError)re;
-            
+
             throw new TemplateSyntaxError("Failed to parse the token: " + activeToken, activeToken, re);
         }
         catch(Exception e) {
@@ -166,7 +166,7 @@ public class Parser extends JSObjectBase{
         finally {
             this.activeToken = parentToken;
         }
-        
+
         if (untilTagsList.size() > 0) {
             throw new TemplateSyntaxError("Unclosed tag ["+parentToken.getContents()+"], expected: ["  + untilTagsList.toString() + "]", parentToken);
         }
@@ -176,7 +176,7 @@ public class Parser extends JSObjectBase{
 
     public void skip_past(JSString endtag) {
         Token curActiveToken = this.activeToken;
-        
+
         while(!tokens.isEmpty()) {
             Token token = next_token();
             if(token.type == TagDelimiter.Type.Tag && endtag.equals(token.getContents()))
@@ -194,7 +194,7 @@ public class Parser extends JSObjectBase{
         next_token();
     }
 
-    
+
     public NodeList create_nodelist() {
         return new NodeList();
     }
@@ -205,14 +205,14 @@ public class Parser extends JSObjectBase{
 
         if(!(node instanceof Node.TextNode))
             nodeList.set("contains_nontext", true);
-        
+
         nodeList.add(node);
     }
-    
+
     private boolean isUsingLiteralEscapes() {
         return get("__use_literal_escape") == Boolean.TRUE;
     }
-    
+
     public Expression compile_expression(String str) {
         return compile_expression(str, activeToken);
     }
@@ -225,11 +225,11 @@ public class Parser extends JSObjectBase{
     public FilterExpression compile_filter(String str, Token token) {
         return new FilterExpression(this, str, token, isUsingLiteralEscapes());
     }
-    
+
     public void add_library(Library library) {
         add_library(library, true);
     }
-    
+
     public void add_library(Library library, boolean overwrite) {
         if(loadedLibraries.contains(library))
             return;
@@ -253,14 +253,14 @@ public class Parser extends JSObjectBase{
         JSFunction filter = this.filterMapping.get(name);
         if(filter == null)
             throw new TemplateSyntaxError("Undefined filter: " + name, this.activeToken);
-        
+
         return filter;
     }
     public JSFunction find_taghandler(String name) {
         JSFunction handler = this.tagHandlerMapping.get(name);
         if(handler == null)
             throw new TemplateSyntaxError("Undefined tag: " + name, this.activeToken);
-        
+
         return handler;
     }
 
@@ -270,27 +270,27 @@ public class Parser extends JSObjectBase{
     public Set<JxpSource> get_dependencies() {
         return dependencies;
     }
-    
-    
+
+
     //==============================================================================================================================
-    
-    
+
+
     public static class Token extends JSObjectBase {
         public static final String NAME = "Token";
-        
+
         private String origin;
         private TagDelimiter.Type type;
         private int startLine;
 
         private Token() {
         }
-        
+
         public Token(TagDelimiter.Type type, String origin, String contents, int startLine) {
             this();
             this.type = type;
             this.origin = origin;
             this.startLine = startLine;
-            
+
             set("contents", new JSString(contents));
         }
 
@@ -301,11 +301,11 @@ public class Parser extends JSObjectBase{
         public int getStartLine() {
             return startLine;
         }
-        
+
         public String toString() {
             return "<" + type + ": " + getContents().toString().substring(0, Math.min(20, getContents().length())) + "...>";
         }
-        
+
         public JSArray split_contents() {
             JSArray parts = new JSArray();
             for(String part : Util.smart_split(getContents().toString()))
@@ -326,7 +326,7 @@ public class Parser extends JSObjectBase{
             this.start = start;
             this.end = end;
         }
-        
+
         public enum Type {
             Text, Var, Tag, Comment
         }

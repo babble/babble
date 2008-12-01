@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -44,7 +44,7 @@ public class NodeList extends JSArray {
     public JSString render(Scope scope, Context context) {
         Printer.RedirectedPrinter printer = new Printer.RedirectedPrinter();
         __render(scope, context, printer);
-        
+
         return printer.getJSString();
     }
     public NodeList get_nodes_by_type(Scope scope, JSFunction constructor) {
@@ -58,15 +58,15 @@ public class NodeList extends JSArray {
         }
         return nodelist;
     }
-    
-    
+
+
     //Functors
     public static class __renderFunc extends JSFunctionCalls2 {
         public Object call(Scope scope, Object contextObj, Object printerObj, Object[] extra) {
             NodeList thisObj = (NodeList) scope.getThis();
             Context context = (Context)contextObj;
             JSFunction printer = (JSFunction)printerObj;
-            
+
             thisObj.__render(scope, context, printer);
             return null;
         }
@@ -75,7 +75,7 @@ public class NodeList extends JSArray {
         public Object call(Scope scope, Object contextObj, Object[] extra) {
             NodeList thisObj = (NodeList) scope.getThis();
             Context context = (Context)contextObj;
-            
+
             return thisObj.render(scope, context);
         }
     };
@@ -83,7 +83,7 @@ public class NodeList extends JSArray {
         public Object call(Scope scope, Object constructorObj, Object[] extra) {
             NodeList thisObj = (NodeList) scope.getThis();
             JSFunction constructor = (JSFunction)constructorObj;
-            
+
             return thisObj.get_nodes_by_type(scope, constructor);
         }
     };
