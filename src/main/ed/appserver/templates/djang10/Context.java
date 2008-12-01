@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -35,7 +35,7 @@ import ed.util.OrderedSet;
 public class Context extends JSObjectBase {
     public static final String PUSH = "push";
     public static final String POP = "pop";
-    
+
     private Stack<JSObject> renderStack;
 
     public final static JSFunction CONSTRUCTOR = new JSFunctionCalls1() {
@@ -81,7 +81,7 @@ public class Context extends JSObjectBase {
     private Context() {
         objectStack = new LinkedList<JSObject>();
         objectStack.add(new JSObjectBase());
-        
+
         renderStack = new Stack<JSObject>();
 
         setConstructor(CONSTRUCTOR);
@@ -91,7 +91,7 @@ public class Context extends JSObjectBase {
         this();
         rebase(obj);
     }
-    
+
     private void rebase(JSObject obj) {
         this.objectStack.clear();
         this.objectStack.addFirst(obj);
@@ -159,11 +159,11 @@ public class Context extends JSObjectBase {
             throw new IllegalStateException("Can't remove the last backing object");
         objectStack.remove();
     }
-    
+
     public void __set_root(String key, Object value) {
         objectStack.getLast().set(key, value);
     }
-    
+
     public void __begin_render_node(JSObject node) {
         renderStack.push(node);
     }

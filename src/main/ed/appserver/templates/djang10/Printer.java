@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -26,12 +26,12 @@ import ed.js.func.JSFunctionCalls1;
 
 public abstract class Printer extends JSFunctionCalls1 {
     private Boolean is_safe;
-    
+
     public Printer() {
         this.is_safe = null;
     }
     public Object call(Scope scope, Object arg, Object[] extra) {
-        
+
         if((arg != null) && (arg instanceof JSObject) && (((JSObject)arg).get("toString") instanceof JSFunction) && !(arg instanceof JSString)) {
             JSFunction toStringFn = (JSFunction)((JSObject)arg).get("toString");
             arg = toStringFn.callAndSetThis(scope, arg, new Object[0]);
@@ -51,14 +51,14 @@ public abstract class Printer extends JSFunctionCalls1 {
     public Boolean is_safe() {
         return is_safe;
     }
-    
+
     protected abstract void print(Scope scope, Object obj);
 
 
 
     public static class DelegatingPrinter extends Printer {
         private final JSFunction inner;
-        
+
         public DelegatingPrinter(JSFunction inner) {
             this.inner = inner;
         }
@@ -71,12 +71,12 @@ public abstract class Printer extends JSFunctionCalls1 {
 
     public static class RedirectedPrinter extends Printer {
         private final StringBuilder buffer;
-        
+
         public RedirectedPrinter() {
             buffer = new StringBuilder();
         }
         protected void print(Scope scope, Object obj) {
-            buffer.append(obj);            
+            buffer.append(obj);
         }
         public JSString getJSString() {
             JSString str = new JSString(buffer.toString());
@@ -84,7 +84,7 @@ public abstract class Printer extends JSFunctionCalls1 {
                 str = (JSString)JSHelper.mark_safe(str);
             else if(is_safe() == Boolean.FALSE)
                 str = (JSString)JSHelper.mark_escape(str);
-            
+
             return str;
         }
     }

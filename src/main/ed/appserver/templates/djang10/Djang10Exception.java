@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -25,9 +25,9 @@ import ed.js.func.JSFunctionCalls2;
 public class Djang10Exception extends RuntimeException implements JSObject {
     private String detailMessage;
     private Throwable cause;
-    
+
     protected JSObjectBase inner;
-    
+
     public Djang10Exception() {
         inner = new JSObjectBase(getConstructor());
     }
@@ -36,17 +36,17 @@ public class Djang10Exception extends RuntimeException implements JSObject {
         this();
         this.detailMessage = detailMessage;
     }
-    
+
     public Djang10Exception(String detailMessage, Throwable t) {
         this(detailMessage);
         this.cause = t;
     }
-    
+
     protected void init(String detailMessage, Throwable cause) {
         this.detailMessage = detailMessage;
         this.cause = cause;
     }
-    
+
     //Delegate to JSObject
     public JSFunction getConstructor() {
         return cons;
@@ -84,7 +84,7 @@ public class Djang10Exception extends RuntimeException implements JSObject {
     public JSFunction getFunction( String name ){
         return JSObjectBase.getFunction( this , name );
     }
-    
+
     //Exception overrides
     public Throwable getCause() {
         return cause;
@@ -92,8 +92,8 @@ public class Djang10Exception extends RuntimeException implements JSObject {
     public String getMessage() {
         return detailMessage;
     }
-    
-    
+
+
     public static final Constructor cons = new Constructor();
 
     private static class Constructor extends JSFunctionCalls2 {
@@ -102,7 +102,7 @@ public class Djang10Exception extends RuntimeException implements JSObject {
         }
         public Object call(Scope scope, Object detailMessageObj, Object causeObj, Object[] extra) {
             Djang10Exception thisObj = (Djang10Exception)scope.getThis();
-            
+
             thisObj.init((detailMessageObj == null)? null : detailMessageObj.toString(), (Throwable)causeObj);
 
             return null;
