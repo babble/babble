@@ -356,24 +356,9 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
             return;
         
-        final Logger l = ac.getLogger( "leak" ).getChild( request.getFullURL() );
-        
-        l.error( "sizeBefore: " + sizeBefore + " sizeNow: " + sizeNow  + " delta:" + ( sizeNow - sizeBefore ) );
-        l.error( "obejctsBefore: " + reachableBefore.size() + " objectsNow: " + now.size() + " delta:" + ( now.size() - reachableBefore.size() ) );
-        
-        IdentitySet newThings = new IdentitySet( now.keySet() );
-        newThings.removeAll( reachableBefore.keySet() );
-
-        for ( Object o : newThings ){
-            if ( o == null )
-                continue;
-            System.out.println( "\t" + o.getClass() );
-            List path = now.path( ac , o );
-            System.out.print( "\t\t" ) ;
-            for ( Object foo : path )
-                System.out.print( foo.getClass().getName() + " " );
-            System.out.println();
-        }
+        MemTools.gotMemoryLeak( ac , ac.getLogger( "leak" ).getChild( request.getFullURL() ) , 
+                                reachableBefore , now , 
+                                sizeBefore , sizeNow );
         
     }
     
