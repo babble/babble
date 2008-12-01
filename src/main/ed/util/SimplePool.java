@@ -101,10 +101,13 @@ public abstract class SimplePool<T> {
      */
     public T get( long waitTime ){
         final T t = _get( waitTime );
-        if ( t != null && _trackLeaks ){
-            Throwable stack = new Throwable();
-            stack.fillInStackTrace();
-            _where.put( _hash( t ) , stack );
+        if ( t != null ){
+            _consecutiveSleeps = 0;
+            if ( _trackLeaks ){
+                Throwable stack = new Throwable();
+                stack.fillInStackTrace();
+                _where.put( _hash( t ) , stack );
+            }
         }
         return t;
     }
@@ -148,6 +151,10 @@ public abstract class SimplePool<T> {
 	    if ( waitTime > 0 && totalSlept >= waitTime )
 		return null;
 	    
+            if ( _consecutiveSleeps > 100 && totalSlept > _sleepTime * 2 )
+                _gcIfNeeded();
+
+            _consecutiveSleeps++;
 	    totalSlept += _sleepTime;
             ThreadUtil.sleep( _sleepTime );
         }
@@ -206,6 +213,17 @@ public abstract class SimplePool<T> {
 
     private int _everCreated = 0;
     private int _trackPrintCount = 0;
+    private int _consecutiveSleeps = 0;
 
+
+    private static void _gcIfNeeded(){
+        final long now = System.currentTimeMillis();
+        if ( now < _nextGC )
+            return;
+
+        _nextGC = now + 5000;
+        System.gc();
+    }
+    private static long _nextGC = 0;
     
 }
