@@ -25,8 +25,15 @@ import java.lang.reflect.*;
 import ed.util.*;
 
 public interface ReflectionVisitor {
-    
+
+    /**
+     * @return whether or not we should traverse into this object
+     */
     public boolean visit( Object o , Class c );
+
+    /**
+     * @return whether or not to follow the link from the object th the field
+     */
     public boolean follow( Object o , Class c , Field f );
 
 
