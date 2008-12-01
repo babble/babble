@@ -368,10 +368,11 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             if ( o == null )
                 continue;
             System.out.println( "\t" + o.getClass() );
-            if ( o instanceof Scope )
-                System.out.println( "\t\t" + o );
-            
-            System.out.println( "\t\t\t" + now.path( ac , o ) );
+            List path = now.path( ac , o );
+            System.out.print( "\t\t" ) ;
+            for ( Object foo : path )
+                System.out.print( foo.getClass().getName() + " " );
+            System.out.println();
         }
         
     }

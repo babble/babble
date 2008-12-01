@@ -326,6 +326,10 @@ public final class FastStringMap implements Map<String,Object> {
         return _size == 0;
     }
 
+    public String toString(){
+        return "FastStringMap:" + System.identityHashCode( this );
+    }
+
     private int _size = 0;
     private MyEntry[] _data;
     private int _maxChainLength = 1;
