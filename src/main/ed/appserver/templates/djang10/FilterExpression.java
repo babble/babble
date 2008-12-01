@@ -126,7 +126,7 @@ public class FilterExpression extends JSObjectBase {
 
         Object [] toSize = { log, expression, filterSpecs };
         for(Object obj : toSize)
-            sum += JSObjectSize.size( obj );
+            sum += JSObjectSize.size( obj, seen, this );
 
         return sum;
     }
@@ -187,7 +187,7 @@ public class FilterExpression extends JSObjectBase {
 
             Object[] toSize = { filterName, filter, param };
             for(Object obj : toSize)
-                sum += JSObjectSize.size( obj );
+                sum += JSObjectSize.size( obj, seen, this );
 
             return sum;
         }

@@ -699,7 +699,7 @@ public class Expression extends JSObjectBase {
 
         Object[] toSize = { log, expression, token, isLiteral };
         for(Object obj : toSize)
-            sum += JSObjectSize.size( obj );
+            sum += JSObjectSize.size( obj, seen, this );
 
         //FIXME: need to size the parsed expression!!!
 

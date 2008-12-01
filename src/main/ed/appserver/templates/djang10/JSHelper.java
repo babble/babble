@@ -78,7 +78,7 @@ public class JSHelper extends JSObjectBase {
 
         Object[] toSize = { log, librarySearchPaths, defaultLibraries, fileRoots, libraryCache, loaderCache, scope };
         for( Object obj : toSize )
-            sum += JSObjectSize.size( obj );
+            sum += JSObjectSize.size( obj, seen, this );
 
         return sum;
     }
