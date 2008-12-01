@@ -102,6 +102,9 @@ public class SeenPath extends IdentityHashMap<Object,List> {
             }
         }
 
+        if ( from instanceof Unknown && l.size() > 0 )
+            return;
+
         l.add( from );
     }
     
@@ -125,34 +128,38 @@ public class SeenPath extends IdentityHashMap<Object,List> {
               o instanceof WeakHashMap );
     }
 
-    public List path( final Object from , final Object to ){
+    public ObjectPath path( final Object from , final Object to ){
 
         if ( ! containsKey( to ) )
             throw new RuntimeException( "the object you want to find doesn't exist" );
         
         Object cur = to;
 
-        List path = new ArrayList();
+        ObjectPath path = new ObjectPath();
         while ( true ){
             
-            Object next = get( cur );
-            if ( next == from )
-                return path;
-            
-            if ( next == null || next instanceof Unknown ){
+            List lst = get( cur );
+            if ( lst == null || lst.size() == 0 || ( lst.size() == 1 && lst.get( 0 ) instanceof Unknown ) ){
                 String msg = "can't find path.  last piece is a : " + cur.getClass().getName();
-                msg += " path : ";
-                for ( int i=0; i<path.size(); i++ )
-                    msg += " " + path.get(i).getClass().getName();
+                msg += " path : " + path;
                 
                 Throwable t = null;
-
+                
+                Object next = null;
+                if ( lst != null && lst.size() > 0 )
+                    next = lst.get(0);
                 if ( next instanceof Unknown ) 
                     t = ((Unknown)next)._where;
     
                 throw new RuntimeException( msg , t );
             }
             
+            for ( Object foo : lst )
+                if ( foo == from )
+                    return path;
+            
+            Object next = lst.get(0);
+
             for ( int i=0; i<path.size(); i++ )
                 if ( path.get(i) == next )
                     throw new RuntimeException( "loop!" );

@@ -26,7 +26,7 @@ import ed.util.*;
 
 public class LogReplayer {
 
-    public LogReplayer( String server , InputStream log , int speedMultiplier )
+    public LogReplayer( String server , InputStream log , double speedMultiplier )
         throws IOException {
         _server = server;
         _lines = LogLine.parse( log );
@@ -49,7 +49,7 @@ public class LogReplayer {
                 if ( diff < 0 )
                     diff = 0;
 
-                sleep = diff / _speedMultiplier;
+                sleep = (long)(diff / _speedMultiplier);
             }
             else
                 sleep = 0;
@@ -118,7 +118,7 @@ public class LogReplayer {
     
     final Iterable<LogLine> _lines;
     final String _server;
-    final int _speedMultiplier;
+    final double  _speedMultiplier;
 
     List<AsyncClient.DelayedHttpResponse> _responses = new ArrayList<AsyncClient.DelayedHttpResponse>();
     
@@ -130,7 +130,7 @@ public class LogReplayer {
         String server = args[0];
         String logFile = args[1];
 
-        int speedMultiplier = args.length < 3 ? 1 : Integer.parseInt( args[2] );
+        double speedMultiplier = args.length < 3 ? 1 : Double.parseDouble( args[2] );
         
         LogReplayer lr = new LogReplayer( server , new FileInputStream( logFile ) , speedMultiplier );
         lr.go();
