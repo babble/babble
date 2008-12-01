@@ -79,7 +79,24 @@ public class SeenPathTest extends TestCase {
         assertEquals( 1 , lst.size() );
         assertTrue( b == lst.get(0) );
     }
-    
+
+    @Test 
+    public void testLoop1(){
+        SeenPath p = new SeenPath();
+        final Object a = "a";
+        final Object b = "b";
+        final Object c = "c";
+        final Object d = "d";
+
+        // TODO
+        //p.shouldVisit( c , d );
+
+        p.shouldVisit( b , a );
+        p.shouldVisit( c , b );
+        p.shouldVisit( d , c );
+        
+        p.path( a , d );
+    }
 
     public static void main( String args[] ){
         (new SeenPathTest()).runConsole();
