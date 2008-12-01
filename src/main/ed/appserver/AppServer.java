@@ -801,6 +801,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("         webRoot = " + webRoot);
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
+        if ( LEAK_HUNT )
+            System.out.println( "   LEAK HUNT ENABLED" );
         System.out.println("==================================");
 
         AppServer as = new AppServer( webRoot , sitesRoot );
