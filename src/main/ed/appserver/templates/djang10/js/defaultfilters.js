@@ -1,23 +1,23 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 var defaultfilters =
-    djang10.defaultfilters = 
+    djang10.defaultfilters =
     {};
 
-var log = log.djang10.defaultfilters; 
+var log = log.djang10.defaultfilters;
 
 register = new djang10.Library();
 
@@ -25,7 +25,7 @@ register = new djang10.Library();
 // STRING DECORATOR  //
 ///////////////////////
 
-var force_string = 
+var force_string =
     function(obj) {
 
     if(obj == null)
@@ -42,26 +42,26 @@ var stringfilter =
 
     var f = function() {
         arguments[0] = force_string(arguments[0]);
-        var result = func.apply(null, arguments); 
-        
+        var result = func.apply(null, arguments);
+
         if(djang10.is_safe(arguments[0]) && func.is_safe && (result instanceof Object))
             result = djang10.mark_safe(result);
 
-        return result; 
+        return result;
     };
-    
+
     ["is_safe", "needs_autoescape"].each(function(k) {
         if(k in func)
             f[k] = func[k];
     });
-    
+
     return f;
 };
 
 
 var re_escape = function(pattern) {
-    return pattern.replace(/\W/g, 
-            function(c) {        
+    return pattern.replace(/\W/g,
+            function(c) {
                 switch(c) {
                 case "\n":
                     return "\\n";
@@ -70,9 +70,9 @@ var re_escape = function(pattern) {
                 default:
                     if('/.*+?|()[]{}\\'.contains(c))
                         return "\\" + c;
-                    
+
                     return c;
-                } 
+                }
             }
     );
 };
@@ -119,7 +119,7 @@ var escapejs =
 
     for(var i=0; i<_js_escapes.length; i++)
         value = value.replace(_js_escapes[i][0], _js_escapes[i][1]);
-    
+
     return value;
 };
 escapejs = defaultfilters.escapejs = stringfilter(escapejs);
@@ -141,7 +141,7 @@ var floatformat =
         arg = -1;
 
     var num;
-    
+
     try {
         num = parseFloat(text);
     } catch(e) {
@@ -152,7 +152,7 @@ var floatformat =
     } catch(e) {
         return num;
     }
-    
+
     var diff = num - parseInt(num);
     if(isNaN(diff))
         return num;
@@ -160,7 +160,7 @@ var floatformat =
     if((diff == 0) && (arg < 0))
         return djang10.mark_safe("" + parseInt(num));
     else
-        return djang10.mark_safe("" + num.toFixed(Math.abs(arg))); 
+        return djang10.mark_safe("" + num.toFixed(Math.abs(arg)));
 };
 floatformat.is_safe = true;
 
@@ -169,7 +169,7 @@ var iriencode =
     function(value) {
 
     value = urlquote(value, '/#%[]=:;$&()+,!?*');
-    
+
     return force_string(value);
 };
 iriencode.is_safe = true;
@@ -189,14 +189,14 @@ var linenumbers =
     function(value, autoescape) {
 
     value = value || "";
-    
+
     var lines = value.split("\n");
     var width = lines.length.toString().length;
     autoescape = autoescape && !djang10.is_safe(value);
-    
+
     for(var i=0; i<lines.length; i++) {
         var line = autoescape? escapeHTML(lines[i]) : lines[i];
-        
+
         lines[i] = _zero_pad(i + 1, width) + ". " + line;
     }
     return djang10.mark_safe(lines.join("\n"));
@@ -229,13 +229,13 @@ var slugify =
     function(value) {
 
     //TODO: normalize to NFKD
-    
+
     value = djang10.str_encode(value, "US-ASCII", "ignore");
-    
+
     //get rid of everything except alphanumerics & dashes
     value = value.replace(/[^\w\s-]/g, "").trim().toLowerCase();
     value = value.replace(/[-\s]+/g, "-");
-    
+
     return djang10.mark_safe(value);
 };
 slugify.is_safe = true;
@@ -258,8 +258,8 @@ var title =
     value = value.replace(/(?:\b|(?<![a-z]))([a-z]+)(?:\b|(?![a-z]))/ig, function(w){
         return w.charAt(0).toUpperCase()+w.substring(1);
     });
-    
-    return value.replace(/([a-z])'([A-Z])/, 
+
+    return value.replace(/([a-z])'([A-Z])/,
             function(m) { m.toLowerCase(); });
 };
 title.is_safe = true;
@@ -270,11 +270,11 @@ var truncatewords =
     function(value, arg) {
 
     value = value || "";
-    
+
     var length = parseInt(arg);
     if(isNaN(length))
         return value;
-    
+
     var words = value.split(/\s+/);
     if(words.length > length) {
         words = words.slice(0, length);
@@ -283,7 +283,7 @@ var truncatewords =
         if(lastword.substring(lastword.length - 3) != "...")
             words.push("...");
     }
-    return words.join(" ");    
+    return words.join(" ");
 };
 truncatewords.is_safe = true;
 truncatewords = defaultfilters.truncatewords = stringfilter(truncatewords);
@@ -291,35 +291,35 @@ truncatewords = defaultfilters.truncatewords = stringfilter(truncatewords);
 var truncatewords_html =
     defaultfilters.truncatewords_html =
     function(value, arg) {
-    
+
     value = value || "";
-    
+
     var length = parseInt(arg);
     if(isNaN(length))
         return value;
-    
-    
+
+
     if(length <= 0)
         return "";
-    
+
     var html4_singlets = ['br', 'col', 'link', 'base', 'img', 'param', 'area', 'hr', 'input'];
     var re_words = /&.*?;|<.*?>|(\w[\w-]*)/;
     var re_tag = /<(\/)?([^ ]+?)(?: (\/)| .*?)?>/;
-    
+
     var pos = 0;
     var ellipsis_pos = 0;
     var words = 0;
     var open_tags = new Array();
 
-    
+
     while(words <= length) {
         var cur_value = value.substring(pos);
         var m = re_words.exec(cur_value);
-        
+
         if(m == null)
             break;
         pos += m.index + m[0].length;
-        
+
         if(m[1]) {
             words++;
             if(words == length)
@@ -329,11 +329,11 @@ var truncatewords_html =
         var tag = re_tag.exec(m[0]);
         if(tag == null || ellipsis_pos)
             continue;
-        
+
         var closing_tag = tag[1];
         var tagname = tag[2].toLowerCase();
         var self_closing = tag[3];
-        
+
         if(self_closing || html4_singlets.indexOf(tagname) > -1);
             //pass
         else if(closing_tag) {
@@ -347,14 +347,14 @@ var truncatewords_html =
     }
     if(words <= length)
         return value;
-    
+
     var out = value.substring(0, ellipsis_pos) + " ...";
- 
-    
+
+
     while(open_tags.length > 0)
         out += "</" + open_tags.pop() + ">";
-        
-    
+
+
     return out;
 };
 truncatewords_html.is_safe = true;
@@ -363,7 +363,7 @@ truncatewords_html = defaultfilters.truncatewords_html = stringfilter(truncatewo
 var upper =
     defaultfilters.upper =
     function(value) {
-    
+
     value = value || "";
     return value.toUpperCase();
 };
@@ -374,7 +374,7 @@ var urlencode =
     defaultfilters.urlencode =
     function(value) {
 
-    return scope.getParent().getParent().getParent().getParent().escape(value);      
+    return scope.getParent().getParent().getParent().getParent().escape(value);
 };
 urlencode.is_safe = true;
 urlencode = defaultfilters.urlencode = stringfilter(urlencode);
@@ -383,7 +383,7 @@ urlencode = defaultfilters.urlencode = stringfilter(urlencode);
 var LEADING_PUNCTUATION  = ['(', '<', '&lt;'];
 var TRAILING_PUNCTUATION = ['.', ',', ')', '>', '\n', '&gt;'];
 
-var punctuation_re = new RegExp( 
+var punctuation_re = new RegExp(
     '((?:' +
     LEADING_PUNCTUATION.map(re_escape).join("|") +
     ')*)(.*?)((?:' +
@@ -402,19 +402,19 @@ var always_safe = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
 var urlquote = function(url, safe) {
     if(safe == null) safe = "/";
     safe += always_safe;
-    
+
     return url.replace(/./, function(c) {
         var code = c.charCodeAt(0).toString(16);
-        return (safe.indexOf(c) > -1)? c : "%" + ((code.length == 1)? "0" : "") + code; 
+        return (safe.indexOf(c) > -1)? c : "%" + ((code.length == 1)? "0" : "") + code;
     });
-    
+
 };
 
 var _urlize = function(text, trim_url_limit, nofollow, autoescape) {
     var safe_input = djang10.is_safe(text);
     var words = djang10.split_str(text, /(\s+)/);
     var nofollow_attr = nofollow? ' rel="nofollow"' : '';
-   
+
     for(var i=0; i<words.length; i++) {
         var word = words[i];
 
@@ -423,17 +423,17 @@ var _urlize = function(text, trim_url_limit, nofollow, autoescape) {
             var lead = match[1];
             var middle = match[2];
             var trail = match[3];
-            
+
             if(safe_input)
                 middle = djang10.mark_safe(middle);
-            
+
             if(middle.startsWith("www.") || (middle.indexOf("@")==-1 && !(middle.startsWith("http://") || middle.startsWith("https://")) &&
                     middle.length > 0 && /\w/.test(middle[0]) &&
                     (middle.endsWith('.org') || middle.endsWith('.net') || middle.endsWith('.com')))) {
-                
+
                 middle = "http://" + middle;
             }
-            
+
             if(middle.startsWith("http://") || middle.startsWith("https://")) {
                 var url = urlquote(middle, "/&=:;#?+*");
                 if(autoescape && !safe_input) {
@@ -444,20 +444,20 @@ var _urlize = function(text, trim_url_limit, nofollow, autoescape) {
                     trimmed_url = middle.substring(0, Math.max(0, trim_url_limit-3)) + "...";
                 else
                     trimmed_url = middle;
-                
+
                 if(autoescape && !djang10.is_safe(trimmed_url))
                     trimmed_url = force_escape(trimmed_url);
-                
+
                 middle = '<a href="' +  url + '"' + nofollow_attr + '>' + trimmed_url + "</a>";
             }
             else if (middle.indexOf("@") > -1 && !middle.startsWith("www.") &&
-                    middle.indexOf(":")==-1 && simple_email_re.test(middle)) { 
-                
+                    middle.indexOf(":")==-1 && simple_email_re.test(middle)) {
+
                 if(autoescape && !djang10.is_safe(middle))
                     middle = force_escape(middle);
                 middle = '<a href="mailto:'+middle+'">'+middle+'</a>';
             }
-            
+
             if(lead + middle + trail != word) {
                 if(autoescape && !safe_input) {
                     lead = force_escape(lead);
@@ -465,7 +465,7 @@ var _urlize = function(text, trim_url_limit, nofollow, autoescape) {
                 }
                 words[i] = djang10.mark_safe(lead + middle + trail);
             }
-            else if(autoescape && !safe_input) { 
+            else if(autoescape && !safe_input) {
                 words[i] = force_escape(word);
             }
         }
@@ -493,7 +493,7 @@ urlize = defaultfilters.urlize = stringfilter(urlize);
 var urlizetrunc =
     defaultfilters.urlizetrunc =
     function(value, autoescape, arg) {
-    
+
     return djang10.mark_safe(_urlize(value, parseInt(arg), true, autoescape))
 };
 urlizetrunc.is_safe = true;
@@ -512,19 +512,19 @@ wordcount = defaultfilters.wordcount = stringfilter(wordcount);
 var wordwrap =
     defaultfilters.wordwrap =
     function(value, arg) {
-    
+
     var width = parseInt(arg);
     var words = value.split(" ");
     var word = value[0];
     var pos = word.length - word.lastIndexOf("\n") - 1;
-    
+
     var results = "";
-    
+
     results += word;
     for(var i=1; i<words.length; i++) {
         word = words[i];
         var lines = word.split("\n");
-        
+
         pos += lines[0].length + 1
         if(pos > width) {
             results += "\n";
@@ -548,12 +548,12 @@ var ljust =
 
     var width = parseInt(arg);
     var buffer = "";
-    
+
     var nspaces = Math.max(0, width - value.length);
     while(nspaces-- > 0)
         buffer += " ";
 
-    return value + buffer; 
+    return value + buffer;
 };
 ljust.is_safe = true;
 ljust = defaultfilters.ljust = stringfilter(ljust);
@@ -564,12 +564,12 @@ var rjust =
 
     var width = parseInt(arg);
     var buffer = "";
-    
+
     var nspaces = Math.max(0, width - value.length);
     while(nspaces-- > 0)
         buffer += " ";
 
-    return buffer + value; 
+    return buffer + value;
 };
 rjust.is_safe = true;
 rjust = defaultfilters.rjust = stringfilter(rjust);
@@ -579,15 +579,15 @@ var center =
     function(value, arg) {
 
     var width = parseInt(arg);
-    
+
     var nspaces = Math.max(0, width - value.length);
-    
+
     var leftspaces = nspaces/2;
     var rightspaces = nspaces - leftspaces;
-    
+
     value = ljust(value, rightspaces + value.length);
     value = rjust(value, leftspaces + value.length);
-    
+
     return value;
 };
 center.is_safe = true;
@@ -616,7 +616,7 @@ cut = defaultfilters.cut = stringfilter(cut);
 var escape_ =
     defaultfilters.escape =
     function(value) {
-    
+
     return djang10.mark_escape(value);
 };
 escape_.is_safe = true;
@@ -626,7 +626,7 @@ var force_escape =
     defaultfilters.force_escape =
     function(value) {
 
-    return djang10.mark_safe(escapeHTML(value));        
+    return djang10.mark_safe(escapeHTML(value));
 };
 force_escape.is_safe = true;
 force_escape = defaultfilters.force_escape = stringfilter(force_escape);
@@ -636,7 +636,7 @@ var linebreaks =
     function(value, autoescape) {
 
     autoescape = autoescape && !djang10.is_safe(value);
-    
+
     value = value.replace(/\r\n|\r|\n/g, "\n");
     var paras = value.split(/\n{2,}/);
     for (var i = 0; i < paras.length; i++) {
@@ -644,7 +644,7 @@ var linebreaks =
             paras[i] = escapeHTML(paras[i].trim());
         paras[i] = "<p>" + paras[i].replace(/\n/g, "<br />") + "</p>";
     }
-        
+
     return djang10.mark_safe("" + paras.join("\n\n"));
 };
 linebreaks.is_safe = true;
@@ -681,10 +681,10 @@ var removetags =
     var tags_re = "(" + tags.split(/\s+/).map(escape_pattern).join("|") + ")";
     var starttag_re =  new RegExp('<'+tags_re+'(/?>|(\s+[^>]*>))', "g");
     var endtag_re = new RegExp('</' + tags_re + '>', "g");
-       
+
     value = value.replace(starttag_re, "");
     value = value.replace(endtag_re, "");
-    
+
     return value;
 };
 removetags.is_safe = true;
@@ -713,7 +713,7 @@ var dictsort =
     return value.slice().sort(function(a, b) {
         var val_a = a[arg];
         var val_b = b[arg];
-         
+
         return (val_a < val_b)? -1 : (val_a == val_b)? 0 : 1;
     });
 };
@@ -745,7 +745,7 @@ var join =
     if(safe_args)
         data = djang10.mark_safe(data);
 
-    return data;        
+    return data;
 };
 join.is_safe = true;
 
@@ -760,9 +760,9 @@ last.is_safe = true;
 var length =
     defaultfilters.length =
     function(value) {
-    
+
     value = value || "";
-    
+
     return value.length;
 };
 length.is_safe = true;
@@ -772,10 +772,10 @@ var length_is =
     function(value, arg) {
 
     value = value || "";
-    
+
     return value.length == arg;
 };
-length_is.is_safe = true; 
+length_is.is_safe = true;
 
 var random =
     defaultfilters.random =
@@ -807,33 +807,33 @@ var slice_ =
             throw "end isn't a number";
         if(isNaN(step))
             throw "step isn't a number";
-        
+
         if(step == 0)
             throw "step can't be zero";
-        
+
         if(!(value instanceof Array) && !(value instanceof String))
             throw "Value must be either a string or an array";
-        
+
         //adjust for negative indices
         if(start < 0)
             start = value.length + start;
         if(end < 0)
             end = value.length + end;
 
-        
-        start = Math.max(0, start); 
+
+        start = Math.max(0, start);
         start = Math.min(value.length-1, start);
         end = Math.max(0, end);
         end = Math.min(value.length, end);
-        
+
         end = (step > 0)? Math.max(start, end) : Math.min(start, end);
-        
+
         var result = value;
-        var result_length =  Math.ceil( (end - start)/step ); 
-        
+        var result_length =  Math.ceil( (end - start)/step );
+
         if(value instanceof Array) {
             result = [];
-            
+
             for(var i=0; i<result_length; i++)
                 result.push(value[start + (i * step)]);
 
@@ -841,7 +841,7 @@ var slice_ =
         }
         else if(value instanceof String){
             result = "";
-            
+
             for(var j=0; j<result_length; j++)
                 result += value[start + (j * step)];
 
@@ -862,14 +862,14 @@ var unordered_list =
     function(value, autoescape) {
 
     autoescape = !!autoescape;
-    
+
     var convert_old_style_list = function(list_) {
         if(!(list_ instanceof Array) || list_.length != 2)
             return [list_, false];
-        
+
         var first_item = list_[0];
         var second_item = list_[1];
-        
+
         if(second_item.length == 0)
             return [[first_item], true];
         var old_style_list = true;
@@ -879,7 +879,7 @@ var unordered_list =
             var temp = convert_old_style_list(sublist);
             var item = temp[0];
             var old_style_list = temp[1];
-            
+
             if(!old_style_list)
                 break;
             new_second_item.push.apply(new_second_item, item);
@@ -890,20 +890,20 @@ var unordered_list =
     };
     var _helper = function(list_, tabs) {
         if(tabs == null) tabs = 1;
-        
+
         var indent = "";
         for(var i=tabs; i>0; i--)
             indent += "\t";
-        
+
         var output = [];
         var list_length = list_.length;
         var i=0;
-        
+
         while(i < list_length) {
             var title = list_[i];
             var sublist = "";
             var sublist_item = null;
-            
+
             if(title instanceof Array) {
                 sublist_item = title;
                 title = "";
@@ -961,7 +961,7 @@ var get_digit =
     var value_str = value.toString();
     if(arg >= value_str.length)
         return 0;
-    
+
     return parseInt(value_str[value_str.length - arg]);
 };
 get_digit.is_safe = true;
@@ -979,10 +979,10 @@ var date =
 
     if(!value)
         return "";
-    
+
     //TODO: if arg is null, use django.DATE_FORMAT
 
-    return djang10.formatDate(value, arg);        
+    return djang10.formatDate(value, arg);
 };
 date.is_safe = true;
 
@@ -992,9 +992,9 @@ var time =
 
     if(!value)
         return "";
-    
+
     //TODO: if arg is null, use django.TIME_FORMAT
-    
+
     return djang10.formatTime(value, arg);
 };
 
@@ -1009,13 +1009,13 @@ var _time_since = function(d, now) {
       [60 * 60, function(n) { return ungettext('hour', 'hours', n); }],
       [60, function(n) { return ungettext('minute', 'minutes', n); }]
     ];
-    
+
     var now_ms = (now || new Date()).getTime();
     var then_ms = d.getTime();
     var diff_secs = (now_ms - then_ms)/1000;
-    
+
     if(diff_secs <= 0) return "0 " + ungettext("minutes");
-    
+
     var seconds;
     var name_func;
     var count;
@@ -1024,17 +1024,17 @@ var _time_since = function(d, now) {
         seconds = chunks[i][0];
         name_func = chunks[i][1];
         count = Math.floor(diff_secs/seconds);
-        
+
         if(count != 0)
             break;
     }
     var s = count + " " + name_func(count);
-    
+
     if(i + 1 < chunks.length) {
         var seconds2 = chunks[i+1][0];
         var name_func2 = chunks[i+1][1];
         var count2 = Math.floor( (diff_secs - (seconds * count)) / seconds2 );
-        
+
         if(count2 != 0)
             s += ", " + count2 + " " + name_func2(count2);
     }
@@ -1046,7 +1046,7 @@ var timesince =
 
     if(!value)
         return "";
-    
+
     return (arg)? _time_since(arg, value) : _time_since(value);
 };
 
@@ -1056,7 +1056,7 @@ var timeuntil =
 
     if(!value)
         return "";
-    
+
     return (arg)? _time_since(arg, value) : _time_since(new Date(), value);
 };
 
@@ -1069,7 +1069,7 @@ var timeuntil =
 var default_ =
     defaultfilters.default_ =
     function(value, arg) {
-        
+
     return (djang10.Expression.is_true(value))? value : arg;
 };
 default_.is_safe = false;
@@ -1077,7 +1077,7 @@ default_.is_safe = false;
 var default_if_none =
     defaultfilters.default_if_none =
     function(value, arg) {
-        
+
     return (value == null)? arg : value;
 };
 default_if_none.is_safe = false;
@@ -1085,7 +1085,7 @@ default_if_none.is_safe = false;
 var divisibleby =
     defaultfilters.divisibleby =
     function(value, arg) {
-    
+
     return (parseInt(value) % parseInt(arg)) == 0;
 };
 divisibleby.is_safe = false;
@@ -1097,12 +1097,12 @@ var yesno =
     var bits = (arg || "yes,no,maybe" ).split(",");
     if(bits.length < 2)
         return value;
-    
+
     var yes = bits[0];
     var no = bits[1];
     var maybe = bits[2] || bits[1];
-    
-    return (value == null)? maybe : (djang10.Expression.is_true(value))? yes : no;     
+
+    return (value == null)? maybe : (djang10.Expression.is_true(value))? yes : no;
 };
 
 
@@ -1132,24 +1132,24 @@ filesizeformat.is_safe = true;
 var pluralize =
     defaultfilters.pluralize =
     function(value, arg) {
-    
+
     arg = arg || "s";
     if(arg.indexOf(",") == -1)
         arg = "," + arg;
     var bits = arg.split(",");
     if(bits.length > 2)
         return "";
-    
+
     var singular_suffix = bits[0];
     var plural_suffix = bits[1];
-    
+
     var temp = parseInt(value);
     if(!isNaN(temp) && temp != 1)
         return plural_suffix;
-    
+
     if((value instanceof Array) && value.length != 1)
         return plural_suffix;
-    
+
     return singular_suffix;
 
 };
@@ -1167,9 +1167,9 @@ var phone2numeric =
             'y': '9', 'x': '9'
     };
 
-    return value.replace(/[A-PR-Y]/gi, 
+    return value.replace(/[A-PR-Y]/gi,
             function(match, offset, str) {
-                return map[match.toLowerCase()]; 
+                return map[match.toLowerCase()];
             }
     );
 };
