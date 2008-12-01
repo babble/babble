@@ -144,6 +144,10 @@ public class AppServerTest extends ed.TestCase {
 
         assertEquals( -1 , _getCacheTime( context , "/css.css" ) );
         assertEquals( AppServer.DEFAULT_CACHE_S , _getCacheTime( context , "/css.css?lm=23&ctxt=12" ) );
+
+        // this is the really interesting one
+        // the cache url is wrong, but it does exist
+        assertEquals( -1 , _getCacheTime( context , "/css.css?lm=" + URLFixer.LM404 + "&ctxt=12" ) );
     }
 
     int _getCacheTime( AppContext context , String file ){

@@ -26,6 +26,7 @@ import ed.net.httpserver.*;
 public class URLFixer {
 
     public static final boolean NOCDN = Config.get().getBoolean( "NO-CDN" );
+    public static final String LM404 = "doesntexist";
 
     public URLFixer( HttpRequest request , AppRequest ar ){
         this( getStaticPrefix( request , ar ) , getStaticSuffix( request , ar ) , ar.getContext() );
@@ -122,7 +123,7 @@ public class URLFixer {
                 if ( f == null )
                     cdnTags = _urlAppendNameValue( cdnTags , "lm=cantfind" );
                 else if ( ! f.exists() )
-                    cdnTags = _urlAppendNameValue( cdnTags , "lm=doesntexist" );
+                    cdnTags = _urlAppendNameValue( cdnTags , "lm=" + LM404 );
                 else
                     cdnTags = _urlAppendNameValue( cdnTags , "lm=" + f.lastModified() );
             }

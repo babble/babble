@@ -586,6 +586,12 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         if ( ! file.exists() )
             return -1;
         
+        if ( request.getParameter( "lm" ).equals( URLFixer.LM404 ) ){
+            // this is the really interesting one
+            // the cache url is wrong, but it does exist
+            return -1;
+        }
+
         return DEFAULT_CACHE_S;
     }
 
