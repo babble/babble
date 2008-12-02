@@ -28,20 +28,39 @@ public class ObjectPath extends ArrayList {
     public Object removeLast(){
         return remove( size() -1  );
     }
-
+    
     public void addEndOfPath( Throwable allocated ){
-        _ends.add( new Pair<String,Throwable>( toString() , allocated ) );
+        _ends.add( new EndInfo( allocated ) );
     }
-
-    public void foundLoop(){
-        _loops.add( toString() );
+    
+    public void foundLoop( Object what ){
+        LoopInfo li = new LoopInfo( what );
+        String s = li._snapshot.substring( 0 , li._snapshot.length() - 1 );
+        for ( LoopInfo old : _loops )
+            if ( old._snapshot.startsWith( s ) )
+                return;
+        _loops.add( li );
     }
 
     public RuntimeException getDebugException(){
         throw new RuntimeException( "can't find path.  loops : " + _loops + " ends : " + _ends );
     }
     
+    public void debug(){
+        System.out.println( "loops" );
+        for ( LoopInfo l : _loops )
+            l.debug();
+        
+        System.out.println( "ends" );
+        for ( EndInfo e : _ends )
+            e.debug();
+
+    }
+
     static String pathElementToString( Object o ){
+        if ( o == null )
+            return "null";
+
         String s = o.getClass().getName();
         
         if ( o instanceof Scope  
@@ -68,7 +87,43 @@ public class ObjectPath extends ArrayList {
 
         return buf.toString();
     }
+    
+    class LoopInfo extends Info {
+        LoopInfo( Object where ){
+            _where = where;
+        }
+        
+        void debug(){
+            System.out.println( "\t" + _snapshot + " where:" + pathElementToString( _where ) );
+        }
 
-    final List<String> _loops = new ArrayList<String>();
-    final List<Pair<String,Throwable>> _ends = new ArrayList<Pair<String,Throwable>>();
+        final Object _where;
+    }
+
+    class EndInfo extends Info {
+        EndInfo( Throwable t ){
+            _t = t;
+        }
+
+        void debug(){
+            System.out.println( "\t" + _snapshot );
+            if ( _t != null )
+                _t.printStackTrace();
+        }
+
+        final Throwable _t;
+    }
+
+    abstract class Info {
+        Info(){
+            _snapshot = ObjectPath.this.toString();
+        }
+
+        abstract void debug();
+        
+        final String _snapshot;
+    }
+
+    final List<LoopInfo> _loops = new ArrayList<LoopInfo>();
+    final List<EndInfo> _ends = new ArrayList<EndInfo>();
 }
