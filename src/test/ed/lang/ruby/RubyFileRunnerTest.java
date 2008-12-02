@@ -51,7 +51,7 @@ public class RubyFileRunnerTest {
      * "ruby.activerecord". This is because our automated test environment's
      * of the QA project isn't quite ready to run these tests.
      */
-    @Test(groups = {"ruby", "ruby.activerecord"})
+    @Test(groups = {"ruby.activerecord"})
     public void testRunRailsTests() {
         File dir;
         if ((dir = new File("/data/qa", QA_RAILS_TEST_DIR_RELATIVE)).exists() ||
