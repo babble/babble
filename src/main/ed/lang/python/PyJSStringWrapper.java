@@ -27,7 +27,7 @@ import org.python.expose.generate.*;
 import ed.js.*;
 
 @ExposedType(name = "jsstringwrapper")
-public class PyJSStringWrapper extends PyString {
+public class PyJSStringWrapper extends PyUnicode {
 
     public static PyType TYPE = Python.exposeClass(PyJSStringWrapper.class);
 
