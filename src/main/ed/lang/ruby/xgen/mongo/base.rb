@@ -501,7 +501,7 @@ module XGen
         def quoted_bind_var(val) # :nodoc:
           case val
           when Array
-            "(#{val.collect{|v| quote(v)}.join(',')})"
+            val.collect{|v| quote(v)}.join(',')
           else
             quote(val)
           end
