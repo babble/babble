@@ -93,7 +93,7 @@ public class Python extends Language {
             return p;
 
         if ( p instanceof String )
-            return new JSString( p.toString() );
+            return new JSString( (String)p );
 
         if ( p instanceof PyJSStringWrapper )
             p = ((PyJSStringWrapper)p)._p;
@@ -123,7 +123,7 @@ public class Python extends Language {
         if ( p instanceof PyFloat )
             return ((PyFloat)p).getValue();
 
-        if ( p instanceof PyString )
+        if ( p instanceof PyString || p instanceof PyUnicode )
             return new JSString( p.toString() );
 
         if ( p instanceof PyObjectId )
@@ -223,7 +223,7 @@ public class Python extends Language {
             return new PyFloat( ((Number)o).doubleValue() );
 
         if ( o instanceof String )
-            return new PyString( (String)o );
+            return new PyUnicode( (String)o );
 
         if ( o instanceof JSString )
             return new PyJSStringWrapper( (JSString)o );
