@@ -133,9 +133,10 @@ public class Djang10Source extends JxpSource implements Sizable {
     public long approxSize(SeenPath seen) {
         long sum = super.approxSize( seen );
 
-        Object[] toSize = { log, content, compiledScript, scope };
-        for( Object obj : toSize )
-            sum += JSObjectSize.size( obj, seen, this );
+        sum += JSObjectSize.size( log, seen, this );
+        sum += JSObjectSize.size( content, seen, this );
+        sum += JSObjectSize.size( compiledScript, seen, this );
+        sum += JSObjectSize.size( scope, seen, this );
 
         return sum;
     }

@@ -124,9 +124,9 @@ public class FilterExpression extends JSObjectBase {
     public long approxSize(SeenPath seen) {
         long sum = super.approxSize( seen );
 
-        Object [] toSize = { log, expression, filterSpecs };
-        for(Object obj : toSize)
-            sum += JSObjectSize.size( obj, seen, this );
+        sum += JSObjectSize.size( log, seen, this );
+        sum += JSObjectSize.size( expression, seen, this );
+        sum += JSObjectSize.size( filterSpecs, seen, this );
 
         return sum;
     }
@@ -185,9 +185,9 @@ public class FilterExpression extends JSObjectBase {
         public long approxSize(SeenPath seen) {
             long sum = JSObjectSize.OBJ_OVERHEAD;
 
-            Object[] toSize = { filterName, filter, param };
-            for(Object obj : toSize)
-                sum += JSObjectSize.size( obj, seen, this );
+            sum += JSObjectSize.size( filterName, seen, this );
+            sum += JSObjectSize.size( filter, seen, this );
+            sum += JSObjectSize.size( param, seen, this );
 
             return sum;
         }
