@@ -328,10 +328,12 @@ public class JSON {
                     if ( IGNORE_NAMES.contains( s ) )
                         continue;
 
-                    Object val = o.get( s );
+                    Object val = o instanceof JSObjectBase ? 
+                        ((JSObjectBase)o)._simpleGet( s ) : o.get( s );
                     if ( val instanceof JSObjectBase ){
                         ((JSObjectBase)val).prefunc();
-                        if ( o.get( s ) == null )
+                        if ( ( o instanceof JSObjectBase ?
+                               ((JSObjectBase)o)._simpleGet( s ) : o.get( s ) ) == null )
                             continue;
                     }
 
