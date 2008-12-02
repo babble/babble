@@ -598,7 +598,7 @@ public class Scope implements JSObject , Bindings {
         JSObject with[] = new JSObject[1];
         Object o = get( name , _alternate , with );
         
-        if ( o == null ){
+        if ( o == null && getParent() != null ){
             if ( getParent().getThis( false ) instanceof JSObject ){
                 JSObject pt = (JSObject)getParent().getThis();
                 o = pt.getFunction( name );
