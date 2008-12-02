@@ -110,12 +110,6 @@ public class SeenPath extends IdentityHashMap<Object,List> {
     
     boolean dontTraverseSpecial( Object o ){
         
-        if ( o instanceof ed.appserver.AppRequest ){
-            Throwable t = new Throwable( "DOING SOMETHING WITH APPREQUEST" );
-            t.fillInStackTrace();
-            t.printStackTrace();
-        }
-
         if ( isBadWeak( o ) )
             return true;
         
