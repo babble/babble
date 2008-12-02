@@ -20,9 +20,11 @@ package ed.appserver.templates.djang10;
 
 import ed.js.JSFunction;
 import ed.js.JSObject;
+import ed.js.JSObjectSize;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
+import ed.util.SeenPath;
 
 public abstract class Printer extends JSFunctionCalls1 {
     private Boolean is_safe;
@@ -55,6 +57,14 @@ public abstract class Printer extends JSFunctionCalls1 {
     protected abstract void print(Scope scope, Object obj);
 
 
+    public long approxSize(SeenPath seen) {
+        long sum = super.approxSize( seen );
+
+        sum += JSObjectSize.size( is_safe, seen, this );
+
+        return sum;
+    }
+
 
     public static class DelegatingPrinter extends Printer {
         private final JSFunction inner;
@@ -65,6 +75,14 @@ public abstract class Printer extends JSFunctionCalls1 {
 
         protected void print(Scope scope, Object obj) {
             inner.call(scope, obj);
+        }
+
+        public long approxSize(SeenPath seen) {
+            long sum = super.approxSize( seen );
+
+            sum += JSObjectSize.size( inner, seen, this );
+
+            return sum;
         }
     }
 
@@ -86,6 +104,14 @@ public abstract class Printer extends JSFunctionCalls1 {
                 str = (JSString)JSHelper.mark_escape(str);
 
             return str;
+        }
+        public long approxSize(SeenPath seen) {
+            long sum = super.approxSize( seen );
+
+            if( seen.shouldVisit( buffer , this ) );
+                sum += JSObjectSize.OBJ_OVERHEAD + (2*buffer.capacity());
+
+            return sum;
         }
     }
 }
