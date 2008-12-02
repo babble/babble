@@ -73,8 +73,6 @@ module ActiveRecord
 
       def remove_connection; end
 
-      def connection=(spec); end
-
       # ================
 
       # Works like find(:all), but requires a complete SQL string. Examples:
