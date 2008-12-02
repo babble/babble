@@ -26,10 +26,7 @@ import org.python.expose.generate.*;
 
 import ed.js.*;
 
-@ExposedType(name = "jsstringwrapper")
 public class PyJSStringWrapper extends PyUnicode {
-
-    public static PyType TYPE = Python.exposeClass(PyJSStringWrapper.class);
 
     public PyJSStringWrapper( JSString s ){
         super( s.toString() );
@@ -37,24 +34,11 @@ public class PyJSStringWrapper extends PyUnicode {
     }
 
     public PyObject iterkeys(){ return _p.iterkeys(); }
-    @ExposedMethod
-    public PyObject jsstringwrapper_iterkeys(){ return _p.iterkeys(); }
     public PyObject iteritems(){ return _p.iteritems(); }
-    @ExposedMethod
-    public PyObject jsstringwrapper_iteritems(){ return _p.iteritems(); }
 
     // FIXME: don't use integer indices as valid keys
     public PyList keys(){ return _p.keys(); }
     public PyList values(){ return _p.values(); }
-
-    @ExposedMethod
-    public final PyList jsstringwrapper_keys(){ return _p.keys(); }
-
-    @ExposedMethod
-    public final PyList jsstringwrapper_values(){ return _p.values(); }
-
-    @ExposedMethod
-    public boolean jsstringwrapper_has_key(PyObject key){ return _p.jswrapper_has_key(key); }
 
     public PyObject __dir__(){ return _p.__dir__(); }
 
