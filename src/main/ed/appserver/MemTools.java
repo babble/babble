@@ -30,12 +30,12 @@ import ed.net.httpserver.*;
 
 public class MemTools {
 
-    static void leakHunt( AppContext ac , HttpRequest request , SeenPath reachableBefore , long sizeBefore ){
+    static void leakHunt( AppContext ac , AppRequest request , SeenPath reachableBefore , long sizeBefore ){
 
         if ( ac._numRequests < 2 )
             return;
         
-        final Logger logger = ac.getLogger( "leak" ).getChild( request.getFullURL() );
+        final Logger logger = ac.getLogger( "leak" ).getChild( request.getRequest().getFullURL() );
 
         if ( logger._simpleGet( "__seen" ) == null ){
             // only want to do this for pages we've seen before
@@ -49,9 +49,14 @@ public class MemTools {
         if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
             return;
         
-        MemTools.gotMemoryLeak( ac , logger ,
-                                reachableBefore , now , 
-                                sizeBefore , sizeNow );
+        if ( now.contains( request ) ){
+            logger.error( "now contains the request" );
+            debugPath( logger , now , ac , request );
+        }
+
+        gotMemoryLeak( ac , logger ,
+                       reachableBefore , now , 
+                       sizeBefore , sizeNow );
         
     }
     
@@ -63,10 +68,10 @@ public class MemTools {
                                       ){
         
         
-        logger.error( "mem leak detected.  " + before.size() + "->" + after.size() + " (" + ( after.size() - before.size() ) + ")"  );
-        
         IdentitySet newThings = new IdentitySet( after.keySet() );
         newThings.removeAll( before.keySet() );
+
+        logger.error( "mem leak detected.  " + before.size() + "->" + after.size() + " (" + ( after.size() - before.size() ) + ") (" + newThings.size() + ")"  );
 
         for ( Object o : newThings ){
 
@@ -74,19 +79,31 @@ public class MemTools {
                 continue;
             
             System.out.println( "\t" + o.getClass() );
-            
-            ObjectPath path = new ObjectPath();
-            ObjectPath result = after.path( context , o , path );
-            if ( result == null ){
-                System.out.println( "couldn't find path" );
-                path.debug();
-                break;
-            }
+            System.out.println( "\t\t" + o );
 
-            logger.error( "found leak at : " + path );
+            ObjectPath path = debugPath( logger , after , context , o );
+            if ( path == null )
+                break;
+            
         }
         
 
+    }
+
+    
+    static ObjectPath debugPath( Logger logger , SeenPath seen , Object from , Object to ){
+        ObjectPath path = new ObjectPath();
+        path.add( to );
+
+        ObjectPath result = seen.path( from , to , path );
+        if ( result == null ){
+            System.out.println( "couldn't find path : " + ObjectPath.pathElementsToString( seen.get( to ) ) );
+            path.debug();
+            return null;
+        }        
+        
+        logger.error( "found leak at : " + path );        
+        return null;
     }
     
 }
