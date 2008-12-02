@@ -134,14 +134,14 @@ public class SeenPath extends IdentityHashMap<Object,List> {
             throw new RuntimeException( "the object you want to find doesn't exist" );
         
         ObjectPath path = new ObjectPath();
-        ObjectPath found = _path( from , to , path );
+        ObjectPath found = path( from , to , path );
         if ( found == null )
             throw path.getDebugException();
         
         return path;
     }
 
-    private ObjectPath _path( final Object from , final Object cur , final ObjectPath path ){
+    public ObjectPath path( final Object from , final Object cur , final ObjectPath path ){
 
         if ( cur == from )
             return path;
@@ -167,6 +167,8 @@ public class SeenPath extends IdentityHashMap<Object,List> {
             return null;
         }
         
+        Object dup = null;
+
         links:
         for ( Object next : lst ){
 
@@ -176,12 +178,13 @@ public class SeenPath extends IdentityHashMap<Object,List> {
             for ( int i=0; i<path.size(); i++ ){
                 if ( path.get(i) == next ){
                     // this means we've seen this before, so skip it for now
+                    dup = next;
                     continue links;
                 }
             }
             
             path.add( next );
-            ObjectPath found = _path( from , next , path );
+            ObjectPath found = path( from , next , path );
             if ( found != null )
                 return found;
 
@@ -189,7 +192,7 @@ public class SeenPath extends IdentityHashMap<Object,List> {
             
         }
         
-        path.foundLoop();
+        path.foundLoop( dup );
 
         return null;
     }

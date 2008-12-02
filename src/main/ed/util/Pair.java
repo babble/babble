@@ -65,8 +65,10 @@ public class Pair<A,B>{
         return o1.equals( o2 );
     }
 
-    /** First object of the pair. */
+    public String toString(){
+        return "<" + first + "," + second + ">";
+    }
+
     public A first;
-    /** First object of the pair. */
     public B second;
 }
