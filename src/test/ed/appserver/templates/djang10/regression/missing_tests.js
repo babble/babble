@@ -1,16 +1,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -33,18 +33,18 @@ ReflexiveClass = function(obj) {
     this.numbers = [0,1,2,3,4,5,6,7,8,9];
     this.arr = [0,1,2,3,4,5,6,7,8,9,this];
     this.arr.push(this.arr);
-    
+
     var i=0;
     var self = this;
     ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"].forEach(function(x) { self.arr[x] = i;});
     this.arr["ten"] = this.arr["self"] = this;
     this.arr["eleven"] = this.arr["arr"] = this.arr;
-    
+
     if(obj != null)
         for(var k in obj)
             this[k] = obj[k];
-    
-    
+
+
     this.arr.get = function(x) { return this[x]; };
 };
 ReflexiveClass.prototype = {
@@ -77,34 +77,34 @@ for(var i=0; i<ExprIfChangedVarCount; i++) {
 var NowFormatStr =  "Y-n-j G:i";
 var d = new Date();
 var NowFormatResult = d.getFullYear() +"-"+ (d.getMonth()+1) +"-"+d.getDate()+" "+d.getHours()+":"+(d.getMinutes()<10?'0':'')+d.getMinutes();
-    
-tests=[                                                                                                                                                                            //a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O    ,P        ,r                              ,s ,S ,t ,w      
-       { name: "filter-date01",            content: '{% autoescape off %}{{ d|date:"a,A,b,d,D,f,F,g,G,h,H,i,j,l,L,m,M,n,N,O,P,r,s,S,t,w" }}{% endautoescape %}', 
-                                           model: { d: aDate }, 
+
+tests=[                                                                                                                                                                            //a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O    ,P        ,r                              ,s ,S ,t ,w
+       { name: "filter-date01",            content: '{% autoescape off %}{{ d|date:"a,A,b,d,D,f,F,g,G,h,H,i,j,l,L,m,M,n,N,O,P,r,s,S,t,w" }}{% endautoescape %}',
+                                           model: { d: aDate },
                                            results: "p.m.,PM,dec,20,Sun,3:11,December,3,15,03,15,11,20,Sunday,false,12,Dec,12,Dec.,-0500,3:11 p.m.,Sun, 20 Dec 1981 15:11:37 -0500,37,th,31,0" },
                                                                                                                                                                                    //a   ,A ,f   ,g,G ,h ,H ,i ,P        ,s
-       { name: "filter-time01",            content: '{% autoescape off %}{{ d|date:"a,A,f,g,G,h,H,i,P,s" }}{% endautoescape %}', 
-                                           model: { d: aDate }, 
+       { name: "filter-time01",            content: '{% autoescape off %}{{ d|date:"a,A,f,g,G,h,H,i,P,s" }}{% endautoescape %}',
+                                           model: { d: aDate },
                                            results: "p.m.,PM,3:11,3,15,03,15,11,3:11 p.m.,37" },
-       
-      
-       { name: "if-method chain02",        content: '{% autoescape off %}{% if foo.add(x).prop %}true{% endif %}{% endautoescape %}', 
-                                           model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, 
+
+
+       { name: "if-method chain02",        content: '{% autoescape off %}{% if foo.add(x).prop %}true{% endif %}{% endautoescape %}',
+                                           model: { foo: new OtherClass2(3), x: new OtherClass2(5) },
                                            results: "true" },
-       
-       { name: "if-allow spaces01",        content: '{% autoescape off %}{% if foo   .   add(   x    )   .   prop    %}true{% endif %}{% endautoescape %}', 
-                                           model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, 
+
+       { name: "if-allow spaces01",        content: '{% autoescape off %}{% if foo   .   add(   x    )   .   prop    %}true{% endif %}{% endautoescape %}',
+                                           model: { foo: new OtherClass2(3), x: new OtherClass2(5) },
                                            results: "true" },
-       
+
        //same as the regular django tests but takes into account that js & python have different type representionations
-       { name: "filter-make_list-jsout01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", 
-                                           model: { "a": djang10.mark_safe("&") }, 
+       { name: "filter-make_list-jsout01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}",
+                                           model: { "a": djang10.mark_safe("&") },
                                            results: "&" },
 
-       { name: "filter-make_list-jsout02", content: "{{ a|make_list }}", 
-                                           model: { "a": djang10.mark_safe("&") }, 
+       { name: "filter-make_list-jsout02", content: "{{ a|make_list }}",
+                                           model: { "a": djang10.mark_safe("&") },
                                            results: "&amp;" },
-       
+
        //HACK ALERT: these 2 unit tests, test for python's style of string representations, while everything else tests for js style
        { name: "filter-make_list-jsout03", content: "{% autoescape off %}{{ a|make_list|stringformat:\"s\"|safe }}{% endautoescape %}",
                                            model: { "a": djang10.mark_safe("&") },
@@ -112,8 +112,8 @@ tests=[                                                                         
 
        { name: "filter-make_list-jsout04", content: "{{ a|make_list|stringformat:\"s\"|safe }}",
                                            model: { "a": djang10.mark_safe("&") },
-                                           results: "['&']" },    
-       
+                                           results: "['&']" },
+
        { name: "filter-make_list-jsout-extra01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}",
                                            model: { "a": djang10.mark_safe("&&&") },
                                            results: "&,&,&" },
@@ -121,20 +121,20 @@ tests=[                                                                         
        { name: "filter-make_list-jsout-extra02", content: "{{ a|make_list }}",
                                            model: { "a": djang10.mark_safe("&&&") },
                                            results: "&amp;,&amp;,&amp;" },
-       
-       
+
+
        { name: "expression_mangling01",    content: "{{ var.if().1[0].1 }}",
                                            model: { "var": {"if": function() { return [1, [[null, "moo"]]]} } },
                                            results: "moo" },
 
        { name: "expression_mangling02",    content: "{{ var.if.when.for.continue }}",
                                            model: { "var": { "if": {"when": {"for": {"continue": "baa"}}}}},
-                                           results: "baa" }, 
+                                           results: "baa" },
 
        { name: "now-escape01",             content: '{% now "'+NowFormatStr+' \\Y-\\n-\\j \\G:\\i" %}',
                                            model: {},
-                                           results: NowFormatResult+ " Y-n-j G:i"}, 
-       
+                                           results: NowFormatResult+ " Y-n-j G:i"},
+
        { name: "literal-escape01",         content: '{% literal_escape on %}{{ "moo\\nbaa" }}{% endliteral_escape %}',
                                            model: {},
                                            results: "moo\nbaa" },
@@ -146,7 +146,7 @@ tests=[                                                                         
        { name: "literal-escape03",         content: '{{ "moo\\nbaa" }}',
                                            model: {},
                                            results: "moo\\nbaa" },
-              
+
        { name: "filter-pprint01",          content: '{{ "moo"|pprint }}',
                                            model: {},
                                            results: '"moo"' },
@@ -156,27 +156,27 @@ tests=[                                                                         
        { name: "filter-pprint03",          content: '{% autoescape off %}{{ var|pprint }}{% endautoescape %}',
                                            model: {"var":"moo"},
                                            results: '"moo"' },
-       
+
        { name: "filter-join01",            content: '{{ arr|join:"-" }}',
                                            model: {arr: [1,2,3]},
                                            results: "1-2-3"},
-       
 
-                       
+
+
 
        //test tag's accepting expressions instead of variables
        { name: "expr-cycle01",             content: '{% cycle '+EXPR_PREFIX+'.echo(1) '+EXPR_PREFIX+'.echo(2)\t'+EXPR_PREFIX+'.echo(3) as c1 %}{% cycle c1 %}{% cycle c1 %}{% cycle c1 %}{% cycle c1 %}',
                                            model: new ReflexiveClass(),
                                            results: "12312" },
-       
+
        { name: "expr-cycle02",             content: '{% for ignored in range %}{% cycle '+EXPR_PREFIX+'.echo(1) '+EXPR_PREFIX+'.echo(2)\t'+EXPR_PREFIX+'.echo(3) %}{% endfor %}',
                                            model: new ReflexiveClass({"range": new Array(5)}),
                                            results: "12312" },
-       
+
        { name: "expr-filtertag01",         content: '{% filter cut:'+EXPR_PREFIX+'.echo("m")|slice:'+EXPR_PREFIX+'.echo("1:-1") | cut:'+EXPR_PREFIX+'.echo("x")\t|\tcut:'+EXPR_PREFIX+'.echo( "z"  ) %}123mxmymoozo321{% endfilter %}',
                                            model: new ReflexiveClass(),
                                            results: "23yooo32"},
-       
+
        { name: "expr-for01",               content: '{% for var in '+EXPR_PREFIX+'.numbers %}{{var }}{% endfor %}',
                                            model: {obj: new ReflexiveClass()},
                                            results:"0123456789" },
@@ -184,15 +184,15 @@ tests=[                                                                         
        { name: "expr-for02",               content: '{% for var in '+EXPR_PREFIX+'.numbers reversed %}{{var }}{% endfor %}',
                                            model: {obj: new ReflexiveClass()},
                                            results:"9876543210" },
-       
+
        { name: "expr-ifequal01",           content: '{% ifequal '+EXPR_PREFIX+'.numbers   obj.echo(obj).echo( obj )["obj"][ "obj" ].arr[10].arr[ 10 ].get("obj").get( "obj").numbers %}moo!{% endifequal %}',
                                            model: new ReflexiveClass(),
                                            results: "moo!" },
-       
+
        { name: "expr-firstof01",           content: '{% firstof '+EXPR_PREFIX+'.CRAP   '+EXPR_PREFIX+'.numbers[2] %}',
                                            model: new ReflexiveClass(),
                                            results: "2" },
-       
+
        { name: "expr-if01",                content: '{% if '+EXPR_PREFIX+'.echo(true) and '+EXPR_PREFIX+'.arr[ 2   ] and not '+EXPR_PREFIX+'.CRAP["MORE crap"] and '+EXPR_PREFIX+'.arr.2 %}moo!{% endif %}',
                                            model: new ReflexiveClass(),
                                            results: "moo!" },
@@ -212,7 +212,7 @@ tests=[                                                                         
        { name: "expr-now-filter02",        content: '{% now '+EXPR_PREFIX+'.CRAP   |   \tdefault: '+EXPR_PREFIX+'.format %}',
                                            model: new ReflexiveClass({format: NowFormatStr}),
                                            results: NowFormatResult},
-       
+
        { name: "expr-regroup01",           content: '{% regroup '+EXPR_PREFIX+'.data by bar as grouped %}{% for group in grouped %}{{ group.grouper }}:{% for item in group.list %}{{ item.foo }}{% endfor %},{% endfor %}',
                                            model: new ReflexiveClass( { "data": [ { "foo": "c", "bar": 1 }, { "foo": "d", "bar": 1 }, { "foo": "a", "bar": 2 }, { "foo": "b", "bar": 2 }, { "foo": "x", "bar": 3 } ] }),
                                            results: "1:cd,2:ab,3:x," },
@@ -224,7 +224,7 @@ tests=[                                                                         
        { name: "expr-regroup-filter01",    content: '{% regroup '+EXPR_PREFIX+'.CRAP\t|\tdefault\t:\t'+EXPR_PREFIX+'.data by bar as grouped %}{% for group in grouped %}{{ group.grouper }}:{% for item in group.list %}{{ item.foo }}{% endfor %},{% endfor %}',
                                            model: new ReflexiveClass( { "data": [ { "foo": "c", "bar": 1 }, { "foo": "d", "bar": 1 }, { "foo": "a", "bar": 2 }, { "foo": "b", "bar": 2 }, { "foo": "x", "bar": 3 } ] }),
                                            results: "1:cd,2:ab,3:x," },
-       
+
        { name: "expr-widthratio",          content: '{% widthratio '+EXPR_PREFIX+'.a '+EXPR_PREFIX+'.b 100 %}',
                                            model: new ReflexiveClass({ "a": 50, "b": 80 }),
                                            results: "63" },
@@ -232,7 +232,7 @@ tests=[                                                                         
        { name: "expr-widthratio02",        content: '{% widthratio '+EXPR_PREFIX+'.a\t'+EXPR_PREFIX+'.b 100 %}',
                                            model: new ReflexiveClass({ "a": 50, "b": 80 }),
                                            results: "63" },
-       
+
        //backwards compat for django....although the 2 parameters allow filter expressions, spaces are disallowed between filter delimiters(|, :)
        { name: "expr-widthratio-filter01", content: '{% widthratio CRAP|default:a CRAP2|default:b 100 %}',
                                            model: { "a": 50, "b": 80 },
@@ -245,11 +245,11 @@ tests=[                                                                         
        { name: "expr-with-filter01",       content: '{% with '+EXPR_PREFIX+'.CRAP|default:'+EXPR_PREFIX+'.echo("123moo321") | slice : '+EXPR_PREFIX+'.echo("1:-1")\t|\tcut\t:\t'+EXPR_PREFIX+'.echo("3") as var %}{{ var }}{% endwith %}',
                                            model: new ReflexiveClass(),
                                            results: '2moo2' },
-                                           
+
        { name: "undef-length-filter",      content: '{{ nonexistent|length }}',
                                            model: {},
                                            results: '0'},
-       
+
        { name: "undef-length-filter02",    content: '{{ nullObj.nonexistentProp|length }}',
                                            model: { nullObj: null },
                                            results: '0'},
@@ -262,29 +262,29 @@ tests=[                                                                         
        { name: "null-length-filter",       content: '{{ nullObj|length }}',
                                            model: { nullObj: null },
                                            results: '0'},
-                                           
-       //NAME lookups                                           
+
+       //NAME lookups
        { name: "expression-name01",        content: '{{ nullVar }}',
                                            model: { nullVar: null },
                                            results: "",
                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+DEBUG.+$/m] },
-                                           
+
        { name: "expression-name02",        content: '{{ nonexistentVar }}',
                                            model: { },
                                            results: "",
                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+DEBUG.+$/m] },
-       
+
        //PROP lookups
        { name: "expression-prop01",        content: '{{ obj.nullProp }}',
                                            model: { obj: {nullProp: null} },
                                            results: "",
-                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+DEBUG.+$/m] }, 
-                                           
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+DEBUG.+$/m] },
+
        { name: "expression-prop02",        content: '{{ obj.nullProp.other.stuff.that[matters.not] }}',
                                            model: { obj: { nullProp: null } },
                                            results: "",
                                            logResults: [/^.*DEBUG.+Can't get a property from a null object.+obj\.nullProp.*$/m] },
-       
+
        { name: "expression-prop03",        content: '{{ obj.nonexistentProp }}',
                                            model: { obj: { } },
                                            results: "",
@@ -294,12 +294,12 @@ tests=[                                                                         
                                            model: { obj: { } },
                                            results: "",
                                            logResults: [/^.*DEBUG.+Object doesn't contain the property.+nonexistentProp.+obj.nonexistentProp.*$/m] },
-        
+
        { name: "expression-prop05",        content: '{{ nullObj.other.stuff.that[matters.not] }}',
                                            model: { nullObj: null },
                                            results: "",
                                            logResults: [/^.*DEBUG.+null object.+nullObj.+nullObj\.other.*$/m] },
-                                           
+
        { name: "expression-prop06",        content: '{{ nonexistentObj.other.stuff.that[matters.not] }}',
                                            model: { },
                                            results: "",
@@ -314,8 +314,8 @@ tests=[                                                                         
        { name: "expression-elm-literal02", content: '{{ obj["nullProp"]["other"].stuff.that[matters.not] }}',
                                            model: { obj: {nullProp: null} },
                                            results: "",
-                                           logResults: [/^.*DEBUG.+Can't get a property from a null object.+obj\["nullProp"\]\["other"\].*$/m] },                      
-       
+                                           logResults: [/^.*DEBUG.+Can't get a property from a null object.+obj\["nullProp"\]\["other"\].*$/m] },
+
        { name: "expression-elm-literal03", content: '{{ obj["nonexistentProp"] }}',
                                            model: { obj: {} },
                                            results: "",
@@ -325,12 +325,12 @@ tests=[                                                                         
                                            model: { obj: {} },
                                            results: "",
                                            logResults: [/^.*DEBUG.+Object doesn't contain the property.+nonexistentProp.+obj\["nonexistentProp"\].*$/m]},
-        
+
        { name: "expression-elm-literal05", content: '{{ nullObj["other"].stuff.that[matters.not] }}',
                                            model: { nullObj: null },
                                            results: "",
                                            logResults: [/^.*DEBUG.+null object.+nullObj.+nullObj\["other"\].*$/m] },
-                                           
+
        { name: "expression-elm-literal06", content: '{{ nonexistentObj["other"].stuff.that[matters.not] }}',
                                            model: { },
                                            results: "",
@@ -341,17 +341,17 @@ tests=[                                                                         
                                            model: { obj: {}, "nullKey":null },
                                            results: "",
                                            logResults: [/^.*DEBUG.+Can't get null property.+obj\[nullKey\].*$/m]},
-                                           
+
        { name: "expression-elm-var02",     content: '{{ obj[nullKey]["other"].stuff.that[matters.not] }}',
                                            model: { obj: {}, "nullKey":null },
                                            results: "",
                                            logResults: [/^.*DEBUG.+Can't get null property.+obj\[nullKey\].*$/m]},
-        
+
        { name: "expression-elm-var03",     content: '{{ obj[nonexistentKey] }}',
                                            model: { obj: {} },
                                            results: "",
                                            logResults: [/^.*DEBUG.+Failed to lookup.+nonexistentKey.*$/m]},
-       
+
        { name: "expression-elm-var04",     content: '{{ obj[nonexistentKey][other].stuff.that[matters.not] }}',
                                            model: { obj: {} },
                                            results: "",
@@ -367,12 +367,12 @@ tests=[                                                                         
                                             model: { nullFunc: null },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
                                             unexpectedLogResults: [/^.*djang10\.FilterExpression.+DEBUG.+$/m] },
-        
+
         { name: "expression-call02",        content: '{{ nonexistentFunc() }}',
                                             model: { },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException"), djang10.VariableDoesNotExist]),
                                             unexpectedLogResults: [/^.*djang10\.FilterExpression.+DEBUG.+$/m] },
-        
+
         { name: "expression-call03",        content: '{{ nullObj.func() }}',
                                             model: { nullObj: null},
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),

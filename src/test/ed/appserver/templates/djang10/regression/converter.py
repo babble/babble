@@ -2,16 +2,16 @@
 
 '''
     Copyright (C) 2008 10gen Inc.
-  
+
     This program is free software: you can redistribute it and/or  modify
     it under the terms of the GNU Affero General Public License, version 3,
     as published by the Free Software Foundation.
-  
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
-  
+
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
@@ -27,7 +27,7 @@ from django.conf import settings
 settings.configure()
 
 #patch Template to save the damn source
-from django.template import Template 
+from django.template import Template
 class HackTemplate(Template):
     def __init__(self, template_string, **kwargs):
         self.template_string = template_string
@@ -45,17 +45,17 @@ class HackDatetime(datetime.datetime):
         wrapped = HackDatetime.wrap(olddatetime.now(*args, **kw))
         wrapped.delta = datetime.timedelta()
         return wrapped
-    
+
     def __add__(self, delta):
         wrapper = HackDatetime.wrap(olddatetime.__add__(self, delta))
         wrapper.delta = self.delta + delta
-        return wrapper 
-    
+        return wrapper
+
     def __sub__(self, delta):
         wrapper = HackDatetime.wrap(olddatetime.__sub__(self, delta))
         wrapper.delta = self.delta - delta
         return wrapper
-    
+
     @classmethod
     def wrap(cls, dt):
         return HackDatetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo)
@@ -76,10 +76,10 @@ exported_classes = (
     tests.SomeClass,
     tests.OtherClass,
     tests.UTF8Class,
-    
+
     filters.SafeClass,
     filters.UnsafeClass,
-    
+
     TemplateSyntaxError,
     HackTemplate,   # requires args
 )
@@ -87,16 +87,16 @@ exported_classes = (
 preamble = """
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -106,14 +106,14 @@ preamble = """
 def convert(py_tests):
     #ignoring filter_tests
     expected_invalid_str = 'INVALID'
-    
-    
+
+
     buffer = preamble
     buffer += "tests=[\n"
-    
+
     skip_count = 0
     for name, vals in py_tests:
-       
+
         if isinstance(vals[2], tuple):
             normal_string_result = vals[2][0]
             invalid_string_result = vals[2][1]
@@ -123,9 +123,9 @@ def convert(py_tests):
             else:
                 normal_string_result = vals[2]
                 invalid_string_result = vals[2]
-            
+
             #ignoring LANGUAGE_CORE for now
-        buffer += serialize_test(name, vals) + ",\n" 
+        buffer += serialize_test(name, vals) + ",\n"
 
     return buffer + "\n];"
 
@@ -133,7 +133,7 @@ def convert(py_tests):
 def serialize_test(name, a_test):
     #special case dates
     if name == 'now01':
-        results =  '%s + " " + %s + " " + %s' % ("((new Date()).getDate())", "((new Date()).getMonth() + 1)", "((new Date()).getYear())") 
+        results =  '%s + " " + %s + " " + %s' % ("((new Date()).getDate())", "((new Date()).getMonth() + 1)", "((new Date()).getYear())")
     else:
         results = serialize(a_test[2], True)
     #rename var to var1
@@ -149,14 +149,14 @@ def serialize(m, is_result=False):
 
     elif isinstance(m, dict):
         return '{ %s }' % ", ".join( ['%s: %s' % (serialize(key), serialize(value)) for key, value in m.items()] )
-    
+
     elif isinstance(m, SafeData):
         return 'djang10.mark_safe(%s)' % serialize(str(m))
 
     elif isinstance(m, HackDatetime):
         secs = m.delta.days * 3600 * 24
         secs += m.delta.seconds
-        
+
         return "from_now(%d)" % secs;
 
     elif isinstance(m, basestring):
@@ -165,7 +165,7 @@ def serialize(m, is_result=False):
             m = m.encode(encoding).replace('"', '\\"')
         else:
             m = escape_str(m)
-        
+
         m = '"%s"' % m
         if(isinstance(m, unicode)):
             m = m.encode('utf-8')
@@ -173,7 +173,7 @@ def serialize(m, is_result=False):
 
     elif isinstance(m , (int, long) ):
         return "%d" % m
-    
+
     elif isinstance(m, float):
         return "%f" % m
 
@@ -190,7 +190,7 @@ def serialize(m, is_result=False):
             return "new %s()" % m.__class__.__name__
         else:
             raise Exception("Can't serialize the obj: %s"  % m.__class__)
-        
+
     else:
         raise Exception("can't serialize the model: %s" % m)
 
@@ -231,4 +231,4 @@ items.sort()
 with open("filter_tests.js", "w") as f:
     result = convert(items)
     f.writelines(result)
-    
+
