@@ -42,8 +42,26 @@ public class SeenPathTest extends TestCase {
 
         assertFalse( p.shouldVisit( to , new Object() ) );
         assertEquals( 2 , p.get( to ).size() );
-
+        
         assertTrue( p.shouldVisit( new Object(), from ) );
+    }
+
+    @Test
+    public void testSanity2(){
+        
+        SeenPath p = new SeenPath();
+
+        Object from = new Object();
+        Object to = new Object();
+        
+        p.visited( to );
+        assertEquals( 1 , p.get( to ).size() );
+        assert( p.get(to).get(0) instanceof SeenPath.Unknown );
+        
+        assertFalse( p.shouldVisit( to , from ) );
+        assertEquals( 1 , p.get( to ).size() );   
+        assert( from == p.get( to ).get(0) );
+        
     }
 
     @Test
@@ -61,7 +79,23 @@ public class SeenPathTest extends TestCase {
         assertEquals( 1 , lst.size() );
         assertTrue( b == lst.get(0) );
     }
-    
+
+    @Test 
+    public void testLoop1(){
+        SeenPath p = new SeenPath();
+        final Object a = "a";
+        final Object b = "b";
+        final Object c = "c";
+        final Object d = "d";
+
+        p.shouldVisit( c , d );
+
+        p.shouldVisit( b , a );
+        p.shouldVisit( c , b );
+        p.shouldVisit( d , c );
+        
+        p.path( a , d );
+    }
 
     public static void main( String args[] ){
         (new SeenPathTest()).runConsole();

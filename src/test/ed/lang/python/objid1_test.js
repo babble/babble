@@ -1,4 +1,3 @@
-
 /**
 *    Copyright (C) 2008 10gen Inc.
 *
@@ -15,8 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-register = new djang10.Library();
+jsObjId = ObjId("4935490f2d8074af00eff59f");
+assert(typeof(jsObjId) == "objectid");
 
-register.filter("moo2", function() {
-    return "moo2";
-});
+local.src.test.ed.lang.python.objid1_helper();
+
+assert(typeof(pyObjId) == "objectid");

@@ -372,6 +372,10 @@ public class Logger extends JSFunctionCalls2 {
         return _inherit;
     }
 
+    public String _getName(){
+        return getFullName();
+    }
+
     public String getFullName(){
         return _fullName;
     }
@@ -401,7 +405,7 @@ public class Logger extends JSFunctionCalls2 {
 
         return size;
     }
-
+    
     final Logger _parent;
     final String _name;
     final String _fullName;

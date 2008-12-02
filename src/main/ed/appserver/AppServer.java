@@ -309,7 +309,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             _handleEndOfServlet( request , response , ar );
 
             if ( LEAK_HUNT )
-                _finishLeakHunt( ac , request , reachableBefore , sizeBefore );
+                MemTools.leakHunt( ac , request , reachableBefore , sizeBefore );
                
         }
         catch ( StackOverflowError internal ){
@@ -347,22 +347,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
     }
 
-    void _finishLeakHunt( AppContext ac , HttpRequest request , SeenPath reachableBefore , long sizeBefore ){
-        if ( ac._numRequests < 2 )
-            return;
-
-        SeenPath now = new SeenPath( true );
-        long sizeNow = ac.approxSize( now );
-        
-        if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
-            return;
-        
-        MemTools.gotMemoryLeak( ac , ac.getLogger( "leak" ).getChild( request.getFullURL() ) , 
-                                reachableBefore , now , 
-                                sizeBefore , sizeNow );
-        
-    }
-    
     void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){
 
 

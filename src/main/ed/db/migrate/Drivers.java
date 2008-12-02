@@ -115,13 +115,14 @@ public class Drivers {
 
             public Object get( Object o ){
                 String name = o.toString();
-
+                
                 if ( name.equals( "hasNext" ) ||
                      name.equals( "asObject" ) ||
                      name.equals( "toObject" ) ||
                      name.equals( "asArray" ) ||
                      name.equals( "toArray" ) ||
                      name.equals( "toString" ) ||
+                     name.equals( "tojson" ) ||
                      name.equals( "keySet" ) )
                     return null;
 

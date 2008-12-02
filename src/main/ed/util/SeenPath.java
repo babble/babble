@@ -133,40 +133,68 @@ public class SeenPath extends IdentityHashMap<Object,List> {
         if ( ! containsKey( to ) )
             throw new RuntimeException( "the object you want to find doesn't exist" );
         
-        Object cur = to;
-
         ObjectPath path = new ObjectPath();
-        while ( true ){
+        ObjectPath found = path( from , to , path );
+        if ( found == null )
+            throw path.getDebugException();
+        
+        return path;
+    }
+
+    public ObjectPath path( final Object from , final Object cur , final ObjectPath path ){
+
+        if ( cur == from )
+            return path;
+
+        List lst = get( cur );
+        
+        if ( lst == null || lst.size() == 0 || 
+             ( lst.size() == 1 && lst.get( 0 ) instanceof Unknown ) ){
             
-            List lst = get( cur );
-            if ( lst == null || lst.size() == 0 || ( lst.size() == 1 && lst.get( 0 ) instanceof Unknown ) ){
-                String msg = "can't find path.  last piece is a : " + cur.getClass().getName();
-                msg += " path : " + path;
-                
-                Throwable t = null;
-                
-                Object next = null;
-                if ( lst != null && lst.size() > 0 )
-                    next = lst.get(0);
-                if ( next instanceof Unknown ) 
-                    t = ((Unknown)next)._where;
-    
-                throw new RuntimeException( msg , t );
+            String msg = "can't find path.  last piece is a : " + cur.getClass().getName();
+            msg += " path : " + path;
+            
+            Throwable t = null;
+            
+            Object next = null;
+            if ( lst != null && lst.size() > 0 )
+                next = lst.get(0);
+            if ( next instanceof Unknown ) 
+                t = ((Unknown)next)._where;
+            
+            path.addEndOfPath( new RuntimeException( msg , t ) );
+            
+            return null;
+        }
+        
+        Object dup = null;
+
+        links:
+        for ( Object next : lst ){
+
+            if ( next == from )
+                return path;
+            
+            for ( int i=0; i<path.size(); i++ ){
+                if ( path.get(i) == next ){
+                    // this means we've seen this before, so skip it for now
+                    dup = next;
+                    continue links;
+                }
             }
             
-            for ( Object foo : lst )
-                if ( foo == from )
-                    return path;
-            
-            Object next = lst.get(0);
-
-            for ( int i=0; i<path.size(); i++ )
-                if ( path.get(i) == next )
-                    throw new RuntimeException( "loop!" );
-
             path.add( next );
-            cur = next;
+            ObjectPath found = path( from , next , path );
+            if ( found != null )
+                return found;
+
+            path.removeLast();
+            
         }
+        
+        path.foundLoop( dup );
+
+        return null;
     }
     
     final boolean _skipWeak;

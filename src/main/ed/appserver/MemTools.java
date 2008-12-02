@@ -26,9 +26,38 @@ import ed.js.engine.*;
 import ed.log.*;
 import ed.util.*;
 
+import ed.net.httpserver.*;
+
 public class MemTools {
+
+    static void leakHunt( AppContext ac , HttpRequest request , SeenPath reachableBefore , long sizeBefore ){
+
+        if ( ac._numRequests < 2 )
+            return;
+        
+        final Logger logger = ac.getLogger( "leak" ).getChild( request.getFullURL() );
+
+        if ( logger._simpleGet( "__seen" ) == null ){
+            // only want to do this for pages we've seen before
+            logger.set( "__seen" , "abc" );
+            return;
+        }
+
+        SeenPath now = new SeenPath( true );
+        long sizeNow = ac.approxSize( now );
+        
+        if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
+            return;
+        
+        MemTools.gotMemoryLeak( ac , logger ,
+                                reachableBefore , now , 
+                                sizeBefore , sizeNow );
+        
+    }
     
-    public static void gotMemoryLeak( AppContext context , Logger logger , 
+
+    
+    static void gotMemoryLeak( AppContext context , Logger logger , 
                                       SeenPath before , SeenPath after ,
                                       long sizeBefore , long sizeAfter
                                       ){
@@ -45,9 +74,16 @@ public class MemTools {
                 continue;
             
             System.out.println( "\t" + o.getClass() );
-            List path = after.path( context , o );
             
-            System.out.println( "\t\t" + path );
+            ObjectPath path = new ObjectPath();
+            ObjectPath result = after.path( context , o , path );
+            if ( result == null ){
+                System.out.println( "couldn't find path" );
+                path.debug();
+                break;
+            }
+
+            logger.error( "found leak at : " + path );
         }
         
 
