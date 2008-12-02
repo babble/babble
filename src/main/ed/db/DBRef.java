@@ -157,16 +157,14 @@ public class DBRef extends JSObjectBase {
         if ( r == null )
             return null;
         
-        RefCache c = _refCache.get( r );
+        RefCache c = (RefCache)r.getAttribute( "refCache" );
         if ( c != null )
             return c;
         
         c = new RefCache();
-        _refCache.put( r , c );
+        r.setAttribute( "refcache" , c );
         return c;
     }
     
     private static class RefCache extends HashMap<ObjectId,JSObject>{};
-
-    private static Map<AppRequest,RefCache> _refCache = Collections.synchronizedMap( new WeakHashMap<AppRequest,RefCache>() );
 }
