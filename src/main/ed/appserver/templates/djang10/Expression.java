@@ -701,9 +701,34 @@ public class Expression extends JSObjectBase {
         for(Object obj : toSize)
             sum += JSObjectSize.size( obj, seen, this );
 
-        //FIXME: need to size the parsed expression!!!
+        sum += approxSizeOfParseTree( this.parsedExpression, seen );
 
-        return super.approxSize( seen );
+        return sum;
+    }
+
+
+    private long approxSizeOfParseTree(Node node, SeenPath seen) {
+        long sum = 0;
+
+        //type
+        sum += 8;
+        //next,first,last ptrs
+        sum += 3*8;
+        //line no
+        sum += 8;
+
+        if(node.getType() == Token.STRING)
+            sum += JSObjectSize.size( node.getString(), seen, this );
+        if(node.getType() == Token.NUMBER)
+            sum += JSObjectSize.size( node.getDouble(), seen, this );
+
+
+        //FIXME: size the node properties as well
+
+        for(Node c = node.getFirstChild(); c != null; c = c.getNext())
+            sum += approxSizeOfParseTree( c );
+
+        return sum;
     }
 
     //Functors

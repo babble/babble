@@ -32,8 +32,11 @@ import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSObjectSize;
 import ed.js.JSString;
 import ed.js.engine.Scope;
+import ed.util.SeenPath;
+import ed.util.Sizable;
 
 public class Parser extends JSObjectBase{
 
@@ -272,6 +275,17 @@ public class Parser extends JSObjectBase{
     }
 
 
+    public long approxSize(SeenPath seen) {
+        long sum = super.approxSize( seen );
+
+        Object[] toSize = { scope, tokens, loadedLibraries, filterMapping, tagHandlerMapping, dependencies, activeToken };
+
+        for(Object obj : toSize)
+            sum += JSObjectSize.size( obj , seen , this );
+
+        return sum;
+    }
+
     //==============================================================================================================================
 
 
@@ -315,9 +329,19 @@ public class Parser extends JSObjectBase{
         public String getOrigin() {
             return origin;
         }
+
+        public long approxSize(SeenPath seen) {
+            long sum = super.approxSize( seen );
+
+            Object [] toSize = { origin, type, startLine };
+            for(Object obj : toSize)
+                sum += JSObjectSize.size( obj , seen , this );
+
+            return sum;
+        }
     }
 
-    private static class TagDelimiter {
+    private static class TagDelimiter implements Sizable {
         public final String start, end;
         public final Type type;
 
@@ -330,9 +354,19 @@ public class Parser extends JSObjectBase{
         public enum Type {
             Text, Var, Tag, Comment
         }
+
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            Object [] toSize = { start, end, type };
+            for(Object obj : toSize)
+                sum += JSObjectSize.size( obj , seen , this );
+
+            return sum;
+        }
     }
 
-    private class Tokenizer implements Iterator<String> {
+    private class Tokenizer implements Iterator<String>, Sizable {
         private String input;
         private Matcher matcher;
         private boolean returnDelims;
@@ -392,6 +426,16 @@ public class Parser extends JSObjectBase{
 
         public void remove() {
             throw new UnsupportedOperationException();
+        }
+
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            Object [] toSize = { input, matcher, returnDelims, delim, match, lastEnd };
+            for(Object obj : toSize)
+                sum += JSObjectSize.size( obj , seen , this );
+
+            return sum;
         }
     }
 
