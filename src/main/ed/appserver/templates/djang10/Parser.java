@@ -278,10 +278,13 @@ public class Parser extends JSObjectBase{
     public long approxSize(SeenPath seen) {
         long sum = super.approxSize( seen );
 
-        Object[] toSize = { scope, tokens, loadedLibraries, filterMapping, tagHandlerMapping, dependencies, activeToken };
-
-        for(Object obj : toSize)
-            sum += JSObjectSize.size( obj , seen , this );
+        sum += JSObjectSize.size( scope , seen , this );
+        sum += JSObjectSize.size( tokens , seen , this );
+        sum += JSObjectSize.size( loadedLibraries , seen , this );
+        sum += JSObjectSize.size( filterMapping , seen , this );
+        sum += JSObjectSize.size( tagHandlerMapping , seen , this );
+        sum += JSObjectSize.size( dependencies , seen , this );
+        sum += JSObjectSize.size( activeToken , seen , this );
 
         return sum;
     }
@@ -333,9 +336,11 @@ public class Parser extends JSObjectBase{
         public long approxSize(SeenPath seen) {
             long sum = super.approxSize( seen );
 
-            Object [] toSize = { origin, type, startLine };
-            for(Object obj : toSize)
-                sum += JSObjectSize.size( obj , seen , this );
+            sum += JSObjectSize.size( origin , seen , this );
+            sum += JSObjectSize.size( startLine , seen , this );
+
+            //type
+            sum += 8;
 
             return sum;
         }
@@ -358,9 +363,11 @@ public class Parser extends JSObjectBase{
         public long approxSize(SeenPath seen) {
             long sum = JSObjectSize.OBJ_OVERHEAD;
 
-            Object [] toSize = { start, end, type };
-            for(Object obj : toSize)
-                sum += JSObjectSize.size( obj , seen , this );
+            sum += JSObjectSize.size( start , seen , this );
+            sum += JSObjectSize.size( end , seen , this );
+
+            //type
+            sum += 8;
 
             return sum;
         }
@@ -431,9 +438,12 @@ public class Parser extends JSObjectBase{
         public long approxSize(SeenPath seen) {
             long sum = JSObjectSize.OBJ_OVERHEAD;
 
-            Object [] toSize = { input, matcher, returnDelims, delim, match, lastEnd };
-            for(Object obj : toSize)
-                sum += JSObjectSize.size( obj , seen , this );
+            sum += JSObjectSize.size( input , seen , this );
+            sum += JSObjectSize.size( matcher , seen , this );
+            sum += JSObjectSize.size( returnDelims , seen , this );
+            sum += JSObjectSize.size( delim , seen , this );
+            sum += JSObjectSize.size( match , seen , this );
+            sum += JSObjectSize.size( lastEnd , seen , this );
 
             return sum;
         }

@@ -697,9 +697,10 @@ public class Expression extends JSObjectBase {
         long sum = super.approxSize( seen );
 
 
-        Object[] toSize = { log, expression, token, isLiteral };
-        for(Object obj : toSize)
-            sum += JSObjectSize.size( obj, seen, this );
+        sum += JSObjectSize.size( log, seen, this );
+        sum += JSObjectSize.size( expression, seen, this );
+        sum += JSObjectSize.size( token, seen, this );
+        sum += JSObjectSize.size( isLiteral, seen, this );
 
         sum += approxSizeOfParseTree( this.parsedExpression, seen );
 

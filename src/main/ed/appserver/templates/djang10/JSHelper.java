@@ -54,6 +54,7 @@ import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
 import ed.util.SeenPath;
+import ed.util.Sizable;
 
 public class JSHelper extends JSObjectBase {
     private final Logger log;
@@ -76,12 +77,17 @@ public class JSHelper extends JSObjectBase {
     public long approxSize(SeenPath seen) {
         long sum = super.approxSize( seen );
 
-        Object[] toSize = { log, librarySearchPaths, defaultLibraries, fileRoots, libraryCache, loaderCache, scope };
-        for( Object obj : toSize )
-            sum += JSObjectSize.size( obj, seen, this );
+        sum += JSObjectSize.size( log, seen, this );
+        sum += JSObjectSize.size( librarySearchPaths, seen, this );
+        sum += JSObjectSize.size( defaultLibraries, seen, this );
+        sum += JSObjectSize.size( fileRoots, seen, this );
+        sum += JSObjectSize.size( libraryCache, seen, this );
+        sum += JSObjectSize.size( loaderCache, seen, this );
+        sum += JSObjectSize.size( scope, seen, this );
 
         return sum;
     }
+
 
     public JSHelper(Scope scope, Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
         this.scope = scope;
