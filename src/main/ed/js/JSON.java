@@ -504,5 +504,6 @@ public class JSON {
     static final Set<String> ALLOWED_FUNCTIONS = new HashSet<String>();
     static {
         ALLOWED_FUNCTIONS.add( "ObjectId" );
+        ALLOWED_FUNCTIONS.add( "Date" );
     }
 }
