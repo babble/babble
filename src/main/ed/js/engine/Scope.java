@@ -1076,7 +1076,7 @@ public class Scope implements JSObject , Bindings {
             }
         }
 
-	if ( includeParents && _parent != null && ! seen.contains( _parent ) )
+	if ( includeParents && seen.shouldVisit( _parent , this ) )
 	    size += _parent.approxSize( seen , false , true );
 
         return size;
