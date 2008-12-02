@@ -30,6 +30,9 @@ class XGen::Mongo::Cursor
       yield @model_class.send(:instantiate, row.to_ar_hash)
     }
   end
+  def [](index)
+    @model_class.send(:instantiate, @cursor[index].to_ar_hash)
+  end
 end
 
 module ActiveRecord
@@ -213,7 +216,7 @@ module ActiveRecord
         sort_by = sort_by_from(options[:order]) if options[:order]
         db_cursor.sort(sort_by) if sort_by
         cursor = XGen::Mongo::Cursor.new(db_cursor, self)
-        ids.length == 1 ? self.send(:instantiate, cursor[0].to_ar_hash) : cursor
+        ids.length == 1 ? cursor[0] : cursor
       end
 
       def ids_clause(ids)
