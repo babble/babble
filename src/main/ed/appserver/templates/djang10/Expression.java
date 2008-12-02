@@ -726,7 +726,7 @@ public class Expression extends JSObjectBase {
         //FIXME: size the node properties as well
 
         for(Node c = node.getFirstChild(); c != null; c = c.getNext())
-            sum += approxSizeOfParseTree( c );
+            sum += approxSizeOfParseTree( c, seen );
 
         return sum;
     }
