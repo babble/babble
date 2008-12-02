@@ -19,10 +19,13 @@ package ed.appserver.templates.djang10;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSObjectSize;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls2;
+import ed.util.SeenPath;
+import ed.util.Sizable;
 
-public class Djang10Exception extends RuntimeException implements JSObject {
+public class Djang10Exception extends RuntimeException implements JSObject, Sizable {
     private String detailMessage;
     private Throwable cause;
 
@@ -93,6 +96,15 @@ public class Djang10Exception extends RuntimeException implements JSObject {
         return detailMessage;
     }
 
+    public long approxSize(SeenPath seen) {
+        long sum = JSObjectSize.OBJ_OVERHEAD;
+
+        Object[] toSize = { detailMessage, cause, inner };
+        for(Object obj : toSize)
+            sum += JSObjectSize.size( obj , seen , this );
+
+        return sum;
+    }
 
     public static final Constructor cons = new Constructor();
 

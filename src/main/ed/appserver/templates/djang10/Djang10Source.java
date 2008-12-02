@@ -33,14 +33,17 @@ import ed.io.StreamUtil;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
+import ed.js.JSObjectSize;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.lang.StackTraceHolder;
 import ed.log.Logger;
 import ed.util.Dependency;
 import ed.util.Pair;
+import ed.util.SeenPath;
+import ed.util.Sizable;
 
-public class Djang10Source extends JxpSource {
+public class Djang10Source extends JxpSource implements Sizable {
     private final Logger log = Logger.getRoot().getChild("djang10").getChild("Djang10Source");
 
     private final Djang10Content content;
@@ -127,7 +130,17 @@ public class Djang10Source extends JxpSource {
         return content.getName();
     }
 
-    private static interface Djang10Content {
+    public long approxSize(SeenPath seen) {
+        long sum = super.approxSize( seen );
+
+        Object[] toSize = { log, content, compiledScript, scope };
+        for( Object obj : toSize )
+            sum += JSObjectSize.size( obj, seen, this );
+
+        return sum;
+    }
+
+    private static interface Djang10Content extends Sizable {
         public String getContent() throws IOException;
         public InputStream getInputStream() throws IOException;
         public long lastUpdated();
@@ -158,6 +171,13 @@ public class Djang10Source extends JxpSource {
         public String getDebugName() {
             return file.toString();
         }
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            sum += JSObjectSize.size( file, seen, this );
+
+            return sum;
+        }
     }
     private static class DJang10String implements Djang10Content {
         private final String content;
@@ -181,6 +201,15 @@ public class Djang10Source extends JxpSource {
         }
         public String getDebugName() {
             return "String: " + content.replaceAll("\n", "\\n").replace("\t", "\\t");
+        }
+
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            sum += JSObjectSize.size( content, seen, this );
+            sum += JSObjectSize.size( timestamp, seen, this );
+
+            return sum;
         }
     }
 }

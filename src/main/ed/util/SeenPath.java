@@ -154,18 +154,41 @@ public class SeenPath extends IdentityHashMap<Object,List> {
                 throw new RuntimeException( msg , t );
             }
             
-            for ( Object foo : lst )
+            Object next = null;
+            
+            links:
+            for ( Object foo : lst ){
+                
                 if ( foo == from )
                     return path;
+                
+                // figure out if we can use this for next
+
+                if ( next != null ){
+                    // already have one
+                    continue;
+                }
+                
+                if ( path.size() == 0 ){
+                    // path is empty, so anything is fine
+                    next = foo;
+                    continue;
+                }
+                
+                for ( int i=0; i<path.size(); i++ )
+                    if ( path.get(i) == foo )
+                        continue links;
+                
+                next = foo;
+            }
             
-            Object next = lst.get(0);
-
-            for ( int i=0; i<path.size(); i++ )
-                if ( path.get(i) == next )
-                    throw new RuntimeException( "loop!" );
-
+            if ( next == null )
+                throw new RuntimeException( "loop! " + path  );
+            
             path.add( next );
             cur = next;
+
+            System.out.println( path );
         }
     }
     
