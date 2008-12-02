@@ -174,7 +174,7 @@ public class Djang10Source extends JxpSource implements Sizable {
         public long approxSize(SeenPath seen) {
             long sum = JSObjectSize.OBJ_OVERHEAD;
 
-            sum += JSObjectSize.size( file );
+            sum += JSObjectSize.size( file, seen, this );
 
             return sum;
         }
@@ -206,8 +206,8 @@ public class Djang10Source extends JxpSource implements Sizable {
         public long approxSize(SeenPath seen) {
             long sum = JSObjectSize.OBJ_OVERHEAD;
 
-            sum += JSObjectSize.size( content );
-            sum += JSObjectSize.size( timestamp );
+            sum += JSObjectSize.size( content, seen, this );
+            sum += JSObjectSize.size( timestamp, seen, this );
 
             return sum;
         }
