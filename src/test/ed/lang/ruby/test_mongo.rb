@@ -594,6 +594,15 @@ EOS
     end
   end
 
+  def test_method_missing
+    begin
+      Track.foobar
+      fail "expected 'undefined method' exception"
+    rescue => ex
+      assert_match /undefined method \`foobar\' for Track:Class/, ex.to_s
+    end
+  end
+
   def assert_all_songs(str)
     assert_match(/song: The Ability to Swing/, str)
     assert_match(/song: Budapest by Blimp/, str)
