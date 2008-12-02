@@ -20,7 +20,7 @@ package ed.util;
 
 import java.util.*;
 
-public class SeenPath extends IdentityHashMap {
+public class SeenPath extends IdentityHashMap<Object,List> {
 
     public SeenPath(){
         this( false );
@@ -43,17 +43,15 @@ public class SeenPath extends IdentityHashMap {
         if ( from == null )
             from = new Unknown();
         
-        final Object prev = get( toVisit );
-        if ( prev == null ){
-            put( toVisit , from );
+        final List where = get( toVisit );
+        if ( where == null ){
+            add( toVisit , from );
             return true;
         }
-
-        if ( prev instanceof Unknown ){
-            // we want to add some pathing info, but not follow
-            put( toVisit , from );
-            return false;
-        }
+        
+        // so we've seen this before
+        if ( ! ( from instanceof Unknown ) )
+            add( toVisit , from );
         
         return false;
     }
@@ -69,7 +67,7 @@ public class SeenPath extends IdentityHashMap {
     public void visited( Object toVisit ){
         if ( containsKey( toVisit ) )
             return;
-        put( toVisit , new Unknown() );
+        add( toVisit , new Unknown() );
     }
 
     public void removeAll( Set objects ){
@@ -83,6 +81,31 @@ public class SeenPath extends IdentityHashMap {
 
     public void popSpecialDontTraverse(){
         _specialDontTraverse.remove( _specialDontTraverse.size() - 1 );
+    }
+
+    private void add( final Object o , final Object from ){
+        List l = get( o );
+        if ( l == null ){
+            l = new LinkedList();
+            put( o , l );
+        }
+        else if ( ! ( from instanceof Unknown ) ){
+            for ( Iterator i = l.iterator(); i.hasNext(); ){
+                Object old = i.next();
+                
+                if ( old == from )
+                    return;
+
+                if ( old instanceof Unknown )
+                    i.remove();
+               
+            }
+        }
+
+        if ( from instanceof Unknown && l.size() > 0 )
+            return;
+
+        l.add( from );
     }
     
     boolean dontTraverseSpecial( Object o ){
@@ -105,41 +128,73 @@ public class SeenPath extends IdentityHashMap {
               o instanceof WeakHashMap );
     }
 
-    public List path( final Object from , final Object to ){
+    public ObjectPath path( final Object from , final Object to ){
 
         if ( ! containsKey( to ) )
             throw new RuntimeException( "the object you want to find doesn't exist" );
         
-        Object cur = to;
+        ObjectPath path = new ObjectPath();
+        ObjectPath found = path( from , to , path );
+        if ( found == null )
+            throw path.getDebugException();
+        
+        return path;
+    }
 
-        List path = new ArrayList();
-        while ( true ){
+    public ObjectPath path( final Object from , final Object cur , final ObjectPath path ){
+
+        if ( cur == from )
+            return path;
+
+        List lst = get( cur );
+        
+        if ( lst == null || lst.size() == 0 || 
+             ( lst.size() == 1 && lst.get( 0 ) instanceof Unknown ) ){
             
-            Object next = get( cur );
+            String msg = "can't find path.  last piece is a : " + cur.getClass().getName();
+            msg += " path : " + path;
+            
+            Throwable t = null;
+            
+            Object next = null;
+            if ( lst != null && lst.size() > 0 )
+                next = lst.get(0);
+            if ( next instanceof Unknown ) 
+                t = ((Unknown)next)._where;
+            
+            path.addEndOfPath( new RuntimeException( msg , t ) );
+            
+            return null;
+        }
+        
+        Object dup = null;
+
+        links:
+        for ( Object next : lst ){
+
             if ( next == from )
                 return path;
             
-            if ( next == null || next instanceof Unknown ){
-                String msg = "can't find path.  last piece is a : " + cur.getClass().getName();
-                msg += " path : ";
-                for ( int i=0; i<path.size(); i++ )
-                    msg += " " + path.get(i).getClass().getName();
-                
-                Throwable t = null;
-
-                if ( next instanceof Unknown ) 
-                    t = ((Unknown)next)._where;
-    
-                throw new RuntimeException( msg , t );
+            for ( int i=0; i<path.size(); i++ ){
+                if ( path.get(i) == next ){
+                    // this means we've seen this before, so skip it for now
+                    dup = next;
+                    continue links;
+                }
             }
             
-            for ( int i=0; i<path.size(); i++ )
-                if ( path.get(i) == next )
-                    throw new RuntimeException( "loop!" );
-
             path.add( next );
-            cur = next;
+            ObjectPath found = path( from , next , path );
+            if ( found != null )
+                return found;
+
+            path.removeLast();
+            
         }
+        
+        path.foundLoop( dup );
+
+        return null;
     }
     
     final boolean _skipWeak;

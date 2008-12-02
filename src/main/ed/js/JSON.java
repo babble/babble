@@ -328,10 +328,12 @@ public class JSON {
                     if ( IGNORE_NAMES.contains( s ) )
                         continue;
 
-                    Object val = o.get( s );
+                    Object val = o instanceof JSObjectBase ? 
+                        ((JSObjectBase)o)._simpleGet( s ) : o.get( s );
                     if ( val instanceof JSObjectBase ){
                         ((JSObjectBase)val).prefunc();
-                        if ( o.get( s ) == null )
+                        if ( ( o instanceof JSObjectBase ?
+                               ((JSObjectBase)o)._simpleGet( s ) : o.get( s ) ) == null )
                             continue;
                     }
 
@@ -395,14 +397,16 @@ public class JSON {
             throw new JSException( "not a literal" );
         }
 
-        return build( lit );
+        return build( lit , theNode );
     }
 
-    private static Object build( Node n ){
+    private static Object build( Node n , ScriptOrFnNode script ){
         if ( n == null )
             return null;
 
         Node c;
+        final String name;
+        final Object[] args;
 
         switch ( n.getType() ){
 
@@ -413,7 +417,7 @@ public class JSON {
 
             c = n.getFirstChild();
             while ( c != null ){
-                o.set( names[i++].toString() , build( c ) );
+                o.set( names[i++].toString() , build( c , script ) );
                 c = c.getNext();
             }
 
@@ -423,7 +427,7 @@ public class JSON {
             JSArray a = new JSArray();
             c = n.getFirstChild();
             while ( c != null ){
-                a.add( build( c ) );
+                a.add( build( c , script ) );
                 c = c.getNext();
             }
             return a;
@@ -445,11 +449,60 @@ public class JSON {
         case Token.FALSE:
             return false;
             
+        case Token.REGEXP:
+            int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
+            return new JSRegex( script.getRegexpString( rId  ) , script.getRegexpFlags( rId ) );
+
+        case Token.CALL:
+            name = n.getFirstChild().getString();
+            args = getArgs( n.getFirstChild().getNext() , script );
+            
+            if ( ALLOWED_FUNCTIONS.contains( name ) )
+                return getJsonScope().getFunction( name ).call( getJsonScope() , args );
+
+            throw new RuntimeException( "not allowed to call [" + name + "] in json" );
+
+        case Token.NEW:
+            name = n.getFirstChild().getString();
+            args = getArgs( n.getFirstChild().getNext() , script );
+            
+            if ( ! ALLOWED_FUNCTIONS.contains( name ) )
+                throw new RuntimeException( "not allowed to create [" + name + "] in json" );
+
+            JSFunction func = getJsonScope().getFunction( name );
+
+            Scope s = getJsonScope().child();
+            Object newThing = func.newOne();
+            s.setThis( newThing );
+            
+            func.call( s , args );
+            return newThing;
         }
         
         
 
         Debug.printTree( n , 0 );
         throw new RuntimeException( "don't know how to convert from json: " + Token.name( n.getType() ) );
+    }
+
+    static Object[] getArgs( Node start , ScriptOrFnNode script ){
+        List l = new ArrayList();
+        while ( start != null ){
+            l.add( build( start , script ) );
+            start = start.getNext();
+        }
+        return l.toArray();
+    }
+
+    private static Scope JSON_SCOPE;
+    static Scope getJsonScope(){
+        if ( JSON_SCOPE == null )
+            JSON_SCOPE = Scope.newGlobal();
+        return JSON_SCOPE;
+    }
+
+    static final Set<String> ALLOWED_FUNCTIONS = new HashSet<String>();
+    static {
+        ALLOWED_FUNCTIONS.add( "ObjectId" );
     }
 }

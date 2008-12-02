@@ -472,19 +472,19 @@ EOS
   end
 
   def test_in_array
-    str = Track.find(:all, :conditions => ["song in ?", [@mayor_song, 'King For A Day']]).inject('') { |str, t| str + t.to_s }
+    str = Track.find(:all, :conditions => ["song in (?)", [@mayor_song, 'King For A Day']]).inject('') { |str, t| str + t.to_s }
     assert str.include?(@mayor_song)
     assert str.include?('King For A Day')
   end
 
   def test_in_array_rails_syntax
-    str = Track.find(:all, :conditions => {:song =>  [@mayor_song, 'King For A Day']}).inject('') { |str, t| str + t.to_s }
+    str = Track.find(:all, :conditions => {:song => [@mayor_song, 'King For A Day']}).inject('') { |str, t| str + t.to_s }
     assert str.include?(@mayor_song)
     assert str.include?('King For A Day')
   end
 
   def test_in_named_array
-    str = Track.find(:all, :conditions => ["song in :songs", {:songs => [@mayor_song, 'King For A Day']}]).inject('') { |str, t| str + t.to_s }
+    str = Track.find(:all, :conditions => ["song in (:songs)", {:songs => [@mayor_song, 'King For A Day']}]).inject('') { |str, t| str + t.to_s }
     assert str.include?(@mayor_song)
     assert str.include?('King For A Day')
   end
@@ -591,6 +591,15 @@ EOS
       $db = old_db
       XGen::Mongo::Base.connection = $db
       alt_db.rubytest_students.drop()
+    end
+  end
+
+  def test_method_missing
+    begin
+      Track.foobar
+      fail "expected 'undefined method' exception"
+    rescue => ex
+      assert_match /undefined method \`foobar\' for Track:Class/, ex.to_s
     end
   end
 

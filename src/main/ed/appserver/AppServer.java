@@ -309,7 +309,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             _handleEndOfServlet( request , response , ar );
 
             if ( LEAK_HUNT )
-                _finishLeakHunt( ac , request , reachableBefore , sizeBefore );
+                MemTools.leakHunt( ac , request , reachableBefore , sizeBefore );
                
         }
         catch ( StackOverflowError internal ){
@@ -347,22 +347,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
     }
 
-    void _finishLeakHunt( AppContext ac , HttpRequest request , SeenPath reachableBefore , long sizeBefore ){
-        if ( ac._numRequests < 2 )
-            return;
-
-        SeenPath now = new SeenPath( true );
-        long sizeNow = ac.approxSize( now );
-        
-        if ( sizeNow <= sizeBefore && now.size() <= reachableBefore.size() )
-            return;
-        
-        MemTools.gotMemoryLeak( ac , ac.getLogger( "leak" ).getChild( request.getFullURL() ) , 
-                                reachableBefore , now , 
-                                sizeBefore , sizeNow );
-        
-    }
-    
     void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){
 
 
@@ -586,6 +570,12 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         if ( ! file.exists() )
             return -1;
         
+        if ( request.getParameter( "lm" ).equals( URLFixer.LM404 ) ){
+            // this is the really interesting one
+            // the cache url is wrong, but it does exist
+            return -1;
+        }
+
         return DEFAULT_CACHE_S;
     }
 
@@ -795,6 +785,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("         webRoot = " + webRoot);
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
+        if ( LEAK_HUNT )
+            System.out.println( "   LEAK HUNT ENABLED" );
         System.out.println("==================================");
 
         AppServer as = new AppServer( webRoot , sitesRoot );

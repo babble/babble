@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -46,16 +46,16 @@ public class Util {
 
     public static String[] smart_split(String str, String[] splitStrs, boolean allowEmpty) {
         List<String> results = new ArrayList<String>();
-        
+
         str = str.trim();
         boolean inQuote = false, escapeNext = false;
         char quoteChar = '"';
         int parenNesting = 0, bracketNesting = 0;
-        
+
         int start = 0;
         for(int i=0; i<str.length(); i++) {
             char c = str.charAt(i);
-            
+
             if(escapeNext) {
                 escapeNext = false;
             }
@@ -87,7 +87,7 @@ public class Util {
                 default:
                     if(parenNesting != 0 || bracketNesting != 0)
                         continue;
-                    
+
                     String splitter = null;
                     for(String splitStr : splitStrs) {
                         if(str.regionMatches(i, splitStr, 0, splitStr.length())) {
@@ -97,58 +97,58 @@ public class Util {
                     }
                     if(splitter == null)
                         continue;
-                    
+
                     if(allowEmpty || i - start > 0)
                         results.add(str.substring(start, i));
-                    
+
                     start = i + splitter.length();
-                    i = start - 1;                    
+                    i = start - 1;
                 }
             }
         }
         if(start < str.length())
             results.add(str.substring(start));
-            
+
         return results.toArray(new String[results.size()]);
     }
-    
+
     public static String[] split(Pattern regex, String str) {
         List<String> parts = new ArrayList<String>();
         Matcher m = regex.matcher(str);
-        
+
         int lastI = 0;
-        
+
         while(m.find()) {
             parts.add(str.substring(lastI, m.start()));
             for(int i = 1; i < m.groupCount() + 1; i++)
                 parts.add(m.group(i));
-            
+
             lastI = m.end();
         }
         parts.add(str.substring(lastI));
-        
+
         return parts.toArray(new String[parts.size()]);
     }
-    
+
     public static String escape(String pattern) {
         StringBuilder buffer = new StringBuilder();
         for(int i=0; i<pattern.length(); i++) {
             char c = pattern.charAt(i);
             if(!Character.isLetterOrDigit(c))
                 buffer.append("\\");
-            
+
             buffer.append(c);
         }
         return buffer.toString();
     }
-    
+
     public static String formatDate(Date date, String format) {
         return _formatDateTime(date, format, DATE_FORMAT_MAP);
     }
     public static String formatTime(Date time, String format) {
         return _formatDateTime(time, format, TIME_FORMAT_MAP);
     }
-    
+
     private static String _formatDateTime(Date dateTime, String format, Map<Character, DateFormatter> formatMap) {
         StringBuilder buffer = new StringBuilder();
         boolean escapeNext = false;
@@ -312,7 +312,7 @@ public class Util {
         /*
          * map.put('Z', new DateFormatter(null) { @Override public String
          * format(Date date) {
-         * 
+         *
          * return super.format(date); } })
          */
 
@@ -338,23 +338,23 @@ public class Util {
             return calendar;
         }
     }
-    
-    
+
+
     private static final Map<Character, DateFormatter> TIME_FORMAT_MAP;
     static {
         Map<Character, DateFormatter> map = new HashMap<Character, DateFormatter>();
         TIME_FORMAT_MAP = Collections.unmodifiableMap(map);
-        
+
         char[] similarities = { 'a', 'A', 'f', 'g', 'G', 'h', 'H', 'i', 'P', 's' };
         for(char similarity : similarities)
             map.put(similarity, DATE_FORMAT_MAP.get(similarity));
-        
+
         map.put('B', new DateFormatter(null) {
             public String format(Date arg0) {
                 throw new UnsupportedOperationException();
             }
         });
     }
-    
-    
+
+
 }

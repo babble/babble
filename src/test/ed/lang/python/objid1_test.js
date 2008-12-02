@@ -14,21 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver.templates.djang10;
+jsObjId = ObjId("4935490f2d8074af00eff59f");
+assert(typeof(jsObjId) == "objectid");
 
-import ed.js.JSException;
+local.src.test.ed.lang.python.objid1_helper();
 
-public class TemplateException extends Djang10Exception {
-
-    public TemplateException(String message) {
-        super(message);
-    }
-
-    public TemplateException(String message, Exception t) {
-        super(message, t);
-    }
-
-    public TemplateException(int startLine, String message) {
-        super(message + ". On Line: " + startLine);
-    }
-}
+assert(typeof(pyObjId) == "objectid");

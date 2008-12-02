@@ -28,25 +28,18 @@ import ed.js.*;
 import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
-@ExposedType(name = "jswrapper")
 public class PyJSObjectWrapper extends PyDictionary {
-
-    static PyType TYPE = Python.exposeClass(PyJSObjectWrapper.class);
 
     public PyJSObjectWrapper( JSObject jsObject ){
         this( jsObject , true );
     }
 
     public PyJSObjectWrapper( PyType type , JSObject jsObject ){
-        this( type , jsObject , false );
+        this( jsObject , false );
     }
 
     public PyJSObjectWrapper( JSObject jsObject , boolean returnPyNone ){
-        this( TYPE , jsObject , returnPyNone );
-    }
-
-    public PyJSObjectWrapper( PyType type , JSObject jsObject , boolean returnPyNone ){
-        super( type );
+        super( );
         _js = jsObject;
         _returnPyNone = returnPyNone;
         if ( _js == null )
@@ -58,23 +51,11 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     public PyObject iterkeys(){
-        System.err.println( "iterkeys" );
-        return jswrapper_iterkeys();
-    }
-
-    @ExposedMethod
-    public PyObject jswrapper_iterkeys(){
         // FIXME: return an actual iterator
-        return jswrapper_keys();
+        return keys().__iter__();
     }
 
     public PyObject iteritems(){
-        // FIXME: an actual iterator
-        return jswrapper_iteritems();
-    }
-
-    @ExposedMethod
-    public PyObject jswrapper_iteritems(){
         final Iterator<String> keys = _js.keySet().iterator();
         return new PyIterator(){
             public PyObject __iternext__(){
@@ -89,35 +70,24 @@ public class PyJSObjectWrapper extends PyDictionary {
         };
     }
 
-    public PyList keys(){
-        return jswrapper_keys();
-    }
-
-    public PyList values(){
-        return jswrapper_values();
-    }
-
     /**
      * Note: our pickle support is very limited! We just pickle
      * wrappers into appropriate "plain" types --
      * PyJSObjectWrapper->dict, PyJSStringWrapper->str, etc. If you actually
      * need this to be smarter, let us know!
      */
-    @ExposedMethod
-    public PyObject jswrapper___reduce_ex__(int version){
+    public PyObject __reduce_ex__(int version){
         PyObject arguments = new PyTuple();
         PyObject state = Py.None;
         PyObject iterator = iteritems();
         return new PyTuple( PyDictionary.TYPE , arguments , state , Py.None , iterator );
     }
 
-    @ExposedMethod
-    public boolean jswrapper_has_key(PyObject key){
-        return jswrapper___contains__( key );
+    public boolean has_key(PyObject key){
+        return __contains__( key );
     }
 
-    @ExposedMethod
-    public final PyList jswrapper_keys(){
+    public PyList keys(){
         PyList l = new PyList();
         for( String s : _js.keySet() ){
             l.append( Py.newString( s ) );
@@ -125,8 +95,7 @@ public class PyJSObjectWrapper extends PyDictionary {
         return l;
     }
 
-    @ExposedMethod
-    public PyList jswrapper_values(){
+    public PyList values(){
         PyList list = new PyList();
         for( String key : _js.keySet() ){
             list.append( toPython( _js.get( key ) ) );
@@ -146,13 +115,8 @@ public class PyJSObjectWrapper extends PyDictionary {
         return list;
     }
 
-    @ExposedMethod
-    public final boolean jswrapper___nonzero__(){
-        return _js.keySet().size() > 0;
-    }
-
     public boolean __nonzero__(){
-        return jswrapper___nonzero__();
+        return _js.keySet().size() > 0;
     }
 
     public PyObject __findattr_ex__(String name) {
@@ -231,11 +195,6 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     public boolean __contains__( PyObject key ){
-        return jswrapper___contains__( key );
-    }
-
-    @ExposedMethod
-    public boolean jswrapper___contains__( PyObject key ){
         if( key instanceof PyString )
             return _js.containsKey( key.toString() );
         throw new RuntimeException( "js wrappers cannot contain objects of class " + key.getClass() );
@@ -257,7 +216,6 @@ public class PyJSObjectWrapper extends PyDictionary {
         _js.removeField( key.toString() );
     }
 
-    @ExposedMethod
     public void __delitem__( PyObject key ){
         // Although we expose this, we don't use the customary
         // jswrapper___delitem__ method name, because Jython evidently calls
@@ -273,27 +231,16 @@ public class PyJSObjectWrapper extends PyDictionary {
         remove( key );
     }
 
-    @ExposedMethod(names = {"__repr__", "__str__"})
     public String toString(){
         return _js.toString();
     }
 
     public void clear(){
-        jswrapper_clear();
-    }
-
-    @ExposedMethod
-    final public PyObject jswrapper_clear(){
         throw new RuntimeException("not implemented yet");
     }
 
 
     public PyDictionary copy(){
-        return jswrapper_copy();
-    }
-
-    @ExposedMethod
-    final public PyDictionary jswrapper_copy(){
         PyDictionary d = new PyDictionary();
         for( String key : _js.keySet() ){
             d.__setitem__( key.intern() , toPython( _js.get( key ) ) );
@@ -302,29 +249,14 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     public PyList items(){
-        return jswrapper_items();
-    }
-
-    @ExposedMethod
-    final public PyList jswrapper_items(){
         throw new RuntimeException("not implemented yet");
     }
 
     public PyList itervalues(){
-        return jswrapper_itervalues();
-    }
-
-    @ExposedMethod
-    final public PyList jswrapper_itervalues(){
         throw new RuntimeException("not implemented yet");
     }
 
-    public void update(PyObject dictionary){
-        jswrapper_update( new PyObject[]{ dictionary } , Py.NoKeywords );
-    }
-
-    @ExposedMethod
-    final public void jswrapper_update(PyObject[] args, String[] keywords){
+    public void update(PyObject [] args , String [] keywords){
         // Seasoned copy of PyDictionary.updateCommon
         int nargs = args.length - keywords.length;
         if (nargs > 1) {
@@ -401,12 +333,11 @@ public class PyJSObjectWrapper extends PyDictionary {
         }
     }
 
-    public PyObject get( PyObject key , PyObject default_object ){
-        return jswrapper_get( key , default_object );
+    public PyObject get( PyObject key ){
+        return get( key , Py.None );
     }
 
-    @ExposedMethod(defaults = "Py.None")
-    public final PyObject jswrapper_get( PyObject key , PyObject default_object ){
+    public PyObject get( PyObject key , PyObject default_object ){
         if( key instanceof PyString ){
             String jkey = key.toString();
             if( _js.containsKey( jkey , true ) )
@@ -415,21 +346,19 @@ public class PyJSObjectWrapper extends PyDictionary {
         return default_object;
     }
 
-    public PyObject setdefault( PyObject key , PyObject default_object ){
-        return jswrapper_setdefault( key , default_object );
+    public PyObject setdefault( PyObject key ){
+        return setdefault( key , Py.None );
     }
 
-    @ExposedMethod(defaults = "Py.None")
-    public final PyObject jswrapper_setdefault( PyObject key , PyObject default_object ){
+    public PyObject setdefault( PyObject key , PyObject default_object ){
         throw new RuntimeException("not implemented");
     }
 
-    public PyObject pop( PyObject key , PyObject default_object ){
-        return jswrapper_pop( key , default_object );
+    public PyObject pop( PyObject key ){
+        return pop( key , Py.None );
     }
 
-    @ExposedMethod(defaults = "Py.None")
-    public final PyObject jswrapper_pop( PyObject key , PyObject default_object ){
+    public PyObject pop( PyObject key , PyObject default_object ){
         throw new RuntimeException("not implemented");
     }
 
