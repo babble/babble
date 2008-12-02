@@ -20,11 +20,13 @@ import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
+import ed.js.JSObjectSize;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 import ed.log.Level;
 import ed.log.Logger;
+import ed.util.SeenPath;
 
 //hacks to allow backwards compatibility with print & DEBUGING of render calls
 public class NodeWrapper {
@@ -95,6 +97,15 @@ public class NodeWrapper {
             else
                 return ret;
         }
+
+        public long approxSize(SeenPath seen) {
+            long sum = super.approxSize( seen );
+
+            sum += JSObjectSize.size( this.renderFunc, seen, this );
+            sum += JSObjectSize.size( this.log, seen, this );
+
+            return sum;
+        }
     };
     private static final class __RenderWrapperFunc extends JSFunctionCalls2 {
         private final Logger log = Logger.getRoot().getChild("djang10").getChild("NodeWrapper");
@@ -148,7 +159,14 @@ public class NodeWrapper {
 
             return null;
         }
+        public long approxSize(SeenPath seen) {
+            long sum = super.approxSize( seen );
 
+            sum += JSObjectSize.size( this.__renderFunc, seen, this );
+            sum += JSObjectSize.size( this.log, seen, this );
+
+            return sum;
+        }
 
     };
 
@@ -168,6 +186,15 @@ public class NodeWrapper {
 
             buffer.append(p0);
             return null;
+        }
+        public long approxSize(SeenPath seen) {
+            long sum = super.approxSize( seen );
+
+            sum += JSObjectSize.size( this.logger, seen, this );
+            if( seen.shouldVisit( buffer , this ) )
+                sum += JSObjectSize.OBJ_OVERHEAD + ( 2 * buffer.capacity() );
+
+            return sum;
         }
     }
 }
