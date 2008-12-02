@@ -108,11 +108,11 @@ tests=[                                                                         
        //HACK ALERT: these 2 unit tests, test for python's style of string representations, while everything else tests for js style
        { name: "filter-make_list-jsout03", content: "{% autoescape off %}{{ a|make_list|stringformat:\"s\"|safe }}{% endautoescape %}",
                                            model: { "a": djang10.mark_safe("&") },
-                                           results: "['&']" },
+                                           results: "[u'&']" },
 
        { name: "filter-make_list-jsout04", content: "{{ a|make_list|stringformat:\"s\"|safe }}",
                                            model: { "a": djang10.mark_safe("&") },
-                                           results: "['&']" },
+                                           results: "[u'&']" },
 
        { name: "filter-make_list-jsout-extra01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}",
                                            model: { "a": djang10.mark_safe("&&&") },
