@@ -24,6 +24,22 @@ import ed.js.*;
 import ed.js.engine.*;
 
 public class ObjectPath extends ArrayList {
+
+    public Object removeLast(){
+        return remove( size() -1  );
+    }
+
+    public void addEndOfPath( Throwable allocated ){
+        _ends.add( new Pair<String,Throwable>( toString() , allocated ) );
+    }
+
+    public void foundLoop(){
+        _loops.add( toString() );
+    }
+
+    public RuntimeException getDebugException(){
+        throw new RuntimeException( "can't find path.  loops : " + _loops + " ends : " + _ends );
+    }
     
     static String pathElementToString( Object o ){
         String s = o.getClass().getName();
@@ -53,4 +69,6 @@ public class ObjectPath extends ArrayList {
         return buf.toString();
     }
 
+    final List<String> _loops = new ArrayList<String>();
+    final List<Pair<String,Throwable>> _ends = new ArrayList<Pair<String,Throwable>>();
 }

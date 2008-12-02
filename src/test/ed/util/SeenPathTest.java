@@ -88,8 +88,7 @@ public class SeenPathTest extends TestCase {
         final Object c = "c";
         final Object d = "d";
 
-        // TODO
-        //p.shouldVisit( c , d );
+        p.shouldVisit( c , d );
 
         p.shouldVisit( b , a );
         p.shouldVisit( c , b );
