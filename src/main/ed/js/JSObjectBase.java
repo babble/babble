@@ -366,7 +366,7 @@ public class JSObjectBase implements JSObject {
                 jit = true;
 
                 if ( _jitCache == null )
-                    _jitCache = new HashMap<String,Object>();
+                    _jitCache = new FastStringMap();
 
                 if ( _jitCache.containsKey( s ) ){
                     return _jitCache.get( s );
