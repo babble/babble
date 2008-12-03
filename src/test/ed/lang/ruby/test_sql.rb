@@ -145,6 +145,22 @@ class SQLTest < RubyTest
     w = Parser.parse_where("name = 'the word '' or '' anywhere (surrounded by spaces) used to throw an error'")
     assert_equal "the word ' or ' anywhere (surrounded by spaces) used to throw an error", w['name']
 
+    w = Parser.parse_where("foo between 1 and 3")
+    assert_equal 1, w['foo'][:$gte]
+    assert_equal 3, w['foo'][:$lte]
+
+    w = Parser.parse_where("foo between 3 and 1")
+    assert_equal 1, w['foo'][:$gte]
+    assert_equal 3, w['foo'][:$lte]
+
+    w = Parser.parse_where("foo between 'a' and 'Z'")
+    assert_equal 'Z', w['foo'][:$gte] # 'Z' is < 'a'
+    assert_equal 'a', w['foo'][:$lte]
+
+    w = Parser.parse_where("foo between 'Z' and 'a'")
+    assert_equal 'Z', w['foo'][:$gte]
+    assert_equal 'a', w['foo'][:$lte]
+
     sql = "name = 'foo' or name = 'bar'"
     err = "sql parser can't handle ors yet: #{sql}"
     begin
