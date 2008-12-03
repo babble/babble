@@ -570,14 +570,14 @@ response.setCookie({
                 }
 
                 try {
-                    _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+                    _dataSent += _fileChannel.transferTo( _dataSent , Long.MAX_VALUE , _handler.getChannel() );
                 }
                 catch ( IOException ioe ){
                     if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
                         throw ioe;
                 }
-                if ( _fileSent < _file.length() ){
-                    if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
+                if ( _dataSent < _file.length() ){
+                    if ( HttpServer.D ) System.out.println( "only sent : " + _dataSent );
                     _handler._inFork = false;
                     _handler.registerForWrites();
                     return false;
@@ -591,7 +591,9 @@ response.setCookie({
                 for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
 
                     ByteBuffer bb = _stringContent.get( _stringContentSent );
-                    _stringContentPos += _handler.getChannel().write( bb );
+                    int thisTime = _handler.getChannel().write( bb );
+                    _stringContentPos += thisTime;
+                    _dataSent += thisTime;
                     if ( _stringContentPos < bb.limit() ){
                         if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
                         _handler._inFork = false;
@@ -601,9 +603,10 @@ response.setCookie({
                     _stringContentPos = 0;
                 }
             }
-
+            
             if ( _jsfile != null ){
                 if ( ! _jsfile.write( _handler.getChannel() ) ){
+                    _dataSent = _jsfile.bytesWritten();
                     
                     _handler._inFork = false;
                     
@@ -614,6 +617,7 @@ response.setCookie({
                     
                     return false;
                 }
+                _dataSent = _jsfile.bytesWritten();
             }
         }
 
@@ -625,6 +629,10 @@ response.setCookie({
             _handler.registerForWrites();
 
         return true;
+    }
+    
+    long dataSent(){
+        return _dataSent;
     }
 
     void socketClosing(){
@@ -701,23 +709,35 @@ response.setCookie({
             _writer._push();
 
         if ( _headers.get( "Content-Length") == null ){
-
-            if ( _stringContent != null ){
-                int cl = 0;
-                for ( ByteBuffer buf : _stringContent )
-                    cl += buf.limit();
-                if ( HttpServer.D ) System.out.println( "_stringContent.length : " + cl );
+            long cl = dataSize();
+            if ( cl >= 0 ){
                 a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
             }
-            else if ( _numDataThings() == 0 ) {
-                a.append( "Content-Length: 0\r\n" );
-            }
-
         }
 
         // empty line
         a.append( "\r\n" );
         return a;
+    }
+    
+    /**
+     * @return size or -1 if i don't know
+     */
+    long dataSize(){
+        if ( _headers.containsKey( "Content-Length" ) )
+            return getContentLength();
+        
+        if ( _stringContent != null ){
+            int cl = 0;
+            for ( ByteBuffer buf : _stringContent )
+                cl += buf.limit();
+            return cl;
+        }
+        
+        if ( _numDataThings() == 0 )
+            return 0;
+
+        return -1;
     }
 
     /**
@@ -1061,7 +1081,7 @@ response.setCookie({
 
     File _file;
     FileChannel _fileChannel;
-    long _fileSent = 0;
+    long _dataSent = 0;
 
     boolean _done = false;
     long _doneTime = -1;

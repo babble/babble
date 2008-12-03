@@ -409,6 +409,10 @@ public abstract class JSFile extends JSObjectBase {
             _maxPostion = max;
         }
 
+        public long bytesWritten(){
+            return _bytesWritten;
+        }
+
         public int available(){
             return (int)(_length - _bytesWritten);
         }
