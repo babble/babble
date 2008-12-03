@@ -91,6 +91,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return ((JSFunctionWrapper)obj).getProc();
         if (obj instanceof JSObjectWrapper && ((JSObjectWrapper)obj).getRubyObject().getRuntime() == runtime)
             return ((JSObjectWrapper)obj).getRubyObject();
+        if (obj instanceof JSArrayWrapper && ((JSArrayWrapper)obj).getRubyObject().getRuntime() == runtime)
+            return ((JSArrayWrapper)obj).getRubyObject();
 
         if (obj instanceof JSRegex) {
             JSRegex regex = (JSRegex)obj;
@@ -173,8 +175,15 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return JavaUtil.convertRubyToJava(r, BigInteger.class);
         if (r instanceof RubyBigDecimal)
             return ((RubyBigDecimal)r).getValue();
-        if (r instanceof RubyNumeric)
-            return JavaUtil.convertRubyToJava(r);
+        if (r instanceof RubyNumeric) {
+            Object o = JavaUtil.convertRubyToJava(r);
+            if (o instanceof Long) {
+                long l = ((Long)o).longValue();
+                if ((long)Integer.MIN_VALUE <= l && l <= (long)Integer.MAX_VALUE)
+                    o = new Integer((int)l);
+            }
+            return o;
+        }
         if (r instanceof RubyJSObjectWrapper)
             return ((RubyJSObjectWrapper)r).getJSObject();
         if (r instanceof RubyJSArrayWrapper)

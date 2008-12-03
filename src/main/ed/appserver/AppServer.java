@@ -134,6 +134,9 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         catch ( Exception e ){
             handleError( request , response , e , null );
         }
+        finally {
+            request.setAppRequest( null );
+        }
         return true;
     }
 

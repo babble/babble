@@ -72,6 +72,17 @@ public class RubyObjectWrapperTest {
         jsNumberTest(42L, new Long(42));
         jsNumberTest(42.0, new Float(42.0));
         jsNumberTest(42.0, new Double(42.0));
+
+        /* Make sure values that can fit in an Integer do so. */
+        Object o = toJS(s, RubyFixnum.newFixnum(r, 42));
+        assertEquals(((Integer)o).intValue(), 42);
+        assertEquals(o.getClass(), Integer.class);
+
+        /* Make sure values that can't fit in an Integer stay Long. */
+        long l = (long)Integer.MAX_VALUE + 42L;
+        o = toJS(s, RubyFixnum.newFixnum(r, l));
+        assertEquals(o.getClass(), Long.class);
+        assertEquals(((Long)o).longValue(), l);
     }
 
     @Test(groups = {"r2js"})
