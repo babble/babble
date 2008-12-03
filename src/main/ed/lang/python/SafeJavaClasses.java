@@ -7,6 +7,7 @@ import ed.security.*;
 public class SafeJavaClasses {
     public static final Set<String> safeClassNames = new HashSet<String>();
     static {
+        // FIXME: does this get to see the modules added by python.modules.builtin?
         String[] builtinModules = Setup.builtinModules;
         for(int i = 0; i < builtinModules.length; ++i){
             String module = builtinModules[i];

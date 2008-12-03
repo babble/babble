@@ -350,6 +350,12 @@ public class SiteSystemState implements Sizable {
             }
 
             if( modName.startsWith("core.modules.") ){
+                ed.log.Logger.getRoot().getChild( "python" ).warn("STRONGLY DEPRECATED: preferred form now is to set up a binding in _config.js");
+
+                // This rewriting sucks, since it can't work in the general
+                // case. If we need this, we should put it in __import__.
+                // Anyhow, we should delete it when we can.
+                //
                 // look for core.modules.foo.bar...baz
                 // and try core.modules.foo.baz
                 // Should confirm that this is from within core.modules.foo.bar... using __path__
