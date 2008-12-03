@@ -58,7 +58,7 @@ public class PHPJxpSource extends JxpSource {
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
                 try {
-                    AppRequest ar = (AppRequest)(s.get( "__apprequest__" ));
+                    AppRequest ar = AppRequest.getThreadLocal();
                     JxpScriptContext context = new JxpScriptContext( null , ar.getRequest() , ar.getResponse() , ar );
                     
                     QuercusPage page = new InterpretedPage(_program);
