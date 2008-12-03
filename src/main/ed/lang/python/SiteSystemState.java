@@ -460,7 +460,20 @@ public class SiteSystemState implements Sizable {
             }
 
             if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
-                run( mod , (JSFunction)o );
+                try {
+                    run( mod , (JSFunction)o );
+                }
+                catch( RuntimeException e ){
+                    /* DANGER! Typically Python does not re-import
+                     * failed modules. But for corejs files, there's
+                     * at least one case where it really does matter:
+                     * core.user.auth, which fails if the db isn't
+                     * running.  So we flush this kind of module if
+                     * running the JS caused some kind of expression.
+                     */
+                    Py.getSystemState().modules.__delitem__( name );
+                    throw e;
+                }
             }
 
             mod.__setattr__( "__file__".intern() , new PyString( _root.getFileFromPath( _path ).toString() ) );
