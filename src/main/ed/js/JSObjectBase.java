@@ -1464,9 +1464,6 @@ public class JSObjectBase implements JSObject {
 
         private Map<String,Object> _things = new HashMap<String,Object>();
     }
-
-    /** @unexpose  */
-    public static final JSObject _objectLowFunctions = new BaseThings();
     
     private static final JSFunction DEFAULT_TO_STRING = new JSFunctionCalls0(){
             public Object call( Scope s, Object extra[] ) {
@@ -1476,6 +1473,7 @@ public class JSObjectBase implements JSObject {
             }
         };
 
+    public static final JSObject _objectLowFunctions = new BaseThings();
 
     private static final ThreadLocal<Boolean> _inNotFoundHandler = new ThreadLocal<Boolean>(){
         protected Boolean initialValue(){
