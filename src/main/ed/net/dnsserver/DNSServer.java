@@ -235,6 +235,10 @@ public class DNSServer extends Thread {
                 // NO-OP
                 return false;
             }
+
+            protected String debugString(){
+                return "";
+            }
         
             boolean _done = false;
             
