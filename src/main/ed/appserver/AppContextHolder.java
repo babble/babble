@@ -101,26 +101,30 @@ public class AppContextHolder {
                     
                     SeenPath seen = new SeenPath();
 		    
+                    long totalSize = 0;
+
                     for ( AppContext ac : all ){
                         
                         if ( ac == null )
                             continue;
-
+                        
                         mr.startData( ac.getName() + ":" + ac.getEnvironmentName() );
                         mr.addData( "Num Requests" , ac._numRequests );
                         mr.addData( "Created" , ac._created );
                         try {
                             int before = seen.size();
-                            mr.addData( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
+                            long size = ac.approxSize( seen );
+                            totalSize += size;
+                            mr.addData( "Memory (kb)" , size / 1024 );
                             mr.addData( "Number Objects" , seen.size() - before );
-
+                            
                             if ( mr.getRequest().getBoolean( "reflect" , false ) ){
                                 ReflectionVisitor.Reachable r = new AppContext.AppContextReachable();
                                 ReflectionWalker walker = new ReflectionWalker( r );
                                 walker.walk( ac );
                                 mr.addData( "Reflection Object Count" , r.seenSize() );
                             }
-
+                            
                         }
                         catch ( Exception e ){
                             e.printStackTrace();
@@ -128,6 +132,12 @@ public class AppContextHolder {
                         }
                         mr.endData();
                     }
+
+                    
+                    mr.startData( "TOTOAL" );
+                    mr.addData( "Total Memory (kb)" , totalSize / 1024 );
+                    mr.endData();
+                    
                 }
             } );
     }
@@ -135,7 +145,7 @@ public class AppContextHolder {
     public Result getContext( HttpRequest request ){
         String host = request.getHeader( "X-Host" );
 	String uri = request.getURI();
-	
+        
         if ( host != null ){
 	    // if there is an X-Host, lets see if this is a cdn thing
 	    if ( CDN_HOSTNAMES.contains( request.getHost() ) && 
