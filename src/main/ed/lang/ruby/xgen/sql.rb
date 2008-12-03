@@ -186,6 +186,12 @@ module XGen
           when "in"
             raise "'in' must be followed by a list of values: #{@tokenizer.sql}" unless val == '('
             filters[name] = { :$in => read_array }
+          when "between"
+            conjunction = @tokenizer.next_token.downcase
+            raise "syntax error: expected 'between X and Y', but saw '" + conjunction + "' instead of 'and'" unless conjunction == 'and'
+            val2 = @tokenizer.next_token
+            val2, val = val, val2 if val > val2 # Make sure val <= val2
+            filters[name] = { :$gte => val, :$lte => val2 }
           else
             raise "can't handle sql operator [#{op}] yet: #{@tokenizer.sql}"
           end
