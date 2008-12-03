@@ -457,9 +457,7 @@ public class HttpServer extends NIOServer {
         }
         
         public void handleError( Task t , Exception e ){
-            Logger l = LOGGER;
-            if ( t._request.getAppRequest() != null )
-                l = t._request.getAppRequest().getLogger();
+            Logger l = t._request.getLogger();
             
             l.error( "error handling a task" , e );
             try {
