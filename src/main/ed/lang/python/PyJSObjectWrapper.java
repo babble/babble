@@ -204,11 +204,11 @@ public class PyJSObjectWrapper extends PyDictionary {
         _js.set( key , value );
     }
 
-    public void remove( String key ){
+    private void _remove( String key ){
         // FIXME: check if the key exists and throw an error if not --
         // this is Python after all.
         try {
-            super.remove( key );
+            remove( key );
         }
         catch( PyException e ){
             // Didn't have a cached Python value, no big deal.
@@ -224,11 +224,11 @@ public class PyJSObjectWrapper extends PyDictionary {
         // method.
 
         // FIXME: Maybe be more rigorous about casting to String here?
-        remove( key.toString() );
+        _remove( key.toString() );
     }
 
     public void __delattr__( String key ){
-        remove( key );
+        _remove( key );
     }
 
     public String toString(){

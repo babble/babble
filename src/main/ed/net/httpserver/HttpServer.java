@@ -53,7 +53,9 @@ public class HttpServer extends NIOServer {
         _listentingPorts.add( port );
 
         addHandler( new Stats() );
-        addHandler( getMonitor() );
+        addHandler( getSelectorMonitor() );
+        addHandler( new MySelectorMonitor() );
+
     }
     
     protected HttpSocketHandler accept( SocketChannel sc ){
@@ -123,7 +125,7 @@ public class HttpServer extends NIOServer {
             if ( _lastResponse != null )
                 return false;
 
-            long timeSinceLastRead = System.currentTimeMillis() - lastAction();
+            long timeSinceLastRead = System.currentTimeMillis() - lastActionTime();
             return timeSinceLastRead > CLIENT_TIMEOUT;
         }
         
@@ -362,8 +364,20 @@ public class HttpServer extends NIOServer {
             return buf.toString();
         }
 
-        final HttpServer _server;
+        String getLastUrl(){
+            if ( _lastRequest == null )
+                return "";
+            return _lastRequest.getFullURL();
+        }
 
+        long timeSinceLastRequestStart( long now ){
+            if ( _lastRequest == null )
+                return -1;
+            return now - _lastRequest._startTime;
+        }
+
+        final HttpServer _server;
+        
         private ByteBufferHolder _in = _connectionByteBufferHolder.get();
         int _endOfHeader = 0;
         boolean _done = false;
@@ -562,6 +576,38 @@ public class HttpServer extends NIOServer {
         }
         
         final long _startTime = System.currentTimeMillis();
+    }
+
+
+    class MySelectorMonitor extends HttpMonitor {
+        MySelectorMonitor(){
+            super( "selectors:http" );
+        }
+        
+        public void handle( MonitorRequest mr ){
+            mr.addHeader( "NIO Selectors" );
+            
+            final long now = System.currentTimeMillis();
+            
+            mr.startData( "selectors" , "age" , "last action" , "last action" , "last request" ,
+                          "url" );
+            for ( SocketHandler sh : getCurrentHandlers() ){
+                if ( ! ( sh instanceof HttpSocketHandler ) )
+                    continue;
+                
+                HttpSocketHandler h = (HttpSocketHandler)sh;
+                
+                mr.addData( sh.getRemote().toString() ,
+                            ((double)sh.age( now ))/1000 , sh.lastAction() , 
+                            ((double)sh.timeSinceLastAction( now )) / 1000 ,
+                            ((double)h.timeSinceLastRequestStart( now )) / 1000 ,
+                            h.getLastUrl() // leave at end 
+                            );
+
+            }
+            mr.endData();
+        }
+        
     }
     
     private Map<String,Integer> _specialStats = new HashMap<String,Integer>();
