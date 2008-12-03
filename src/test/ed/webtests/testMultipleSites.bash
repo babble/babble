@@ -16,12 +16,12 @@ do
     # Check to see if given site exists
     if [ -d "$ARG/test" ]
     then
-        echo "Testing '$ARG'."
         pushd $ARG > /dev/null
         SITE=`pwd`
         popd > /dev/null
+        echo "Testing '$SITE'."
         pushd `dirname "$0"` > /dev/null
-        bash runSiteTests.bash $SITE &> /dev/null
+        ./runSiteTests.bash $SITE &> /dev/null
         if [ $? != "0" ]
         then
             echo "FAILED"
