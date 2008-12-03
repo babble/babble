@@ -26,6 +26,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import ed.js.*;
+import ed.log.*;
 import ed.util.*;
 import ed.appserver.*;
 import ed.net.URLDecoder;
@@ -1003,22 +1004,29 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         m.put( name , l );
         return l;
     }
-
+    
     private JSObjectBase _paramsAsObject( Map<String,List<String>> params ){
-    JSObjectBase o = new JSObjectBase();
-    for ( String key : params.keySet() ){
-        List<String> l = params.get( key );
-        if ( l == null || l.size() == 0 )
-        continue;
-
-        if ( l.size() == 1 )
-        o.set( key , new JSString( l.get(0) ) );
-        else
-        o.set( key , new JSArray( l ) );
+        JSObjectBase o = new JSObjectBase();
+        for ( String key : params.keySet() ){
+            List<String> l = params.get( key );
+            if ( l == null || l.size() == 0 )
+                continue;
+            
+            if ( l.size() == 1 )
+                o.set( key , new JSString( l.get(0) ) );
+            else
+                o.set( key , new JSArray( l ) );
+        }
+        return o;
     }
-    return o;
+    
+    
+    public Logger getLogger(){
+        if ( _logger != null )
+            return _logger;
+        return HttpServer.LOGGER;
     }
-
+    
     public AppRequest getAppRequest(){
         return _appRequest;
     }
@@ -1027,9 +1035,15 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
      * @unexpose
      */
     public void setAppRequest( AppRequest req ){
+        if ( req == null ){
+            _appRequest = null;
+            return;
+        }
+        
         if ( _appRequest != null )
             throw new RuntimeException( "req already set" );
         _appRequest = req;
+        _logger = req.getLogger();
     }
 
     /**
@@ -1312,6 +1326,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     final boolean _http11;
 
     private AppRequest _appRequest;
+    private Logger _logger;
 
     private boolean _rangeChecked = false;
     private long[] _range;
