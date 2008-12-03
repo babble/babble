@@ -558,6 +558,12 @@ response.setCookie({
             _sentHeader = true;
         }
 
+        if ( _writer != null ){
+            _writer._push();
+            _charBufPool.done( _writer._cur );
+            _writer._cur = null;
+        }
+
         if (!_request.getMethod().equals("HEAD")) {
             if ( _file != null ){
                 if ( _fileChannel == null ){
@@ -584,12 +590,10 @@ response.setCookie({
                 }
             }
 
-            if ( _writer != null )
-                _writer._push();
 
             if ( _stringContent != null ){
                 for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
-
+                    
                     ByteBuffer bb = _stringContent.get( _stringContentSent );
                     int thisTime = _handler.getChannel().write( bb );
                     _stringContentPos += thisTime;
@@ -1210,7 +1214,7 @@ response.setCookie({
 		return;
 	    }
 
-            if ( _cur.position() == 0 )
+            if ( _cur == null || _cur.position() == 0 )
                 return;
 
             _cur.flip();
@@ -1316,6 +1320,10 @@ response.setCookie({
         }
 
         public boolean ok( CharBuffer buf ){
+
+            if ( buf == null )
+                return false;
+
             buf.position( 0 );
             buf.limit( buf.capacity() );
             return true;
