@@ -59,6 +59,17 @@ public class WeakBag<T> {
         }
     }
 
+    public boolean contains( T t ){
+        
+        for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){
+            MyRef ref = i.next();
+            T me = ref.get();
+            if ( me == t )
+                return true;
+        }
+        return false;
+    }
+
     /** Returns the size of the bag.
      * @return the size of the bag
      */
