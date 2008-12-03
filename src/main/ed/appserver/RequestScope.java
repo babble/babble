@@ -18,8 +18,10 @@
 
 package ed.appserver;
 
+import ed.js.*;
 import ed.js.engine.*;
 import ed.net.httpserver.*;
+import ed.util.*;
 
 public class RequestScope extends Scope {
 
@@ -46,6 +48,18 @@ public class RequestScope extends Scope {
         return _appRequest.getResponse();
     }
     
+    public Object get( String name , Scope alt , JSObject with[] ){
+        if ( name.equals( "__apprequest__" ) )
+            return _appRequest;
+        return super.get( name , alt , with );
+    }
+
+    public long approxSize( SeenPath seen , boolean includeChildren , boolean includeParents ){
+        return 
+            super.approxSize( seen , includeChildren , includeParents ) + 
+            JSObjectSize.size( _context , seen , this );
+    }
+
     void done(){
         _done = true;
     }

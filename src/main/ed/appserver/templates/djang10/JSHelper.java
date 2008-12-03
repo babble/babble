@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -54,6 +55,7 @@ import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
 import ed.util.SeenPath;
+import ed.util.Sizable;
 
 public class JSHelper extends JSObjectBase {
     private final Logger log;
@@ -76,12 +78,17 @@ public class JSHelper extends JSObjectBase {
     public long approxSize(SeenPath seen) {
         long sum = super.approxSize( seen );
 
-        Object[] toSize = { log, librarySearchPaths, defaultLibraries, fileRoots, libraryCache, loaderCache, scope };
-        for( Object obj : toSize )
-            sum += JSObjectSize.size( obj, seen, this );
+        sum += JSObjectSize.size( log, seen, this );
+        sum += JSObjectSize.size( librarySearchPaths, seen, this );
+        sum += JSObjectSize.size( defaultLibraries, seen, this );
+        sum += JSObjectSize.size( fileRoots, seen, this );
+        sum += JSObjectSize.size( libraryCache, seen, this );
+        sum += JSObjectSize.size( loaderCache, seen, this );
+        sum += JSObjectSize.size( scope, seen, this );
 
         return sum;
     }
+
 
     public JSHelper(Scope scope, Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
         this.scope = scope;
@@ -513,7 +520,7 @@ public class JSHelper extends JSObjectBase {
     private interface TemplateTagRoot {
         public JSFileLibrary resolve();
     }
-    private class TemplateTagStringRoot  implements TemplateTagRoot {
+    private class TemplateTagStringRoot implements TemplateTagRoot, Sizable {
         private final String path;
 
         public TemplateTagStringRoot(String path) {
@@ -533,8 +540,16 @@ public class JSHelper extends JSObjectBase {
         public String toString() {
             return "[" + path + "]";
         }
+
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            sum += JSObjectSize.size( path, seen , this );
+
+            return sum;
+        }
     }
-    private class TemplateTagFileLibRoot implements TemplateTagRoot {
+    private class TemplateTagFileLibRoot implements TemplateTagRoot, Sizable {
         private final JSFileLibrary fileLib;
 
         public TemplateTagFileLibRoot(JSFileLibrary fileLib) {
@@ -546,9 +561,17 @@ public class JSHelper extends JSObjectBase {
         public String toString() {
             return fileLib.toString();
         }
+
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            sum += JSObjectSize.size( fileLib, seen , this );
+
+            return sum;
+        }
     }
 
-    public class LoadedLibrary {
+    public class LoadedLibrary  implements Sizable {
         private final Library library;
         private final JxpSource source;
         public LoadedLibrary(Library library, JxpSource source) {
@@ -561,6 +584,14 @@ public class JSHelper extends JSObjectBase {
         }
         public JxpSource getSource() {
             return source;
+        }
+        public long approxSize(SeenPath seen) {
+            long sum = JSObjectSize.OBJ_OVERHEAD;
+
+            sum += JSObjectSize.size( library, seen , this );
+            sum += JSObjectSize.size( source, seen , this );
+
+            return sum;
         }
     }
 

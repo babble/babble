@@ -171,6 +171,8 @@ public class SeenPath extends IdentityHashMap<Object,List> {
 
         links:
         for ( Object next : lst ){
+            
+            assert( ! ( next instanceof Unknown ) );
 
             if ( next == from )
                 return path;

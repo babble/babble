@@ -1112,6 +1112,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return hash;
     }
 
+    public long approxSize( SeenPath seen ) {
+        long sum = super.approxSize( seen );
+
+        sum += JSObjectSize.size( _array , seen , this );
+
+        return sum;
+    }
+
     private boolean _new = false;
     /** @unexpose */
     final ArrayList<Object> _array;

@@ -99,9 +99,9 @@ public class Djang10Exception extends RuntimeException implements JSObject, Siza
     public long approxSize(SeenPath seen) {
         long sum = JSObjectSize.OBJ_OVERHEAD;
 
-        Object[] toSize = { detailMessage, cause, inner };
-        for(Object obj : toSize)
-            sum += JSObjectSize.size( obj , seen , this );
+        sum += JSObjectSize.size( detailMessage , seen , this );
+        sum += JSObjectSize.size( cause , seen , this );
+        sum += JSObjectSize.size( inner , seen , this );
 
         return sum;
     }

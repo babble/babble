@@ -16,7 +16,7 @@ o = {
     a : 1 ,
     b : "hello" , 
     c : [ 1 , 2 ] , 
-    //d : new Date()
+    d : new Date()
 };
 
 assert.eq( o.hashCode() , fromjson( tojson( o ) ).hashCode() );

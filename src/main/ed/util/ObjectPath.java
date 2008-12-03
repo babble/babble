@@ -57,10 +57,22 @@ public class ObjectPath extends ArrayList {
 
     }
 
-    static String pathElementToString( Object o ){
+    public static String pathElementsToString( Iterable i ){
+        StringBuilder buf = new StringBuilder();
+        buf.append( "[" );
+        for ( Object o : i ){
+            if ( buf.length() > 1 )
+                buf.append( ", " );
+            buf.append( pathElementToString( o ) );
+            buf.append( "]" );
+        }
+        return buf.toString();
+    }
+    
+    public static String pathElementToString( Object o ){
         if ( o == null )
             return "null";
-
+        
         String s = o.getClass().getName();
         
         if ( o instanceof Scope  

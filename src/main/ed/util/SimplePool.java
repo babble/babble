@@ -67,7 +67,7 @@ public abstract class SimplePool<T> {
      */
     public void done( T t ){
         _where.remove( _hash( t ) );
-
+        
         if ( ! ok( t ) ){
             synchronized ( _avail ){
                 _all.remove( t );
@@ -80,7 +80,10 @@ public abstract class SimplePool<T> {
                 for ( int i=0; i<_avail.size(); i++ )
                     if ( _avail.get( i ) == t )
                         throw new RuntimeException( "trying to put something back in the pool that's already there" );
-                _avail.add( t );
+                
+                // if all doesn't contain it, it probably means this was cleared, so we don't want it
+                if ( _all.contains( t ) )
+                    _avail.add( t );
             }
         }
     }
