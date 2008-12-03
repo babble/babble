@@ -47,7 +47,7 @@ public class Python extends Language {
     public Python(){
         super( "python" );
     }
-    
+
     static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
 
     static final PyString __ITER__ = Py.newString( "__iter__" );
@@ -542,7 +542,7 @@ public class Python extends Language {
                 JSObjectSize.size( inst.__dict__ , seen , o ) +
                 JSObjectSize.size( inst.instclass , seen , o );
         }
-                
+
         if( o instanceof PyFunction ){
             // public String __name__
             // public PyObject __doc__
@@ -854,10 +854,7 @@ public class Python extends Language {
         // probably fake any credentials Jython built-in modules could provide,
         // so all bets are off.
         if( m instanceof PyJavaClass &&
-            ((PyJavaClass)m).__module__.startsWith("org.python.modules.") &&
-            ( name.equals( "Time" ) || name.equals( "RandomModule" ) ) ){
-            return true;
-        }
+            SafeJavaClasses.isSafeClass( ((PyJavaClass)m).__module__ + "." + name ) ) return true;
 
         if( ! Security.inTrustedCode() )
             return false;
