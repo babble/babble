@@ -18,9 +18,10 @@
 
 package ed.js.engine;
 
-import ed.ext.org.mozilla.javascript.*;
-
 import java.util.*;
+
+import ed.ext.org.mozilla.javascript.*;
+import ed.util.*;
 
 public class FunctionInfo implements Iterable<String> {
 
@@ -206,9 +207,18 @@ public class FunctionInfo implements Iterable<String> {
         }
 
         boolean isNumber(){
-            for ( Info i : _depends )
-                if ( ! i.isNumber() )
+            return isNumber( new IdentitySet() );
+        }
+
+        boolean isNumber( IdentitySet seen ){
+            for ( Info i : _depends ){
+                if ( seen.contains( i ) )
+                    continue;
+                seen.add( i );
+                if ( ! i.isNumber( seen ) ){
                     return false;
+                }
+            }
             
             return 
                 ! _param && 
