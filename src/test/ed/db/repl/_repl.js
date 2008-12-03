@@ -46,7 +46,7 @@ try {
     );
     slave.start();
 
-    sleep( 20000 );    
+    sleep( 60000 );    
     
     print( "ADDING source" );
     connect( "127.0.0.1:" + slavePort + "/local" ).sources.save( { host : "127.0.0.1:" + masterPort , source:"main"} );
