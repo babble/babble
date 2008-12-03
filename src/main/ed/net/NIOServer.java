@@ -25,6 +25,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import ed.log.*;
+import ed.net.httpserver.*;
 
 public abstract class NIOServer extends Thread {
 
@@ -185,6 +186,7 @@ public abstract class NIOServer extends Thread {
                     sc = (SocketChannel)key.channel();
                     sh = (SocketHandler)key.attachment();
 
+                    sh._action( "selected" );
                     sh._lastAction = System.currentTimeMillis();
                     
 
@@ -299,6 +301,27 @@ public abstract class NIOServer extends Thread {
         _numSelectors = total;
     }
     
+    List<SocketHandler> getCurrentHandlers(){
+
+        Set<SelectionKey> keys = _selector.keys();
+        List<SocketHandler> handlers = new ArrayList<SocketHandler>( keys.size() );
+        
+        for ( SelectionKey key : _selector.keys() ){
+            
+            if ( ! key.isValid() )
+                continue;
+            
+            Object attachment = key.attachment();
+            if ( attachment == null )
+                continue;
+            
+            SocketHandler handler = (SocketHandler)attachment;
+            handlers.add( handler );
+        }
+        
+        return handlers;
+    }
+    
     protected int getNumSelectors(){
         return _numSelectors;
     }
@@ -326,25 +349,27 @@ public abstract class NIOServer extends Thread {
         protected abstract boolean writeMoreIfWant() 
             throws IOException;
         
-        // other stuff
+        protected abstract String debugString();
 
+        // other stuff
+        
         public void registerForWrites()
             throws IOException {
             if ( D ) System.out.println( _channel + " registerForWrites" );
-            _register( SelectionKey.OP_WRITE );
+            _register( SelectionKey.OP_WRITE , "register-writes" );
         }
 
         public void registerForReads()
             throws IOException {
             if ( D ) System.out.println( _channel + " registerForReads" );
-            _register( SelectionKey.OP_READ );
+            _register( SelectionKey.OP_READ , "register-reads" );
         }
 
-        private void _register( int ops )
+        private void _register( int ops , String name )
             throws IOException {
-            
-            _lastAction = System.currentTimeMillis();
     
+            _action( name );
+
             SelectionKey key = _channel.keyFor( _selector );
             if ( key == null ){
                 if ( ! _didASelectorReset )
@@ -374,7 +399,13 @@ public abstract class NIOServer extends Thread {
         public void pause()
             throws IOException {
             if ( D ) System.out.println( _channel + " pausing selector" );
-            _register( 0 );
+            _register( 0 , "pause" );
+        }
+
+        public void pause( String why )
+            throws IOException {
+            if ( D ) System.out.println( _channel + " pausing selector b/c : " + why );
+            _register( 0 , why );
         }
         
         public InetAddress getInetAddress(){
@@ -412,6 +443,15 @@ public abstract class NIOServer extends Thread {
             return now - _lastAction > CLIENT_TIMEOUT;
         }
 
+        public long lastAction(){
+            return _lastAction;
+        }
+
+        protected void _action( String what ){
+            _lastAction = System.currentTimeMillis();
+            _lastActionWhat = what;
+        }
+
         public String toString(){
             return "SocketHandler: " + _channel;
         }
@@ -421,11 +461,33 @@ public abstract class NIOServer extends Thread {
         protected boolean _bad = false;
         protected final long _created = System.currentTimeMillis();
         
-        protected long _lastAction = _created;
+        private long _lastAction = _created;
+        private String _lastActionWhat = "created";
 
         private boolean _closed = false;
     }
     
+    class MyMonitor extends HttpMonitor {
+        MyMonitor(){
+            super( "nioserver:" + _port );
+        }
+
+        public void handle( MonitorRequest mr ){
+            mr.addHeader( "NIO Selectors" );
+            
+            mr.startData( "selectors" , "last action" , "when" , "debug" );
+            for ( SocketHandler sh : getCurrentHandlers() ){
+                mr.addData( sh._channel.socket().getRemoteSocketAddress().toString() , sh._lastActionWhat , new java.util.Date( sh._lastAction ) , sh.debugString() );
+            }
+            mr.endData();
+        }
+        
+    }
+    
+    protected HttpMonitor getMonitor(){
+        return new MyMonitor();
+    }
+
     protected final int _port;
     protected final ServerSocketChannel _ssChannel;    
 

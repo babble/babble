@@ -66,6 +66,10 @@ public class EchoServer extends NIOServer {
             
             return false;
         }
+
+        protected String debugString(){
+            return "";
+        }
         
     }    
     
