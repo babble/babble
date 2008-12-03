@@ -56,7 +56,6 @@ EOS
     @mayor_str = "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2"
     @mayor_song = 'The Mayor Of Simpleton'
 
-    XGen::Mongo::Base.connection = 123 # DEBUG
     XGen::Mongo::Base.connection = $db
 
     @spongebob_addr = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
@@ -207,6 +206,20 @@ EOS
     assert_match(/song: Garden Of Earthly Delights/, str)
     assert_match(/song: The Mayor Of Simpleton/, str)
     assert_match(/song: King For A Day/, str)
+  end
+
+  def test_find_using_hash_with_array_and_range
+    sorted_track_titles = ['Garden Of Earthly Delights', 'King For A Day', @mayor_song]
+
+    # Array
+    list = Track.find(:all, :conditions => {:track => [1,2,3]}).collect
+    assert_equal 3, list.length
+    assert_equal sorted_track_titles, list.collect{|t| t.song}.sort
+
+    # Range
+    list = Track.find(:all, :conditions => {:track => 1..3}).collect
+    assert_equal 3, list.length
+    assert_equal sorted_track_titles, list.collect{|t| t.song}.sort
   end
 
   def test_new_no_arg
@@ -469,6 +482,10 @@ EOS
     str = Track.find(:all, :conditions => "song in ('#{@mayor_song}', 'King For A Day')").inject('') { |str, t| str + t.to_s }
     assert str.include?(@mayor_song)
     assert str.include?('King For A Day')
+
+    list = Track.find(:all, :conditions => "track in (1,2,3)").collect
+    assert_equal 3, list.length
+    assert_equal ['Garden Of Earthly Delights', 'King For A Day', @mayor_song], list.collect{|t| t.song}.sort
   end
 
   def test_in_array
