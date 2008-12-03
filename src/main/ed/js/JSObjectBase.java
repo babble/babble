@@ -741,7 +741,7 @@ public class JSObjectBase implements JSObject {
     public String toPrettyString(){
         Object temp = get( "toString" );
 
-        if ( ! ( temp instanceof JSFunction ) )
+        if ( temp == DEFAULT_TO_STRING || ! ( temp instanceof JSFunction ) )
             return JSON.serialize( this );
 
         return toString();
@@ -1455,23 +1455,24 @@ public class JSObjectBase implements JSObject {
                     }
                 });
 
-            set( "toString", new JSFunctionCalls0() {
-                    public Object call( Scope s, Object extra[] ) {
-                        String className = JS_typeof( s.getThis() ).toString();
-                        className = className.substring(0,1).toUpperCase() + className.substring(1);
-                        return new JSString( "[object " + className +"]");
-                    }
-                } );
+            set( "toString", DEFAULT_TO_STRING );
         }
-
+        
         public Set<String> keySet( boolean includePrototype ){
             return _things.keySet();
         }
 
         private Map<String,Object> _things = new HashMap<String,Object>();
     }
+    
+    private static final JSFunction DEFAULT_TO_STRING = new JSFunctionCalls0(){
+            public Object call( Scope s, Object extra[] ) {
+                String className = JS_typeof( s.getThis() ).toString();
+                className = className.substring(0,1).toUpperCase() + className.substring(1);
+                return new JSString( "[object " + className +"]");
+            }
+        };
 
-    /** @unexpose  */
     public static final JSObject _objectLowFunctions = new BaseThings();
 
     private static final ThreadLocal<Boolean> _inNotFoundHandler = new ThreadLocal<Boolean>(){

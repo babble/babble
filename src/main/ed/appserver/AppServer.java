@@ -309,7 +309,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             _handleEndOfServlet( request , response , ar );
 
             if ( LEAK_HUNT )
-                MemTools.leakHunt( ac , request , reachableBefore , sizeBefore );
+                MemTools.leakHunt( ac , ar , reachableBefore , sizeBefore );
                
         }
         catch ( StackOverflowError internal ){

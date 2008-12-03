@@ -53,6 +53,7 @@ public class HttpServer extends NIOServer {
         _listentingPorts.add( port );
 
         addHandler( new Stats() );
+        addHandler( getMonitor() );
     }
     
     protected HttpSocketHandler accept( SocketChannel sc ){
@@ -73,12 +74,12 @@ public class HttpServer extends NIOServer {
             HttpHandler h = handlers.get(i);
             info.reset();
             if ( h.handles( request , info ) ){
-                request._handler.pause();
                 if ( info.admin ) _numRequestsAdmin++;
 
                 if ( info.fork ){
                     _numRequestsForked++;
-                    
+                    request._handler.pause( "pause-fork" );
+
                     WorkerThreadPool tp = info.admin ? _forkThreadsAdmin : _forkThreads;
 
                     if ( tp.offer( new Task( request , response , h ) ) ){
@@ -122,7 +123,7 @@ public class HttpServer extends NIOServer {
             if ( _lastResponse != null )
                 return false;
 
-            long timeSinceLastRead = System.currentTimeMillis() - _lastAction;
+            long timeSinceLastRead = System.currentTimeMillis() - lastAction();
             return timeSinceLastRead > CLIENT_TIMEOUT;
         }
         
@@ -215,7 +216,7 @@ public class HttpServer extends NIOServer {
         protected boolean _gotData( ByteBuffer inBuf )
             throws IOException {
             
-            _lastAction = System.currentTimeMillis();
+            _action( "gotdata" );
 
             if ( inBuf != null ){
 
@@ -347,6 +348,18 @@ public class HttpServer extends NIOServer {
             if ( _lastRequest != null )
                 s += " " + _lastRequest.getFullURL();
             return s;
+        }
+        
+        protected String debugString(){
+            StringBuilder buf = new StringBuilder( 40 );
+
+            if ( _lastRequest != null )
+                buf.append( "cur request : " ).append( _lastRequest.getFullURL() ).append( " " );
+            
+            if ( _lastResponse != null )
+                buf.append( "response.  done: " ).append( _lastResponse._done );
+            
+            return buf.toString();
         }
 
         final HttpServer _server;
