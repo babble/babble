@@ -8,7 +8,6 @@ then
 fi
 
 EXIT_STATUS=0
-cd `dirname "$0"`
 export WTPARAMS="-Dwt.headless=true"
 TESTED_ONE=""
 
@@ -18,13 +17,18 @@ do
     if [ -d "$ARG/test" ]
     then
         echo "Testing '$ARG'."
-        bash runSiteTests.bash $ARG &> /dev/null
+        pushd $ARG > /dev/null
+        SITE=`pwd`
+        popd > /dev/null
+        pushd `dirname "$0"` > /dev/null
+        bash runSiteTests.bash $SITE &> /dev/null
         if [ $? != "0" ]
         then
             echo "FAILED"
             EXIT_STATUS=1
         fi
         TESTED_ONE="true"
+        popd > /dev/null
     fi
 done
 
