@@ -277,13 +277,13 @@ public class JSBuiltInFunctions {
 
     }
 
-    public static class javaCreate extends JSFunctionCalls1 implements SecureObject {
+    public static class javaCreate extends JSFunctionCalls1 {
         public Object call( Scope scope , Object clazzNameJS , Object extra[] ){
 
             String clazzName = clazzNameJS.toString();
 
             if ( ! Security.canAccessClass( clazzName ) )
-                throw new JSException( "you can create a " + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
+                throw new JSException( "you can't create a " + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
 
             Class clazz = null;
             try {
@@ -318,7 +318,7 @@ public class JSBuiltInFunctions {
         }
     }
 
-    public static class javaStatic extends JSFunctionCalls2 implements SecureObject {
+    public static class javaStatic extends JSFunctionCalls2 {
         public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
             final boolean debug = false;
 
@@ -371,13 +371,13 @@ public class JSBuiltInFunctions {
         }
     }
 
-    public static class javaStaticProp extends JSFunctionCalls2 implements SecureObject {
+    public static class javaStaticProp extends JSFunctionCalls2 {
         public Object call( Scope scope , Object clazzNameJS , Object fieldNameJS , Object extra[] ){
 
 
             String clazzName = clazzNameJS.toString();
 
-            if ( ! Security.inTrustedCode() )
+            if ( ! Security.canAccessClass( clazzName ) )
                 throw new JSException( "you can't use a :" + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
 
             Class clazz = null;

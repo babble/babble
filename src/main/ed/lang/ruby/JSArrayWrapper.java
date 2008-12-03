@@ -16,20 +16,14 @@
 
 package ed.lang.ruby;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import org.jruby.*;
-import org.jruby.runtime.Block;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.runtime.builtin.Variable;
-import org.jruby.util.IdUtil;
 
-import ed.db.ObjectId;
 import ed.js.*;
 import ed.js.engine.Scope;
-import ed.util.IdentitySet;
 import ed.util.StringParseUtil;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
@@ -84,6 +78,7 @@ public class JSArrayWrapper extends JSArray {
         return super.setInt(n, v);
     }
 
+    @SuppressWarnings("unchecked")
     public boolean addAll(Collection c) {
         Ruby runtime = getRuntime();
         for (Object o : c)
@@ -91,6 +86,7 @@ public class JSArrayWrapper extends JSArray {
         return super.addAll(c);
     }
 
+    @SuppressWarnings("unchecked")
     public boolean addAll(int i, Collection c) {
         Ruby runtime = getRuntime();
         RubyFixnum start = runtime.newFixnum(i);
@@ -105,6 +101,7 @@ public class JSArrayWrapper extends JSArray {
         return super.addAll(i, c);
     }
 
+    @SuppressWarnings("unchecked")
     public void addAll(Enumeration e) {
         Ruby runtime = getRuntime();
         ArrayList listToAddToJS = new ArrayList();
@@ -116,6 +113,7 @@ public class JSArrayWrapper extends JSArray {
         super.addAll(listToAddToJS);
     }
 
+    @SuppressWarnings("unchecked")
     public void addAll(Iterator i) {
         Ruby runtime = getRuntime();
         ArrayList listToAddToJS = new ArrayList();
@@ -139,7 +137,6 @@ public class JSArrayWrapper extends JSArray {
 
     public Object remove(int i) {
         RubyFixnum rf = getRuntime().newFixnum(i);
-        IRubyObject ro = _rarray.aref(rf);
         _rarray.aset(rf, getRuntime().getNil());
         return super.remove(i);
     }
@@ -175,12 +172,9 @@ public class JSArrayWrapper extends JSArray {
             return null;
 
         RubyFixnum rf = getRuntime().newFixnum(i);
-        IRubyObject val = _rarray.aref(rf);
         _rarray.aset(rf, getRuntime().getNil());
         return super.removeField(n);
     }
-
-    // TODO ignore top-level (Kernel) methods defined from JavaScript
 
     public boolean containsKey(String s) {
         return containsKey(s , true);
