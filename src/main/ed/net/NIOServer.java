@@ -301,7 +301,7 @@ public abstract class NIOServer extends Thread {
         _numSelectors = total;
     }
     
-    List<SocketHandler> getCurrentHandlers(){
+    protected List<SocketHandler> getCurrentHandlers(){
 
         Set<SelectionKey> keys = _selector.keys();
         List<SocketHandler> handlers = new ArrayList<SocketHandler>( keys.size() );
@@ -415,6 +415,10 @@ public abstract class NIOServer extends Thread {
         public int getRemotePort(){
             return _channel.socket().getPort();
         }
+
+        public SocketAddress getRemote(){
+            return _channel.socket().getRemoteSocketAddress();
+        }
         
         public void bad(){
             _bad = true;
@@ -443,19 +447,31 @@ public abstract class NIOServer extends Thread {
             return now - _lastAction > CLIENT_TIMEOUT;
         }
 
-        public long lastAction(){
+        public long lastActionTime(){
             return _lastAction;
+        }
+
+        public String lastAction(){
+            return _lastActionWhat;
         }
 
         protected void _action( String what ){
             _lastAction = System.currentTimeMillis();
             _lastActionWhat = what;
         }
-
+        
         public String toString(){
             return "SocketHandler: " + _channel;
         }
 
+        public long age( long now ){
+            return now - _created;
+        }
+        
+        public long timeSinceLastAction( long now ){
+            return now - _lastAction;
+        }
+        
         protected final SocketChannel _channel;
         private SelectionKey _key = null;
         protected boolean _bad = false;
@@ -466,28 +482,34 @@ public abstract class NIOServer extends Thread {
 
         private boolean _closed = false;
     }
-    
-    class MyMonitor extends HttpMonitor {
-        MyMonitor(){
-            super( "nioserver:" + _port );
-        }
 
+
+    class SelectorMonitor extends HttpMonitor {
+        SelectorMonitor(){
+            super( "selectors" );
+        }
+        
         public void handle( MonitorRequest mr ){
             mr.addHeader( "NIO Selectors" );
             
-            mr.startData( "selectors" , "last action" , "when" , "debug" );
+            final long now = System.currentTimeMillis();
+            
+            mr.startData( "selectors" , "age" , "last action" , "time since last action" , "debug" );
             for ( SocketHandler sh : getCurrentHandlers() ){
-                mr.addData( sh._channel.socket().getRemoteSocketAddress().toString() , sh._lastActionWhat , new java.util.Date( sh._lastAction ) , sh.debugString() );
+                mr.addData( sh.getRemote().toString() ,
+                            ((double)sh.age( now ))/1000 , sh.lastAction() , 
+                            ((double)sh.timeSinceLastAction( now )) / 1000 ,
+                            sh.debugString() );
             }
             mr.endData();
         }
         
     }
-    
-    protected HttpMonitor getMonitor(){
-        return new MyMonitor();
-    }
 
+    protected HttpMonitor getSelectorMonitor(){
+        return new SelectorMonitor();
+    }
+    
     protected final int _port;
     protected final ServerSocketChannel _ssChannel;    
 
