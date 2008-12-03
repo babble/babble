@@ -372,8 +372,16 @@ public class HttpServer extends NIOServer {
 
         long timeSinceLastRequestStart( long now ){
             if ( _lastRequest == null )
-                return -1;
+                return 0;
             return now - _lastRequest._startTime;
+        }
+
+        String dataSentString(){
+            if ( _lastResponse == null )
+                return "-";
+            if ( ! _lastResponse._done )
+                return "-";
+            return _lastResponse.dataSent() + "/" + _lastResponse.dataSize();
         }
 
         final HttpServer _server;
@@ -589,7 +597,8 @@ public class HttpServer extends NIOServer {
             
             final long now = System.currentTimeMillis();
             
-            mr.startData( "selectors" , "age" , "last action" , "last action" , "last request" ,
+            mr.startData( "selectors" , "age" , "last action" , "last action" , 
+                          "last request" , "data sent" ,
                           "url" );
             for ( SocketHandler sh : getCurrentHandlers() ){
                 if ( ! ( sh instanceof HttpSocketHandler ) )
@@ -601,6 +610,7 @@ public class HttpServer extends NIOServer {
                             ((double)sh.age( now ))/1000 , sh.lastAction() , 
                             ((double)sh.timeSinceLastAction( now )) / 1000 ,
                             ((double)h.timeSinceLastRequestStart( now )) / 1000 ,
+                            h.dataSentString() ,
                             h.getLastUrl() // leave at end 
                             );
 
