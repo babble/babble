@@ -78,8 +78,8 @@ public class AppRequest implements Sizable {
             _scope.lock( "session" );
 	    _request.set( "session" , _session );
             
-            _scope.put( "__apprequest__" , this , true );
-            _scope.lock( "__apprequest__" );
+            //_scope.put( "__apprequest__" , this , true );
+            //_scope.lock( "__apprequest__" );
 
             _scope.put( "print" , getServletWriter() , true );
 
