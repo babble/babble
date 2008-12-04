@@ -16,7 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.net;
+package ed.net.nioserver;
 
 import java.io.*;
 import java.net.*;
@@ -25,6 +25,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import ed.log.*;
+import ed.net.*;
 import ed.net.httpserver.*;
 
 public abstract class NIOServer extends Thread {

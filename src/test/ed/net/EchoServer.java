@@ -24,6 +24,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
+import ed.net.nioserver.*;
+
 public class EchoServer extends NIOServer {
 
     public EchoServer( int port )

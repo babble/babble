@@ -31,6 +31,7 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.io.*;
 import ed.net.*;
+import ed.net.nioserver.*;
 import ed.log.*;
 
 
