@@ -295,6 +295,8 @@ public class LB extends NIOClient {
         System.out.println( "\t verbose \t " + verbose  );
         
         int retriesLeft = 2;
+
+        HttpMonitor.setApplicationType( "Load Balancer" );
         
         LB lb = null;
         

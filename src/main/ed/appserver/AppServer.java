@@ -795,6 +795,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         AppServer as = new AppServer( webRoot , sitesRoot );
         as.addToServer();
 
+        HttpMonitor.setApplicationType( "Application Server" );
         HttpServer hs = new HttpServer(portNum);
         if ( secure )
             System.setSecurityManager( new AppSecurityManager() );

@@ -32,6 +32,10 @@ import ed.util.*;
 public abstract class HttpMonitor implements HttpHandler {
     
     public static enum Status { OK , WARN , ERROR , FATAL };
+    static String _applicationType = null;
+    public static void setApplicationType( String s ){
+        _applicationType = s;
+    }
 
     public HttpMonitor( String name ){
         this( name , false );
@@ -137,6 +141,11 @@ public abstract class HttpMonitor implements HttpHandler {
             response.setHeader( "Content-Type" , "text/plain" );
         else if ( html ) {
             out.print( _header );
+            if ( _applicationType != null ){
+                out.print( "<span id='appType'>" );
+                out.print( _applicationType );
+                out.print( "</span>\n" );
+            }
             out.print( _allContent );
             String section = _section();
             if ( section != null ){

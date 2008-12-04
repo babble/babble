@@ -51,8 +51,6 @@ public class RubyJSObjectWrapperTest {
         jsobj.set("count", new Integer(1));
         jsobj.set("add_seven", addSevenFunc);
 
-        RubyObject top = (RubyObject)r.getTopSelf();
-        RubyClass eigenclass = top.getSingletonClass();
         r.getGlobalVariables().set("$data", RubyObjectWrapper.toRuby(s, r, jsobj));
     }
 
@@ -111,7 +109,7 @@ public class RubyJSObjectWrapperTest {
 
     public void testMethodMissingNoSuchMethod() {
         try {
-            IRubyObject answer = r.evalScriptlet("$data.xyzzy");
+            r.evalScriptlet("$data.xyzzy");
             fail("expected method_missing exception");
         }
         catch (org.jruby.exceptions.RaiseException re) {

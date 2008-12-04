@@ -180,6 +180,8 @@ public class Manager extends Thread {
     public static void main( String args[] )
         throws Exception {
 
+        HttpMonitor.setApplicationType( "System Manager" );
+
         Options o = new Options();
         o.addOption( "v" , "verbose" , false , "Verbose" );
         o.addOption( "c" , "config" , true , "config file for TextConfigApplicationFactory" );
