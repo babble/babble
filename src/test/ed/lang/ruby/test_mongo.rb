@@ -40,19 +40,18 @@ class MongoTest < RubyTest
 
   def setup
     super
-    run_js <<EOS
-db = connect('test');
-db.rubytest_students.remove({});
-db.rubytest_courses.remove({});
-db.rubytest.remove({});
-db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});
-db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});
-db.rubytest.save({artist: 'Thomas Dolby', album: 'The Golden Age of Wireless', song: 'Europa and the Pirate Twins'});
-db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'Garden Of Earthly Delights', track: 1});
-song_id = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The Mayor Of Simpleton', track: 2});
-db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});
-EOS
-    @mayor_id = $song_id._id
+    $db = connect('test')
+    $db.rubytest_students.remove({})
+    $db.rubytest_courses.remove({})
+    $db.rubytest.remove({})
+    $db.rubytest.save({:artist => 'Thomas Dolby', :album => 'Aliens Ate My Buick', :song => 'The Ability to Swing'})
+    $db.rubytest.save({:artist => 'Thomas Dolby', :album => 'Aliens Ate My Buick', :song => 'Budapest by Blimp'})
+    $db.rubytest.save({:artist => 'Thomas Dolby', :album => 'The Golden Age of Wireless', :song => 'Europa and the Pirate Twins'})
+    $db.rubytest.save({:artist => 'XTC', :album => 'Oranges & Lemons', :song => 'Garden Of Earthly Delights', :track => 1})
+    song_id = $db.rubytest.save({:artist => 'XTC', :album => 'Oranges & Lemons', :song => 'The Mayor Of Simpleton', :track => 2})
+    $db.rubytest.save({:artist => 'XTC', :album => 'Oranges & Lemons', :song => 'King For A Day', :track => 3})
+
+    @mayor_id = song_id['_id']
     @mayor_str = "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2"
     @mayor_song = 'The Mayor Of Simpleton'
 
@@ -67,11 +66,9 @@ EOS
   end
 
   def teardown
-    run_js <<EOS
-db.rubytest_students.remove({});
-db.rubytest_courses.remove({});
-db.rubytest.remove({});
-EOS
+    $db.rubytest_students.remove({})
+    $db.rubytest_courses.remove({})
+    $db.rubytest.remove({})
     super
   end
 
