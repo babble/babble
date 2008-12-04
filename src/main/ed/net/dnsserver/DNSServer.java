@@ -216,7 +216,7 @@ public class DNSServer extends Thread {
                 _writeBuf.clear();
                 _writeBuf.put( outBytes );
                 _writeBuf.flip();
-                _channel.write( _writeBuf );
+                write( _writeBuf );
 
                 _done = true;
                 registerForWrites(); // get ready for close

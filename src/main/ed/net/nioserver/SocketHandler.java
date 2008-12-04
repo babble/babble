@@ -28,7 +28,7 @@ import ed.log.*;
 import ed.net.*;
 import ed.net.httpserver.*;
 
-public abstract class SocketHandler {
+public abstract class SocketHandler implements WritableByteChannel {
 
     public final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
 
@@ -54,7 +54,7 @@ public abstract class SocketHandler {
         
     protected abstract String debugString();
 
-    // other stuff
+    // --- selector management ----
         
     public void registerForWrites()
         throws IOException {
@@ -94,7 +94,7 @@ public abstract class SocketHandler {
         key.interestOps( ops );
         _server._selector.wakeup();
     }
-        
+
     public void cancel(){
         _key.cancel();
     }
@@ -110,23 +110,7 @@ public abstract class SocketHandler {
         if ( D ) System.out.println( _channel + " pausing selector b/c : " + why );
         _register( 0 , why );
     }
-        
-    public InetAddress getInetAddress(){
-        return _channel.socket().getInetAddress();
-    }
-        
-    public int getRemotePort(){
-        return _channel.socket().getPort();
-    }
 
-    public SocketAddress getRemote(){
-        return _channel.socket().getRemoteSocketAddress();
-    }
-        
-    public void bad(){
-        _bad = true;
-    }
-        
     public void close(){
         if ( _closed )
             return;
@@ -146,6 +130,54 @@ public abstract class SocketHandler {
         _key.cancel();
     }
 
+    public boolean isOpen(){
+        return _channel.isOpen();
+    }
+
+    protected void _action( String what ){
+        _lastAction = System.currentTimeMillis();
+        _lastActionWhat = what;
+    }
+
+    protected void _selected( int ops ){
+        _lastReadyOps = ops;
+        _action( "selected" );
+    }
+        
+    // ------ IO api -----
+    
+    public int write( ByteBuffer buf )
+        throws IOException {
+        final int w = _channel.write( buf );
+        _bytesWritten += w;
+        return w;
+    }
+    
+    public long transerFile( FileChannel fc , long position , long count )
+        throws IOException {
+        final long w = fc.transferTo( position , count , _channel );
+        _bytesWritten += w;
+        return w;
+    }
+
+    // ------ intropsection ------
+        
+    public InetAddress getInetAddress(){
+        return _channel.socket().getInetAddress();
+    }
+        
+    public int getRemotePort(){
+        return _channel.socket().getPort();
+    }
+
+    public SocketAddress getRemote(){
+        return _channel.socket().getRemoteSocketAddress();
+    }
+        
+    public void bad(){
+        _bad = true;
+    }
+        
     protected boolean shouldTimeout( long now ){
         return now - _lastAction > NIOServer.CLIENT_TIMEOUT;
     }
@@ -162,16 +194,6 @@ public abstract class SocketHandler {
         return _lastReadyOps;
     }
 
-    protected void _action( String what ){
-        _lastAction = System.currentTimeMillis();
-        _lastActionWhat = what;
-    }
-
-    protected void _selected( int ops ){
-        _lastReadyOps = ops;
-        _action( "selected" );
-    }
-        
     public String toString(){
         return "SocketHandler: " + _channel;
     }
@@ -183,8 +205,12 @@ public abstract class SocketHandler {
     public long timeSinceLastAction( long now ){
         return now - _lastAction;
     }
+
+    public long bytesWritten(){
+        return _bytesWritten;
+    }
         
-    protected final SocketChannel _channel;
+    final SocketChannel _channel;
     final NIOServer _server;
     SelectionKey _key = null;
     
@@ -194,8 +220,10 @@ public abstract class SocketHandler {
     private long _lastAction = _created;
     private String _lastActionWhat = "created";
     private int _lastReadyOps = 0;
-        
+    
     private boolean _closed = false;
+
+    private long _bytesWritten = 0;
 }
 
 

@@ -553,7 +553,7 @@ response.setCookie({
             final String header = _genHeader();
             final byte[] bytes = header.getBytes();
             final ByteBuffer headOut = ByteBuffer.wrap( bytes );
-            _handler.getChannel().write( headOut );
+            _handler.write( headOut );
             _keepAlive = keepAlive();
             _sentHeader = true;
         }
@@ -576,7 +576,8 @@ response.setCookie({
                 }
 
                 try {
-                    _dataSent += _fileChannel.transferTo( _dataSent , Long.MAX_VALUE , _handler.getChannel() );
+                    //_dataSent += _fileChannel.transferTo( _dataSent , Long.MAX_VALUE , _handler.getChannel() );
+                    _dataSent += _handler.transerFile( _fileChannel , _dataSent , Long.MAX_VALUE );
                 }
                 catch ( IOException ioe ){
                     if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
@@ -595,7 +596,7 @@ response.setCookie({
                 for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
                     
                     ByteBuffer bb = _stringContent.get( _stringContentSent );
-                    int thisTime = _handler.getChannel().write( bb );
+                    int thisTime = _handler.write( bb );
                     _stringContentPos += thisTime;
                     _dataSent += thisTime;
                     if ( _stringContentPos < bb.limit() ){
@@ -609,7 +610,7 @@ response.setCookie({
             }
             
             if ( _jsfile != null ){
-                if ( ! _jsfile.write( _handler.getChannel() ) ){
+                if ( ! _jsfile.write( _handler ) ){
                     _dataSent = _jsfile.bytesWritten();
                     
                     _handler._inFork = false;
