@@ -85,7 +85,6 @@ a#active {
 }
 
 table {
-	width: 100%;
 	border: 1px solid #999;
 	border-collapse: collapse;
 	white-space:nowrap;
@@ -93,15 +92,14 @@ table {
 }
 
 table th {
-	width: 20%;
-	padding: .5em;
+	padding-right: .5em;
 	color: #333;
 	background-color: #ddd;
 	text-align: left;
 }
 
 table td {
-	padding: .5em;
+	padding-right: .5em;
 	text-align: left;
 	border-top: 1px solid #999; 
 }
