@@ -55,4 +55,22 @@ public class NIOUtil {
         buf.append( "}" );
         return buf.toString();
     }
+
+    public static String readyOps( int i ){
+        if ( i == 0 )
+            return "none";
+        
+        StringBuilder buf = new StringBuilder();
+
+        if ( ( i & SelectionKey.OP_ACCEPT ) > 0 )
+            buf.append( "accept " );
+        if ( ( i & SelectionKey.OP_CONNECT ) > 0 )
+            buf.append( "connect " );
+        if ( ( i & SelectionKey.OP_READ ) > 0 )
+            buf.append( "read " );
+        if ( ( i & SelectionKey.OP_WRITE ) > 0 )
+            buf.append( "write " );
+
+        return buf.toString();
+    }
 }
