@@ -130,6 +130,10 @@ public abstract class SocketHandler implements WritableByteChannel {
         _key.cancel();
     }
 
+    public boolean wasClosed(){
+        return _closed;
+    }
+
     public boolean isOpen(){
         return _channel.isOpen();
     }

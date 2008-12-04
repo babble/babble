@@ -351,12 +351,15 @@ public class HttpServer extends NIOServer {
         
         protected String debugString(){
             StringBuilder buf = new StringBuilder( 40 );
+            
+            buf.append( "bad:" ).append( _bad ).append( " " );
+            buf.append( "inFork:" ).append( _inFork ).append( " " );
 
             if ( _lastRequest != null )
-                buf.append( "cur request : " ).append( _lastRequest.getFullURL() ).append( " " );
+                buf.append( "request " );
             
             if ( _lastResponse != null )
-                buf.append( "response.  done: " ).append( _lastResponse._done );
+                buf.append( "response.  done: " ).append( _lastResponse._done ).append( " " );
             
             return buf.toString();
         }
@@ -594,8 +597,8 @@ public class HttpServer extends NIOServer {
             
             mr.startData( "selectors" , "age" , "last action" , "last action" , "last ready ops" ,
                           "last request" , "resp xfer" , 
-                          "total bytes sent" , "empty writes" ,
-                          "url" );
+                          "total bytes sent" , "empty writes" , "closed / socket ok" ,
+                          "url" , "debug" );
             for ( SocketHandler sh : getCurrentHandlers() ){
                 if ( ! ( sh instanceof HttpSocketHandler ) )
                     continue;
@@ -611,7 +614,9 @@ public class HttpServer extends NIOServer {
                             h.dataSentString() ,
                             h.bytesWritten() ,
                             h.emptyWritesInARow() ,
-                            h.getLastUrl() // leave at end 
+                            h.wasClosed() + "/" + h.isOpen() ,
+                            h.getLastUrl() ,
+                            h.debugString() 
                             );
                 
             }
