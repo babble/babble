@@ -327,10 +327,6 @@ public class HttpServer extends NIOServer {
             return -1;
         }
         
-        protected SocketChannel getChannel(){
-            return _channel;
-        }
-
         protected Selector getSelector(){
             return _selector;
         }

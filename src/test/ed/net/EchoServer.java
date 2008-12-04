@@ -64,7 +64,7 @@ public class EchoServer extends NIOServer {
             _writeBuf.clear();
             _writeBuf.put( ( new String( bb ) ).getBytes() );
             _writeBuf.flip();
-            _channel.write( _writeBuf );
+            write( _writeBuf );
             
             return false;
         }
