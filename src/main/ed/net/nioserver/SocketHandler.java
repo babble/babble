@@ -145,15 +145,19 @@ public abstract class SocketHandler implements WritableByteChannel {
     }
         
     // ------ IO api -----
-
+    
     public int write( ByteBuffer buf )
         throws IOException {
-        return _channel.write( buf );
+        final int w = _channel.write( buf );
+        _bytesWritten += w;
+        return w;
     }
-
+    
     public long transerFile( FileChannel fc , long position , long count )
         throws IOException {
-        return fc.transferTo( position , count , _channel );
+        final long w = fc.transferTo( position , count , _channel );
+        _bytesWritten += w;
+        return w;
     }
 
     // ------ intropsection ------
@@ -201,6 +205,10 @@ public abstract class SocketHandler implements WritableByteChannel {
     public long timeSinceLastAction( long now ){
         return now - _lastAction;
     }
+
+    public long bytesWritten(){
+        return _bytesWritten;
+    }
         
     final SocketChannel _channel;
     final NIOServer _server;
@@ -212,8 +220,10 @@ public abstract class SocketHandler implements WritableByteChannel {
     private long _lastAction = _created;
     private String _lastActionWhat = "created";
     private int _lastReadyOps = 0;
-        
+    
     private boolean _closed = false;
+
+    private long _bytesWritten = 0;
 }
 
 
