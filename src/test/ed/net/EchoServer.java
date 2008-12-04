@@ -38,9 +38,9 @@ public class EchoServer extends NIOServer {
         return new EchoSocketHandler( sc );
     }
     
-    class EchoSocketHandler extends NIOServer.SocketHandler {
+    class EchoSocketHandler extends SocketHandler {
         EchoSocketHandler( SocketChannel sc ){
-            super( sc );
+            super( EchoServer.this , sc );
         }
         
         protected boolean shouldClose(){

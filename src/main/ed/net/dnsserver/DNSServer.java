@@ -193,7 +193,7 @@ public class DNSServer extends Thread {
         
         class DNSSocketHandler extends SocketHandler {
             DNSSocketHandler( SocketChannel sc ){
-                super( sc );
+                super( TcpDNSServer.this , sc );
             }
             
             protected boolean gotData( ByteBuffer inBuf )

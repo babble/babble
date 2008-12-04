@@ -112,7 +112,7 @@ public class HttpServer extends NIOServer {
     
     class HttpSocketHandler extends SocketHandler {
         HttpSocketHandler( HttpServer server , SocketChannel sc ){
-            super( sc );
+            super( server , sc );
             _server = server;
         }
         
