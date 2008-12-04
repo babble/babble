@@ -20,7 +20,6 @@ import java.util.*;
 
 import org.jruby.*;
 import org.jruby.runtime.ThreadContext;
-import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.js.*;
 import ed.js.engine.Scope;
@@ -198,10 +197,6 @@ public class JSArrayWrapper extends JSArray {
 
         for (int i = _rarray.getLength() - 1; i >= 0; --i)
             names.add(String.valueOf(i));
-
-        // DEBUG
-//         names.add("length");
-//         names.add("size");
 
         /* We don't add all of the array's methods or instance variables
          * because they are not needed on the JS side and because the runtime
