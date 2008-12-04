@@ -180,10 +180,6 @@ public class PyJSObjectWrapper extends PyDictionary {
     // (i.e. once here, once in handleSet)
     // When I take it out, I get a bunch of test failures. Look into
     public void __setitem__(PyObject key, PyObject value) {
-        jswrapper___setitem__( key , value );
-    }
-
-    public final void jswrapper___setitem__( PyObject key , PyObject value ){
         // PyDictionary.__setitem__ doesn't call invoke("__setitem__")
         super.__setitem__(key, value);
         this.handleSet( toJS( key ) , toJS( value ) );
@@ -277,7 +273,7 @@ public class PyJSObjectWrapper extends PyDictionary {
 
     // Following methods were taken from PyDictionary to support easier
     // implementation of update().
-    // The only changes are s/dict___setitem__/jswrapper___setitem__/g .
+    // The only changes are s/dict___setitem__/__setitem__/g .
 
     /**
      * Merge another PyObject that supports keys() with this
@@ -305,7 +301,7 @@ public class PyJSObjectWrapper extends PyDictionary {
     private void mergeFromKeys(PyObject other, PyObject keys) {
         // Seasoned copy of PyDictionary.mergeFromKeys
         for (PyObject key : keys.asIterable()) {
-            jswrapper___setitem__(key, other.__getitem__(key));
+            __setitem__(key, other.__getitem__(key));
         }
     }
 
@@ -328,8 +324,8 @@ public class PyJSObjectWrapper extends PyDictionary {
                 throw Py.ValueError(String.format("dictionary update sequence element #%d "
                                                   + "has length %d; 2 is required", i, n));
             }
-            // This was the only change (dict___setitem__ -> jswrapper___setitem__)
-            jswrapper___setitem__(pair.__getitem__(0), pair.__getitem__(1));
+            // This was the only change (dict___setitem__ -> __setitem__)
+            __setitem__(pair.__getitem__(0), pair.__getitem__(1));
         }
     }
 
@@ -363,11 +359,6 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     public PyObject popitem(){
-        return jswrapper_popitem();
-    }
-
-    @ExposedMethod
-    public final PyObject jswrapper_popitem(){
         throw new RuntimeException("not implemented");
     }
 

@@ -44,6 +44,9 @@ assert 'me st' in _10gen.jsString  # substring!
 
 assert 'jsAttr' in _10gen.jsString # attribute!
 
+assert _10gen.jsString.has_key('jsAttr')
+assert not _10gen.jsString.has_key('me st')
+
 # But this is still not allowed
 assert not 'goober' in _10gen.jsString
 

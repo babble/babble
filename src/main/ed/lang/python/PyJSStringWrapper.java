@@ -40,6 +40,8 @@ public class PyJSStringWrapper extends PyUnicode {
     public PyList keys(){ return _p.keys(); }
     public PyList values(){ return _p.values(); }
 
+    public boolean has_key(PyObject key){ return _p.has_key(key); }
+
     public PyObject __dir__(){ return _p.__dir__(); }
 
     public PyObject __findattr_ex__(String name){

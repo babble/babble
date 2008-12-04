@@ -24,14 +24,17 @@ import java.io.*;
 import org.python.core.*;
 
 import ed.js.*;
+import ed.log.*;
 import ed.js.engine.*;
 import ed.appserver.*;
 
 public class TrackImport extends PyObject {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.TRACKIMPORT" );
+    public final Logger _log;
     PyObject _import;
     TrackImport( PyObject importF ){
         _import = importF;
+        _log = Logger.getRoot().getChild("python_import");
     }
 
     public PyObject __call__( PyObject args[] , String keywords[] ){
@@ -58,6 +61,10 @@ public class TrackImport extends PyObject {
         if( ! ( targetP instanceof PyString ) )
             throw new RuntimeException( "first argument to __import__ must be a string, not a "+ targetP.getClass());
         String target = targetP.toString();
+
+        if( target.equals( "__main__" ) ){
+            _log.warn("importing __main__ is almost certainly going to fail in a multithreaded context");
+        }
 
         PyObject siteModule = null;
         PyObject m = null;
@@ -484,4 +491,5 @@ public class TrackImport extends PyObject {
 
         return null;
     }
+
 }
