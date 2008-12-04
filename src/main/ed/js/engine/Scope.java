@@ -372,8 +372,11 @@ public class Scope implements JSObject , Bindings {
         }
         
 	final Object ret = _get( name.hashCode() , name , alt , with , noThis , 0 );
-        if ( ret != null && ret instanceof SecureObject && ! Security.inTrustedCode() )
-            throw new RuntimeException( "you are not allowed to access [" + name + "] from here " + Security.getTopDynamicClassName() );
+        if ( ret != null && ret instanceof SecureObject && ! Security.inTrustedCode() ){
+            // TODO: 
+            //throw new RuntimeException( "you are not allowed to access [" + name + "] from here " + Security.getTopDynamicClassName() );
+            return null;
+        }
         return ret;
     }
     
