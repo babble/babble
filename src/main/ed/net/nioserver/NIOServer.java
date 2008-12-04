@@ -16,7 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.net;
+package ed.net.nioserver;
 
 import java.io.*;
 import java.net.*;
@@ -25,6 +25,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import ed.log.*;
+import ed.net.*;
 import ed.net.httpserver.*;
 
 public abstract class NIOServer extends Thread {
@@ -232,6 +233,14 @@ public abstract class NIOServer extends Thread {
                     
                     if ( D ) _selectLoopLogger.error( sc.toString() , e );
                     
+                    if ( sh != null ){
+                        try {
+                            sh.close();
+                        }
+                        catch ( Exception ee ){
+                        }
+                    }
+
                     if ( sc != null ){
                         try {
                             sc.close();
@@ -323,175 +332,13 @@ public abstract class NIOServer extends Thread {
     protected int getNumSelectors(){
         return _numSelectors;
     }
+    
+    protected boolean didASelectorReset(){
+        return _didASelectorReset;
+    }
 
     protected abstract SocketHandler accept( SocketChannel sc );
     
-    protected abstract class SocketHandler {
-
-        protected SocketHandler( SocketChannel sc ){
-            _channel = sc;
-        }
-
-        /**
-         * @return true if the selector thread should stop paying attention to this
-         */
-        protected abstract boolean gotData( ByteBuffer inBuf )
-            throws IOException ;
-
-        protected abstract boolean shouldClose()
-            throws IOException ;
-        
-        /**
-         * @return true if the selector thread should stop paying attention to this
-         */
-        protected abstract boolean writeMoreIfWant() 
-            throws IOException;
-        
-        protected abstract String debugString();
-
-        // other stuff
-        
-        public void registerForWrites()
-            throws IOException {
-            if ( D ) System.out.println( _channel + " registerForWrites" );
-            _register( SelectionKey.OP_WRITE , "register-writes" );
-        }
-
-        public void registerForReads()
-            throws IOException {
-            if ( D ) System.out.println( _channel + " registerForReads" );
-            _register( SelectionKey.OP_READ , "register-reads" );
-        }
-
-        private void _register( int ops , String name )
-            throws IOException {
-    
-            _action( name );
-
-            SelectionKey key = _channel.keyFor( _selector );
-            if ( key == null ){
-                if ( ! _didASelectorReset )
-                    throw new RuntimeException( "can't find key for this selector" );
-                key = _channel.register( _selector , ops );
-                key.attach( this );
-                _key = key;
-            }
-            
-            if ( key.attachment() != this )
-                throw new RuntimeException( "why is the attachment not me" );
-            
-            if ( key != _key )
-                throw new RuntimeException( "why are the keys different" );
-
-            if ( key.interestOps() == ops )
-                return;
-
-            key.interestOps( ops );
-            _selector.wakeup();
-        }
-        
-        public void cancel(){
-            _key.cancel();
-        }
-        
-        public void pause()
-            throws IOException {
-            if ( D ) System.out.println( _channel + " pausing selector" );
-            _register( 0 , "pause" );
-        }
-
-        public void pause( String why )
-            throws IOException {
-            if ( D ) System.out.println( _channel + " pausing selector b/c : " + why );
-            _register( 0 , why );
-        }
-        
-        public InetAddress getInetAddress(){
-            return _channel.socket().getInetAddress();
-        }
-        
-        public int getRemotePort(){
-            return _channel.socket().getPort();
-        }
-
-        public SocketAddress getRemote(){
-            return _channel.socket().getRemoteSocketAddress();
-        }
-        
-        public void bad(){
-            _bad = true;
-        }
-        
-        public void close(){
-            if ( _closed )
-                return;
-            
-            if ( D ) System.out.println( "closing " + _channel );
-            _closed = true;
-            
-
-            try {
-                _channel.close();
-            }
-            catch ( IOException ioe ){
-                System.err.println( "error closing channel : " + _channel );
-            }
-            
-            _key.attach( null );
-            _key.cancel();
-        }
-
-        protected boolean shouldTimeout( long now ){
-            return now - _lastAction > CLIENT_TIMEOUT;
-        }
-
-        public long lastActionTime(){
-            return _lastAction;
-        }
-
-        public String lastAction(){
-            return _lastActionWhat;
-        }
-
-        public int lastReadyOps(){
-            return _lastReadyOps;
-        }
-
-        protected void _action( String what ){
-            _lastAction = System.currentTimeMillis();
-            _lastActionWhat = what;
-        }
-
-        protected void _selected( int ops ){
-            _lastReadyOps = ops;
-            _action( "selected" );
-        }
-        
-        public String toString(){
-            return "SocketHandler: " + _channel;
-        }
-
-        public long age( long now ){
-            return now - _created;
-        }
-        
-        public long timeSinceLastAction( long now ){
-            return now - _lastAction;
-        }
-        
-        protected final SocketChannel _channel;
-        private SelectionKey _key = null;
-        protected boolean _bad = false;
-        protected final long _created = System.currentTimeMillis();
-        
-        private long _lastAction = _created;
-        private String _lastActionWhat = "created";
-        private int _lastReadyOps = 0;
-        
-        private boolean _closed = false;
-    }
-
-
     class SelectorMonitor extends HttpMonitor {
         SelectorMonitor(){
             super( "selectors" );

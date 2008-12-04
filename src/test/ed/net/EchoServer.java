@@ -24,6 +24,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
+import ed.net.nioserver.*;
+
 public class EchoServer extends NIOServer {
 
     public EchoServer( int port )
@@ -36,9 +38,9 @@ public class EchoServer extends NIOServer {
         return new EchoSocketHandler( sc );
     }
     
-    class EchoSocketHandler extends NIOServer.SocketHandler {
+    class EchoSocketHandler extends SocketHandler {
         EchoSocketHandler( SocketChannel sc ){
-            super( sc );
+            super( EchoServer.this , sc );
         }
         
         protected boolean shouldClose(){

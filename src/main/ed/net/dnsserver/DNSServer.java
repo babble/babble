@@ -31,6 +31,7 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.io.*;
 import ed.net.*;
+import ed.net.nioserver.*;
 import ed.log.*;
 
 
@@ -192,7 +193,7 @@ public class DNSServer extends Thread {
         
         class DNSSocketHandler extends SocketHandler {
             DNSSocketHandler( SocketChannel sc ){
-                super( sc );
+                super( TcpDNSServer.this , sc );
             }
             
             protected boolean gotData( ByteBuffer inBuf )

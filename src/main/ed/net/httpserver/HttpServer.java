@@ -26,6 +26,7 @@ import java.util.*;
 
 import ed.io.*;
 import ed.net.*;
+import ed.net.nioserver.*;
 import ed.log.*;
 import ed.util.*;
 import ed.appserver.*;
@@ -111,7 +112,7 @@ public class HttpServer extends NIOServer {
     
     class HttpSocketHandler extends SocketHandler {
         HttpSocketHandler( HttpServer server , SocketChannel sc ){
-            super( sc );
+            super( server , sc );
             _server = server;
         }
         
