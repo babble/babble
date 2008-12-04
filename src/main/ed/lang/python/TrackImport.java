@@ -288,6 +288,20 @@ public class TrackImport extends PyObject {
         // PythonJxpSources. FIXME.
         //addDependency( to.toString() );
 
+        PyObject module = sss.getPyState().modules.__finditem__( imported );
+        if( module == null ){
+            System.out.println("Possible error -- couldn't find "+ imported + " after doing import for " + target);
+        }
+        else {
+            PyObject __file__P = module.__findattr__( "__file__" );
+            if( __file__P instanceof PyString ){
+                String __file__ = __file__P.toString();
+                if( __file__.equals( SiteSystemState.currentlyRunning.get() ) ){
+                    _log.warn("Imported " + module + " when running " + __file__ + " -- this could indicate a possible reentrancy issue.");
+                }
+            }
+        }
+
         // Add a module dependency -- module being imported was imported by
         // the importing module.
         // Don't add dependencies to _10gen. FIXME: other "virtual"
