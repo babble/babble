@@ -233,6 +233,14 @@ public abstract class NIOServer extends Thread {
                     
                     if ( D ) _selectLoopLogger.error( sc.toString() , e );
                     
+                    if ( sh != null ){
+                        try {
+                            sh.close();
+                        }
+                        catch ( Exception ee ){
+                        }
+                    }
+
                     if ( sc != null ){
                         try {
                             sc.close();
