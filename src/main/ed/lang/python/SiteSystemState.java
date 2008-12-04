@@ -63,7 +63,6 @@ public class SiteSystemState implements Sizable {
                 }
                 String currentFile = arg.toString();
                 currentlyRunning.set( currentFile );
-                System.out.println("Currently running: " + currentFile);
                 return null;
             }
         };

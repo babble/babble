@@ -290,9 +290,12 @@ public class TrackImport extends PyObject {
 
         PyObject module = sss.getPyState().modules.__finditem__( imported );
         if( module == null ){
-            System.out.println("Possible error -- couldn't find "+ imported + " after doing import for " + target);
+            module = m;
+            if( ! ( m instanceof PyJavaClass || m instanceof PyJavaPackage ) ){
+                System.out.println("Possible error -- couldn't find "+ imported + " after doing import for " + target + " " + m );
+            }
         }
-        else {
+        if( module != null ){
             PyObject __file__P = module.__findattr__( "__file__" );
             if( __file__P instanceof PyString ){
                 String __file__ = __file__P.toString();
