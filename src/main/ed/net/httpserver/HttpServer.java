@@ -595,7 +595,7 @@ public class HttpServer extends NIOServer {
             
             final long now = System.currentTimeMillis();
             
-            mr.startData( "selectors" , "age" , "last action" , "last action" , 
+            mr.startData( "selectors" , "age" , "last action" , "last action" , "last ready ops" ,
                           "last request" , "data sent" ,
                           "url" );
             for ( SocketHandler sh : getCurrentHandlers() ){
@@ -605,8 +605,10 @@ public class HttpServer extends NIOServer {
                 HttpSocketHandler h = (HttpSocketHandler)sh;
                 
                 mr.addData( sh.getRemote().toString() ,
-                            ((double)sh.age( now ))/1000 , sh.lastAction() , 
+                            ((double)sh.age( now ))/1000 , 
+                            sh.lastAction() , 
                             ((double)sh.timeSinceLastAction( now )) / 1000 ,
+                            NIOUtil.readyOps( sh.lastReadyOps() ) ,
                             ((double)h.timeSinceLastRequestStart( now )) / 1000 ,
                             h.dataSentString() ,
                             h.getLastUrl() // leave at end 

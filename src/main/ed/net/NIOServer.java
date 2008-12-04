@@ -186,9 +186,7 @@ public abstract class NIOServer extends Thread {
                     sc = (SocketChannel)key.channel();
                     sh = (SocketHandler)key.attachment();
 
-                    sh._action( "selected" );
-                    sh._lastAction = System.currentTimeMillis();
-                    
+                    sh._selected( key.readyOps() );
 
                     if ( sh._bad || sh.shouldClose() ){
                         if ( D ) System.out.println( "\t want to close : " + sc + " bad:" + sh._bad );
@@ -455,9 +453,18 @@ public abstract class NIOServer extends Thread {
             return _lastActionWhat;
         }
 
+        public int lastReadyOps(){
+            return _lastReadyOps;
+        }
+
         protected void _action( String what ){
             _lastAction = System.currentTimeMillis();
             _lastActionWhat = what;
+        }
+
+        protected void _selected( int ops ){
+            _lastReadyOps = ops;
+            _action( "selected" );
         }
         
         public String toString(){
@@ -479,7 +486,8 @@ public abstract class NIOServer extends Thread {
         
         private long _lastAction = _created;
         private String _lastActionWhat = "created";
-
+        private int _lastReadyOps = 0;
+        
         private boolean _closed = false;
     }
 
