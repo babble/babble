@@ -64,3 +64,7 @@ print( Math.round( "44" ) );
 print( Math.round( "4.32" ) );
 print( Math.round( "0x45" ) );
 print( Math.round( "3a" ) );
+
+print( NaN > 0 );
+print( NaN == NaN );
+print( 0 > NaN );
