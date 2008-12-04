@@ -1,17 +1,144 @@
-
-body { 
-  font-size: .65em; 
-  font-family: Monaco; 
+html, body, form, fieldset, h1, h2, h3, h4, h5, h6, p, pre, blockquote, ul, ol, dl, address {
+	margin:0;
+	padding:0;
 }
 
-table { 
-  font-size: 10px; 
-  white-space:nowrap;
+body {
+ 	margin: 1em;
+	padding: 0;
+	background-color: #ffffff;
+	font-family: helvetica, arial, sans-serif;
+	font-size:85%;
+	color: #333;
 }
 
-th { 
-  background: #dddddd; 
-  text-align:left; 
+div, p, ul, ol, table {
+	font-size: 100%;	
+}
+
+h1, h2, h3, h4, p, ul, ol, dl {
+	margin-top: 1em; 
+	line-height: 1.4em;
+}
+
+h1 {
+	padding-bottom: 0;
+	font-size: 182%;
+	font-weight: normal;
+}
+
+h2 {
+	font-size: 131%;
+	font-weight: normal; 
+}  
+
+h3 {
+	font-size: 108%;
+}  
+
+h4 {
+	font-size: 100%;
+}  
+
+hr {
+	margin: 1em 0 2em 0;
+	width: 100%;
+	border: 0;
+	height: 1px;
+	color: #ddd;
+	background-color: #ddd;
+}
+
+div.hr hr {
+	display: none;
+}
+
+ul, ol {position: relative; }
+
+ul, ol {
+	margin-left: 2em;
+}
+
+ul li {
+  padding-left: 0;
+  list-style-type: disc;
+  background-repeat: no-repeat;
+}
+
+ul li ul, ul li ol {
+	margin-left: 0;
+	padding-bottom:0;
+}
+
+a, a:visited {
+	color: #2c65af;
+	text-decoration: none;
+	font-weight:normal;
+}
+
+a:hover {
+	color: #0f2659;
+}
+
+a#active {
+	color: #2c65af;
+}
+
+table {
+	width: 100%;
+	border: 1px solid #999;
+	border-collapse: collapse;
+	white-space:nowrap;
+	font-size: 85%;
+}
+
+table th {
+	width: 20%;
+	padding: .5em;
+	color: #333;
+	background-color: #ddd;
+	text-align: left;
+}
+
+table td {
+	padding: .5em;
+	text-align: left;
+	border-top: 1px solid #999; 
+}
+
+img {
+	border: none;
+}
+
+form {
+	padding-top: 1em;
+}
+
+label {
+	margin: 1em .5em 0 0;
+	display: block;
+	float: left;
+	width: 10em; 
+	text-align: right;
+}
+
+input {
+	margin: 1em 0 0 0;
+}
+
+fieldset {
+	padding: 1em;
+	width: 30em;
+	border: 1px solid #999;
+}
+
+p#footer {
+	border-top: 1px solid #ddd;
+	margin-top: 10em;
+	padding-top: .5em;
+	text-align: center;
+	color: #999;
+	font-size: 73%;
 }
 
 form { 
@@ -23,7 +150,7 @@ form {
   list-style-type:none; 
 }
 
-bottomLine { 
+.bottomLine { 
   border-bottom: 1px solid black; 
 }
 
@@ -42,6 +169,7 @@ bottomLine {
 }
 
 #appType { 
+  margin-right: 2em;
   font-size: 1.2em;
   font-weight: bold; 
   color: green;
