@@ -27,6 +27,7 @@ import org.python.core.*;
 import ed.appserver.*;
 import ed.log.*;
 import ed.js.*;
+import ed.js.func.*;
 import ed.js.engine.*;
 import ed.util.*;
 
@@ -52,6 +53,27 @@ public class SiteSystemState implements Sizable {
     static final String CORE_MODULES_MARKER = "I AM IN A CORE MODULE";
     static final String VIRTUAL_MODULE = "<10gen_virtual>";
 
+    static final ThreadLocal<String> currentlyRunning = new ThreadLocal<String>();
+
+    static final JSFunction _setCurrentlyRunning = new JSFunctionCalls1(){
+            public Object call(Scope s , Object arg , Object [] extra ){
+                if( arg == null ){
+                    currentlyRunning.set( null );
+                    return null;
+                }
+                String currentFile = arg.toString();
+                currentlyRunning.set( currentFile );
+                return null;
+            }
+        };
+
+    /**
+     * @param ac         an app context, or null if no currently running app
+     *                   (for example, in the shell)
+     * @param newGlobals a Python object wrapping the scope, suitable for use as
+     *                   globals, if that's how you like it
+     * @param s          the scope from which Python was originally invoked
+     */
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
         globals = newGlobals;
@@ -72,6 +94,8 @@ public class SiteSystemState implements Sizable {
         PyObject pyImport = builtins.__finditem__( "__import__" );
         if( ! ( pyImport instanceof TrackImport ) )
             builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
+
+        _scope.set( "pythonSetCurrentlyRunning" , _setCurrentlyRunning );
 
         if( ac != null ){
             try {
