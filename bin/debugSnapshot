@@ -12,5 +12,4 @@ curl -s -m 20 http://127.0.0.1:8080/~stats > $d/stats
 curl -s -m 20 http://127.0.0.1:8080/~threads > $d/threads.html
 curl -s -m 20 "http://127.0.0.1:8080/~threads?f=AppServer" > $d/threadsAppServer.html
 curl -s -m 20 "http://127.0.0.1:8080/~watchedPools" > $d/watchedPools.html
-
-
+curl -s -m 20 "http://iad-sb-n1.10gen.cc:8080/~selectors:http" > $d/selectors
