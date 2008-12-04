@@ -19,8 +19,10 @@ for( var pass = 0; pass < 2; pass++ ) {
 
     var c = t.find().sort({a:1});
     var last = 0;
-    while( c.hasNext() ) { 
-	assert( c.next() > last );
+    while( c.hasNext() ) {
+        current = c.next();
+	assert( current.a > last );
+        last = current.a;
     }
 
     assert( t.find({a:3}).count() == 1 );

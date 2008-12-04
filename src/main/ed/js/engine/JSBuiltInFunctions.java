@@ -88,6 +88,10 @@ public class JSBuiltInFunctions {
      * @return the new scope
      */
     public static Scope create( String name , File root ){
+        final Scope tl = Scope.getThreadLocal();
+        if ( tl != null )
+            Scope.clearThreadLocal();
+        
         Scope s = new Scope( name , null , root );
         try {
 	    s.putAll( _base );
@@ -97,11 +101,15 @@ public class JSBuiltInFunctions {
             re.printStackTrace();
             System.exit(-1);
         }
+        finally {
+            if ( tl != null )
+                tl.makeThreadLocal();
+        }
         s.setGlobal( true );
         s.lock();
         return s;
     }
-
+    
     public static class jsassert extends JSFunctionCalls1 {
         public jsassert(){
             JSFunction myThrows = new JSFunctionCalls2(){

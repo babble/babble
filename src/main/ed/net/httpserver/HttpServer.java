@@ -351,12 +351,15 @@ public class HttpServer extends NIOServer {
         
         protected String debugString(){
             StringBuilder buf = new StringBuilder( 40 );
+            
+            buf.append( "bad:" ).append( _bad ).append( " " );
+            buf.append( "inFork:" ).append( _inFork ).append( " " );
 
             if ( _lastRequest != null )
-                buf.append( "cur request : " ).append( _lastRequest.getFullURL() ).append( " " );
+                buf.append( "request " );
             
             if ( _lastResponse != null )
-                buf.append( "response.  done: " ).append( _lastResponse._done );
+                buf.append( "response.  done: " ).append( _lastResponse._done ).append( " " );
             
             return buf.toString();
         }
@@ -593,8 +596,9 @@ public class HttpServer extends NIOServer {
             final long now = System.currentTimeMillis();
             
             mr.startData( "selectors" , "age" , "last action" , "last action" , "last ready ops" ,
-                          "last request" , "data sent" , "total bytes written" ,
-                          "url" );
+                          "last request" , "resp xfer" , 
+                          "total bytes sent" , "empty writes" , "closed / socket ok" ,
+                          "url" , "debug" );
             for ( SocketHandler sh : getCurrentHandlers() ){
                 if ( ! ( sh instanceof HttpSocketHandler ) )
                     continue;
@@ -609,9 +613,12 @@ public class HttpServer extends NIOServer {
                             ((double)h.timeSinceLastRequestStart( now )) / 1000 ,
                             h.dataSentString() ,
                             h.bytesWritten() ,
-                            h.getLastUrl() // leave at end 
+                            h.emptyWritesInARow() ,
+                            h.wasClosed() + "/" + h.isOpen() ,
+                            h.getLastUrl() ,
+                            h.debugString() 
                             );
-
+                
             }
             mr.endData();
         }
