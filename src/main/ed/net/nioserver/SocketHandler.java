@@ -130,6 +130,10 @@ public abstract class SocketHandler implements WritableByteChannel {
         _key.cancel();
     }
 
+    public boolean wasClosed(){
+        return _closed;
+    }
+
     public boolean isOpen(){
         return _channel.isOpen();
     }
@@ -148,16 +152,38 @@ public abstract class SocketHandler implements WritableByteChannel {
     
     public int write( ByteBuffer buf )
         throws IOException {
+        
+        if ( buf.remaining() == 0 )
+            return 0;
+        
         final int w = _channel.write( buf );
-        _bytesWritten += w;
+        _wroteData( w );
         return w;
     }
     
     public long transerFile( FileChannel fc , long position , long count )
         throws IOException {
+        
+        if ( count == 0 )
+            return 0;
+
         final long w = fc.transferTo( position , count , _channel );
-        _bytesWritten += w;
+        _wroteData( w );
         return w;
+    }
+
+    private void _wroteData( long amount ){
+        _bytesWritten += amount;
+        
+        if ( amount == 0 )
+            _emptyWritesInARow++;
+        else
+            _emptyWritesInARow = 0;
+        
+    }
+
+    public int emptyWritesInARow(){
+        return _emptyWritesInARow;
     }
 
     // ------ intropsection ------
@@ -224,6 +250,7 @@ public abstract class SocketHandler implements WritableByteChannel {
     private boolean _closed = false;
 
     private long _bytesWritten = 0;
+    private int _emptyWritesInARow = 0;
 }
 
 
