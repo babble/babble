@@ -18,22 +18,20 @@ class DBTest < RubyTest
 
   def setup
     super
-    run_js <<EOS
-db = connect('test');
-db.rubytest.remove({});
-db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});
-db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});
-db.rubytest.save({artist: 'Thomas Dolby', album: 'The Golden Age of Wireless', song: 'Europa and the Pirate Twins'});
-db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'Garden Of Earthly Delights', track: 1});
-track = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The Mayor Of Simpleton', track: 2});
-db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});
-EOS
-    @song_id = $track._id.to_s
+    $db = connect('test')
+    $db.rubytest.remove({})
+    $db.rubytest.save({:artist => 'Thomas Dolby', :album => 'Aliens Ate My Buick', :song => 'The Ability to Swing'})
+    $db.rubytest.save({:artist => 'Thomas Dolby', :album => 'Aliens Ate My Buick', :song => 'Budapest by Blimp'})
+    $db.rubytest.save({:artist => 'Thomas Dolby', :album => 'The Golden Age of Wireless', :song => 'Europa and the Pirate Twins'})
+    $db.rubytest.save({:artist => 'XTC', :album => 'Oranges & Lemons', :song => 'Garden Of Earthly Delights', :track => 1})
+    @track = $db.rubytest.save({:artist => 'XTC', :album => 'Oranges & Lemons', :song => 'The Mayor Of Simpleton', :track => 2});
+    $db.rubytest.save({:artist => 'XTC', :album => 'Oranges & Lemons', :song => 'King For A Day', :track => 3})
+    @song_id = @track._id.to_s
     @coll = $db.rubytest
   end
 
   def teardown
-    run_js 'db.rubytest.remove({});'
+    $db.rubytest.remove({})
     super
   end
 
@@ -42,8 +40,7 @@ EOS
   end
 
   def test_song_id_exists
-    run_js 'x = track._id.toString()'
-    assert_equal($track._id.to_s, $x)
+    assert_not_nil(@track._id.to_s)
   end
 
   def test_collection_wrapper
@@ -59,7 +56,7 @@ EOS
   end
 
   def find_one_by_object_id
-    assert_simpleton(@coll.findOne($track._id))
+    assert_simpleton(@coll.findOne(@track._id))
   end
 
   def find_one_by_id_using_string
