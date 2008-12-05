@@ -42,28 +42,40 @@ import com.sun.mail.smtp.SMTPSSLTransport;
  */
 public class SMTPAppender extends Thread implements Appender {
 
-    public long PAUSE_TIME = 10000;
-
     /**
      * @param fromEmail the email the message should seems like it comes from
      * @param toEmail who to send alerts to
      */
     SMTPAppender( String toEmail , String fromEmail, long interval ) {
+        this( toEmail, fromEmail, interval, "Log" );
+    }
+
+    SMTPAppender( String toEmail , String fromEmail, long interval, String logger ) {
         _toEmail = toEmail;
         _fromEmail = fromEmail;
 
         _formatter = new EventFormatter.DefaultEventFormatter();
         _interval = interval;
+        _lastRun = System.currentTimeMillis();
 
-        // PAUSE_TIME seconds after init, send any messages
-        _lastRun = System.currentTimeMillis() + PAUSE_TIME - _interval;
+        _loggerName = logger;
     }
     
     public void append( Event e ){
         String s = _formatter.format( e );
         _q.add( s );
-        if( _loggerName == null ) 
-            _loggerName = e._loggerName;
+
+        if( _firstMessage ) {
+            long now = System.currentTimeMillis();
+            try {
+                createMessage();
+                setSubject( now );
+                sendMessage();
+            }
+            catch( MessagingException ex ) {}
+            _lastRun = now;
+            _firstMessage = false;
+        }
     }
 
     public void start() {
@@ -97,7 +109,7 @@ public class SMTPAppender extends Thread implements Appender {
                     sendMessage();
                     _lastRun = now;
                 }
-                sleep( Math.max( PAUSE_TIME, (_lastRun + _interval) - now ) );
+                sleep( (_lastRun + _interval) - now );
             }
             catch( MessagingException e ) {}
             catch( InterruptedException e ) {}
@@ -149,6 +161,7 @@ public class SMTPAppender extends Thread implements Appender {
         _password = password;
     }
 
+    private boolean _firstMessage = true;
     private final long _interval;
     private long _lastRun;
 
