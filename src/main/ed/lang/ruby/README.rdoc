@@ -64,6 +64,15 @@ your code uses code in other languages. That is, modifications to the $scope
 object or any global will be seen outside of Ruby.
 
 
+== Resources
+
+Because Babble is a shared environment, we limit the use of certain system
+resources.
+
+For example, you can't create new Threads. If you try, an error will be
+raised. Instead, use XGen::BabbleThread.
+
+
 == GridFS
 
 The GridFile class represents files that are stored in GridFS, the Mongo-based

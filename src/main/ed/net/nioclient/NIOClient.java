@@ -235,7 +235,7 @@ public abstract class NIOClient extends Thread {
         return _shutdown;
     }
 
-    public ConnectionPool getConnectionPool( InetSocketAddress addr ){
+    private ConnectionPool getConnectionPool( InetSocketAddress addr ){
         ConnectionPool p = _connectionPools.get( addr );
         if ( p != null )
             return p;

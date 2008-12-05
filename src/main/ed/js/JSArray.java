@@ -147,7 +147,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     public Object call( Scope s , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
 			if ( a.size() == 0 )
-			    return null;
+			    return VOID;
                         return a._array.remove( 0 );
                     }
                 } );
@@ -180,14 +180,17 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         JSArray a = (JSArray)(s.getThis());
                         JSArray n = new JSArray();
 
-                        int start = ((Number)startObj).intValue();
+                        int start = startObj == null ? 0 : ((Number)startObj).intValue();
+                        if( start < 0 ) 
+                            start = Math.max( 0, a._array.size() + start );
+                        start = Math.min( start, a._array.size() );
                         int num = numObj == null ? Integer.MAX_VALUE : ((Number)numObj).intValue();
 
                         for ( int i=0; i<num && start < a._array.size(); i++ )
                             n._array.add( a._array.remove( start ) );
 
                         if ( foo != null )
-                            for ( int i=0; i<foo.length; i++ )
+                            for ( int i = 0; i<foo.length; i++ )
                                 a._array.add( i + start , foo[i] );
 
                         return n;
@@ -201,11 +204,13 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         JSArray n = new JSArray();
 
                         int start = startObj == null ? 0 : ((Number)startObj).intValue();
+                        if( start < 0 ) 
+                            start = Math.max( 0, a._array.size() + start );
                         int end = numObj == null ? Integer.MAX_VALUE : ((Number)numObj).intValue();
                         if ( end < 0 )
-                            end = a._array.size() + end;
+                            end = Math.max( 0, a._array.size() + end );
 
-                        for ( int i=start; i<end && i < a._array.size(); i++ )
+                        for ( int i = start; i < end && i < a._array.size(); i++ )
                             n._array.add( a._array.get( i ) );
 
                         return n;
