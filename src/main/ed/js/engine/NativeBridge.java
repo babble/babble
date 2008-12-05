@@ -276,7 +276,8 @@ public class NativeBridge {
         // var args
         if ( params.length >= myClasses.length && myClasses.length > 0 && 
              myClasses[myClasses.length-1].isArray() && 
-             ! ( params[params.length-1].getClass().isArray() || 
+             ! ( params[params.length-1] == null || 
+		 params[params.length-1].getClass().isArray() || 
                  params[params.length-1] instanceof List ) ){
             if ( debug ) System.out.println( "\t\t possible var args : " + myClasses[myClasses.length-1] );
 
