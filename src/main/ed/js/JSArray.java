@@ -727,6 +727,13 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return The inserted object, <tt>v</tt>.
      */
     public Object set( Object n , Object v ){
+        
+        { 
+            int idx = _parseSimpleString( n );
+            if ( idx >= 0 )
+                return setInt( idx , v );
+        }
+
         if( n.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
             int idx = JSNumber.toInt32( n );
 	    return setInt( idx , v );
@@ -764,8 +771,24 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 	return super.set( n , v );
     }
 
-    public Object removeField( Object n ){
+    private int _parseSimpleString( Object n ){
+        if ( ! ( n instanceof String || 
+                 n instanceof JSString ) )
+            return -1;
+        
+        final String s = n.toString();
+        if ( s.length() > 7 )
+            return -1;
+        
+        for ( int i=0; i<s.length(); i++ )
+            if ( ! Character.isDigit( s.charAt(i) ) )
+                return -1;
 
+        return Integer.parseInt( s );
+    }
+
+    public Object removeField( Object n ){
+        
         int idx = _getInt( n );
         if ( idx < 0 )
             return super.removeField( n );
