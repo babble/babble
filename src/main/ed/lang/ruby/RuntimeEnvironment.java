@@ -46,7 +46,6 @@ class RuntimeEnvironment {
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
-    static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
     /** Scope top-level functions to avoid loading. */
     static final Collection<String> DO_NOT_LOAD_FUNCS;
     // TODO for now, we just add the local site dir to the load path
@@ -54,13 +53,6 @@ class RuntimeEnvironment {
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
-        /* Don't pre-load XGen::Mongo::Base. It used to require /core/js/sql,
-         * which isn't on the path this early in the game. Since Base was the
-         * only thing that we pre-loaded here, I've commented this out.
-         * Uncomment and re-add xgen.rb if there's anything we always want
-         * required. */
-//         if (!SKIP_REQUIRED_LIBS)
-//             config.requiredLibraries().add("xgen");
         DO_NOT_LOAD_FUNCS = new ArrayList<String>();
         DO_NOT_LOAD_FUNCS.add("print");
         DO_NOT_LOAD_FUNCS.add("sleep");

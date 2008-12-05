@@ -152,8 +152,8 @@ class GridFile < StringIO
     @metadata[key] = value unless RESERVED_KEYS.include?(key.to_s)
   end
 
-  # Close a GridFile. The data is not saved to the database until this method
-  # is called.
+  # Close a GridFile, saving the contents of the file to the database. The
+  # data is not saved to the database until this method is called.
   def close
     rewind()
     if @mode == :write || @mode == :append

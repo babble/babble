@@ -172,3 +172,7 @@ form {
   font-weight: bold; 
   color: green;
 }
+
+#threads { 
+  font-size: .75em;
+}
