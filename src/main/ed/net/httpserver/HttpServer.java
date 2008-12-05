@@ -84,13 +84,15 @@ public class HttpServer extends NIOServer {
                     request._handler.pause( "pause-fork" );
 
                     WorkerThreadPool tp = info.admin ? _forkThreadsAdmin : _forkThreads;
-
+                    
+                    handler._inFork = true;
                     if ( tp.offer( new Task( request , response , h ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
-                        handler._inFork = true;
                         return false;
                     }
                     
+                    handler._inFork = false;
+
                     response.setResponseCode( 503 );
                     response.getJxpWriter().print( "no more threads (appsrv h612)\n" );
                     response.done();
