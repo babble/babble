@@ -1,3 +1,4 @@
+#--
 # Copyright (C) 2008 10gen Inc.
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -11,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#++
 
 require 'base64'
 require 'xgen/oid'              # defines ObjectId.marshal_{dump,load}
@@ -26,7 +28,7 @@ module XGen
     # We store data in the session by marshalling the data to be saved, just
     # like CGI::Session::ActiveRecordStore does.
     #
-    # See ../rails.rb for the code that tells Rails about this class.
+    # See xgen/rails.rb for the code that tells Rails about this class.
     class MongoSession
 
       SESSION_DATA_KEY = :session_data
@@ -38,14 +40,17 @@ module XGen
         @data = {}
       end
 
+      # Return the session value stored at +key+.
       def [](key)
         @data[key]
       end
 
+      # Set the session value +key+ to +value+.
       def []=(key, value)
         @data[key] = value
       end
 
+      # Restore the contents of the session from the database.
       def restore
         @data = {}
         marshalled_data = $session[SESSION_DATA_KEY]
@@ -53,14 +58,17 @@ module XGen
         self
       end
 
+      # Save the session to the database.
       def update
         $session[SESSION_DATA_KEY] = Base64.encode64(Marshal.dump(@data))
       end
 
+      # Close the session. Calls update, which saves the session to the database.
       def close
         update
       end
 
+      # Delete the contents of the session. The session may still be used.
       def delete
         @data = {}
         $session[SESSION_DATA_KEY] = nil

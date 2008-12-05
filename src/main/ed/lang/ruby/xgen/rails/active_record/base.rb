@@ -1,3 +1,4 @@
+#--
 # Copyright (C) 2008 10gen Inc.
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -11,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#++
 
 require 'xgen/sql'
 require 'xgen/oid'
@@ -18,6 +20,7 @@ require 'xgen/mongo/cursor'
 require 'xgen/mongo/convert'
 
 class JSObject
+  # Convert this JSObject to a Hash usable by ActiveRecord for saving to Mongo.
   def to_ar_hash
     # Remove keys with underscores, except for _id, before passing on to the model
     to_hash.delete_if { |k,v| k.to_s[0,1] == '_' && k.to_s != '_id' }
@@ -25,11 +28,17 @@ class JSObject
 end
 
 class XGen::Mongo::Cursor
+
+  # Overrides the original version to call to_ar_hash on each row, and then
+  # calling instantiate on the model class.
   def each
     @cursor.forEach { |row|
       yield @model_class.send(:instantiate, row.to_ar_hash)
     }
   end
+
+  # Overrides the original version to call to_ar_hash on the row, and then
+  # calling instantiate on the model class.
   def [](index)
     @model_class.send(:instantiate, @cursor[index].to_ar_hash)
   end
@@ -37,13 +46,15 @@ end
 
 module ActiveRecord
 
+  # We override a number of ActiveRecord::Base methods to make it work with Mongo.
   class Base
 
     @@mongo_connection = nil
 
     class << self               # Class methods
 
-      # Return information about the schema defined in db/schema.rb.
+      # Return information about the schema defined in the file named by
+      # ENV['SCHEMA'] or, if that is not defined, db/schema.rb.
       def collection_info
         unless defined? @@collection_info
           file = ENV['SCHEMA'] || 'db/schema.rb'
@@ -60,20 +71,30 @@ module ActiveRecord
 
       # ================ relational database connection handling ================
 
+      # Return the database connection. The default value is an
+      # ActiveRecord::ConnectionAdapters::MongoPseudoConnection that uses
+      # <code>$db</code>.
       def connection
         @@mongo_connection ||= ActiveRecord::ConnectionAdapters::MongoPseudoConnection.new($db)
       end
 
+      # Set the database connection. If the connection is set to +nil+, then
+      # an ActiveRecord::ConnectionAdapters::MongoPseudoConnection that uses
+      # <code>$db</code> will be used.
       def connection=(db)
         @@mongo_connection = ActiveRecord::ConnectionAdapters::MongoPseudoConnection.new(db || $db)
       end
 
+      # Does nothing.
       def establish_connection(spec = nil); end
 
-      def retrieve_connection; connection end
+      # Return the connection.
+      def retrieve_connection; connection; end
 
+      # Always returns +true+.
       def connected?; true; end
 
+      # Does nothing.
       def remove_connection; end
 
       # ================
@@ -81,6 +102,8 @@ module ActiveRecord
       # Works like find(:all), but requires a complete SQL string. Examples:
       #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
+      #
+      # Note: this method is not implemented. It will raise "not implemented".
       def find_by_sql(sql)
         raise "not implemented"
       end
@@ -109,6 +132,40 @@ module ActiveRecord
         collection.remove(XGen::SQL::Parser.parse_where(conditions, true) || {})
       end
 
+      # Count operates using two different approaches. 
+      #
+      # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
+      # * Count using options will find the row count matched by the options used.
+      #
+      # The last approach, count using options, accepts an option hash as the only parameter. The options are:
+      #
+      # * <tt>:conditions</tt> - An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
+      # * <tt>:joins</tt> - An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
+      #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+      # * <tt>:include</tt> - Named associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
+      #   to already defined associations. When using named associations count returns the number DISTINCT items for the model you're counting.
+      #   See eager loading under Associations.
+      # * <tt>:order</tt> - An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
+      # * <tt>:group</tt> - An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
+      # * <tt>:select</tt> - By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
+      #   include the joined columns.
+      # * <tt>:distinct</tt> - Set this to true to make this a distinct calculation, such as SELECT COUNT(DISTINCT posts.id) ...
+      #
+      # Examples for counting all:
+      #   Person.count         # returns the total count of all people
+      #
+      # Examples for count by +conditions+ and +joins+ (this has been deprecated):
+      #   Person.count("age > 26")  # returns the number of people older than 26
+      #   Person.find("age > 26 AND job.salary > 60000", "LEFT JOIN jobs on jobs.person_id = person.id") # returns the total number of rows matching the conditions and joins fetched by SELECT COUNT(*).
+      #
+      # Examples for count with options:
+      #   Person.count(:conditions => "age > 26")
+      #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :include => :job) # because of the named association, it finds the DISTINCT count using LEFT OUTER JOIN.
+      #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :joins => "LEFT JOIN jobs on jobs.person_id = person.id") # finds the number of rows matching the conditions and joins. 
+      #   Person.count('id', :conditions => "age > 26") # Performs a COUNT(id)
+      #   Person.count(:all, :conditions => "age > 26") # Performs a COUNT(*) (:all is an alias for '*')
+      #
+      # Note: Person.count(:all) will not work because it will use :all as the condition.  Use Person.count instead.
       def count(*args)
         # Ignore first arg if it is not a Hash
         a = self.respond_to?(:construct_count_options_from_legacy_args) ?
@@ -348,6 +405,8 @@ module ActiveRecord
       freeze
     end
 
+    # Convert this object to a Mongo value suitable for saving to the
+    # database.
     def to_mongo_value
       h = {}
       self.class.column_names.each {|iv|
