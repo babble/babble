@@ -105,7 +105,7 @@ public final class AppSecurityManager extends SecurityManager {
 
         // all connections are safe except db for now
 
-        if ( port < 27000 || port > 28000 ){
+        if ( port < 27000 || port > 29000 ){
             // db port and range around it
             return;
         }

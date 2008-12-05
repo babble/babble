@@ -1,3 +1,4 @@
+#--
 # Copyright (C) 2008 10gen Inc.
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -11,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#++
 
 require 'xgen/oid'
 require 'xgen/mongo/cursor'
@@ -23,14 +25,15 @@ module XGen
 
     class MongoError < StandardError #:nodoc:
     end
-    class PreparedStatementInvalid < MongoError #:nodic:
+    class PreparedStatementInvalid < MongoError #:nodoc:
     end
-    class RecordNotFound < MongoError #:nodic:
+    class RecordNotFound < MongoError #:nodoc:
     end
-    class RecordNotSaved < MongoError #:nodic:
+    class RecordNotSaved < MongoError #:nodoc:
     end
 
-    # A superclass for database collection instances.
+    # A superclass for database collection instances. The API is very similar
+    # to ActiveRecord. See find for examples.
     #
     # If you override initialize, make sure to call the superclass version,
     # passing it the database row or hash that it was given.
@@ -60,12 +63,16 @@ module XGen
 
       class << self # Class methods
 
+        # Return the database connection. The default value is
+        # <code>$db</code>.
         def connection
           conn = @@connection || $db
           raise "connection not defined" unless conn
           conn
         end
 
+        # Set the database connection. If the connection is set to +nil+, then
+        # <code>$db</code> will be used.
         def connection=(val)
           @@connection = val
         end
@@ -76,6 +83,7 @@ module XGen
           new(row)
         end
 
+        # Get ready to save information about +subclass+.
         def inherited(subclass)
           subclass.instance_variable_set("@coll_name", class_name_to_field_name(subclass.name)) # default name
           subclass.instance_variable_set("@field_names", []) # array of scalars names (symbols)
@@ -113,15 +121,27 @@ module XGen
         end
         alias_method :fields, :field
 
+        # Return the field names.
         def field_names; @field_names; end
+
+        # Return the names of all instance variables that hold objects
+        # declared using has_one. The names do not start with '@'.
+        # 
+        # These are not necessarily XGen::Mongo::Subobject subclasses.
         def subobjects; @subobjects; end
+
+        # Return the names of all instance variables that hold objects
+        # declared using has_many. The names do not start with '@'.
         def arrays; @arrays; end
+
+        # Return the names of all fields, subobjects, and arrays.
         def mongo_ivar_names; @field_names + @subobjects.keys + @arrays.keys; end
 
-        # Tells Mongo about a subobject.
+        # Tell Mongo about a subobject (which need not be a
+        # XGen::Mongo::Subobject).
         #
         # Options:
-        # :class_name:: Name of the class of the subobject.
+        # <code>:class_name<code> - Name of the class of the subobject.
         def has_one(name, options={})
           name = name.to_sym
           unless @subobjects[name]
@@ -137,10 +157,11 @@ module XGen
           end
         end
 
-        # Tells Mongo about an array of subobjects.
+        # Tells Mongo about an array of subobjects (which need not be
+        # XGen::Mongo::Subobjects).
         #
         # Options:
-        # :class_name:: Name of the class of the subobject.
+        # <code>:class_name</code> - Name of the class of the subobject.
         def has_many(name, options={})
           name = name.to_sym
           unless @arrays[name]
@@ -162,7 +183,8 @@ module XGen
         def belongs_to(name, options={})
         end
 
-        # The collection object.
+        # The collection object for this class, which will be different for
+        # every subclass of XGen::Mongo::Base.
         def collection
           connection[@coll_name.to_s]
         end
@@ -177,30 +199,27 @@ module XGen
         # * Find :all records; returns a Cursor that can iterate over raw
         #   records.
         #
-        # * Find all records if there are no conditions.
-        #
         # Options:
         #
-        # :conditions:: Hash where key = field name and value = field value.
-        #               Value may be a simple value like a string, number, or
-        #               regular expression.
+        # <code>:conditions</code> - Hash where key is field name and value is
+        # field value. Value may be a simple value like a string, number, or
+        # regular expression.
         #
-        # :select:: Single field name or list of field names. If not
-        #           specified, all fields are returned. Names may be symbols
-        #           or strings. The database always returns _id and _ns fields.
+        # <code>:select</code> - Single field name or list of field names. If
+        # not specified, all fields are returned. Names may be symbols or
+        # strings. The database always returns _id and _ns fields.
         #
-        # :order:: If a symbol, orders by that field in ascending order. If a
-        #          string like "field1 asc, field2 desc, field3", then sorts
-        #          those fields in the specified order (default is ascending).
-        #          If an array, each element is either a field name or symbol
-        #          (which will be sorted in ascending order) or a hash where
-        #          key = field and value = 'asc' or 'desc' (case-insensitive),
-        #          1 or -1, or if any other value then true == 1 and false/nil
-        #          == -1.
+        # <code>:order</code> - If a symbol, orders by that field in ascending
+        # order. If a string like "field1 asc, field2 desc, field3", then
+        # sorts those fields in the specified order (default is ascending). If
+        # an array, each element is either a field name or symbol (which will
+        # be sorted in ascending order) or a hash where key =isfield and value
+        # is 'asc' or 'desc' (case-insensitive), 1 or -1, or if any other value
+        # then true == 1 and false/nil == -1.
         #
-        # :limit:: Maximum number of records to return.
+        # <code>:limit</code> - Maximum number of records to return.
         #
-        # :offset:: Number of records to skip.
+        # <code>:offset</code> - Number of records to skip.
         #
         # Examples for find by id:
         #   Person.find("48e5307114f4abdf00dfeb86")     # returns the object for this ID
@@ -262,15 +281,20 @@ module XGen
         end
         alias_method :remove, :delete
 
+        # Load the object with +id+ and delete it.
         def destroy(id)
           id.is_a?(Array) ? id.each { |oid| destroy(oid) } : find(id).destroy
         end
 
+        # Not yet implemented.
         def update_all(updates, conditions = nil)
           # TODO
           raise "not yet implemented"
         end
 
+        # Destroy all objects that match +conditions+. Warning: if
+        # +conditions+ is +nil+, all records in the collection will be
+        # destroyed.
         def destroy_all(conditions = nil)
           find(:all, :conditions => conditions).each { |object| object.destroy }
         end
@@ -596,11 +620,13 @@ module XGen
         yield self if block_given?
       end
 
+      # Set the id of this object. Normally not called by user code.
       def id=(val); @_id = (val == '' ? nil : val); end
-      # You'll get a deprecation warning if you call this outside of Rails.
+
+      # Return this object's id.
       def id; @_id ? @_id.to_s : nil; end
 
-      # Returns true if the +comparison_object+ is the same object, or is of
+      # Return true if the +comparison_object+ is the same object, or is of
       # the same type and has the same id.
       def ==(comparison_object)
         comparison_object.equal?(self) ||
@@ -609,44 +635,47 @@ module XGen
             !comparison_object.new_record?)
       end
 
-      # Delegates to ==
+      # Delegate to ==
       def eql?(comparison_object)
         self == (comparison_object)
       end
 
-      # Delegates to id in order to allow two records of the same type and id to work with something like:
+      # Delegate to id in order to allow two records of the same type and id to work with something like:
       #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
       def hash
         id.hash
       end
 
-      # Rails convenience method.
+      # Rails convenience method. Return this object's id as a string.
       def to_param
         @_id.to_s
       end
 
-      # Saves self and returns true if the save was successful, false if not.
+      # Save self and returns true if the save was successful, false if not.
       def save
         create_or_update
       end
 
-      # Saves self and returns true if the save was successful and raises
+      # Save self and returns true if the save was successful and raises
       # RecordNotSaved if not.
       def save!
         create_or_update || raise(RecordNotSaved)
       end
 
+      # Return true if this object is new---that is, does not yet have an id.
       def new_record?
         @_id == nil
       end
 
+      # Convert this object to a Mongo value suitable for saving to the
+      # database.
       def to_mongo_value
         h = {}
         self.class.mongo_ivar_names.each {|iv| h[iv] = instance_variable_get("@#{iv}").to_mongo_value }
         h
       end
 
-      # Saves self to the database.
+      # Save self to the database and set the id.
       def create
         set_create_times
         row = self.class.collection.save(to_mongo_value)
@@ -654,7 +683,8 @@ module XGen
         self
       end
 
-      # Saves self to the database. Returns false if there was an error.
+      # Save self to the database. Return +false+ if there was an error,
+      # +self+ if all is well.
       def update
         set_update_times
         row = self.class.collection.save(to_mongo_value)
@@ -664,7 +694,7 @@ module XGen
         self
       end
 
-      # Removes self from the database and sets @_id to nil. If self has no
+      # Remove self from the database and set @_id to nil. If self has no
       # @_id, does nothing.
       def delete
         if @_id
@@ -674,15 +704,17 @@ module XGen
       end
       alias_method :remove, :delete
 
-      # Deletes and freezes self.
+      # Delete and freeze self.
       def destroy
         delete
         freeze
       end
 
+      #--
       # ================================================================
       # These methods exist so we can plug in ActiveRecord validation, etc.
       # ================================================================
+      #++
 
       # Updates a single attribute and saves the record. This is especially
       # useful for boolean flags on existing records. Note: This method is
@@ -709,6 +741,7 @@ module XGen
         save!
       end
 
+      # Does nothing.
       def attributes_from_column_definition; end
 
       # ================================================================
