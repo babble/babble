@@ -16,6 +16,8 @@ public class NativeHelp1 {
     }
 
     public static int count2( Object ... foo ){
+	if ( foo == null )
+	    return 0;
         return foo.length;
     }
     

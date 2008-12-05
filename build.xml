@@ -8,6 +8,8 @@
 
   <!-- Override on command line with -Druby.groups=foo -->
   <property name="ruby.groups" value="ruby,ruby.db"/>
+  <!-- Useful for things like -DDEBUG.RB=true -->
+  <property name="ruby.testarg" value="-Ddummy.arg"/>
   <property name="jruby.home" location="include/ruby"/>
 
   <path id="classpath">
@@ -170,6 +172,7 @@
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" groups="${ruby.groups}">
      <classfileset dir="build" includes="ed/lang/ruby/*Test.class"/>
      <jvmarg value="-Xmx1000m" />
+     <jvmarg value="${ruby.testarg}" /> <!-- empty by default; set to pass in things like debug properties -->
      <jvmarg value="-Djruby.home=${jruby.home}" />
    </testng>
  </target>
