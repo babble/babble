@@ -541,7 +541,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
     }
     
     /** @unexpose */
-    final static int _compare( Object a , Object b ){
+    final static double _compare( Object a , Object b ){
         if ( a == null ){
             if ( b == null )
                 return 0;
@@ -578,7 +578,10 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return a.toString().compareTo( b.toString() );
     }
 
-    final static int _compare( final Number a , final Number b ){
+    final static double _compare( final Number a , final Number b ){
+        if( Double.isNaN( a.doubleValue() ) || Double.isNaN( b.doubleValue() ) )
+            return Double.NaN;
+
         final double diff = a.doubleValue() - b.doubleValue();
         if ( diff == 0 )
             return 0;
