@@ -4,6 +4,11 @@ This documentation covers the Ruby code that ships with Babble, the 10gen
 cloud computing application server. For more information about the Babble app
 server and Mongo database, see the 10gen wiki (http://www.10gen.com/wiki).
 
+Most of the code consists of adapters to help you use Mongo and GridFS and let
+you run Rails apps on Babble. You can also run non-Rails Ruby code, either
+using XGen::Mongo::Base for your models or using the Mongo database API
+directly to store raw data.
+
 = GridFS
 
 The GridFile class represents files that are stored in GridFS, the Mongo-based
