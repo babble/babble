@@ -1,3 +1,4 @@
+#--
 # Copyright (C) 2008 10gen Inc.
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -11,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#++
 
 module XGen
 
@@ -22,8 +24,8 @@ module XGen
     # generated when +write+ is called.
     #
     # The collection is capped, which means after the limit is reached old
-    # records are deleted when new ones are inserted. See the Mongo
-    # documentation for details.
+    # records are deleted when new ones are inserted. See the new method and
+    # the Mongo documentation for details.
     #
     # Example:
     #
@@ -43,12 +45,16 @@ module XGen
 
       class << self # Class methods
 
+        # Return the database connection. The default value is
+        # <code>$db</code>.
         def connection
           conn = @@connection || $db
           raise "connection not defined" unless conn
           conn
         end
 
+        # Set the database connection. If the connection is set to +nil+, then
+        # <code>$db</code> will be used.
         def connection=(val)
           @@connection = val
         end
@@ -58,14 +64,15 @@ module XGen
       # +name+ is the name of the Mongo database collection that will hold all
       # log messages. +options+ is a hash that may have the following entries:
       #
-      # :size:: Optional. The max size of the collection, in bytes. If it is
-      #         nil or negative then +DEFAULT_CAP_SIZE+ is used.
+      # <code>:size</code> - Optional. The max size of the collection, in
+      # bytes. If it is nil or negative then +DEFAULT_CAP_SIZE+ is used.
       #
-      # :max:: Optional. Specifies the maximum number of log records, after
-      #        which the oldest items are deleted as new ones are inserted.
+      # <code>:max</code> - Optional. Specifies the maximum number of log
+      # records, after which the oldest items are deleted as new ones are
+      # inserted.
       #
-      # Note: a non-nil :max_records requires a :size value. The collection
-      # will never grow above :size. If you leave :size nil then it will be
+      # Note: a non-nil :max requires a :size value. The collection will never
+      # grow above :size. If you leave :size nil then it will be
       # +DEFAULT_CAP_SIZE+.
       #
       # Note: once a capped collection has been created, you can't redefine
@@ -93,11 +100,14 @@ module XGen
         @console = app_context != nil && app_context.getEnvironmentName() == nil
       end
 
+      # Write a log message to the database. We save the message and a timestamp.
       def write(str)
         $stderr.puts str if @console
         self.class.connection[@collection_name].save({:time => Time.now, :msg => str})
       end
 
+      # Close the log. This method is a sham. Nothing happens. You may
+      # continue to use this LogDevice.
       def close
       end
     end

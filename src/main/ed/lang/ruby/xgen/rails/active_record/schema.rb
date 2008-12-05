@@ -1,3 +1,4 @@
+#--
 # Copyright (C) 2008 10gen Inc.
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -11,11 +12,20 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#++
 
 module ActiveRecord
 
-  # Only used to read db/schema.rb, so there will not be statements like
-  # drop_table or remove_column.
+  # The XGen implementation of ActiveRecord needs to read the file named by
+  # ENV['SCHEMA'] or, if that is not defined, db/schema.rb to get the database
+  # schema the application wants to use, because Mongo is schema-free.
+  # 
+  # Here we override some ActiveRecord::Schema methods here that get used when
+  # reading the schema file.
+  #
+  # Since this class is only used by the XGen ActiveRecord code to read a
+  # schema file, we don't have to worry about handling database and table
+  # modification statements like drop_table or remove_column.
   class Schema
 
     cattr_reader :collection_info

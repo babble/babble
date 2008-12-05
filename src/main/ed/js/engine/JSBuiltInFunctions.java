@@ -328,9 +328,11 @@ public class JSBuiltInFunctions {
 
     public static class javaStatic extends JSFunctionCalls2 {
         public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
-            final boolean debug = false;
 
             String clazzName = clazzNameJS.toString();
+            String methodName = methodNameJS.toString();
+
+            final boolean debug = false;
 
             if ( ! Security.canAccessClass( clazzName ) )
                 throw new JSException( "you can't access a " + clazzName + " from [" + Security.getTopDynamicClassName() + "]" );
@@ -343,25 +345,27 @@ public class JSBuiltInFunctions {
                 throw new JSException( "can't find class for [" + clazzName + "]" );
             }
 
+            if ( debug ) System.out.println( clazzName + "." + methodName );
+            
             Method[] all = clazz.getMethods();
             Arrays.sort( all , NativeBridge._methodLengthComparator );
             for ( int i=0; i<all.length; i++ ){
                 Method m = all[i];
-                if ( debug ) System.out.println( m.getName() );
-
+                if ( debug ) System.out.println( "\t" + m.getName() );
+                
                 if ( ( m.getModifiers() & Modifier.STATIC ) == 0  ){
-                    if ( debug ) System.out.println( "\t not static" );
+                    if ( debug ) System.out.println( "\t\t not static" );
                     continue;
                 }
 
-                if ( ! m.getName().equals( methodNameJS.toString() ) ){
-                    if ( debug ) System.out.println( "\t wrong name" );
+                if ( ! m.getName().equals( methodName ) ){
+                    if ( debug ) System.out.println( "\t\t wrong name" );
                     continue;
                 }
 
                 Object params[] = NativeBridge.doParamsMatch( m.getParameterTypes() , extra , scope , debug );
                 if ( params == null ){
-                    if ( debug ) System.out.println( "\t params don't match" );
+                    if ( debug ) System.out.println( "\t\t params don't match" );
                     continue;
                 }
 
