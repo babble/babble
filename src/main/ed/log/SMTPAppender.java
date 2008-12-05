@@ -20,6 +20,7 @@ package ed.log;
 
 import ed.js.JSObjectBase;
 import ed.js.engine.Scope;
+import ed.net.DNSUtil;
 import ed.util.FastQueue;
 import ed.util.MailUtil;
 
@@ -47,7 +48,7 @@ public class SMTPAppender extends Thread implements Appender {
      * @param toEmail who to send alerts to
      */
     SMTPAppender( String toEmail , String fromEmail, long interval ) {
-        this( toEmail, fromEmail, interval, "Log" );
+        this( toEmail, fromEmail, interval, DNSUtil.getLocalHostString() );
     }
 
     SMTPAppender( String toEmail , String fromEmail, long interval, String logger ) {
