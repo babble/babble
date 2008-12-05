@@ -389,6 +389,8 @@ public abstract class HttpMonitor implements HttpHandler {
                 out.print( "filter : <b>" ).print( filter ).print( "</b><br>" );
 
             final StackTraceHolder holder = StackTraceHolder.getInstance();
+            
+            out.print( "<div id='threads'>\n" );
 
             for ( final Map.Entry<Thread,StackTraceElement[]> t : all.entrySet() ){
                 
@@ -422,9 +424,11 @@ public abstract class HttpMonitor implements HttpHandler {
                     out.print(" >" ).print( str ).print( "</li>" );
                 }
                 out.print( "</ul>" );
-
+                
                 out.print( "<hr>" );
             }
+
+            out.print( "</div>" );
         }
 
         boolean _match( Map.Entry<Thread,StackTraceElement[]> t , String filter ){
