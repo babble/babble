@@ -124,8 +124,8 @@ module XGen
         
     end
 
-    # Only parses really, really simple WHERE clauses right now. The parser
-    # returns a query Hash suitable for use by Mongo.
+    # Only parses simple WHERE clauses right now. The parser returns a query
+    # Hash suitable for use by Mongo.
     class Parser
 
       # Parse a WHERE clause (without the "WHERE") ane return a query Hash
@@ -136,19 +136,6 @@ module XGen
 
       def initialize(tokenizer)
         @tokenizer = tokenizer
-      end
-
-      # Read and return an array of values from a clause like "('a', 'b',
-      # 'c')". We have already read the first '('.
-      def read_array
-        vals = []
-        while @tokenizer.more?
-          vals.push(@tokenizer.next_token)
-          sep = @tokenizer.next_token
-          return vals if sep == ')'
-          raise "missing ',' in 'in' list of values: #{@tokenizer.sql}" unless sep == ','
-        end
-        raise "missing ')' at end of 'in' list of values: #{@tokenizer.sql}"
       end
 
       # Given a regexp string like '%foo%', return a Regexp object. We set
@@ -228,6 +215,21 @@ module XGen
           end
         end
         filters
+      end
+
+      private
+
+      # Read and return an array of values from a clause like "('a', 'b',
+      # 'c')". We have already read the first '('.
+      def read_array
+        vals = []
+        while @tokenizer.more?
+          vals.push(@tokenizer.next_token)
+          sep = @tokenizer.next_token
+          return vals if sep == ')'
+          raise "missing ',' in 'in' list of values: #{@tokenizer.sql}" unless sep == ','
+        end
+        raise "missing ')' at end of 'in' list of values: #{@tokenizer.sql}"
       end
     end
 
