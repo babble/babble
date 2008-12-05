@@ -9,6 +9,8 @@ assert.eq( 5 , javaStatic( "ed.js.NativeHelp1" , "sum" , [ 2 , 3 ] ) );
 assert.eq( 2 , javaStatic( "ed.js.NativeHelp1" , "count2" , 5 , 2 ) );
 assert.eq( 3 , javaStatic( "ed.js.NativeHelp1" , "count2" , 5 , 2 , 6 ) );
 
+assert.eq( 1 , javaStatic( "ed.js.NativeHelp1" , "count2" , 5  ) );
+assert.eq( 0 , javaStatic( "ed.js.NativeHelp1" , "count2" ) );
 
 assert( 5 , javaStatic( "ed.js.NativeHelp1" , "varArgWhich" , 0 , 5 , 6 , 7 ) );
 assert( 6 , javaStatic( "ed.js.NativeHelp1" , "varArgWhich" , 1 , 5 , 6 , 7 ) );
