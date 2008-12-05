@@ -19,14 +19,17 @@ class GridFileTest < RubyTest
 
   def setup
     super
-    run_js "db = connect('test'); db._files.remove({}); db._chunks.remove({});"
+    $db = connect('test')
+    $db._files.remove({})
+    $db._chunks.remove({})
 
     @str = "Hello, GridFS!"
     GridFile.open('myfile', 'w') { |f| f.write @str }
   end
 
   def teardown
-    run_js "db._files.remove({}); db._chunks.remove({});"
+    $db._files.remove({})
+    $db._chunks.remove({})
     super
   end
 
