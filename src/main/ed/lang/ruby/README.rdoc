@@ -2,14 +2,17 @@
 
 This documentation covers the Ruby code that ships with Babble, the 10gen
 cloud computing application server. For more information about the Babble app
-server and Mongo database, see the 10gen wiki (http://www.10gen.com/wiki).
+server and Mongo database, see the 10gen wiki (http://www.10gen.com/wiki) and
+developer documentation (http://www.10gen.com/wiki/DevDocumentation).
 
 Most of the code consists of adapters to help you use Mongo and GridFS and let
 you run Rails apps on Babble. You can also run non-Rails Ruby code, either
 using XGen::Mongo::Base for your models or using the Mongo database API
 directly to store raw data.
 
-This document assumes you have read the Babble and Mongo documentation.
+This document assumes you have read the
+Babble[http://www.10gen.com/wiki/appserver] and
+Mongo[http://www.10gen.com/wiki/db] documentation.
 
 
 == The Babble Object Model
@@ -135,9 +138,9 @@ supported by Babble.
 
 Also, if the +require+ or +load+ file name starts with "/local" or "local",
 the lookup starts in the root directory of your site. If it starts with
-"/core" or "core" then it looks in the 10gen core framework directories. If it
-starts with "/external" or "external", it looks in the third party libraries
-suplied by 10gen.
+"/core" or "core" then it looks in the 10gen core framework directories
+(http://www.10gen.com/apidocs/). If it starts with "/external" or "external",
+it looks in the third party libraries suplied by 10gen.
 
 
 == Rails
