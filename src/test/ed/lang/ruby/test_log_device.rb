@@ -22,16 +22,14 @@ class LoggerTest < RubyTest
 
   def setup
     super
-    run_js <<EOS
-db = connect('test');
-db.testlogger.drop();
-EOS
+    $db = connect('test')
+    $db.testlogger.drop()
     # Create a log device with a max of MAX_RECS records
     @logger = Logger.new(XGen::Mongo::LogDevice.new('testlogger', :size => 1_000_000, :max => MAX_RECS))
   end
 
   def teardown
-    run_js 'db.testlogger.drop();'
+    $db.testlogger.drop()
   end
 
   # We really don't have to test much more than this. We can trust that Mongo
