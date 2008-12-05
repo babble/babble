@@ -24,11 +24,14 @@ class LoggerTest < RubyTest
     super
     $db = connect('test')
     $db.testlogger.drop()
+    @app_context = $scope['__instance__']
+    $scope['__instance__'] = nil
     # Create a log device with a max of MAX_RECS records
     @logger = Logger.new(XGen::Mongo::LogDevice.new('testlogger', :size => 1_000_000, :max => MAX_RECS))
   end
 
   def teardown
+    $scope['__instance__'] = @app_context
     $db.testlogger.drop()
   end
 

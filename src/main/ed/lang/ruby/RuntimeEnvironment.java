@@ -145,6 +145,7 @@ class RuntimeEnvironment {
         exposeScopeFunctions(s);
         patchRequireAndLoad(s);
         setIO(stdin, stdout);
+        disallowNewThreads(runtime);
 
         /* Create class objects that might be needed in Ruby code before ever
          * being loaded from Java. Note: could use const_missing instead. */
@@ -258,6 +259,16 @@ class RuntimeEnvironment {
         }
 
         gvars.set("$stderr", oldStderr);
+    }
+
+    protected void disallowNewThreads(Ruby runtime) {
+        JavaMethod m = new JavaMethod(runtime.getThread(), PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
+                    throw context.getRuntime().newRuntimeError("Thread.new is not allowed. Use XGen::BabbleThread instead.");
+                }
+            };
+        runtime.getThread().addModuleFunction("new", m);
+        runtime.getThread().addModuleFunction("fork", m);
     }
 
     /**
