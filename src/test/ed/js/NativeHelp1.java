@@ -14,4 +14,14 @@ public class NativeHelp1 {
             total += all[i];
         return total;
     }
+
+    public static int count2( Object ... foo ){
+        return foo.length;
+    }
+    
+    public static Object varArgWhich( int which , Object ... args ){
+        return args[which];
+    }
+
+
 }

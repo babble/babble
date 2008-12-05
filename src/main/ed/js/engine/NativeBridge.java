@@ -273,16 +273,35 @@ public class NativeBridge {
             }
         }
 
+        // var args
+        if ( params.length >= myClasses.length && myClasses.length > 0 && 
+             myClasses[myClasses.length-1].isArray() && 
+             ! ( params[params.length-1].getClass().isArray() || 
+                 params[params.length-1] instanceof List ) ){
+            if ( debug ) System.out.println( "\t\t possible var args : " + myClasses[myClasses.length-1] );
+
+            Object varArgs[] = new Object[1+params.length-myClasses.length];
+            for ( int i=0; i<varArgs.length; i++ )
+                varArgs[i] = params[i+myClasses.length-1];
+            
+            Object foo[] = new Object[ myClasses.length ];
+            for ( int i=0; i<myClasses.length-1; i++ )
+                foo[i] = params[i];
+            foo[myClasses.length-1] = varArgs;
+            
+            params = foo;
+        }
+
         if ( myClasses.length != params.length ){
             if ( debug ){
-                System.out.println( "param length don't match " + myClasses.length + " != " + params.length );
+                System.out.println( "\t\t param length don't match " + myClasses.length + " != " + params.length );
                 
-                System.out.print( "\t" );
+                System.out.print( "\t\t\t" );
                 for ( int i=0; i<myClasses.length; i++ )
                     System.out.print( myClasses[i].getName() + "\t" );
                 System.out.println();
                 
-                System.out.print( "\t" );
+                System.out.print( "\t\t\t" );
                 for ( int i=0; i<params.length; i++ ){
                     if ( params[i] == null )
                         System.out.print( "null\t" );
