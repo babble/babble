@@ -152,7 +152,7 @@ public class Security {
         if ( c.startsWith( "ed.js." ) && c.indexOf( "." , 7 ) < 0 )
             return true;
         
-        return false;
+        return _allowedClasses.contains( c );
     }
     
     private static boolean _standardJavaClass( final String c ){
@@ -170,4 +170,10 @@ public class Security {
         _dynamicClasses.add( c );
     }
     static Set<String> _dynamicClasses = Collections.synchronizedSet( new HashSet<String>() );
+    
+    private static Set<String> _allowedClasses = new HashSet<String>();
+    static {
+        _allowedClasses.add( "ed.util.Words" );
+        _allowedClasses.add( "ed.util.ImageUtil" );
+    }
 }
