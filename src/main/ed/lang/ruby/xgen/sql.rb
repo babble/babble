@@ -1,3 +1,4 @@
+#--
 # Copyright (C) 2008 10gen Inc.
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -11,13 +12,13 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#++
 
-# Only parses really, really simple WHERE clauses right now. The parser
-# returns a hash suitable for use by Mongo.
 module XGen
 
   module SQL
 
+    # A simple tokenizer for SQL.
     class Tokenizer
 
       attr_reader :sql
@@ -29,22 +30,27 @@ module XGen
         @extra_tokens = []
       end
 
+      # Push +tok+ onto the stack.
       def add_extra_token(tok)
         @extra_tokens.push(tok)
       end
 
+      # Skips whitespace, setting @pos to the position of the next
+      # non-whitespace character. If there is none, @pos will == @length.
       def skip_whitespace
         while @pos < @length && [" ", "\n", "\r", "\t"].include?(@sql[@pos,1])
           @pos += 1
         end
       end
 
+      # Return +true+ if there are more non-whitespace characters.
       def more?
         skip_whitespace
         @pos < @length
       end
 
-      # Returns the next string without its surrounding quotes.
+      # Return the next string without its surrounding quotes. Assumes we have
+      # already seen a quote character.
       def next_string(c)
         q = c
         @pos += 1
@@ -72,14 +78,18 @@ module XGen
         raise "unterminated string in SQL: #{@sql}"
       end
 
+      # Return +true+ if the next character is a legal starting identifier
+      # character.
       def identifier_char?(c)
-        c =~ /[\.a-zA-Z0-9]/ ? true : false
+        c =~ /[\.a-zA-Z0-9_]/ ? true : false
       end
 
+      # Return +true+ if +c+ is a single or double quote character.
       def quote?(c)
         c == '"' || c == "'"
       end
 
+      # Return the next token, or +nil+ if there are no more.
       def next_token
         return @extra_tokens.pop unless @extra_tokens.empty?
 
@@ -115,9 +125,11 @@ module XGen
     end
 
     # Only parses really, really simple WHERE clauses right now. The parser
-    # returns a hash suitable for use by Mongo.
+    # returns a query Hash suitable for use by Mongo.
     class Parser
 
+      # Parse a WHERE clause (without the "WHERE") ane return a query Hash
+      # suitable for use by Mongo.
       def self.parse_where(sql, remove_table_names=false)
         Parser.new(Tokenizer.new(sql)).parse_where(remove_table_names)
       end
@@ -126,8 +138,8 @@ module XGen
         @tokenizer = tokenizer
       end
 
-      # We have already read the first '(', read up to the matching one and
-      # return an array of values.
+      # Read and return an array of values from a clause like "('a', 'b',
+      # 'c')". We have already read the first '('.
       def read_array
         vals = []
         while @tokenizer.more?
@@ -139,6 +151,8 @@ module XGen
         raise "missing ')' at end of 'in' list of values: #{@tokenizer.sql}"
       end
 
+      # Given a regexp string like '%foo%', return a Regexp object. We set
+      # Regexp::IGNORECASE so that all regex matches are case-insensitive.
       def regexp_from_string(str)
         if str[0,1] == '%'
           str = str[1..-1]
@@ -154,6 +168,8 @@ module XGen
         Regexp.new(str, Regexp::IGNORECASE)
       end
 
+      # Parse a WHERE clause (without the "WHERE") and return a query Hash
+      # suitable for use by Mongo.
       def parse_where(remove_table_names=false)
         filters = {}
         done = false
