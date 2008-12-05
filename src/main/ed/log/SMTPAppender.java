@@ -23,6 +23,7 @@ import ed.js.engine.Scope;
 import ed.net.DNSUtil;
 import ed.util.FastQueue;
 import ed.util.MailUtil;
+import ed.util.SMTP;
 
 import java.util.Date;
 import java.util.Properties;
@@ -52,8 +53,10 @@ public class SMTPAppender extends Thread implements Appender {
     }
 
     SMTPAppender( String toEmail , String fromEmail, long interval, String logger ) {
+        _smtp = new SMTP();
+        _smtp.setFrom( fromEmail );
+
         _toEmail = toEmail;
-        _fromEmail = fromEmail;
 
         _formatter = new EventFormatter.DefaultEventFormatter();
         _interval = interval;
@@ -63,41 +66,19 @@ public class SMTPAppender extends Thread implements Appender {
     }
     
     public void append( Event e ){
-        String s = _formatter.format( e );
-        _q.add( s );
-
         if( _firstMessage ) {
             long now = System.currentTimeMillis();
             try {
-                createMessage();
-                setSubject( now );
-                sendMessage();
+                _smtp.sendMessage( _toEmail, getSubject( now ), _formatter.format( e ) );
             }
             catch( MessagingException ex ) {}
             _lastRun = now;
             _firstMessage = false;
         }
-    }
-
-    public void start() {
-        _session = MailUtil.createSession( _props , _username, _password );
-        _message = new SMTPMessage( _session );
-
-        try {
-            _message.setRecipient( Message.RecipientType.TO, new InternetAddress( _toEmail ) );
-
-            // cover all the bases on "from:" field
-            _message.setEnvelopeFrom( _fromEmail );
-            _message.setSubmitter( _fromEmail );
-            _message.setFrom( new InternetAddress( _fromEmail ) );
-            _message.setSender( new InternetAddress( _fromEmail ) );
+        else {
+            String s = _formatter.format( e );
+            _q.add( s );
         }
-        catch( MessagingException e ) {
-            e.printStackTrace();
-            return;
-        }
-
-        super.start();
     }
 
     public void run() {
@@ -105,9 +86,7 @@ public class SMTPAppender extends Thread implements Appender {
             long now = System.currentTimeMillis();
             try {
                 if( now - _lastRun >= _interval && _q.size() > 0 ) {
-                    createMessage();
-                    setSubject( now );
-                    sendMessage();
+                    _smtp.sendMessage( _toEmail, getSubject( now ), getText() );
                     _lastRun = now;
                 }
                 sleep( (_lastRun + _interval) - now );
@@ -119,64 +98,38 @@ public class SMTPAppender extends Thread implements Appender {
 
     /** Empties the queue and turns any messages in it into the body of an email
      */
-    private void createMessage() 
-        throws MessagingException {
-
+    private String getText() {
         StringBuilder m = new StringBuilder();
         while( _q.size() > 0 ) {
             m.append( _q.poll() );
         }
-        _message.setText( m.toString() );
+        return m.toString();
     }
 
-    private void setSubject( long now) 
-        throws MessagingException {
-        _message.setSubject( _loggerName + ": " + 
-                             new Date( _lastRun ) + " to " + new Date( now ) );
-    }
-
-    private void sendMessage()
-        throws MessagingException {
-
-        if( _ssl ) 
-            SMTPSSLTransport.send( _message );
-        else
-            SMTPTransport.send( _message );
+    private String getSubject( long now ) {
+        return _loggerName + ": " + 
+            new Date( _lastRun ) + " to " + new Date( now );
     }
 
     public void setMailInfo( String server, int port, boolean ssl ) {
-        _props = new Properties();
-        _props.setProperty( "mail.smtp.host" , server );
-        _props.setProperty( "mail.smtp.auth" , "true" );
-        _props.setProperty( "mail.smtp.port" , port+"" );
-        _props.setProperty( "mail.smtp.socketFactory.port" , port+"" );
-        _props.setProperty( "mail.smtp.socketFactory.fallback" , "false" );
-        
-        _ssl = ssl;
-        if( _ssl )
-            _props.setProperty( "mail.smtp.socketFactory.class" , "javax.net.ssl.SSLSocketFactory" );
+        _smtp.setServer( server );
+        _smtp.setPort( port );
+        _smtp.setSSL( ssl );
     }
 
     public void setAccountInfo( String username, String password ) {
-        _username = username;
-        _password = password;
+        _smtp.setUsername( username );
+        _smtp.setPassword( password );
     }
 
     private boolean _firstMessage = true;
     private final long _interval;
     private long _lastRun;
 
-    private final String _fromEmail;
     private final String _toEmail;
 
-    private String _username = "";
-    private String _password = "";
-
     private final EventFormatter _formatter;
-    private Session _session;
-    private SMTPMessage _message;
-    private Properties _props;
-    private boolean _ssl = false;
+    private SMTP _smtp;
 
     private final FastQueue<String> _q = new FastQueue<String>();
 
