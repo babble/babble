@@ -23,6 +23,9 @@ module XGen
     # two fields (besides the _id): +time+ and +msg+. +time+ is automatically
     # generated when +write+ is called.
     #
+    # If we are running outside of the cloud, all log messages are echoed to
+    # $stderr.
+    #
     # The collection is capped, which means after the limit is reached old
     # records are deleted when new ones are inserted. See the new method and
     # the Mongo documentation for details.
