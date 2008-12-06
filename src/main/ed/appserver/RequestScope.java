@@ -26,7 +26,7 @@ import ed.util.*;
 public class RequestScope extends Scope {
 
     RequestScope( AppContext context , AppRequest ar ){
-        super( "request-scope" , context.getScope() , null , context.getScope().getLanguage() , null );
+        super( "request-scope:" + ar.getRequest().getFullURL() , context.getScope() , null , context.getScope().getLanguage() , null );
         setGlobal( true );
         _context = context;
         _appRequest = ar;
@@ -48,6 +48,11 @@ public class RequestScope extends Scope {
         return _appRequest.getResponse();
     }
     
+    protected boolean skipGoingDown(){
+        AppRequest other = AppRequest.getThreadLocal();
+        return other != null && _appRequest != null && other != _appRequest;
+    }
+
     public Object get( String name , Scope alt , JSObject with[] ){
         if ( name.equals( "__apprequest__" ) )
             return _appRequest;
