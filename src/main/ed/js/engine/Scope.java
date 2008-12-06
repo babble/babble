@@ -394,6 +394,9 @@ public class Scope implements JSObject , Bindings {
         return _fixNull( r );
     }
     private Object _geti( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
+        
+        if ( skipGoingDown() )
+            return _parent._geti( nameHash , name , alt , with , noThis , depth + 1 );
 
         Scope pref = getTLPreferred();
         if ( pref != null && pref._objects.containsKey( nameHash , name ) ){
@@ -495,6 +498,10 @@ public class Scope implements JSObject , Bindings {
 
     public Object getOrThis( String name ){
         return _get( name.hashCode() , name , null , null , false , 0 );
+    }
+
+    protected boolean skipGoingDown(){
+        return false;
     }
 
     public Language getLanguage(){
@@ -1110,7 +1117,7 @@ public class Scope implements JSObject , Bindings {
     }
 
     public Object getAttribute( String name , boolean lookUpTree ){
-        if ( _attributes != null )
+        if ( _attributes != null && ! skipGoingDown() )
             if ( _attributes.containsKey( name ) )
                 return _attributes.get( name );
         
