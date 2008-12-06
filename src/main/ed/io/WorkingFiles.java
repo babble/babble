@@ -19,10 +19,27 @@
 package ed.io;
 
 import java.io.*;
+import java.util.*;
 
 public class WorkingFiles {
     
-    private static final String TMP_DIR = "/tmp/jxp-" + System.getProperty( "user.name" ) + "/";
+    private static final String APP_NAME;
+    static {
+        String className = "none";
+        
+        for ( Map.Entry<Thread,StackTraceElement[]> e : Thread.getAllStackTraces().entrySet() ){
+            StackTraceElement[] stack = e.getValue();
+            if ( stack == null || stack.length == 0 )
+                continue;
+            
+            StackTraceElement last = stack[stack.length-1];
+            if ( "main".equals( last.getMethodName() ) )
+                className = last.getClassName().replaceAll( "^.*\\." , "" );
+        }
+
+        APP_NAME = className;
+    }
+    private static final String TMP_DIR = "/tmp/jxp-" + System.getProperty( "user.name" ) + "-" + APP_NAME + "/";
     private static final File TMP_FILE = new File( TMP_DIR );
     static {
         TMP_FILE.mkdirs();
