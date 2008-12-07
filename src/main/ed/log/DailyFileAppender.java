@@ -66,7 +66,7 @@ public class DailyFileAppender implements Appender {
         String name = _base + "." + now.format( "yyyy-MM-dd" );
         File f = new File( _dir , name );
 
-        _printStream = new PrintStream( f );
+        _printStream = new PrintStream( new FileOutputStream( f , true ) );
     }
     
     final File _dir;
