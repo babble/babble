@@ -386,6 +386,10 @@ public class HttpServer extends NIOServer {
             return _lastResponse.dataSent() + "/" + _lastResponse.dataSize();
         }
 
+        boolean allowKeepAlive(){
+            return ! HttpServer.this.isServerClosed();
+        }
+
         final HttpServer _server;
         
         private ByteBufferHolder _in = _connectionByteBufferHolder.get();
