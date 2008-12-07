@@ -260,7 +260,7 @@ public class LB extends NIOClient {
     
     final CircularList<LBCall> _lastCalls = new CircularList<LBCall>( 1000 , true );
 
-    static final SimpleDateFormat _dateFormat = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
+    static final SimpleDateFormat _dateFormat = new SimpleDateFormat( "MM/dd/yyyy HH:mm:ss.SSS z" );
 
 
     public static void main( String args[] )
