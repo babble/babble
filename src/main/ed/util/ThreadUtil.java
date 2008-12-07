@@ -18,6 +18,8 @@
 
 package ed.util;
 
+import java.util.*;
+
 /** @expose */
 public class ThreadUtil {
 
@@ -38,4 +40,36 @@ public class ThreadUtil {
         catch ( InterruptedException e ){
         }
     }
+
+    public static void pushStatus( String what ){
+        pushStatus( Thread.currentThread() , what );
+    }
+    
+    public static void pushStatus( Thread t , String what ){
+        getStatus( t ).push( what );
+    }
+
+    public static void clearStatus(){
+        clearStatus( Thread.currentThread() );
+    }
+
+    public static void clearStatus( Thread t ){
+        getStatus( t ).clear();
+    }
+    
+    public static FastStack<String> getStatus(){
+        return getStatus( Thread.currentThread() );
+    }
+
+    public static FastStack<String> getStatus( Thread t ){
+        FastStack<String> s = _threads.get( t.getId() );
+        if ( s == null ){
+            s = new FastStack<String>();
+            _threads.put( t.getId() , s );
+        }
+        return s;
+    }
+
+    private static final Map<Long,FastStack<String>> _threads = Collections.synchronizedMap( new HashMap<Long,FastStack<String>>() );
+    
 }

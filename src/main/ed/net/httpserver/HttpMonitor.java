@@ -404,6 +404,13 @@ public abstract class HttpMonitor implements HttpHandler {
                 
                 out.print( it.getName() ).print( " " ).print( it.getId() ).print( " " ).print( it.getState().toString() ).print( "<br>" );
                 
+                FastStack<String> status = ThreadUtil.getStatus( it );
+                if ( status.size() > 0 ){
+                    out.print( "<div class='threadStatus'>" );
+                    out.print( status.toString() );
+                    out.print( "</div>" );
+                }
+
                 out.print( "<ul>" );
                 final StackTraceElement[] es = t.getValue();
                 for ( int i=0; i<es.length; i++){
