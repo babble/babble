@@ -873,7 +873,10 @@ response.setCookie({
         if ( _sentHeader ){
             return _keepAlive;
         }
-        
+
+        if ( ! _handler.allowKeepAlive() )
+            return false;
+
         if ( ! _request.keepAlive() ){
             return false;
         }

@@ -364,6 +364,10 @@ public abstract class NIOServer extends Thread {
     protected HttpMonitor getSelectorMonitor(){
         return new SelectorMonitor();
     }
+
+    public boolean isServerClosed(){
+        return _closed;
+    }
     
     protected final int _port;
     protected final ServerSocketChannel _ssChannel;    
