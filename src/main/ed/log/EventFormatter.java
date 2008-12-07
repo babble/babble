@@ -43,7 +43,7 @@ public interface EventFormatter {
         
         final int _bufSize = 512;
         private StringBuilder _buf = new StringBuilder( _bufSize );
-        final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
+        final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy HH:mm:ss.SSS z" );
     }
     
 }
