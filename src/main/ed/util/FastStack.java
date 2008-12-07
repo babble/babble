@@ -42,5 +42,13 @@ public class FastStack<T>{
         _data.clear();
     }
 
+    public T get( int i ){
+        return _data.get( i );
+    }
+    
+    public String toString(){
+        return _data.toString();
+    }
+
     private final List<T> _data = new ArrayList<T>();
 }
