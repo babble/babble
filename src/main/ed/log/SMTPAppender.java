@@ -45,16 +45,32 @@ import com.sun.mail.smtp.SMTPSSLTransport;
 public class SMTPAppender extends Thread implements Appender {
 
     /**
+     * @param smtp SMTP object
+     * @param toEmail who to send alerts to
+     * @param interval ms between emails
+     */
+    SMTPAppender( SMTP smtp, String to, long interval ) {
+        this( smtp, to, null, interval, null );
+    }
+
+    /**
      * @param fromEmail the email the message should seems like it comes from
      * @param toEmail who to send alerts to
+     * @param interval ms between emails
      */
     SMTPAppender( String toEmail , String fromEmail, long interval ) {
-        this( toEmail, fromEmail, interval, DNSUtil.getLocalHostString() );
+        this( new SMTP(), toEmail, fromEmail, interval, null );
     }
 
     SMTPAppender( String toEmail , String fromEmail, long interval, String logger ) {
-        _smtp = new SMTP();
-        _smtp.setFrom( fromEmail );
+        this( new SMTP(), toEmail, fromEmail, interval, logger );
+    }
+
+    SMTPAppender( SMTP smtp, String toEmail, String fromEmail, long interval, String logger ) {
+        _smtp = smtp;
+
+        if( fromEmail != null ) 
+            _smtp.setFrom( fromEmail );
 
         _toEmail = toEmail;
 
@@ -62,7 +78,7 @@ public class SMTPAppender extends Thread implements Appender {
         _interval = interval;
         _lastRun = System.currentTimeMillis();
 
-        _loggerName = logger;
+        _loggerName = logger == null ? DNSUtil.getLocalHostString() : logger;
     }
     
     public void append( Event e ){
