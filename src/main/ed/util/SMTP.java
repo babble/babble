@@ -36,35 +36,60 @@ import com.sun.mail.smtp.SMTPSSLTransport;
  */
 public class SMTP {
 
-    public SMTP() {
-        _props = new Properties();
-        _props.setProperty( "mail.smtp.auth" , "true" );
-        _props.setProperty( "mail.smtp.socketFactory.fallback" , "false" );
+    public SMTP() {}
+
+    public SMTP( String to, String subject, String message ) {
+        setEmail( to, subject, message );
     }
 
+    /**
+     * Simple message sender.  Uses whatever parameters have been set.
+     */
     public void sendMessage( String to, String subject, String message ) 
         throws MessagingException {
-
-        setTo( to );
-        setSubject( subject );
-        setMessage( message );
-
+        setEmail( to, subject, message);
         send();
     }
 
-    public void setFrom( String from ) { _fromEmail = from; }
+    public void setEmail( String to, String subject, String message ) {
+        setTo( to );
+        setSubject( subject );
+        setMessage( message );
+    }
+
+    public void setFrom( String from ) { 
+        _fromEmail = from; 
+    }
+
+    /**
+     * Sets up paramters to use gmail: SSL on, the port to 465, and the server to smtp.gmail.com.
+     */
     public void setGmail() {
         setSSL( true );
         setPort( 465 );
         setServer( "smtp.gmail.com" );
     }
 
-    public void setMessage( String m ) { _text = m; }
-    public void setPassword( String p ) { _password = p; }
-    public void setPort( int p ) { _port = p; }
-    public void setProperty( String s, Object o ) { _props.setProperty( s, o + "" ); }
+    public void setMessage( String m ) { 
+        email.get()._text = m; 
+    }
 
-    public void setServer( String s ) { _server = s; }
+    public void setPassword( String p ) { 
+        _password = p; 
+    }
+
+    public void setPort( int p ) { 
+        _port = p; 
+    }
+
+    public void setProperty( String s, Object o ) { 
+        _props.setProperty( s, o + "" ); 
+    }
+
+    public void setServer( String s ) { 
+        _server = s; 
+    }
+
     public void setSSL( boolean ssl ) {
         _ssl = ssl;
         if( _ssl )
@@ -72,12 +97,28 @@ public class SMTP {
         else
             _props.remove( "mail.smtp.socketFactory.class" );
     }
-    public void setSubject( String subject ) { _subject = subject; }
-    public void setTo( String to ) { _toEmail = to; }
-    public void setUsername( String u ) { _username = u; }
+
+    public void setSubject( String subject ) { 
+        email.get()._subject = subject; 
+    }
+
+    public void setTo( String to ) { 
+        email.get()._toEmail = to; 
+    }
+
+    public void setUsername( String u ) { 
+        _username = u; 
+    }
 
     private void _setter() 
         throws MessagingException {
+        Email m = email.get();
+        if( m._toEmail == null || m._toEmail.equals( "" ) ) 
+            throw new RuntimeException( "no to address given, unable to send" );
+        if( m._subject == null || m._subject.equals( "" ) )
+            System.out.println( "Warning: email has no subject line" );
+        if( m._text == null || m._text.equals( "" ) )
+            System.out.println( "Warning: email has no body" );
 
         setProperty( "mail.smtp.host" , _server );
         setProperty( "mail.smtp.port" , _port );
@@ -91,12 +132,15 @@ public class SMTP {
         _message.setFrom( new InternetAddress( _fromEmail ) );
         _message.setSender( new InternetAddress( _fromEmail ) );
 
-        _message.setRecipient( Message.RecipientType.TO, new InternetAddress( _toEmail ) );
+        _message.setRecipient( Message.RecipientType.TO, new InternetAddress( m._toEmail ) );
 
-        _message.setSubject( _subject );
-        _message.setText( _text );
+        _message.setSubject( m._subject );
+        _message.setText( m._text );
     }
 
+    /**
+     * Sends a message using whatever parameters have been set.
+     */
     private void send() 
         throws MessagingException {
 
@@ -109,9 +153,6 @@ public class SMTP {
     }
 
     private String _fromEmail = null;
-    private String _toEmail = null;
-    private String _subject = "";
-    private String _text = "";
 
     private String _username = "";
     private String _password = "";
@@ -122,5 +163,23 @@ public class SMTP {
 
     private Session _session;
     private SMTPMessage _message;
-    private Properties _props;
+    private Properties _props = new Properties( SMTP.permaProps );
+
+    private class Email {
+        protected String _toEmail = "";
+        protected String _subject = "";
+        protected String _text = "";
+    }
+
+    private ThreadLocal<Email> email = new ThreadLocal<Email>() {
+        protected Email initialValue() {
+            return new Email();
+        }
+    };
+
+    public static Properties permaProps = new Properties();
+    static {
+        permaProps.setProperty( "mail.smtp.auth" , "true" );
+        permaProps.setProperty( "mail.smtp.socketFactory.fallback" , "false" );
+    }
 }
