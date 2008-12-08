@@ -744,6 +744,17 @@ public class Scope implements JSObject , Bindings {
 
     public void kill(){
         _killed = true;
+
+        if ( _children != null ){
+            // make my children's parent my parent
+            // this has to change on behavior since once something is killed
+            // its passed over on gets anyway
+            // but lets collection happen on this scope
+            // often an AppRequest which can be big
+            for ( Scope child : _children ){
+                child._parent = _parent;
+            }
+        }
     }
 
     public void setGlobal( boolean g ){
@@ -1137,11 +1148,12 @@ public class Scope implements JSObject , Bindings {
     }
 
     final String _name;
-    final Scope _parent;
     final Scope _maybeWritableGlobal;
     final Scope _alternate;
     final JSObjectBase _possibleThis;
     final Language _lang;
+
+    private Scope _parent;
 
     private File _root;
     private JSFileLibrary _path;
