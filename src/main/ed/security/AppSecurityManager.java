@@ -124,9 +124,10 @@ public final class AppSecurityManager extends SecurityManager {
         final String action = fp.getActions();
 
         if ( action.contains( "execute" ) ){
-            throw new NotAllowed( "not allowed to exec" , fp );
+            checkExec( fp.getName() );
+            return;
         }
-
+        
         final String file = fp.getName();
         final boolean read = action.equals( "read" );
         
@@ -160,47 +161,57 @@ public final class AppSecurityManager extends SecurityManager {
     // --- lower level ---
     
     public void checkExec( String cmd ){
+        if ( notReady() ) return;
         rejectIfNotTrusted( "can't exec [" + cmd + "]" );
     }
 
     public void checkExit( int status ){
+        if ( notReady() ) return;
         rejectIfNotTrusted( "can't exit the JVM"  );
     }
     
     public void checkPrintJobAccess(){
+        if ( notReady() ) return;
         rejectIfNotTrusted( "you can't print silly" );
     }
 
     public void checkSystemClipboardAccess(){
+        if ( notReady() ) return;
         rejectIfNotTrusted( "can't use system clipboard" );
     }
 
     public void checkAccept(String host, int port){
+        if ( notReady() ) return;
         rejectIfNotTrusted( "acn't access " + host + ":" + port );
     }
 
     public void checkConnect( String host , int port ){
+        if ( notReady() ) return;
         SocketPermission sp = null;
         checkConnect( host , port , sp );
     }
 
     public void checkConnect( String host , int port , Object context ){
+        if ( notReady() ) return;
         SocketPermission sp = null;
         checkConnect( host , port , sp );
     }
     
     public void checkRead(String file){
+        if ( notReady() ) return;
         AppContext context = _appContext();
         if ( context == null )
             return;
         
         if ( _file.allowed( context , file , true ) )
             return;
-
+        
         throw new NotAllowed( "can't read [" + file + "]" );
     }
     
     public void checkWrite(String file){
+        if ( notReady() ) return;
+
         AppContext context = _appContext();
         if ( context == null )
             return;
@@ -212,10 +223,12 @@ public final class AppSecurityManager extends SecurityManager {
     }
     
     void rejectIfNotTrusted( String msg ){
+        if ( notReady() ) return;
+
         if ( AppContext.findThreadLocal() == null || 
              Security.inTrustedCode() )        
             return;
-        throw new NotAllowed( msg , null );
+        throw new NotAllowed( msg + " from [" + Security.getTopDynamicClassName() + "]" , null );
     }
 
     static AppContext _appContext(){
@@ -224,6 +237,10 @@ public final class AppSecurityManager extends SecurityManager {
         return AppContext.findThreadLocal();
     }
 
+    final boolean notReady(){
+        return ! READY;
+    }
+    
     // -------------------
     
     final Logger _logger;
