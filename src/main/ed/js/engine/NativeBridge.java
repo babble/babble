@@ -366,7 +366,9 @@ public class NativeBridge {
                 else if ( origMyClass == Long.class || origMyClass == Long.TYPE )
                     params[i] = theNumber.longValue(); 
                 else if ( origMyClass == Short.class || origMyClass == Short.TYPE )
-                    params[i] = theNumber.shortValue(); 
+                    params[i] = theNumber.shortValue();
+                else if (origMyClass == Number.class)
+                    params[i] = theNumber;
                 else
                     throw new RuntimeException( "what is : " + origMyClass );
             }
