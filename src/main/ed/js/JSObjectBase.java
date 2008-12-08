@@ -1045,11 +1045,15 @@ public class JSObjectBase implements JSObject {
         if ( _setterAndGetters == null && ! add )
             return null;
 
-        synchronized(_setterAndGettersSetLOCK) {
-
-            if ( _setterAndGetters == null ){
-                _setterAndGetters = new TreeMap<String,Pair<JSFunction,JSFunction>>();
+        if ( _setterAndGetters == null ){
+            Map<String,Pair<JSFunction,JSFunction>> m = new TreeMap<String,Pair<JSFunction,JSFunction>>();
+            synchronized ( _setterAndGettersSetLOCK ){
+                if ( _setterAndGetters == null )
+                    _setterAndGetters = m;
             }
+        }
+
+        synchronized ( _setterAndGetters ){
 
             Pair<JSFunction,JSFunction> p = _setterAndGetters.get( name );
             if ( ! add || p != null )
