@@ -58,11 +58,6 @@ public class SiteSystemState implements Sizable {
      */
     static final String PYTHON_LIB = Config.get().getProperty("ED_HOME", "/data/ed")+"/src/main/ed/lang/python/lib";
 
-    static final PyObject _blockThread = new PyObject(){
-            public PyObject __call__(PyObject [] args, String [] keywords){
-                throw Py.OSError( "thread creation is disabled on 10gen" );
-            }
-        };
     static final ThreadLocal<String> currentlyRunning = new ThreadLocal<String>();
 
     static final JSFunction _setCurrentlyRunning = new JSFunctionCalls1(){
@@ -197,28 +192,6 @@ public class SiteSystemState implements Sizable {
             }
         }
 
-        // Override thread._newFunctionThread
-        PySystemState oldState = Py.getSystemState();
-        PyObject thread = null;
-        try {
-            /*
-             * Do this in site-specific state so that we don't let users
-             * screw with each others' thread module.
-             * FIXME: seems to not actually work??
-             */
-            Py.setSystemState( pyState );
-            thread = imp.importName( "thread" , true );
-        }
-        finally {
-            Py.setSystemState( oldState );
-        }
-        if( thread == null ){
-            throw new RuntimeException( "can't happen" );
-        }
-        else {
-            thread.__setattr__("_newFunctionThread", _blockThread);
-            thread.__setattr__("start_new_thread", _blockThread);
-        }
     }
 
     private void _checkModules(){
