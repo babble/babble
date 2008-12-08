@@ -393,7 +393,8 @@ public class Scope implements JSObject , Bindings {
         
         return _fixNull( r );
     }
-    private Object _geti( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
+
+    protected Object _geti( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
         
         if ( skipGoingDown() )
             return _parent._geti( nameHash , name , alt , with , noThis , depth + 1 );

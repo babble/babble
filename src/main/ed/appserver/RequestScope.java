@@ -53,10 +53,10 @@ public class RequestScope extends Scope {
         return other != null && _appRequest != null && other != _appRequest;
     }
 
-    public Object get( String name , Scope alt , JSObject with[] ){
+    protected Object _geti( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
         if ( name.equals( "__apprequest__" ) )
             return _appRequest;
-        return super.get( name , alt , with );
+        return super._geti( nameHash , name , alt , with , noThis , depth );
     }
 
     public long approxSize( SeenPath seen , boolean includeChildren , boolean includeParents ){
