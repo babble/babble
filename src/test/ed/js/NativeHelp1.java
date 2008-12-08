@@ -25,5 +25,16 @@ public class NativeHelp1 {
         return args[which];
     }
 
+    public static Number num1( int a ){
+        return a;
+    }
+
+    public static Number num2( Integer a ){
+        return a;
+    }
+
+    public static Number num3( Number a ){
+        return a;
+    }
 
 }
