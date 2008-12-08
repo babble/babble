@@ -447,12 +447,14 @@ public class HttpServer extends NIOServer {
             boolean inForkWhenDone = false;
 
             try {
+                ThreadUtil.pushStatus( t._request.getFullURL() );
                 inForkWhenDone = ! t._handler.handle( t._request , t._response );
             }
             finally {
                 t._request._handler._inFork = inForkWhenDone;
+                ThreadUtil.clearStatus();
             }
-                
+            
             try {
                 t._response.done();
             }
