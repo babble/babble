@@ -770,6 +770,9 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             else if ( "--secure" .equals( args[i] ) ){
                 secure = true;
             }
+            else if ( "--insecure" .equals( args[i] ) ){
+                secure = false;
+            }
             else {
                 if (i != aLength - 1) {
                     System.out.println("error - unknown param " + args[i]);
@@ -788,6 +791,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("         webRoot = " + webRoot);
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
+        System.out.println("          secure = " + secure);
         if ( LEAK_HUNT )
             System.out.println( "   LEAK HUNT ENABLED" );
         System.out.println("==================================");
