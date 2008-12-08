@@ -55,6 +55,12 @@ public class SiteSystemState implements Sizable {
 
     static final ThreadLocal<String> currentlyRunning = new ThreadLocal<String>();
 
+    static final PyObject _blockThread = new PyObject(){
+            public PyObject __call__(PyObject [] args, String [] keywords){
+                throw Py.OSError( "thread creation is disabled on 10gen" );
+            }
+        };
+
     static final JSFunction _setCurrentlyRunning = new JSFunctionCalls1(){
             public Object call(Scope s , Object arg , Object [] extra ){
                 if( arg == null ){
@@ -186,7 +192,6 @@ public class SiteSystemState implements Sizable {
                 siteMod.__dict__.__setitem__( "__path__", Py.None );
             }
         }
-
     }
 
     private void _checkModules(){
