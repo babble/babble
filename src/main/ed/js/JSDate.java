@@ -608,7 +608,7 @@ public class JSDate extends JSObjectBase implements Comparable {
      * @return The formatted date string.
      */
     public String format( String theFormat ){
-        return format( theFormat , TimeZone.getDefault() );
+        return format( theFormat , getTimeZone() );
     }
 
     /** Return this date as a string in a given format.
@@ -650,7 +650,7 @@ public class JSDate extends JSObjectBase implements Comparable {
      * @return The formatted date string.
      */
     public String format( DateFormat df ){
-        return format( df , TimeZone.getDefault() );
+        return format( df , getTimeZone() );
     }
 
     /** Return this date as a string in a given format using a given timezone.
@@ -670,7 +670,7 @@ public class JSDate extends JSObjectBase implements Comparable {
     public String format( DateFormat df , TimeZone tz ){
 
         if ( tz == null )
-            tz = TimeZone.getDefault();
+            tz = getTimeZone();
 
         synchronized ( df ){
             df.setTimeZone( tz );
@@ -851,5 +851,11 @@ public class JSDate extends JSObjectBase implements Comparable {
         new SimpleDateFormat( "dd/MMM/yyyy:HH:mm:ss" ) ,
         ed.net.httpserver.HttpResponse.HeaderTimeFormat
     };
-
+    
+    public static TimeZone getTimeZone(){
+        ed.appserver.AppRequest ar = ed.appserver.AppRequest.getThreadLocal();
+        if ( ar == null )
+            return TimeZone.getDefault();
+        return ar.getTimeZone();
+    }
 }

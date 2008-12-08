@@ -1519,6 +1519,17 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
     // ----  END BROKEN JSOBJET INTERFACE
 
+    public TimeZone getTimeZone(){
+        return _tz;
+    }
+
+    public void setTimeZone( String tz ){
+        tz = tz.toUpperCase();
+        _tz = TimeZone.getTimeZone( tz );
+        if ( ! _tz.getID().equals( tz ) )
+            throw new RuntimeException( "can't find time zone[" + tz + "]" );
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -1553,6 +1564,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     private final JSObject _libraryVersions = new JSObjectBase();
 
     private Queue<AppWork> _workQueue;
+    private TimeZone _tz = TimeZone.getDefault();
 
     boolean _scopeInited = false;
     boolean _inScopeSetup = false;

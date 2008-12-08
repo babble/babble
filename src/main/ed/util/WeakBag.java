@@ -26,7 +26,7 @@ import java.util.*;
  * very very not thead safe
  * @expose
  */
-public class WeakBag<T> {
+public class WeakBag<T> implements Iterable<T> {
 
     /** Initializes a new weak bag. */
     public WeakBag(){
@@ -108,6 +108,10 @@ public class WeakBag<T> {
         }
 
         return size;
+    }
+
+    public Iterator<T> iterator(){
+        return getAll().iterator();
     }
     
     public List<T> getAll(){

@@ -379,6 +379,16 @@ public class AppRequest implements Sizable {
         return _attributes.get( name );
     }
 
+    public TimeZone getTimeZone(){
+        if ( _tz != null )
+            return _tz;
+        return _context.getTimeZone();
+    }
+
+    public void setTimeZone( String tz ){
+        _tz = TimeZone.getTimeZone( tz );
+    }
+
     final String _uri;
     final String _host;
     final HttpRequest _request;
@@ -388,6 +398,7 @@ public class AppRequest implements Sizable {
     boolean _somethingCompiled = false;
 
     private HttpResponse _response;
+    private TimeZone _tz;
 
     final URLFixer _fixer;
     final JSArray _head = new HeadArray();
