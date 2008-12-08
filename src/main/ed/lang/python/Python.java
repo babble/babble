@@ -840,6 +840,15 @@ public class Python extends Language {
         else
             name = ((PyJavaClass)m).__name__;
 
+        /*
+         * Explicitly block import of thread class, so that code can
+         * try to "import thread" and fail cleanly
+         */
+        if( m instanceof PyJavaClass &&
+            ((PyJavaClass)m).__module__.equals("org.python.modules.thread") &&
+            name.equals("thread") )
+            return false;
+
         if( ImportHelper.getBuiltin( name ) != null )
             // Safe -- builtin that Jython recognizes
             return true;

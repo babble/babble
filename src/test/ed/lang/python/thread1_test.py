@@ -1,15 +1,31 @@
-import thread  # should this actually be safe?
 import sys
 import _10gen
 
-def foo():
+def import_thread():
+    import thread
     print "can't happen"
 
-_10gen.assert.throws( lambda: thread.start_new_thread(foo, ()) )
+def import_threading():
+    import threading
+    print "really can't happen"
 
+def get_thread():
+    return sys.modules['thread']
 
-del sys.modules['thread']
-import thread
+def get_threading():
+    return sys.modules['threading']
 
-_10gen.assert.throws( lambda: thread.start_new_thread(foo, ()) )
+_10gen.assert.throws( lambda: import_thread() )
+_10gen.assert.throws( lambda: import_threading() )
+_10gen.assert.throws( lambda: get_thread() )
+_10gen.assert.throws( lambda: get_threading() )
+
+if 'thread' in sys.modules:
+    del sys.modules['thread']
+
+_10gen.assert.throws( lambda: import_thread() )
+_10gen.assert.throws( lambda: import_threading() )
+_10gen.assert.throws( lambda: get_thread() )
+_10gen.assert.throws( lambda: get_threading() )
+
 

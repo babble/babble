@@ -192,29 +192,6 @@ public class SiteSystemState implements Sizable {
                 siteMod.__dict__.__setitem__( "__path__", Py.None );
             }
         }
-
-        // Override thread._newFunctionThread
-        PySystemState oldState = Py.getSystemState();
-        PyObject thread = null;
-        try {
-            /*
-             * Do this in site-specific state so that we don't let users
-             * screw with each others' thread module.
-             * FIXME: seems to not actually work??
-             */
-            Py.setSystemState( pyState );
-            thread = imp.importName( "thread" , true );
-        }
-        finally {
-            Py.setSystemState( oldState );
-        }
-        if( thread == null ){
-            throw new RuntimeException( "can't happen" );
-        }
-        else {
-            thread.__setattr__("_newFunctionThread", _blockThread);
-            thread.__setattr__("start_new_thread", _blockThread);
-        }
     }
 
     private void _checkModules(){
