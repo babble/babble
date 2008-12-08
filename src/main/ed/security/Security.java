@@ -58,10 +58,12 @@ public class Security {
         "src/main/ed/",
         "src/test/ed/",
         "/home/yellow/code_for_hudson/",
+        new File( "src/main/ed/" ).getAbsolutePath(),
         new File( "src/test/ed/" ).getAbsolutePath(),
         new File( "include/jython/Lib" ).getAbsolutePath(),
         "./src/test/ed/lang/python/", // FIXME?
         Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed",
+        Config.get().getProperty("ED_HOME", "/data/ed") + "/src/main/ed",
         Config.get().getProperty("ED_HOME", "/data/ed") + "/include/jython/Lib",
         "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
     };

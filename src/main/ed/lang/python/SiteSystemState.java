@@ -53,13 +53,17 @@ public class SiteSystemState implements Sizable {
     static final String CORE_MODULES_MARKER = "I AM IN A CORE MODULE";
     static final String VIRTUAL_MODULE = "<10gen_virtual>";
 
-    static final ThreadLocal<String> currentlyRunning = new ThreadLocal<String>();
+    /**
+     * Where we keep Python for overriding Python's Lib/builtins
+     */
+    static final String PYTHON_LIB = Config.get().getProperty("ED_HOME", "/data/ed")+"/src/main/ed/lang/python/lib";
 
     static final PyObject _blockThread = new PyObject(){
             public PyObject __call__(PyObject [] args, String [] keywords){
                 throw Py.OSError( "thread creation is disabled on 10gen" );
             }
         };
+    static final ThreadLocal<String> currentlyRunning = new ThreadLocal<String>();
 
     static final JSFunction _setCurrentlyRunning = new JSFunctionCalls1(){
             public Object call(Scope s , Object arg , Object [] extra ){
@@ -85,12 +89,12 @@ public class SiteSystemState implements Sizable {
         globals = newGlobals;
         _scope = s;
         _context = ac;
-        setupModules();
         ensureMetaPathHook( pyState , s );
         ensurePathHook( pyState , s );
         ensurePath( COREMODULES_STRING );
         replaceOutput();
-        ensurePath( Config.get().getProperty("ED_HOME", "/data/ed")+"/src/main/ed/lang/python/lib" , 0 );
+        ensurePath( PYTHON_LIB , 0 );
+        setupModules();
 
         // Careful -- this is static PySystemState.builtins. We modify
         // it once to intercept imports for all sites. TrackImport
@@ -231,26 +235,24 @@ public class SiteSystemState implements Sizable {
         return ((PythonModuleTracker)pyState.modules).flushOld();
     }
 
-    private void ensureMetaPathHook( PySystemState ss , Scope scope ){
-        boolean foundMetaPath = false;
-        for( Object m : ss.meta_path ){
-            if( ! ( m instanceof PyObject ) ) continue; // ??
-            PyObject p = (PyObject)m;
-            if( p instanceof ModuleFinder )
-                return;
+    private boolean contains( Iterable foo , Class cls ){
+        for( Object m : foo ){
+            if( cls.isInstance( m ) )
+                return true;
         }
+        return false;
+    }
 
-        ss.meta_path.append( new ModuleFinder( scope ) );
+    private void ensureMetaPathHook( PySystemState ss , Scope scope ){
+        if( ! contains( ss.meta_path , ModuleFinder.class ) )
+            ss.meta_path.append( new ModuleFinder( scope ) );
+        if( ! contains( ss.meta_path , OverrideModuleFinder.class ) )
+            ss.meta_path.append( new OverrideModuleFinder( new File ( PYTHON_LIB ) ) );
     }
 
     private void ensurePathHook( PySystemState ss , Scope scope ){
-        boolean foundHook = false;
-        for( Object m : ss.path_hooks ){
-            if( m instanceof ModulePathHook )
-                return;
-        }
-
-        ss.path_hooks.append( new ModulePathHook( scope ) );
+        if( ! contains( ss.path_hooks , ModulePathHook.class ) )
+            ss.path_hooks.append( new ModulePathHook( scope ) );
     }
 
     public void addDependency( String to, String importer ){
@@ -323,6 +325,42 @@ public class SiteSystemState implements Sizable {
 
         public void write( String s ){
             _10gen_stdout_write( s );
+        }
+    }
+
+    /**
+     * Finder to look in our "overrides" directory to find a module.
+     * Necessary because built-in modules have higher priority than
+     * sys.path, but sys.meta_path beats builtins.. :(
+     */
+    public class OverrideModuleFinder extends PyObject {
+        File _overrides;
+        OverrideModuleFinder(File path){
+            _overrides = path;
+        }
+
+        public PyObject find_module(String name, PyList path){
+            // Don't interfere with path-based imports?
+            if( path != null && path.__len__() != 0 )
+                return null;
+
+            File sourceName = ImportHelper.moduleExists( name , _overrides );
+            if( sourceName != null )
+                return new OverrideModuleLoader( _overrides );
+            return null;
+        }
+    }
+
+    public class OverrideModuleLoader extends PyObject {
+        File _source;
+        OverrideModuleLoader(File path){
+            _source = path;
+        }
+
+        public PyObject load_module(String name){
+            PyObject foo = ImportHelper.loadFromSource(pyState, name, name, _source.toString() );
+            System.out.println("Did an import for " + name + "; got " + foo);
+            return foo;
         }
     }
 

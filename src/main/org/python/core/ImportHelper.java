@@ -32,6 +32,42 @@ public class ImportHelper {
 
     private static final String IMPORT_LOG = "import";
 
+    /** This is the logic that tells whether there is a valid
+     * "thing" that can be imported, either directory/name/__init__.py or
+     * directory/name.py.
+     *
+     * This is inheritance by copy-paste; imp.java's "loadFromSource"
+     * is too tightly integrated with this code to separate out any other way.
+     *
+     * @return null if there is nothing there; otherwise returns the file
+     */
+    public static File moduleExists( String name , File directory ){
+        String sourceName = "__init__.py";
+        String compiledName = "__init__$py.class";
+        String directoryName = directory.toString();
+
+        // First check for packages
+        File dir = new File(directoryName, name);
+        File sourceFile = new File(dir, sourceName);
+        File compiledFile = new File(dir, compiledName);
+
+        boolean pkg = dir.isDirectory() && imp.caseok(dir, name) && (sourceFile.isFile()
+                                                                 || compiledFile.isFile());
+        if (! pkg) {
+            Py.writeDebug(IMPORT_LOG, "trying source " + dir.getPath());
+            sourceName = name + ".py";
+            compiledName = name + "$py.class";
+            sourceFile = new File(directoryName, sourceName);
+            compiledFile = new File(directoryName, compiledName);
+        }
+
+        if( sourceFile.isFile() && imp.caseok( sourceFile , sourceName ) )
+            return sourceFile;
+        if( compiledFile.isFile() && imp.caseok( compiledFile , compiledName ) )
+            return compiledFile;
+        return null;
+    }
+
     // copy-pasted from imp.java's "loadFromSource", seasoned to taste
     public static PyObject loadFromDirectory(PySystemState sys, String name, String modName, String entry){
         String sourceName = "__init__.py";
