@@ -196,7 +196,7 @@ public class ObjectId implements Comparable<ObjectId>{
         _timeFixer = new Thread("ObjectId-TimeFixer"){
                 public void run(){
                     while ( true ){
-                        ThreadUtil.sleep( 999 );
+                        ThreadUtil.sleep( 499 );
                         _time = (int)(System.currentTimeMillis()/1000);
                     }
                 }
