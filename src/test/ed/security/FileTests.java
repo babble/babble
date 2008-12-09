@@ -34,7 +34,7 @@ public class FileTests extends TestCase {
         String root = (new File(".")).getAbsolutePath().replaceAll( "[\\.\\/]+$" , "" );
         assertTrue( _fs.canRead( _context , root ) );
         assertTrue( _fs.canRead( _context , root + "/" ) );
-        assertFalse( _fs.canRead( _context , root.replaceAll( "/.*?$"
+        assertFalse( _fs.canRead( _context , root.replaceAll( "/.*?$" , "" ) ) );
     }
     
     public void testUnixSystem(){
