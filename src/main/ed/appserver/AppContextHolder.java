@@ -567,7 +567,7 @@ public class AppContextHolder {
             this.context = context;
             this.host = host;
             this.uri = uri;
-            if ( this.host.equalsIgnoreCase( "www" ) && getRoot().contains( "stage" ) )
+            if ( this.host != null && this.host.equalsIgnoreCase( "www" ) && getRoot().contains( "stage" ) )
                 throw new RuntimeException( "blah" );
         }
         
