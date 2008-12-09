@@ -15,6 +15,7 @@ function testConstrainedFindWithOrdering( db ) {
     r.save( { a: 0 } );
     r.save( { a: 1 } );
     r.save( { a: 2 } );
+    r.ensureIndex( { a: 1 } );
 
     checkResults( [ 1 ], r.find( { a: 1 } ).sort( { a: 1 } ) );
     checkResults( [ 1 ], r.find( { a: 1 } ).sort( { a: -1 } ) );
