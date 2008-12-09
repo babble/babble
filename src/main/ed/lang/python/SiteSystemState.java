@@ -332,7 +332,8 @@ public class SiteSystemState implements Sizable {
 
         public PyObject load_module(String name){
             PyObject foo = ImportHelper.loadFromSource(pyState, name, name, _source.toString() );
-            System.out.println("Did an import for " + name + "; got " + foo);
+            if( DEBUG )
+                System.out.println("Did an import for " + name + "; got " + foo);
             return foo;
         }
     }
