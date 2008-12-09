@@ -29,7 +29,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.appserver.AppContext;
+import ed.appserver.AppRequest;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.js.JSFunction;
@@ -41,7 +41,7 @@ class RuntimeEnvironment {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-    static final Map<AppContext, WeakReference<Ruby>> runtimes = new WeakHashMap<AppContext, WeakReference<Ruby>>();
+    static final Map<AppRequest, WeakReference<Ruby>> runtimes = new WeakHashMap<AppRequest, WeakReference<Ruby>>();
     static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
@@ -94,21 +94,21 @@ class RuntimeEnvironment {
         }
     }
 
-    public static synchronized Ruby getRuntimeInstance(AppContext ac) {
-        if (ac == null)
+    public static synchronized Ruby getRuntimeInstance(AppRequest ar) {
+        if (ar == null)
             return Ruby.newInstance(config);
         WeakReference<Ruby> ref = null;
-        ref = runtimes.get(ac);
+        ref = runtimes.get(ar);
         if (ref == null) {
             Ruby runtime = Ruby.newInstance(config);
-            runtimes.put(ac, ref = new WeakReference<Ruby>(runtime));
+            runtimes.put(ar, ref = new WeakReference<Ruby>(runtime));
         }
         return ref.get();
     }
 
-    public static synchronized void forgetRuntimeInstance(AppContext ac) {
-        if (ac != null) {
-            WeakReference<Ruby> ref = runtimes.remove(ac);
+    public static synchronized void forgetRuntimeInstance(AppRequest ar) {
+        if (ar != null) {
+            WeakReference<Ruby> ref = runtimes.remove(ar);
             if (ref != null) {
                 Ruby runtime = ref.get();
                 Loader.removeLoadedFiles(runtime);
@@ -121,19 +121,19 @@ class RuntimeEnvironment {
     }
 
     public synchronized Ruby getRuntime(Scope s) {
-        return s == null ? getRuntime((AppContext)null) : getRuntime((AppContext)s.get("__instance__"));
+        return s == null ? getRuntime((AppRequest)null) : getRuntime((AppRequest)s.get("__apprequest__"));
     }
 
-    public synchronized Ruby getRuntime(AppContext ac) {
+    public synchronized Ruby getRuntime(AppRequest ar) {
         if (runtime == null)
-            runtime = getRuntimeInstance(ac);
+            runtime = getRuntimeInstance(ar);
         return runtime;
     }
 
     void forgetRuntime(Scope s) {
         runtime = null;
         if (s != null)
-            forgetRuntimeInstance((AppContext)s.get("__instance__"));
+            forgetRuntimeInstance((AppRequest)s.get("__apprequest__"));
     }
 
     void commonSetup(Scope s, InputStream stdin, OutputStream stdout) {
