@@ -26,9 +26,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import ed.js.engine.Scope;
 
 /**
- * Handles .erb and .rhtml files by turning the file into an ERB template and
- * modifying the JavaScript "print" function so that it directs output to the
- * ERB output collector.
+ * Handles .erb and .rhtml files by turning the file into an ERB template.
  */
 public class RubyErbSource extends RubyJxpSource {
 
