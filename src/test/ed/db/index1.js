@@ -10,7 +10,7 @@ t.save( o );
 assert( t.findOne().z.a == 17 );
 assert( t.findOne( { z : { a : 17 } } ) == null);
 
-t.ensureIndex( { z : { a : 1 } } );
+t.ensureIndex( { "z.a" : 1 } );
 
 assert( t.findOne().z.a == 17 );
 assert( t.findOne( { z : { a : 17 } } ) == null);
@@ -19,8 +19,11 @@ o = { name : "bar" , z : { a : 18 } };
 t.save( o );
 
 assert( t.find().length() == 2 );
+assert( t.find().sort( { "z.a" : 1 } ).length() == 2 );
+assert( t.find().sort( { "z.a" : -1 } ).length() == 2 );
+// We are planning to phase out this syntax.
 assert( t.find().sort( { z : { a : 1 } } ).length() == 2 );
-assert( t.find().sort( { z : { a : -1 } } ).length() == 2 );
+assert( t.find().sort( { z : { a: -1 } } ).length() == 2 );
 
 //
 // TODO - these don't work yet as indexing on x.y doesn't work yet
