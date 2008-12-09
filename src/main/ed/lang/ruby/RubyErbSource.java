@@ -47,13 +47,7 @@ public class RubyErbSource extends RubyJxpSource {
      */
     public static String wrap(String content, String fileName) {
         return
-            "_erbout = nil\n" +
             "require 'erb'\n" +
-            "__p = Proc.new { |str| _erbout.concat(str) }\n" +
-            "$scope.set('print', __p)\n" +
-            "$scope.set('puts', __p)\n" +
-            "$scope.set('__puts__', __p)\n" +
-            "$scope.set('SYSOUT', __p)\n" +
             "template = ERB.new <<-XGEN_ERB_TEMPLATE_EOF\n" +
             content.replace("\\", "\\\\").replace("#", "\\#") + '\n' +
             "XGEN_ERB_TEMPLATE_EOF\n" +
@@ -75,21 +69,5 @@ public class RubyErbSource extends RubyJxpSource {
      */
     protected String getContent() throws IOException {
         return wrap(super.getContent(), getName());
-    }
-
-    protected IRubyObject _doCall(Node code, Scope s, Object unused[]) {
-        Object print = s.get("print");
-        Object puts = s.get("puts");
-        Object __puts__ = s.get("__puts__");
-        Object SYSOUT = s.get("SYSOUT");
-        try {
-            return super._doCall(code, s, unused);
-        }
-        finally {
-            s.put("print", print);
-            s.put("puts", puts);
-            s.put("__puts__", __puts__);
-            s.put("SYSOUT", SYSOUT);
-        }
     }
 }
