@@ -16,7 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.io.*;
 import java.util.*;
 
@@ -40,9 +39,9 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 class RuntimeEnvironment {
 
     public static final String XGEN_MODULE_NAME = "XGen";
+    public static final String APP_REQ_RUBY_RUNTIME_KEY = "ruby.runtime";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-    static final Map<AppRequest, WeakReference<Ruby>> runtimes = new WeakHashMap<AppRequest, WeakReference<Ruby>>();
-    static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
+//     static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
@@ -97,23 +96,21 @@ class RuntimeEnvironment {
     public static synchronized Ruby getRuntimeInstance(AppRequest ar) {
         if (ar == null)
             return Ruby.newInstance(config);
-        WeakReference<Ruby> ref = null;
-        ref = runtimes.get(ar);
-        if (ref == null) {
-            Ruby runtime = Ruby.newInstance(config);
-            runtimes.put(ar, ref = new WeakReference<Ruby>(runtime));
+        Ruby r = (Ruby)ar.getAttribute(APP_REQ_RUBY_RUNTIME_KEY);
+        if (r == null) {
+            r = Ruby.newInstance(config);
+            ar.setAttribute(APP_REQ_RUBY_RUNTIME_KEY, r);
         }
-        return ref.get();
+        return r;
     }
 
     public static synchronized void forgetRuntimeInstance(AppRequest ar) {
-        if (ar != null) {
-            WeakReference<Ruby> ref = runtimes.remove(ar);
-            if (ref != null) {
-                Ruby runtime = ref.get();
-                Loader.removeLoadedFiles(runtime);
-            }
-        }
+        if (ar == null)
+            return;
+        Ruby r = (Ruby)ar.getAttribute(APP_REQ_RUBY_RUNTIME_KEY);
+        ar.setAttribute(APP_REQ_RUBY_RUNTIME_KEY, null);
+        if (r != null)
+            Loader.removeLoadedFiles(r);
     }
 
     RuntimeEnvironment(Ruby runtime) {
