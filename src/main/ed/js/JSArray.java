@@ -739,7 +739,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                 return setInt( idx , v );
         }
 
-        if( n.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
+        if ( n.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
             int idx = JSNumber.toInt32( n );
 	    return setInt( idx , v );
         }
@@ -777,6 +777,15 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     private int _parseSimpleString( Object n ){
+
+        if ( n instanceof Integer || 
+             n instanceof Long )
+            return ((Number)n).intValue();
+        
+        if ( n instanceof Number &&
+             JSNumericFunctions.couldBeInt( ((Number)n).doubleValue() ) )
+            return ((Number)n).intValue();
+
         if ( ! ( n instanceof String || 
                  n instanceof JSString ) )
             return -1;
