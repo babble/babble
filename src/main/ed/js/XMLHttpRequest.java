@@ -406,6 +406,7 @@ public class XMLHttpRequest extends JSObjectBase {
 
         Handler( byte[] postData ){
             _postData = postData;
+            lastUrl = _checkURL();
         }
 
         public int read( InputStream is )
@@ -476,20 +477,20 @@ public class XMLHttpRequest extends JSObjectBase {
                 setCookieJar( cookieJar );
             }
             
-            try {
-                URL url = new URL( get( "finalURL" ).toString() );
-                cookieJar.addCookie( url , c );
-            } catch (MalformedURLException e) {
-                throw new RuntimeException( e );
-            }
+            cookieJar.addCookie( lastUrl , c );
         }
         
         public void setFinalUrl( URL url ){
             set( "finalURL" , url.toString() );
+            lastUrl = url;
         }
 
         public boolean followRedirect( URL url ){
-            return ! JSInternalFunctions.JS_evalToBool( get( "nofollow" ) );
+            if( JSInternalFunctions.JS_evalToBool( get( "nofollow" ) ) )
+                return false;
+
+            lastUrl = url;
+            return true;
         }
         
         public boolean wantHttpErrorExceptions () {
@@ -526,6 +527,7 @@ public class XMLHttpRequest extends JSObjectBase {
         int _contentLength = 0;
         String _contentEncoding = "UTF8";
         StringBuilder _header = new StringBuilder();
+        private URL lastUrl;
     }
 
     class CookieJarDelegate implements JSObject {
