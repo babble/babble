@@ -152,10 +152,12 @@ public class RunningApplication extends Thread {
         
         _kill();
 
-        try {
-            Thread.sleep( 20 );
+        for ( int i=0; ! _done && i<100; i++ ){
+            try {
+                Thread.sleep( 10 );
+            }
+            catch ( InterruptedException ie ){}
         }
-        catch ( InterruptedException ie ){}
         
         assert( _done );
         assert( _process == null );
