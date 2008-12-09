@@ -54,14 +54,16 @@ public final class AppSecurityManager extends SecurityManager {
             // TODO: make sure there is no way for a user to unset
             return;
         }
-
-        if ( Security.inTrustedCode() )
-            return;
         
         if ( perm instanceof FilePermission ){
             checkFilePermission( context , (FilePermission)perm );
+            return;
         }
-        else if ( perm instanceof SocketPermission ){
+
+        if ( Security.inTrustedCode() )
+            return;
+
+        if ( perm instanceof SocketPermission ){
             checkSocketPermission( (SocketPermission)perm );
         }
         else if ( perm instanceof javax.security.auth.kerberos.ServicePermission || 
@@ -133,7 +135,10 @@ public final class AppSecurityManager extends SecurityManager {
         
         if ( _file.allowed( context , file , read ) )
             return;
-       
+        
+        if ( Security.inTrustedCode() )
+            return;
+
         throw new NotAllowed( "not allowed to access [" + file + "] from [" + Security.getTopDynamicStackFrame() + "] in site [" + context + "]" + fp , fp );
     }
 
@@ -184,7 +189,7 @@ public final class AppSecurityManager extends SecurityManager {
         if ( notReady() ) return;
         rejectIfNotTrusted( "acn't access " + host + ":" + port );
     }
-
+    
     public void checkConnect( String host , int port ){
         if ( notReady() ) return;
         SocketPermission sp = null;
@@ -199,13 +204,16 @@ public final class AppSecurityManager extends SecurityManager {
     
     public void checkRead(String file){
         if ( notReady() ) return;
-        AppContext context = _appContext();
+        AppContext context = AppContext.findThreadLocal();
         if ( context == null )
             return;
         
         if ( _file.allowed( context , file , true ) )
             return;
         
+        if ( Security.inTrustedCode() )
+            return;
+
         throw new NotAllowed( "can't read [" + file + "]" );
     }
     
