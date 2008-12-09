@@ -70,8 +70,8 @@ class FileSecurity {
             okRead.add( javaHome.substring( 0 , idx ) );
         }
 
-        System.out.println( "okRead : " + okRead );
-        System.out.println( "okWrite : " + okWrite );
+        _logger.info( "okRead : " + okRead );
+        _logger.info( "okWrite : " + okWrite );
         
         _okRead = new String[okRead.size()];
         okRead.toArray( _okRead );
