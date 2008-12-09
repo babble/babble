@@ -58,10 +58,12 @@ public class Security {
         "src/main/ed/",
         "src/test/ed/",
         "/home/yellow/code_for_hudson/",
+        new File( "src/main/ed/" ).getAbsolutePath(),
         new File( "src/test/ed/" ).getAbsolutePath(),
         new File( "include/jython/Lib" ).getAbsolutePath(),
         "./src/test/ed/lang/python/", // FIXME?
         Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed",
+        Config.get().getProperty("ED_HOME", "/data/ed") + "/src/main/ed",
         Config.get().getProperty("ED_HOME", "/data/ed") + "/include/jython/Lib",
         "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
     };
@@ -75,8 +77,10 @@ public class Security {
     public static boolean inTrustedCode(){
         if ( OFF )
             return true;
+        
+        List<StackTraceElement> edFrames = new ArrayList<StackTraceElement>();
 
-        String topjs = getTopDynamicClassName();
+        String topjs = getTopDynamicClassName( edFrames );
         if ( topjs == null )
             return true;
         
@@ -84,17 +88,30 @@ public class Security {
             if ( topjs.startsWith( SECURE[i] ) )
                 return true;
         
+        for ( int i=0; i<edFrames.size(); i++ ){
+            if ( _allowedEdEntryClasses.contains( edFrames.get(i).getClassName() ) )
+                return true;
+        }
+        
         return false;
     }
 
     public static String getTopDynamicClassName(){
-        StackTraceElement e = getTopDynamicStackFrame();
+        return getTopDynamicClassName( null );
+    }
+    
+    public static String getTopDynamicClassName( List<StackTraceElement> edFrames ){
+        StackTraceElement e = getTopDynamicStackFrame( edFrames );
         if ( e == null )
             return null;
         return e.getClassName();
     }
-
+    
     public static StackTraceElement getTopDynamicStackFrame(){
+        return getTopDynamicStackFrame( null );
+    }
+    
+    public static StackTraceElement getTopDynamicStackFrame( List<StackTraceElement> edFrames ){
         StackTraceElement[] st = Thread.currentThread().getStackTrace();
         StackTraceHolder holder = StackTraceHolder.getInstance();
 
@@ -122,8 +139,11 @@ public class Security {
             if ( name.startsWith( Convert.DEFAULT_PACKAGE + "." ) )
                 return cur;
             
-            if ( name.startsWith( "ed." ) )
+            if ( name.startsWith( "ed." ) ){
+                if ( edFrames != null )
+                    edFrames.add( cur );
                 continue;
+            }
                     
         }
 
@@ -163,17 +183,28 @@ public class Security {
             c.startsWith( "java." );
     }
 
+    // ------ dyanmic class customization -------
+
     /**
      * need to be very careful with this
      */
     static void addDynamicClass( String c ){
         _dynamicClasses.add( c );
     }
-    static Set<String> _dynamicClasses = Collections.synchronizedSet( new HashSet<String>() );
+    private static Set<String> _dynamicClasses = Collections.synchronizedSet( new HashSet<String>() );
+
+    // ------ classes you can use directly from user code --------
     
     private static Set<String> _allowedClasses = new HashSet<String>();
     static {
         _allowedClasses.add( "ed.util.Words" );
         _allowedClasses.add( "ed.util.ImageUtil" );
+    }
+
+    // ------- allowed paths --------
+    private static Set<String> _allowedEdEntryClasses = Collections.synchronizedSet( new HashSet<String>() );
+    static {
+        _allowedEdEntryClasses.add( "ed.appserver.ModuleDirectory" );
+        _allowedEdEntryClasses.add( "ed.security.Blessed1" ); // this is for testing, but want it here for safety
     }
 }

@@ -133,6 +133,23 @@ public class SecurityTests extends TestCase {
         AppSecurityManager.NotAllowed na = new AppSecurityManager.NotAllowed( "blah" , null );
         na.fillInStackTrace();
     }
+
+    public void testExecFromAllowed()
+        throws IOException {
+        _context.makeThreadLocal();
+        Blessed1.exec();
+    }
+
+    public void testExecFromNotAllowed()
+        throws IOException {
+        _context.makeThreadLocal();
+        try {
+            NotBlessed1.exec();
+            assert( false );
+        }
+        catch ( AccessControlException ace ){}
+    }
+    
     
     final AppContext _context;
 
