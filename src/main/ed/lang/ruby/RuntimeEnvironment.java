@@ -134,9 +134,7 @@ class RuntimeEnvironment {
     }
 
     void commonSetup(Scope s, InputStream stdin, OutputStream stdout) {
-        resetOnFileChange(s);
         addJSFileLibrariesToPath(s);
-
         Ruby runtime = getRuntime(s);
         runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
         exposeScopeFunctions(s);
@@ -267,56 +265,4 @@ class RuntimeEnvironment {
         runtime.getThread().addModuleFunction("new", m);
         runtime.getThread().addModuleFunction("fork", m);
     }
-
-    /**
-     * Resets runtime if any local file changed. This is a simple, dumb,
-     * stupid way of making sure that files are re-required if they changed.
-     * <p>
-     * What we really want is a way to find out which file is really required
-     * by "require 'foo'" so we can check at the time of the require instead
-     * of up front for all files. There is no way to find 'foo' now without a
-     * change to JRuby (which I'm working on).
-     */    
-    private void resetOnFileChange(Scope s) {
-        return;
-        /* This code is commented out for now because when run against an app
-         * with 1,000 froze Rails files, calling anyLocalFileChanged for
-         * every request is too slow. */
-//         if (anyLocalFileChanged(s)) {
-//             if (DEBUG)
-//                 System.err.println("new file or file mod time changed; resetting Ruby runtime");
-//             forgetRuntime(s);
-//         }
-    }
-
-    /* This code is commented out for now because when run against an app with
-     * 1,000 froze Rails files, doing this for every request is too slow. */
-//     private boolean anyLocalFileChanged(Scope s) {
-//         return false;
-//         if (s == null)
-//             return false;
-//         JSFileLibrary lib = (JSFileLibrary)s.get("local");
-//         if (lib == null)
-//             return false;
-//         synchronized (localFileLastModTimes) {
-//             return anyLocalFileChanged(lib.getRoot(), false);
-//         }
-//     }
-
-//     private boolean anyLocalFileChanged(File dir, boolean changed) {
-//         for (File f : dir.listFiles()) {
-//             if (f.isDirectory())
-//                 changed = anyLocalFileChanged(f, changed);
-//             else {
-//                 String path = f.getPath();
-//                 Long newModTime = new Long(f.lastModified());
-//                 Long oldModTime = localFileLastModTimes.get(path);
-//                 if (oldModTime == null || !oldModTime.equals(newModTime)) {
-//                     changed = true;
-//                     localFileLastModTimes.put(path, newModTime);
-//                 }
-//             }
-//         }
-//         return changed;
-//     }
 }
