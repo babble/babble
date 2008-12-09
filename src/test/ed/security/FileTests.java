@@ -30,6 +30,10 @@ public class FileTests extends TestCase {
         _context = new AppContext( new File( "src/test/samplewww" ) );
     }
 
+    public void testCleanBacks(){
+        assertEquals( "/a/b/c/" , FileSecurity._cleanBack( "/a/g/../b/c/" ) );
+    }
+
     public void testHome(){
         String root = (new File(".")).getAbsolutePath().replaceAll( "[\\.\\/]+$" , "" );
         assertTrue( _fs.canRead( _context , root ) );
@@ -45,6 +49,14 @@ public class FileTests extends TestCase {
     public void testContext(){
         assertTrue( _fs.canWrite( _context , _context.getRootFile().toString() ) );
         assertTrue( _fs.canWrite( _context , _context.getRootFile().getAbsolutePath() ) );
+    }
+
+    public void testContext2(){
+        assertTrue( _fs.canRead( new AppContext( new File( "/home/yellow/foo" ) ) , "/home/yellow/foo/" ) );
+        assertTrue( _fs.canRead( new AppContext( new File( "/home/yellow/babble/../foo" ) ) , "/home/yellow/foo/" ) );
+
+        assertTrue( _fs.canRead( new AppContext( new File( "/home/yellow/foo" ) ) , "/home/yellow/foo" ) );
+        assertTrue( _fs.canRead( new AppContext( new File( "/home/yellow/babble/../foo" ) ) , "/home/yellow/foo" ) );
     }
 
     final AppContext _context;
