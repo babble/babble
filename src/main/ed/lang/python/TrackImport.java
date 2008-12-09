@@ -87,7 +87,10 @@ public class TrackImport extends PyObject {
         if( DEBUG ){
             PySystemState current = Py.getSystemState();
             PySystemState sssPy = sss.getPyState();
-            System.out.println("Overrode import importing. import " + target + " from " + __name__ + " (explicit " + explicit + ") on " + sssPy.path);
+            System.out.print("Overrode import importing. import " + target + " from " + __name__);
+            if( explicit )
+                System.out.print(" (explicit)");
+            System.out.println(" on " + sssPy.path + " at " + sssPy.getCurrentWorkingDir());
         }
 
         if( explicit ){
