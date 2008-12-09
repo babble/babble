@@ -40,11 +40,11 @@ public class RubyErbSourceTest extends ErbSourceRunner {
     }
 
     public void testJSPrintWorksInline() {
-        assertRubyEquals("foo <% $scope.print('bar') %> bletch", "foo bar bletch");
+        assertRubyEquals("foo <%= 'bar' %> bletch", "foo bar bletch");
     }
 
     public void testJSPrintRestoredAfterRun() {
-        runRuby("foo <% $scope.print('bar') %> bletch");
+        runRuby("foo <%= 'bar' %> bletch");
         assertJSEquals("print('hello, world!');", "hello, world!");
     }
 }
