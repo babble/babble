@@ -33,16 +33,18 @@ import ed.js.engine.Scope;
 public class RubyErbSource extends RubyJxpSource {
 
     /**
-     * Wraps <var>content</var> with code that turns it into an ERB template
-     * and modifies the built-in JavaScript "print" function so that it
-     * directs output to the ERB output collector.
-     * <p>
      * This is public static so it can be used separately during testing.
+     * @see {#wrap(String, String)}
      */
     public static String wrap(String content) {
         return wrap(content, "dummy_erb_file_name");
     }
 
+    /**
+     * Wraps <var>content</var> with code that turns it into an ERB template
+     * and modifies the built-in JavaScript "print" function so that it
+     * directs output to the ERB output collector.
+     */
     public static String wrap(String content, String fileName) {
         return
             "_erbout = nil\n" +
@@ -69,7 +71,7 @@ public class RubyErbSource extends RubyJxpSource {
     }
     
     /**
-     * @see {#wrap(String)}
+     * @see {#wrap(String, String)}
      */
     protected String getContent() throws IOException {
         return wrap(super.getContent(), getName());
