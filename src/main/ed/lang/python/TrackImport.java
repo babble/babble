@@ -349,8 +349,9 @@ public class TrackImport extends PyObject {
         PyObject __file__P = globals.__finditem__("__file__");
         if( __file__P instanceof PyString ){
             String __file__ = __file__P.toString();
-            if( __file__.indexOf( '/' ) != -1 )
-                __file__ = __file__.substring( 0 , __file__.lastIndexOf('/') );
+            if( __file__.indexOf( '/' ) == -1 )
+                return null;
+            __file__ = __file__.substring( 0 , __file__.lastIndexOf('/') );
             if( relativeFile( __file__ , target ) )
                 return null;
         }
