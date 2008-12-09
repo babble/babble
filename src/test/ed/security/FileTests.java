@@ -28,22 +28,23 @@ public class FileTests extends TestCase {
     public FileTests(){
         _fs = new FileSecurity();
         _context = new AppContext( new File( "src/test/samplewww" ) );
-        _context.makeThreadLocal();
+    }
 
-        System.setSecurityManager( new AppSecurityManager() );
-        AppSecurityManager.ready();
-        
-        Security.addDynamicClass( "ed.security.FileTests" );
+    public void testHome(){
+        String root = (new File(".")).getAbsolutePath().replaceAll( "[\\.\\/]+$" , "" );
+        assertTrue( _fs.canRead( _context , root ) );
+        assertTrue( _fs.canRead( _context , root + "/" ) );
+        assertFalse( _fs.canRead( _context , root.replaceAll( "/.*?$" , "" ) ) );
     }
     
     public void testUnixSystem(){
-        assertFalse( _fs.canRead( "/etc/" ) );
-        assertFalse( _fs.canRead( "/var/" ) );
+        assertFalse( _fs.canRead( _context , "/etc/" ) );
+        assertFalse( _fs.canRead( _context , "/var/" ) );
     }
-
+    
     public void testContext(){
-        assertTrue( _fs.canWrite( _context.getRootFile().toString() ) );
-        assertTrue( _fs.canWrite( _context.getRootFile().getAbsolutePath() ) );
+        assertTrue( _fs.canWrite( _context , _context.getRootFile().toString() ) );
+        assertTrue( _fs.canWrite( _context , _context.getRootFile().getAbsolutePath() ) );
     }
 
     final AppContext _context;

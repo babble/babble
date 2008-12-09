@@ -38,18 +38,17 @@ class FileSecurity {
         _logger = Logger.getLogger( "security.filesystem" );
         _javaRoot = (new File(".")).getAbsolutePath().replaceAll( "\\.$" , "" );
 
-        List<String> okRead = new ArrayList<String>();
-        List<String> okWrite = new ArrayList<String>();
-
+        List<String> okRead = new UniqueList<String>();
+        List<String> okWrite = new UniqueList<String>();
+        
+        
         okRead.add( _javaRoot );
-        okRead.add( "include" );
-        okRead.add( "build" );
-        okRead.add( "conf" );
-        okRead.add( "src" );
-        okRead.add( "." );
-        okRead.add( "/opt/java/" );
-        okWrite.add( "logs/" );        
+        
+        addLocal( okRead , okWrite , _javaRoot );
+        addLocal( okRead , okWrite , "" );
 
+        okRead.add( "/opt/java/" );
+        
         okRead.add( System.getProperty( "user.home" ) + "/.jython" );
         
         okWrite.add( WorkingFiles.getTypeDir( "jython-cache" ).getAbsolutePath() );
@@ -69,22 +68,32 @@ class FileSecurity {
             int idx = javaHome.lastIndexOf( File.separator );
             okRead.add( javaHome.substring( 0 , idx ) );
         }
+        
+        // finalize things
 
         _logger.info( "okRead : " + okRead );
         _logger.info( "okWrite : " + okWrite );
         
         _okRead = new String[okRead.size()];
         okRead.toArray( _okRead );
-
+        
         _okWrite = new String[okWrite.size()];
         okWrite.toArray( _okWrite );
 
         _jsCompileRoot = CompileUtil.getCompileSrcDir( Convert.DEFAULT_PACKAGE ).replaceAll( "/+$" , "" );
 
-
         _publicClasses = new String[_publicDirs.length];
         for ( int i=0; i<_publicDirs.length; i++ )
             _publicClasses[i] = Convert.cleanName( _publicDirs[i] );
+    }
+
+    private void addLocal( List<String> okRead , List<String> okWrite , String root ){
+        okRead.add( root + "include" );
+        okRead.add( root + "build" );
+        okRead.add( root + "conf" );
+        okRead.add( root + "src" );
+        okRead.add( root + "." );
+        okWrite.add( root + "logs/" );        
     }
 
     final boolean canRead( String file ){
@@ -95,6 +104,15 @@ class FileSecurity {
         return allowed( null , file , false );
     }
 
+    final boolean canRead( AppContext ctxt , String file ){
+        return allowed( ctxt , file , true );
+    }
+
+    final boolean canWrite( AppContext ctxt , String file ){
+        return allowed( ctxt , file , false );
+    }
+
+    
     final boolean allowed( AppContext ctxt , String file , boolean read ){
         if ( ctxt == null ){
             ctxt = AppSecurityManager._appContext();
@@ -106,11 +124,11 @@ class FileSecurity {
         
         if ( read )
             for ( int i=0; i<_okRead.length; i++ )
-                if ( file.startsWith( _okRead[i] ) )
+                if ( _issub( _okRead[i] , file ) )
                     return true;
         
         for ( int i=0; i<_okWrite.length; i++ )
-            if ( file.startsWith( _okWrite[i] ) )
+            if ( _issub( _okWrite[i] , file ) )
                 return true;
         
         for ( int i=0; i<_publicDirs.length; i++ )
@@ -152,6 +170,18 @@ class FileSecurity {
             System.err.println( "blah [" + wantSitePiece + "] [" + goodSitePiece + "]" );
         }
         
+        return false;
+    }
+
+    boolean _issub( String good , String file ){
+        if ( file.startsWith( good ) )
+            return true;
+
+        if ( good.length() == file.length() + 1 &&
+             good.startsWith( file ) &&
+             good.charAt( good.length() -1 ) == File.separatorChar )
+            return true;
+
         return false;
     }
     
