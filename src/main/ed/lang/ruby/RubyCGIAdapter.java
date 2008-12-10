@@ -22,6 +22,7 @@ import ed.appserver.AppRequest;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.io.StreamUtil;
 import ed.js.engine.Scope;
+import ed.js.JSFunction;
 import ed.appserver.adapter.cgi.CGIAdapter;
 import ed.util.Dependency;
 
@@ -48,6 +49,10 @@ public class RubyCGIAdapter extends CGIAdapter {
 
     protected InputStream getInputStream() throws IOException {
         return new FileInputStream(file);
+    }
+
+    public JSFunction getFunction() throws IOException {
+        throw new RuntimeException("PROGRAMMER ERROR : it appears that we're being invoked as JxpSource, not a CGI adapter");
     }
 
     public long lastUpdated(Set<Dependency> visitedDeps) {
