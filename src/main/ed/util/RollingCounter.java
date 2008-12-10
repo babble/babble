@@ -32,7 +32,7 @@ public class RollingCounter {
 	_name = name;
         _interval = interval;
         _slots = new Slot[intervalsBack];
-        _lastBucket = System.currentTimeMillis();
+        _lastBucket = bucket();
     }
 
     public String getName(){
@@ -179,10 +179,9 @@ public class RollingCounter {
     }
 
     final String _name;
-
-    private long _lastBucket;
-    private int _pos = 0;
-
-    private final Slot _slots[];
-    private final long _interval;
+    final long _interval;
+    final Slot _slots[];
+    
+    long _lastBucket;
+    int _pos = 0;
 }

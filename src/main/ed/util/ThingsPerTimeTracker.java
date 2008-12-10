@@ -37,7 +37,21 @@ public class ThingsPerTimeTracker {
 	_name = name;
         _interval = interval;
         _counts = new long[intervalsBack];
-        _lastBucket = System.currentTimeMillis();
+        _lastBucket = bucket();
+    }
+
+    ThingsPerTimeTracker( RollingCounter counter , String thing ){
+        _name = thing;
+        _interval = counter._interval;
+
+        _lastBucket = counter._lastBucket;
+        _pos = counter._pos;
+
+        _counts = new long[counter._slots.length];
+        for ( int i=0; i<_counts.length; i++ )
+            if ( counter._slots[i] != null )
+                _counts[i] = counter._slots[i].get( thing );
+        
     }
 
     public String getName(){
