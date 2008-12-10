@@ -41,7 +41,6 @@ class RuntimeEnvironment {
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final String APP_REQ_RUBY_RUNTIME_KEY = "ruby.runtime";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-//     static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
@@ -93,17 +92,6 @@ class RuntimeEnvironment {
         }
     }
 
-    public static synchronized Ruby getRuntimeInstance(AppRequest ar) {
-        if (ar == null)
-            return Ruby.newInstance(CONFIG);
-        Ruby r = (Ruby)ar.getAttribute(APP_REQ_RUBY_RUNTIME_KEY);
-        if (r == null) {
-            r = Ruby.newInstance(CONFIG);
-            ar.setAttribute(APP_REQ_RUBY_RUNTIME_KEY, r);
-        }
-        return r;
-    }
-
     static Node parse(String script, String filePath) {
         /* See the first part of JRuby's Ruby.executeScript(String, String). */
         byte[] bytes;
@@ -121,24 +109,13 @@ class RuntimeEnvironment {
         this.runtime = runtime;
     }
 
-    public synchronized Ruby getRuntime(Scope s) {
-        return s == null ? getRuntime((AppRequest)null) : getRuntime((AppRequest)s.get("__apprequest__"));
-    }
-
-    public synchronized Ruby getRuntime(AppRequest ar) {
-        if (runtime == null)
-            runtime = getRuntimeInstance(ar);
-        return runtime;
-    }
-
     void commonSetup(Scope s, InputStream stdin, OutputStream stdout) {
         addJSFileLibrariesToPath(s);
-        Ruby runtime = getRuntime(s);
         runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
         exposeScopeFunctions(s);
         patchRequireAndLoad(s);
         setIO(stdin, stdout);
-        disallowNewThreads(runtime);
+        disallowNewThreads();
 
         /* Create class objects that might be needed in Ruby code before ever
          * being loaded from Java. Note: could use const_missing instead. */
@@ -147,7 +124,6 @@ class RuntimeEnvironment {
 
     IRubyObject commonRun(Node node, Scope s) {
         /* See the second part of JRuby's Ruby.executeScript(String, String). */
-        Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
 
         String oldFile = context.getFile();
@@ -162,7 +138,6 @@ class RuntimeEnvironment {
     }
 
     void addCGIEnv(Scope s, EnvMap env) {
-        Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
         RubyHash envHash = (RubyHash)runtime.getObject().fastGetConstant("ENV");
         for (String key : env.keySet())
@@ -170,7 +145,6 @@ class RuntimeEnvironment {
     }
 
     void addJSFileLibrariesToPath(Scope s) {
-        Ruby runtime = getRuntime(s);
         RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
         for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
             Object val = s.get(libName);
@@ -191,7 +165,6 @@ class RuntimeEnvironment {
      * top-level functions defined in the scope.
      */
     void exposeScopeFunctions(Scope scope) {
-        Ruby runtime = getRuntime(scope);
         runtime.getGlobalVariables().set("$scope", toRuby(scope, runtime, scope));
 
         /* Creates a module named XGen, includes it in the Object class (just
@@ -203,7 +176,7 @@ class RuntimeEnvironment {
     }
 
     void patchRequireAndLoad(final Scope scope) {
-        RubyModule kernel = getRuntime(scope).getKernel();
+        RubyModule kernel = runtime.getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
                     return new Loader(scope).require(context, self, module, name, args, block);
@@ -243,7 +216,7 @@ class RuntimeEnvironment {
         gvars.set("$stderr", oldStderr);
     }
 
-    protected void disallowNewThreads(Ruby runtime) {
+    protected void disallowNewThreads() {
         JavaMethod m = new JavaMethod(runtime.getThread(), PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
                     throw context.getRuntime().newRuntimeError("Thread.new is not allowed. Use XGen::BabbleThread instead.");
