@@ -18,15 +18,21 @@
 
 package ed.util;
 
+import java.util.*;
+
 import bak.pcj.map.*;
 
 public class RollingCounter {
+
+    public RollingCounter( long interval , int intervalsBack ){
+        this( "not-named" , interval , intervalsBack );
+    }
 
     public RollingCounter( String name , long interval , int intervalsBack ){
 	_name = name;
         _interval = interval;
         _slots = new Slot[intervalsBack];
-        _lastBucket = System.currentTimeMillis();
+        _lastBucket = bucket();
     }
 
     public String getName(){
@@ -83,10 +89,14 @@ public class RollingCounter {
      * @return the number of hits on that interval
      */
     public long get( String thing , int num ){
+        return _slots[ _pos(num) ].get(thing);
+    }
+
+    private int _pos( int num ){
         int p = _pos - num;
         if ( p < 0 )
             p += _slots.length;
-        return _slots[ p ].get(thing);
+        return p;
     }
 
     /** Performs a 0-count hit */
@@ -101,6 +111,45 @@ public class RollingCounter {
 	return max;
     }
     
+    /**
+       sorts keys by total hits
+       each entry is multipled by scaler^pos.
+       so pos 0 is just itself
+       pos 1 is scaler * hit
+       pos 2 is scaler^2 * hut
+       so if you only care about the first
+       just use 0
+     */
+    public List<String> sorted( double scaler ){
+        final ObjectKeyDoubleMap map = new ObjectKeyDoubleOpenHashMap();
+
+        for ( int i=0; i<size(); i++ ){
+            Slot s = _slots[_pos(i)];
+            if ( s == null )
+                continue;
+            s.sum( map , Math.pow( scaler , i ) );
+        }
+
+        List<String> all = new ArrayList<String>();
+        for ( Object o : map.keySet() )
+            all.add( o.toString() );
+        
+        Collections.sort( all , new Comparator<String>(){
+                public int compare( String a , String b ){
+                    double av = map.get( a );
+                    double bv = map.get( b );
+                    
+                    if ( av == bv )
+                        return 0;
+
+                    return av < bv ? 1 : -1;
+                }
+            }
+            );
+
+        return all;
+    }
+
     class Slot {
         
         void hit( String thing , long count ){
@@ -117,15 +166,22 @@ public class RollingCounter {
         long get( String name ){
             return _slots.get( name );
         }
+        
+        void sum( ObjectKeyDoubleMap map , double mult ){
+            for ( Object o : _slots.keySet() ){
+                double val = map.get( o );
+                val += _slots.get( o ) * mult;
+                map.put( o , val );
+            }
+        }
 
         final ObjectKeyLongMap _slots = new ObjectKeyLongOpenHashMap();
     }
 
     final String _name;
-
-    private long _lastBucket;
-    private int _pos = 0;
-
-    private final Slot _slots[];
-    private final long _interval;
+    final long _interval;
+    final Slot _slots[];
+    
+    long _lastBucket;
+    int _pos = 0;
 }

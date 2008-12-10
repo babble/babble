@@ -34,7 +34,19 @@ import ed.appserver.*;
 
 class FileSecurity {
 
-    public FileSecurity(){
+    private static FileSecurity INSTANCE;
+
+    static synchronized FileSecurity getInstance(){
+        if ( INSTANCE == null )
+            INSTANCE = new FileSecurity();
+        return INSTANCE;
+    }
+    
+    static FileSecurity getInstanceIfCreated(){
+        return INSTANCE;
+    }
+
+    private FileSecurity(){
         _os = Machine.getOSType();
         _logger = Logger.getLogger( "security.filesystem" );
         _javaRoot = (new File(".")).getAbsolutePath().replaceAll( "\\.$" , "" );
@@ -95,6 +107,16 @@ class FileSecurity {
         okRead.add( root + "src" );
         okRead.add( root + "." );
         okWrite.add( root + "logs/" );        
+    }
+
+    final boolean canRead( AppContext context , File f ){
+        if ( context == null )
+            return true;
+
+        if ( context.getRootFile().getAbsolutePath().startsWith( f.getAbsolutePath() ) )
+            return true;
+
+        return canRead( context , f.getAbsolutePath() );
     }
 
     final boolean canRead( String file ){

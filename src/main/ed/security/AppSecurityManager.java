@@ -41,7 +41,7 @@ public final class AppSecurityManager extends SecurityManager {
 
     public AppSecurityManager(){
         _logger = Logger.getLogger( "security" );
-        _file = new FileSecurity();
+        _file = FileSecurity.getInstance();
     }
     
     public void checkPermission(Permission perm) {
@@ -214,7 +214,7 @@ public final class AppSecurityManager extends SecurityManager {
         if ( Security.inTrustedCode() )
             return;
 
-        throw new NotAllowed( "can't read [" + file + "]" );
+        throw new NotAllowed( "can't read [" + file + "] from context [" + context.getRoot() + "]" );
     }
     
     public void checkWrite(String file){

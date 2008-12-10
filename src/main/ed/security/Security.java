@@ -207,4 +207,17 @@ public class Security {
         _allowedEdEntryClasses.add( "ed.appserver.ModuleDirectory" );
         _allowedEdEntryClasses.add( "ed.security.Blessed1" ); // this is for testing, but want it here for safety
     }
+
+    // ------ File System
+    public static boolean canRead( AppContext context , File f ){
+        if ( context == null )
+            return true;
+
+        FileSecurity fs = FileSecurity.getInstanceIfCreated();
+        if ( fs == null )
+            return true;
+
+        return fs.canRead( context , f );
+    }
+
 }
