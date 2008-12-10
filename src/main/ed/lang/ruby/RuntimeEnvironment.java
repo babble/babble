@@ -104,14 +104,12 @@ class RuntimeEnvironment {
         return RuntimeEnvironment.PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
     }
 
-    RuntimeEnvironment(Scope scope, Ruby runtime) {
+    RuntimeEnvironment(Scope scope, Ruby runtime, InputStream stdin, OutputStream stdout) {
         this.scope = scope;
         if (runtime == null)
             runtime = Ruby.newInstance(CONFIG);
         this.runtime = runtime;
-    }
 
-    void commonSetup(InputStream stdin, OutputStream stdout) {
         addJSFileLibrariesToPath();
         runtime.setGlobalVariables(new ScopeGlobalVariables(scope, runtime));
         exposeScopeFunctions();
@@ -146,7 +144,7 @@ class RuntimeEnvironment {
             envHash.op_aset(context, runtime.newString(key), runtime.newString(env.get(key).toString()));
     }
 
-    void addJSFileLibrariesToPath() {
+    private void addJSFileLibrariesToPath() {
         RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
         for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
             Object val = scope.get(libName);
@@ -166,7 +164,7 @@ class RuntimeEnvironment {
      * Creates the $scope global object and sets up the XGen module with
      * top-level functions defined in the scope.
      */
-    void exposeScopeFunctions() {
+    private void exposeScopeFunctions() {
         runtime.getGlobalVariables().set("$scope", toRuby(scope, runtime, scope));
 
         /* Creates a module named XGen, includes it in the Object class (just
@@ -177,7 +175,7 @@ class RuntimeEnvironment {
         createNewClassesAndXGenMethods(scope, runtime);
     }
 
-    void patchRequireAndLoad() {
+    private void patchRequireAndLoad() {
         RubyModule kernel = runtime.getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
@@ -196,7 +194,7 @@ class RuntimeEnvironment {
      * Set Ruby's $stdin, $stdout, STDIN, and STDOUT so that reading and
      * writing go to the right place.
      */
-    protected void setIO(InputStream stdin, OutputStream stdout) {
+    private void setIO(InputStream stdin, OutputStream stdout) {
         GlobalVariables gvars = runtime.getGlobalVariables();
 
         /* Ignore warnings about redefining STDIN and STDOUT by sending
@@ -218,7 +216,7 @@ class RuntimeEnvironment {
         gvars.set("$stderr", oldStderr);
     }
 
-    protected void disallowNewThreads() {
+    private void disallowNewThreads() {
         JavaMethod m = new JavaMethod(runtime.getThread(), PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
                     throw context.getRuntime().newRuntimeError("Thread.new is not allowed. Use XGen::BabbleThread instead.");

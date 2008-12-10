@@ -68,9 +68,8 @@ public class RubyCGIAdapter extends CGIAdapter {
     }
 
     public void handleCGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
-        RuntimeEnvironment runenv = new RuntimeEnvironment(ar.getScope(), null);
+        RuntimeEnvironment runenv = new RuntimeEnvironment(ar.getScope(), null, stdin, stdout);
         runenv.addCGIEnv(env);
-        runenv.commonSetup(stdin, stdout);
         try {
             runenv.commonRun(getAST());
         }
