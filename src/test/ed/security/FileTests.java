@@ -26,7 +26,7 @@ import ed.appserver.*;
 public class FileTests extends TestCase {
 
     public FileTests(){
-        _fs = new FileSecurity();
+        _fs = FileSecurity.getInstance();
         _context = new AppContext( new File( "src/test/samplewww" ) );
     }
 
