@@ -21,6 +21,7 @@ package ed.security;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 import java.security.*;
 
 import ed.io.*;
@@ -33,7 +34,19 @@ import ed.appserver.*;
 
 class FileSecurity {
 
-    public FileSecurity(){
+    private static FileSecurity INSTANCE;
+
+    static synchronized FileSecurity getInstance(){
+        if ( INSTANCE == null )
+            INSTANCE = new FileSecurity();
+        return INSTANCE;
+    }
+    
+    static FileSecurity getInstanceIfCreated(){
+        return INSTANCE;
+    }
+
+    private FileSecurity(){
         _os = Machine.getOSType();
         _logger = Logger.getLogger( "security.filesystem" );
         _javaRoot = (new File(".")).getAbsolutePath().replaceAll( "\\.$" , "" );
@@ -96,6 +109,16 @@ class FileSecurity {
         okWrite.add( root + "logs/" );        
     }
 
+    final boolean canRead( AppContext context , File f ){
+        if ( context == null )
+            return true;
+
+        if ( context.getRootFile().getAbsolutePath().startsWith( f.getAbsolutePath() ) )
+            return true;
+
+        return canRead( context , f.getAbsolutePath() );
+    }
+
     final boolean canRead( String file ){
         return allowed( null , file , true );
     }
@@ -120,8 +143,6 @@ class FileSecurity {
                 return true;
         }
         
-        final String ctxtRoot = ctxt.getRoot();
-        
         if ( read )
             for ( int i=0; i<_okRead.length; i++ )
                 if ( _issub( _okRead[i] , file ) )
@@ -135,18 +156,9 @@ class FileSecurity {
             if ( file.contains( _publicDirs[i] ) )
                 return true;
         
-        if ( file.startsWith( ctxtRoot ) )
+        if ( _checkInContext( ctxt.getRoot() , file ) || 
+             _checkInContext( ctxt.getRootFile().getAbsolutePath() , file ) )
             return true;
-        
-        if ( ctxtRoot.startsWith( file ) && 
-             ctxtRoot.length() - file.length() <= 1 && 
-             ctxtRoot.endsWith( "/" ) )
-            return true;
-
-        if ( file.contains( ctxtRoot ) ){
-            if ( file.startsWith( _javaRoot + ctxtRoot ) )
-                return true;
-        }
         
         if ( file.startsWith( _jsCompileRoot ) ){
             String wantSitePiece = file.substring( _jsCompileRoot.length() );
@@ -163,7 +175,7 @@ class FileSecurity {
                 if ( wantSitePiece.contains( _publicClasses[i] ) )
                     return true;
             
-            String goodSitePiece = Convert.cleanName( ctxtRoot );
+            String goodSitePiece = Convert.cleanName( ctxt.getRoot() );
             if ( wantSitePiece.startsWith( goodSitePiece ) )
                 return true;
 
@@ -173,16 +185,48 @@ class FileSecurity {
         return false;
     }
 
-    boolean _issub( String good , String file ){
-        if ( file.startsWith( good ) )
+    boolean _checkInContext( final String rawContextRoot , final String file ){
+        final String ctxtRoot;
+        {
+            String root = _cleanBack( rawContextRoot );
+            if ( ! root.endsWith( "/" ) ){
+                // this is so you can't have one site with ab and one with a and have a hole
+                root += "/";
+            }
+            ctxtRoot = root;
+        }
+
+        if ( _issub( ctxtRoot , file ) )
             return true;
 
+        if ( file.contains( ctxtRoot ) ){
+            if ( file.startsWith( _javaRoot + ctxtRoot ) )
+                return true;
+        }
+
+        return false;
+    }
+
+    static boolean _issub( String good , String file ){
+        if ( file.startsWith( good ) )
+            return true;
+        
         if ( good.length() == file.length() + 1 &&
              good.startsWith( file ) &&
              good.charAt( good.length() -1 ) == File.separatorChar )
             return true;
 
         return false;
+    }
+
+    static String _cleanBack( String file ){
+
+        while ( true ){
+            int before = file.length();
+            file = _subdirPattern.matcher( file ).replaceAll( "/" );
+            if ( file.length() == before )
+                return file;
+        }
     }
     
     final String[] _okRead;
@@ -194,4 +238,6 @@ class FileSecurity {
 
     final String[] _publicDirs = new String[]{ "/corejs/" , "/external/" , "/core-modules/" , "/site-modules/" , "src/main/ed/" }; // site-modules is special
     final String[] _publicClasses;   
+
+    final static Pattern _subdirPattern = Pattern.compile( "/[^/]+/\\.\\./" );
 }

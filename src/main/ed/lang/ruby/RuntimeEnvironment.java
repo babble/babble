@@ -16,7 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.io.*;
 import java.util.*;
 
@@ -29,7 +28,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.appserver.AppContext;
+import ed.appserver.AppRequest;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.js.JSFunction;
@@ -40,9 +39,9 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 class RuntimeEnvironment {
 
     public static final String XGEN_MODULE_NAME = "XGen";
+    public static final String APP_REQ_RUBY_RUNTIME_KEY = "ruby.runtime";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-    static final Map<AppContext, WeakReference<Ruby>> runtimes = new WeakHashMap<AppContext, WeakReference<Ruby>>();
-    static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
+//     static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
@@ -94,26 +93,24 @@ class RuntimeEnvironment {
         }
     }
 
-    public static synchronized Ruby getRuntimeInstance(AppContext ac) {
-        if (ac == null)
+    public static synchronized Ruby getRuntimeInstance(AppRequest ar) {
+        if (ar == null)
             return Ruby.newInstance(config);
-        WeakReference<Ruby> ref = null;
-        ref = runtimes.get(ac);
-        if (ref == null) {
-            Ruby runtime = Ruby.newInstance(config);
-            runtimes.put(ac, ref = new WeakReference<Ruby>(runtime));
+        Ruby r = (Ruby)ar.getAttribute(APP_REQ_RUBY_RUNTIME_KEY);
+        if (r == null) {
+            r = Ruby.newInstance(config);
+            ar.setAttribute(APP_REQ_RUBY_RUNTIME_KEY, r);
         }
-        return ref.get();
+        return r;
     }
 
-    public static synchronized void forgetRuntimeInstance(AppContext ac) {
-        if (ac != null) {
-            WeakReference<Ruby> ref = runtimes.remove(ac);
-            if (ref != null) {
-                Ruby runtime = ref.get();
-                Loader.removeLoadedFiles(runtime);
-            }
-        }
+    public static synchronized void forgetRuntimeInstance(AppRequest ar) {
+        if (ar == null)
+            return;
+        Ruby r = (Ruby)ar.getAttribute(APP_REQ_RUBY_RUNTIME_KEY);
+        ar.setAttribute(APP_REQ_RUBY_RUNTIME_KEY, null);
+        if (r != null)
+            Loader.removeLoadedFiles(r);
     }
 
     RuntimeEnvironment(Ruby runtime) {
@@ -121,25 +118,23 @@ class RuntimeEnvironment {
     }
 
     public synchronized Ruby getRuntime(Scope s) {
-        return s == null ? getRuntime((AppContext)null) : getRuntime((AppContext)s.get("__instance__"));
+        return s == null ? getRuntime((AppRequest)null) : getRuntime((AppRequest)s.get("__apprequest__"));
     }
 
-    public synchronized Ruby getRuntime(AppContext ac) {
+    public synchronized Ruby getRuntime(AppRequest ar) {
         if (runtime == null)
-            runtime = getRuntimeInstance(ac);
+            runtime = getRuntimeInstance(ar);
         return runtime;
     }
 
     void forgetRuntime(Scope s) {
         runtime = null;
         if (s != null)
-            forgetRuntimeInstance((AppContext)s.get("__instance__"));
+            forgetRuntimeInstance((AppRequest)s.get("__apprequest__"));
     }
 
     void commonSetup(Scope s, InputStream stdin, OutputStream stdout) {
-        resetOnFileChange(s);
         addJSFileLibrariesToPath(s);
-
         Ruby runtime = getRuntime(s);
         runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
         exposeScopeFunctions(s);
@@ -270,56 +265,4 @@ class RuntimeEnvironment {
         runtime.getThread().addModuleFunction("new", m);
         runtime.getThread().addModuleFunction("fork", m);
     }
-
-    /**
-     * Resets runtime if any local file changed. This is a simple, dumb,
-     * stupid way of making sure that files are re-required if they changed.
-     * <p>
-     * What we really want is a way to find out which file is really required
-     * by "require 'foo'" so we can check at the time of the require instead
-     * of up front for all files. There is no way to find 'foo' now without a
-     * change to JRuby (which I'm working on).
-     */    
-    private void resetOnFileChange(Scope s) {
-        return;
-        /* This code is commented out for now because when run against an app
-         * with 1,000 froze Rails files, calling anyLocalFileChanged for
-         * every request is too slow. */
-//         if (anyLocalFileChanged(s)) {
-//             if (DEBUG)
-//                 System.err.println("new file or file mod time changed; resetting Ruby runtime");
-//             forgetRuntime(s);
-//         }
-    }
-
-    /* This code is commented out for now because when run against an app with
-     * 1,000 froze Rails files, doing this for every request is too slow. */
-//     private boolean anyLocalFileChanged(Scope s) {
-//         return false;
-//         if (s == null)
-//             return false;
-//         JSFileLibrary lib = (JSFileLibrary)s.get("local");
-//         if (lib == null)
-//             return false;
-//         synchronized (localFileLastModTimes) {
-//             return anyLocalFileChanged(lib.getRoot(), false);
-//         }
-//     }
-
-//     private boolean anyLocalFileChanged(File dir, boolean changed) {
-//         for (File f : dir.listFiles()) {
-//             if (f.isDirectory())
-//                 changed = anyLocalFileChanged(f, changed);
-//             else {
-//                 String path = f.getPath();
-//                 Long newModTime = new Long(f.lastModified());
-//                 Long oldModTime = localFileLastModTimes.get(path);
-//                 if (oldModTime == null || !oldModTime.equals(newModTime)) {
-//                     changed = true;
-//                     localFileLastModTimes.put(path, newModTime);
-//                 }
-//             }
-//         }
-//         return changed;
-//     }
 }
