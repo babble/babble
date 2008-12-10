@@ -174,19 +174,7 @@ public class SiteSystemState implements Sizable {
 
     void checkBrokenSystemRestart(){
         if( _systemrestart.SystemRestart == null ){
-            PyDictionary globals = new PyDictionary();
-            globals.__setitem__("__name__" , Py.newString( "" ) );
-            PyFrame oldFrame = Py.getFrame();
-            try {
-                Py.setFrame(new PyFrame(null, globals, globals, PySystemState.builtins));
-                PyDictionary d = new PyDictionary();
-                d.__setitem__( "classDictInit", Py.None);
-                _systemrestart.classDictInit(d);
-                System.out.println("Jython's SystemRestart exception is now " + _systemrestart.SystemRestart);
-            }
-            finally {
-                Py.setFrame(oldFrame);
-            }
+            _systemrestart.SystemRestart = Py.KeyboardInterrupt; // HA HA HA
         }
     }
 
