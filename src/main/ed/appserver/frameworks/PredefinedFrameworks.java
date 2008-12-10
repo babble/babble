@@ -5,6 +5,7 @@ import ed.js.JSObjectBase;
 import ed.js.JSArray;
 import ed.js.JSObject;
 import ed.js.JSDict;
+import ed.js.JSString;
 import ed.io.StreamUtil;
 import ed.appserver.AppContext;
 import ed.appserver.adapter.AdapterType;
@@ -13,6 +14,8 @@ import ed.log.Level;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +31,7 @@ public class PredefinedFrameworks {
     public final static String ADAPTER_TYPE = "adapterType";
     public final static String PACKAGES = "packages";
     public final static String INIT_FILE = "initFile";
+    public final static String INIT_DEPENDENCIES = "initDependencies";
     public final static String MODULE = "module";
     public final static String PATH = "path";
     public final static String NAME = "name";
@@ -78,13 +82,13 @@ public class PredefinedFrameworks {
     public Framework getFramework(String name, String version) {
 
         final String lowerName = name.toLowerCase();
-        
+
         AE ae = _map.get(lowerName);
 
         if (ae == null) {
             throw new RuntimeException("Error : specified known framework not defined : " + name);
         }
-        
+
         if (version == null || version.equals("")) {
             version = ae.getDefaultVersion();
         }
@@ -145,7 +149,7 @@ public class PredefinedFrameworks {
         }
 
         /*
-         *  finally, if there's an init file specified, give it a try...
+         *  if there's an init file specified, give it a try...
          */
 
         if (env._initFile != null && !env._initFile.equals("")) {
@@ -155,8 +159,24 @@ public class PredefinedFrameworks {
                 throw new RuntimeException(e);
             }
         }
+
+        /*
+         * setup any additional init dependencies (files that will cause the
+         * init sequence to be rerun when changed)
+         */
+        for (String dependency : env._initDependencies) {
+            try {
+                File dep = context.getFile(dependency);
+                if (!dep.exists()) {
+                    throw new FileNotFoundException();
+                }
+                context.addInitDependency(context.getFile(dependency));
+            } catch (FileNotFoundException e) {
+                context.getLogger("frameworks").warn("init dependency not found : " + dependency);
+            }
+        }
     }
-    
+
     /**
      *  Do basic document validation.  Must be of a known format version, and have
      *  environments defined, and they be valid environments
@@ -182,7 +202,7 @@ public class PredefinedFrameworks {
      *
      *  Requires that the env defined a defaultVersion, and contains at
      *  least the default version in it's version list
-     * 
+     *
      * @param env app environment to validate
      * @return fulled AE object
      * @throws Exception if anything amiss
@@ -209,7 +229,7 @@ public class PredefinedFrameworks {
 
     /**
      *  Creates an evn object from specific env-version information
-     * 
+     *
      * @param verobj object w/ version env info
      * @return  Env object containing version specific environment info
      */
@@ -223,6 +243,13 @@ public class PredefinedFrameworks {
         assert(ver._adapterType != null);
 
         ver._initFile = verobj.getAsString(INIT_FILE);
+
+        JSArray initDeps = (JSArray) verobj.get(INIT_DEPENDENCIES);
+        if (initDeps != null) {
+            for (int i = 0; i < initDeps.size(); i++) {
+                ver._initDependencies.add(((JSString)initDeps.get(i)).toString());
+            }
+        }
 
         JSArray arr = (JSArray) verobj.get(PACKAGES);
 
@@ -308,6 +335,7 @@ public class PredefinedFrameworks {
         String _version;
         String _initFile;
         List<Package> _packages= new ArrayList<Package>();
+        List<String> _initDependencies = new ArrayList<String>();
 
         public String toString() {
             String s = "ver=" + _version + " adapter=" + _adapterType;
