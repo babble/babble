@@ -24,6 +24,7 @@ import java.util.*;
 
 import org.python.core.*;
 import org.python.modules.zipimport.*;
+import org.python.modules._systemrestart;
 
 import ed.appserver.*;
 import ed.log.*;
@@ -92,6 +93,8 @@ public class SiteSystemState implements Sizable {
         replaceOutput();
         ensurePath( PYTHON_LIB , 0 );
         setupModules();
+
+        checkBrokenSystemRestart();
 
         // Careful -- this is static PySystemState.builtins. We modify
         // it once to intercept imports for all sites. TrackImport
@@ -166,6 +169,12 @@ public class SiteSystemState implements Sizable {
                 path_hooks.__delitem__( Py.newInteger( i ) );
                 return;
             }
+        }
+    }
+
+    void checkBrokenSystemRestart(){
+        if( _systemrestart.SystemRestart == null ){
+            _systemrestart.SystemRestart = Py.KeyboardInterrupt; // HA HA HA
         }
     }
 
