@@ -38,23 +38,13 @@ public class SMTP {
 
     public SMTP() {}
 
-    public SMTP( String to, String subject, String message ) {
-        setEmail( to, subject, message );
-    }
-
     /**
      * Simple message sender.  Uses whatever parameters have been set.
+     * Identical to send()
      */
     public void sendMessage( String to, String subject, String message ) 
         throws MessagingException {
-        setEmail( to, subject, message);
-        send();
-    }
-
-    public void setEmail( String to, String subject, String message ) {
-        setTo( to );
-        setSubject( subject );
-        setMessage( message );
+        send( to, subject, message );
     }
 
     public void setFrom( String from ) { 
@@ -68,10 +58,6 @@ public class SMTP {
         setSSL( true );
         setPort( 465 );
         setServer( "smtp.gmail.com" );
-    }
-
-    public void setMessage( String m ) { 
-        email.get()._text = m; 
     }
 
     public void setPassword( String p ) { 
@@ -98,26 +84,17 @@ public class SMTP {
             _props.remove( "mail.smtp.socketFactory.class" );
     }
 
-    public void setSubject( String subject ) { 
-        email.get()._subject = subject; 
-    }
-
-    public void setTo( String to ) { 
-        email.get()._toEmail = to; 
-    }
-
     public void setUsername( String u ) { 
         _username = u; 
     }
 
-    private void _setter() 
+    private void _setter( String to, String subject, String text ) 
         throws MessagingException {
-        Email m = email.get();
-        if( m._toEmail == null || m._toEmail.equals( "" ) ) 
+        if( to == null || to.equals( "" ) ) 
             throw new RuntimeException( "no to address given, unable to send" );
-        if( m._subject == null || m._subject.equals( "" ) )
+        if( subject == null || subject.equals( "" ) )
             System.out.println( "Warning: email has no subject line" );
-        if( m._text == null || m._text.equals( "" ) )
+        if( text == null || text.equals( "" ) )
             System.out.println( "Warning: email has no body" );
 
         setProperty( "mail.smtp.host" , _server );
@@ -127,24 +104,26 @@ public class SMTP {
         _session = MailUtil.createSession( _props , _username, _password );
         _message = new SMTPMessage( _session );
 
-        _message.setEnvelopeFrom( _fromEmail );
-        _message.setSubmitter( _fromEmail );
-        _message.setFrom( new InternetAddress( _fromEmail ) );
-        _message.setSender( new InternetAddress( _fromEmail ) );
+        if( _fromEmail != null && !_fromEmail.equals( "" ) ) {
+            _message.setEnvelopeFrom( _fromEmail );
+            _message.setSubmitter( _fromEmail );
+            _message.setFrom( new InternetAddress( _fromEmail ) );
+            _message.setSender( new InternetAddress( _fromEmail ) );
+        }
 
-        _message.setRecipient( Message.RecipientType.TO, new InternetAddress( m._toEmail ) );
+        _message.setRecipient( Message.RecipientType.TO, new InternetAddress( to ) );
 
-        _message.setSubject( m._subject );
-        _message.setText( m._text );
+        _message.setSubject( subject );
+        _message.setText( text );
     }
 
     /**
      * Sends a message using whatever parameters have been set.
      */
-    private void send() 
+    private void send( String to, String subject, String message ) 
         throws MessagingException {
 
-        _setter();
+        _setter( to, subject, message );
 
         if( _ssl ) 
             SMTPSSLTransport.send( _message );
@@ -164,18 +143,6 @@ public class SMTP {
     private Session _session;
     private SMTPMessage _message;
     private Properties _props = new Properties( SMTP.permaProps );
-
-    private class Email {
-        protected String _toEmail = "";
-        protected String _subject = "";
-        protected String _text = "";
-    }
-
-    private ThreadLocal<Email> email = new ThreadLocal<Email>() {
-        protected Email initialValue() {
-            return new Email();
-        }
-    };
 
     public static Properties permaProps = new Properties();
     static {
