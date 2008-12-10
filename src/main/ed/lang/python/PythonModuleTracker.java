@@ -167,7 +167,7 @@ public class PythonModuleTracker extends PyStringMap {
                 root = Py.getSystemState().getCurrentWorkingDir();
             pyFile = new File( root , pyFile.toString() );
         }
-        String clsPath = filename.replace( ".py" , "$py.class" );
+        String clsPath = pyFile.getPath().replace( ".py" , "$py.class" );
         // Compiled class file -- might not exist
         File clsFile = new File( clsPath );
 
