@@ -49,7 +49,7 @@ class RuntimeEnvironment {
     static final Collection<String> DO_NOT_LOAD_FUNCS;
     // TODO for now, we just add the local site dir to the load path
     static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local" /* , "core", "external" */};
-    static final RubyInstanceConfig config = new RubyInstanceConfig();
+    static final RubyInstanceConfig CONFIG = new RubyInstanceConfig();
 
     static {
         DO_NOT_LOAD_FUNCS = new ArrayList<String>();
@@ -95,25 +95,29 @@ class RuntimeEnvironment {
 
     public static synchronized Ruby getRuntimeInstance(AppRequest ar) {
         if (ar == null)
-            return Ruby.newInstance(config);
+            return Ruby.newInstance(CONFIG);
         Ruby r = (Ruby)ar.getAttribute(APP_REQ_RUBY_RUNTIME_KEY);
         if (r == null) {
-            r = Ruby.newInstance(config);
+            r = Ruby.newInstance(CONFIG);
             ar.setAttribute(APP_REQ_RUBY_RUNTIME_KEY, r);
         }
         return r;
     }
 
-    public static synchronized void forgetRuntimeInstance(AppRequest ar) {
-        if (ar == null)
-            return;
-        Ruby r = (Ruby)ar.getAttribute(APP_REQ_RUBY_RUNTIME_KEY);
-        ar.setAttribute(APP_REQ_RUBY_RUNTIME_KEY, null);
-        if (r != null)
-            Loader.removeLoadedFiles(r);
+    static Node parse(String script, String filePath) {
+        /* See the first part of JRuby's Ruby.executeScript(String, String). */
+        byte[] bytes;
+        try {
+            bytes = script.getBytes(KCode.NONE.getKCode());
+        } catch (UnsupportedEncodingException e) {
+            bytes = script.getBytes();
+        }
+        return RuntimeEnvironment.PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
     }
 
     RuntimeEnvironment(Ruby runtime) {
+        if (runtime == null)
+            runtime = Ruby.newInstance(CONFIG);
         this.runtime = runtime;
     }
 
@@ -125,12 +129,6 @@ class RuntimeEnvironment {
         if (runtime == null)
             runtime = getRuntimeInstance(ar);
         return runtime;
-    }
-
-    void forgetRuntime(Scope s) {
-        runtime = null;
-        if (s != null)
-            forgetRuntimeInstance((AppRequest)s.get("__apprequest__"));
     }
 
     void commonSetup(Scope s, InputStream stdin, OutputStream stdout) {
@@ -161,17 +159,6 @@ class RuntimeEnvironment {
             context.setFile(oldFile);
             context.setLine(oldLine);
         }
-    }
-
-    Node parse(String script, String filePath) {
-        /* See the first part of JRuby's Ruby.executeScript(String, String). */
-        byte[] bytes;
-        try {
-            bytes = script.getBytes(KCode.NONE.getKCode());
-        } catch (UnsupportedEncodingException e) {
-            bytes = script.getBytes();
-        }
-        return RuntimeEnvironment.PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
     }
 
     void addCGIEnv(Scope s, EnvMap env) {
