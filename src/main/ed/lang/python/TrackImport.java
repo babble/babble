@@ -339,6 +339,9 @@ public class TrackImport extends PyObject {
         // check foo.moo.boo.zoo and try that
         if( globals == null || globals == Py.None ) return null;
 
+        int period = __name__.indexOf('.');
+        if( period == -1 ) return null;
+
         PyObject __path__P = globals.__finditem__("__path__");
         if( __path__P instanceof PyList ){
             String __path__ = ((PyList)__path__P).get(0).toString();
@@ -355,9 +358,6 @@ public class TrackImport extends PyObject {
             if( relativeFile( __file__ , target ) )
                 return null;
         }
-
-        int period = __name__.indexOf('.');
-        if( period == -1 ) return null;
 
         String fooName = __name__.substring( 0 , period );
         for( JSLibrary key : sss._loaded.keySet() ){

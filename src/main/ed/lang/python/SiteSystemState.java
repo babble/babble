@@ -23,6 +23,7 @@ import java.io.*;
 import java.util.*;
 
 import org.python.core.*;
+import org.python.modules.zipimport.*;
 
 import ed.appserver.*;
 import ed.log.*;
@@ -87,6 +88,7 @@ public class SiteSystemState implements Sizable {
         ensureMetaPathHook( pyState , s );
         ensurePathHook( pyState , s );
         ensurePath( COREMODULES_STRING );
+        removeZipImporter();
         replaceOutput();
         ensurePath( PYTHON_LIB , 0 );
         setupModules();
@@ -150,6 +152,18 @@ public class SiteSystemState implements Sizable {
             PyObject p = path.pyget( i );
             if( p instanceof PyString && p.toString().equals( myPath ) ){
                 path.__delitem__( Py.newInteger( i ) );
+                return;
+            }
+        }
+    }
+
+    void removeZipImporter(){
+        PyList path_hooks = pyState.path_hooks;
+        int len = path_hooks.__len__();
+        for(int i = 0; i < len; i++){
+            PyObject p = path_hooks.pyget(i);
+            if( p == zipimporter.TYPE ){
+                path_hooks.__delitem__( Py.newInteger( i ) );
                 return;
             }
         }
