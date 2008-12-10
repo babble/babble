@@ -60,13 +60,12 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
-        RuntimeEnvironment runenv = new RuntimeEnvironment(predefinedRuntime);
+        RuntimeEnvironment runenv = new RuntimeEnvironment(s, predefinedRuntime);
         HttpRequest request = (HttpRequest)s.get("request");
         HttpResponse response = (HttpResponse)s.get("response");
-        runenv.commonSetup(s,
-                           request == null ? null : request.getInputStream(),
+        runenv.commonSetup(request == null ? null : request.getInputStream(),
                            response == null ? null : response.getOutputStream());
-        return runenv.commonRun(node, s);
+        return runenv.commonRun(node);
     }
 
     protected synchronized Node getAST() throws IOException {

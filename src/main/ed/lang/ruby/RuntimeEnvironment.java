@@ -64,6 +64,7 @@ class RuntimeEnvironment {
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
 
+    protected Scope scope;
     protected Ruby runtime;
 
     /**
@@ -103,17 +104,18 @@ class RuntimeEnvironment {
         return RuntimeEnvironment.PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
     }
 
-    RuntimeEnvironment(Ruby runtime) {
+    RuntimeEnvironment(Scope scope, Ruby runtime) {
+        this.scope = scope;
         if (runtime == null)
             runtime = Ruby.newInstance(CONFIG);
         this.runtime = runtime;
     }
 
-    void commonSetup(Scope s, InputStream stdin, OutputStream stdout) {
-        addJSFileLibrariesToPath(s);
-        runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
-        exposeScopeFunctions(s);
-        patchRequireAndLoad(s);
+    void commonSetup(InputStream stdin, OutputStream stdout) {
+        addJSFileLibrariesToPath();
+        runtime.setGlobalVariables(new ScopeGlobalVariables(scope, runtime));
+        exposeScopeFunctions();
+        patchRequireAndLoad();
         setIO(stdin, stdout);
         disallowNewThreads();
 
@@ -122,7 +124,7 @@ class RuntimeEnvironment {
         RubyObjectIdWrapper.getObjectIdClass(runtime);
     }
 
-    IRubyObject commonRun(Node node, Scope s) {
+    IRubyObject commonRun(Node node) {
         /* See the second part of JRuby's Ruby.executeScript(String, String). */
         ThreadContext context = runtime.getCurrentContext();
 
@@ -137,17 +139,17 @@ class RuntimeEnvironment {
         }
     }
 
-    void addCGIEnv(Scope s, EnvMap env) {
+    void addCGIEnv(EnvMap env) {
         ThreadContext context = runtime.getCurrentContext();
         RubyHash envHash = (RubyHash)runtime.getObject().fastGetConstant("ENV");
         for (String key : env.keySet())
             envHash.op_aset(context, runtime.newString(key), runtime.newString(env.get(key).toString()));
     }
 
-    void addJSFileLibrariesToPath(Scope s) {
+    void addJSFileLibrariesToPath() {
         RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
         for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
-            Object val = s.get(libName);
+            Object val = scope.get(libName);
             if (!(val instanceof JSFileLibrary))
                 continue;
             File root = ((JSFileLibrary)val).getRoot();
@@ -164,7 +166,7 @@ class RuntimeEnvironment {
      * Creates the $scope global object and sets up the XGen module with
      * top-level functions defined in the scope.
      */
-    void exposeScopeFunctions(Scope scope) {
+    void exposeScopeFunctions() {
         runtime.getGlobalVariables().set("$scope", toRuby(scope, runtime, scope));
 
         /* Creates a module named XGen, includes it in the Object class (just
@@ -175,7 +177,7 @@ class RuntimeEnvironment {
         createNewClassesAndXGenMethods(scope, runtime);
     }
 
-    void patchRequireAndLoad(final Scope scope) {
+    void patchRequireAndLoad() {
         RubyModule kernel = runtime.getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
