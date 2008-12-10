@@ -36,7 +36,7 @@ public class RubyLanguage extends Language {
 
     static class RubyShellSource extends RubyJxpSource {
 
-        static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.config);
+        static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.CONFIG);
 
         protected String _code;
         RubyShellSource(String code) {
