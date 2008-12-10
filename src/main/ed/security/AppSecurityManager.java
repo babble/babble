@@ -41,7 +41,7 @@ public final class AppSecurityManager extends SecurityManager {
 
     public AppSecurityManager(){
         _logger = Logger.getLogger( "security" );
-        _file = new FileSecurity();
+        _file = FileSecurity.getInstance();
     }
     
     public void checkPermission(Permission perm) {
