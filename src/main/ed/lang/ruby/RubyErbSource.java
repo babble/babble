@@ -20,10 +20,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.jruby.Ruby;
-import org.jruby.ast.Node;
-import org.jruby.runtime.builtin.IRubyObject;
-
-import ed.js.engine.Scope;
 
 /**
  * Handles .erb and .rhtml files by turning the file into an ERB template.
