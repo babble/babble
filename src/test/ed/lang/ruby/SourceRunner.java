@@ -40,11 +40,12 @@ class TestRubyJxpSource extends RubyJxpSource {
     protected String getContent() { return _content; }
     protected Node getAST() throws IOException { return parseContent("fake_file_path"); }
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
+        RuntimeEnvironment runenv = new RuntimeEnvironment(s, predefinedRuntime);
         _writer = new JxpWriter.Basic();
-        runenv.commonSetup(s, null, new OutputStream() {
+        runenv.commonSetup(null, new OutputStream() {
                 public void write(int b) { _writer.write(b); }
             });
-        return runenv.commonRun(node, s);
+        return runenv.commonRun(node);
     }
     protected String getOutput() { return _writer.getContent(); }
 }

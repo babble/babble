@@ -30,21 +30,27 @@ import ed.net.httpserver.HttpResponse;
 
 public class RubyJxpSource extends JxpSource.JxpFileSource {
 
-    protected RuntimeEnvironment runenv;
     protected Node node;
     protected long lastCompile;
+    protected Ruby predefinedRuntime;
 
     public RubyJxpSource(File f) {
         this(f, null);
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(File f, Ruby runtime) {
+    protected RubyJxpSource(File f, Ruby predefinedRuntime) {
         super(f);
-        runenv = new RuntimeEnvironment(runtime);
+        this.predefinedRuntime = predefinedRuntime;
     }
 
-    public Ruby getRuntime(Scope s) { return runenv.getRuntime(s); }
+//     public Ruby getRuntime(Scope s) {
+//         if (predefinedRuntime != null)
+//             return predefinedRuntime;
+//         if (runenv == null)
+//             return null;
+//         return runenv.getRuntime(s);
+//     }
 
     public JSFunction getFunction() throws IOException {
         final Node node = getAST();
@@ -54,12 +60,12 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
+        RuntimeEnvironment runenv = new RuntimeEnvironment(s, predefinedRuntime);
         HttpRequest request = (HttpRequest)s.get("request");
         HttpResponse response = (HttpResponse)s.get("response");
-        runenv.commonSetup(s,
-                           request == null ? null : request.getInputStream(),
+        runenv.commonSetup(request == null ? null : request.getInputStream(),
                            response == null ? null : response.getOutputStream());
-        return runenv.commonRun(node, s);
+        return runenv.commonRun(node);
     }
 
     protected synchronized Node getAST() throws IOException {
@@ -72,6 +78,6 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     }
 
     protected Node parseContent(String filePath) throws IOException {
-        return runenv.parse(getContent(), filePath);
+        return RuntimeEnvironment.parse(getContent(), filePath);
     }
 }
