@@ -28,7 +28,6 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.appserver.AppRequest;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.js.JSFunction;

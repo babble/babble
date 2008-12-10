@@ -21,7 +21,6 @@ import org.jruby.ast.Node;
 import ed.appserver.AppRequest;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.io.StreamUtil;
-import ed.js.engine.Scope;
 import ed.js.JSFunction;
 import ed.appserver.adapter.cgi.CGIAdapter;
 import ed.util.Dependency;
