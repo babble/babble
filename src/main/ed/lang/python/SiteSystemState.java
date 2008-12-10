@@ -24,6 +24,7 @@ import java.util.*;
 
 import org.python.core.*;
 import org.python.modules.zipimport.*;
+import org.python.modules._systemrestart;
 
 import ed.appserver.*;
 import ed.log.*;
@@ -92,6 +93,8 @@ public class SiteSystemState implements Sizable {
         replaceOutput();
         ensurePath( PYTHON_LIB , 0 );
         setupModules();
+
+        checkBrokenSystemRestart();
 
         // Careful -- this is static PySystemState.builtins. We modify
         // it once to intercept imports for all sites. TrackImport
@@ -165,6 +168,24 @@ public class SiteSystemState implements Sizable {
             if( p == zipimporter.TYPE ){
                 path_hooks.__delitem__( Py.newInteger( i ) );
                 return;
+            }
+        }
+    }
+
+    void checkBrokenSystemRestart(){
+        if( _systemrestart.SystemRestart == null ){
+            PyDictionary globals = new PyDictionary();
+            globals.__setitem__("__name__" , Py.newString( "" ) );
+            PyFrame oldFrame = Py.getFrame();
+            try {
+                Py.setFrame(new PyFrame(null, globals, globals, PySystemState.builtins));
+                PyDictionary d = new PyDictionary();
+                d.__setitem__( "classDictInit", Py.None);
+                _systemrestart.classDictInit(d);
+                System.out.println("Jython's SystemRestart exception is now " + _systemrestart.SystemRestart);
+            }
+            finally {
+                Py.setFrame(oldFrame);
             }
         }
     }
