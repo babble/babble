@@ -214,7 +214,7 @@ public final class AppSecurityManager extends SecurityManager {
         if ( Security.inTrustedCode() )
             return;
 
-        throw new NotAllowed( "can't read [" + file + "]" );
+        throw new NotAllowed( "can't read [" + file + "] from context [" + context.getRoot() + "]" );
     }
     
     public void checkWrite(String file){
