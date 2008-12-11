@@ -69,6 +69,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         this( null , base , uriBase , null , scope , INIT_BY_DEFAULT );
     }
 
+    public JSFileLibrary( File base , String uriBase , Scope scope , boolean doInit ){
+        this( null , base , uriBase , null , scope , doInit );
+    }
+
     protected JSFileLibrary( JSFileLibrary parent , File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
 
 

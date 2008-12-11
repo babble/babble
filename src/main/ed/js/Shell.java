@@ -136,7 +136,7 @@ public class Shell {
 
         s.put( "core" , CoreJS.get().getLibrary( null , null , s , false ) , true );
         s.put( "external" , Module.getModule( "external" ).getLibrary( null , null , s , false ) , true );
-        s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s ) , true );
+        s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s , true ) , true );
 
         s.put( "connect" , new ConnectDB() , true );
 
