@@ -675,7 +675,7 @@ response.setCookie({
                 a.append( "OK" );
             else
                 a.append( msg.toString() );
-            a.append( "\n" );
+            a.append( "\r\n" );
         }
 
         if ( _useDefaultHeaders )
