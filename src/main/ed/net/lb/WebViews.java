@@ -166,6 +166,23 @@ public class WebViews {
         
         final LoadMonitor _lm;
     }
+
+    static class SiteLoadMonitorWebView extends HttpMonitor {
+        SiteLoadMonitorWebView( LoadMonitor lm ){
+            super( "lb-siteload" );
+            _lm = lm;
+        }
+        
+        public void handle( MonitorRequest request ){
+            List<String> sites = _lm.sortedSites();
+            int max = Math.min( sites.size() , 20 );
+            for ( int i=0; i<max; i++ ){
+                HttpLoadTracker.printGraph( request.getWriter() , sites.get(i) , null , _lm.getTrackerForSite( sites.get(i) ) );
+            }
+        }
+        
+        final LoadMonitor _lm;
+    }
     
     static class RouterPools extends HttpMonitor {
         RouterPools( Router r ){
