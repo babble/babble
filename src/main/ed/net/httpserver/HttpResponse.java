@@ -314,6 +314,10 @@ response.setCookie({
         return _cleaned || _done || _sentHeader;
     }
 
+    public boolean isFullySent(){
+        return _cleaned;
+    }
+
     public void setContentType( String ct ){
         setHeader( "Content-Type" , ct );
     }
@@ -625,9 +629,11 @@ response.setCookie({
                 _dataSent = _jsfile.bytesWritten();
             }
         }
-
+        
         cleanup();
 
+        _handler._inFork = false;
+        
         if ( keepAlive() && ! _handler.hasData() )
             _handler.registerForReads();
         else

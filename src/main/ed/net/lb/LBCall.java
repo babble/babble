@@ -215,8 +215,20 @@ class LBCall extends Call {
         
         if ( isDone() && ! _keepalive )
             return WhatToDo.DONE_AND_CLOSE;
+        
+        if ( _request.isHeadRequest() ){
+            assert( _response.isFullySent() );
+            _lbsuccess( conn );
+            return WhatToDo.DONE_AND_CONTINUE;
+        }
 
         return WhatToDo.PAUSE;
+    }
+
+    void _lbsuccess( Connection conn ){
+        conn.done( ! _keepalive );
+        _state = State.DONE;
+        success();
     }
         
     protected ByteStream fillInRequest( ByteBuffer buf ){
@@ -313,9 +325,7 @@ class LBCall extends Call {
             _logger.debug( 4, "want next chunk of data" );
             if ( _sent == _length ){
                 _logger.debug( 4 , "no more data" );
-                _conn.done( ! _call._keepalive );
-                _call._state = State.DONE;
-                _call.success();
+                _call._lbsuccess( _conn );
                 return null;
             }
             
