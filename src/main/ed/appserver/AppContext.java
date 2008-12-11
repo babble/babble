@@ -1094,6 +1094,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         for (int i = 0; i < files.length; i++)
             runInitFile( files[i].replaceAll("PREFIX", _codePrefix) );
+
+        for (JSFunction func : _initRefreshHooks ){
+            func.call( _initScope , null );
+        }
+    }
+
+    public void addInitRefreshHook(JSFunction func){
+        _initRefreshHooks.add(func);
     }
 
     /**
@@ -1579,6 +1587,8 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
     private File _gitFile = null;
     private long _lastGitCheckTime = 0;
+
+    private Collection<JSFunction> _initRefreshHooks = new ArrayList<JSFunction>();
 
     /*
      *  adapter type - can have either a static ("all files in this app are X")
