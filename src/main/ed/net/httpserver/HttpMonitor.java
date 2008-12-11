@@ -178,7 +178,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	    if ( refresh > 0 ){
 		out.print( "<meta http-equiv='refresh' content='" + refresh + "'/>\n" );
 		out.print( "<br><a href=\"" );
-		out.print( full.replace( "refresh=\\d+" , "" ) );
+		out.print( full.replaceAll( "refresh=\\d+" , "" ) );
 		out.print( "\">stop refresh</a>" );
 	    }
 	    else {

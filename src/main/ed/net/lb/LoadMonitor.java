@@ -54,6 +54,17 @@ public class LoadMonitor {
         return _sites.sorted( .95 );
     }
 
+    ThingsPerTimeTracker[] getSortedTrackers( int num ){
+        List<String> all = sortedSites();
+        int max = Math.min( all.size() , num );
+        
+        ThingsPerTimeTracker[] trackers = new ThingsPerTimeTracker[max];
+        for ( int i=0; i<max; i++ )
+            trackers[i] = getTrackerForSite( all.get(i) );
+
+        return trackers;
+    }
+
     final Router _router;
     final RollingCounter _sites = new RollingCounter( "sites" , 30 * 1000 , 60 );
     final HttpLoadTracker.Rolling _all = new HttpLoadTracker.Rolling( "lb traffic" );

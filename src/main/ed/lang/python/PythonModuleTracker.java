@@ -190,10 +190,16 @@ public class PythonModuleTracker extends PyStringMap {
      * @return the flushed files
      */
     public Set<File> flushOld(){
+        return flushOld( null );
+    }
+
+    public Set<File> flushOld(Collection<String> modules){
 
         boolean shouldFlush = false;
 
         Set<String> newer = new HashSet<String>();
+        if( modules != null )
+            newer.addAll( modules );
         Set<File> files = new HashSet<File>();
 
         // Go through each module in sys.modules and see if the file is newer
@@ -263,18 +269,19 @@ public class PythonModuleTracker extends PyStringMap {
 
             if( DEBUG )
                 System.out.println("Flushing " + o);
-            __delitem__( o );
+            if( ! o.equals( "_10gen" ) ) // FIXME: re-add _10gen somehow
+                __delitem__( o );
 
             // Get the set of modules that imported module o
             Set<String> rdeps = _reverseDeps.get( o );
             _reverseDeps.remove( o );
             if( rdeps == null ){
-                if( DEBUG )
+                if( DEBUG || true )
                     System.out.println("Nothing imported " + o );
                 continue;
             }
             for( String s : rdeps ){
-                if( DEBUG )
+                if( DEBUG || true)
                     System.out.println("module "+ s + " imported " + o );
                 toAdd.add( s );
             }

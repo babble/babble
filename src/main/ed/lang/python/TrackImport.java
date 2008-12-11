@@ -310,10 +310,7 @@ public class TrackImport extends PyObject {
 
         // Add a module dependency -- module being imported was imported by
         // the importing module.
-        // Don't add dependencies to _10gen. FIXME: other "virtual"
-        // modules should be OK.
-        if( ! ( m instanceof PyModule && ((PyModule)m).__dict__ instanceof PyJSObjectWrapper ) )
-            sss.addDependency( imported , importer );
+        sss.addDependency( imported , importer );
 
         return _finish( target , siteModule , m );
 
