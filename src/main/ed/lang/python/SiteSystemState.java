@@ -534,12 +534,15 @@ public class SiteSystemState implements Sizable {
 
         @ExposedMethod
         public PyModule load_module( String name ){
+            /* Do this before creating the module, lest it cause an error
+             */
+            Object o = _root.getFromPath( _path , true );
+
             PyModule mod = imp.addModule( name );
             PyObject __path__ = mod.__findattr__( "__path__".intern() );
             if( __path__ != null ) return mod;
 
             PyObject pyName = mod.__findattr__( "__name__" );
-            Object o = _root.getFromPath( _path , true );
             PyList pathL = new PyList( );
             if( o instanceof JSFileLibrary ){
                 JSFileLibrary lib = (JSFileLibrary)o;
@@ -549,6 +552,10 @@ public class SiteSystemState implements Sizable {
             if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
                 try {
                     run( mod , (JSFunction)o );
+                    /* getFileFromPath can cause exceptions -- could
+                     * invoke _init files
+                     */
+                    mod.__setattr__( "__file__".intern() , new PyString( _root.getFileFromPath( _path ).toString() ) );
                 }
                 catch( RuntimeException e ){
                     /* DANGER! Typically Python does not re-import
@@ -563,7 +570,6 @@ public class SiteSystemState implements Sizable {
                 }
             }
 
-            mod.__setattr__( "__file__".intern() , new PyString( _root.getFileFromPath( _path ).toString() ) );
             mod.__setattr__( "__path__".intern() , pathL );
             mod.__setattr__( "__name__".intern() , pyName );
             return mod;
