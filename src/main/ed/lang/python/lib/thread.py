@@ -17,10 +17,12 @@ def stack_size():
     raise NotImplemented, 'stack_size not supported for 10gen threads'
 
 _number = 0
+_number_mutex = allocate_lock()
 def _generate_name():
-    # FIXME: threadsafe
     global _number
+    _number_mutex.acquire()
     name = 'python-thread-%d'%_number
     _number += 1
+    _number_mutex.release()
     return name
 
