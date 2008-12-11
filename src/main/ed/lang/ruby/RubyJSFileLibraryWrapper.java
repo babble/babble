@@ -16,7 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -40,20 +39,17 @@ import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
 @SuppressWarnings("serial")
 public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
 
-    static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
-
     public static synchronized RubyClass getJSFileLibraryClass(Ruby runtime) {
-        WeakReference<RubyClass> ref = klassDefs.get(runtime);
-        if (ref == null) {
-            RubyClass klazz = runtime.defineClass("JSFileLibrary", RubyJSFunctionWrapper.getJSFunctionClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+        RubyClass klazz = runtime.getClass("JSFileLibrary");
+        if (klazz == null) {
+            klazz = runtime.defineClass("JSFileLibrary", RubyJSFunctionWrapper.getJSFunctionClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
             klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyJSFileLibraryWrapper;
                     }
                 };
-            klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
         }
-        return ref.get();
+        return klazz;
     }
 
     RubyJSFileLibraryWrapper(Scope s, Ruby runtime, JSFileLibrary obj, String name, RubyModule attachTo) {

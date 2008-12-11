@@ -621,6 +621,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         String topjs = Security.getTopDynamicClassName();
         if ( topjs == null )
             return null;
+        
+        topjs = topjs.replaceAll( "//+" , "/" );
 
         int idx = topjs.indexOf( "$" );
         if ( idx > 0 )
@@ -628,7 +630,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         idx = topjs.lastIndexOf( "/" );
         if ( idx > 0 )
             topjs = topjs.substring( 0 , idx );
-        if ( DP ) System.out.println( "looking or path : " + topjs );
+        
+        if ( DP ) System.out.println( "looking for path : " + topjs );
 
         JSFileLibrary lib = _fileToPath.get( topjs );
         return lib;

@@ -653,6 +653,15 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
 
 
                 // ok - now we knows its a reference
+                
+                if ( e instanceof JSObjectBase &&
+                     ((JSObjectBase)e).isPartialObject() ){
+                    // TODO: i think this is correct
+                    // this means you have a reference to an object that was retrieved with only some objects
+                    // maybe this should do a extend, or throw an exception
+                    // but certainly shouldn't overwrite
+                    continue;
+                }
 
                 if ( e.get( "_id" ) == null ){ // new object, lets save it
                     JSFunction otherSave = e.getFunction( "_save" );

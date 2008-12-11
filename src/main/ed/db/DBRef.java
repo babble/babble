@@ -95,7 +95,7 @@ public class DBRef extends JSObjectBase {
             return this;
 
 	if ( D ){ 
-            System.out.println( "following dbref.  ns:" + _ns );
+            System.out.println( "following dbref.  parent.field:" + _fieldName + " ref to ns:" + _ns );
             Throwable t = new Throwable();
             t.fillInStackTrace();
             t.printStackTrace();

@@ -314,6 +314,10 @@ response.setCookie({
         return _cleaned || _done || _sentHeader;
     }
 
+    public boolean isFullySent(){
+        return _cleaned;
+    }
+
     public void setContentType( String ct ){
         setHeader( "Content-Type" , ct );
     }
@@ -564,7 +568,7 @@ response.setCookie({
             _writer._cur = null;
         }
 
-        if (!_request.getMethod().equals("HEAD")) {
+        if ( ! _request.isHeadRequest() ){
             if ( _file != null ){
                 if ( _fileChannel == null ){
                     try {
@@ -625,9 +629,11 @@ response.setCookie({
                 _dataSent = _jsfile.bytesWritten();
             }
         }
-
+        
         cleanup();
 
+        _handler._inFork = false;
+        
         if ( keepAlive() && ! _handler.hasData() )
             _handler.registerForReads();
         else

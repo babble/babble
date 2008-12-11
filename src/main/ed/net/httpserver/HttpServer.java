@@ -134,7 +134,8 @@ public class HttpServer extends NIOServer {
         
         protected boolean shouldClose()
             throws IOException {
-
+            if ( D ) System.out.println( "shouldClose. _lastResponse:" + ( _lastResponse != null ) + " _done:" + _done );
+                         
             if ( _bad )
                 return true;
             
@@ -154,21 +155,31 @@ public class HttpServer extends NIOServer {
         
         protected boolean writeMoreIfWant()
             throws IOException {
-            
-            if ( _bad )
-                return false;
-            
-            if ( _inFork )
-                return false;
-            
-	    if ( _lastRequest != null && _lastResponse == null )
-		return false;
 
-            if ( _lastResponse != null && ! _lastResponse.done() )
+            if ( D ) System.out.println( "writeMoreIfWant called" );
+            
+            if ( _bad ){
+                if ( D ) System.out.println( "\t bad" );
                 return false;
+            }
+            
+            if ( _inFork ){
+                if ( D ) System.out.println( "\t in fork" );
+                return false;
+            }
+            
+	    if ( _lastRequest != null && _lastResponse == null ){
+                if ( D ) System.out.println( "\t request but no response"  );
+		return false;
+            }
+
+            if ( _lastResponse != null && ! _lastResponse.done() ){
+                if ( D ) System.out.println( "response not finished" );
+                return false;
+            }
 	    
 	    if ( D ) System.out.println( "writeMoreIfWant removing request/response" );
-
+            
             _lastRequest = null;
             _lastResponse = null;
 
@@ -181,6 +192,8 @@ public class HttpServer extends NIOServer {
         }
 
         boolean hasData(){
+            if ( _in == null )
+                return false;
             return _in.position() > 0;
         }
         
