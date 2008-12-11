@@ -181,6 +181,8 @@ public class HttpServer extends NIOServer {
         }
 
         boolean hasData(){
+            if ( _in == null )
+                return false;
             return _in.position() > 0;
         }
         

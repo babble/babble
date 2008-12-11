@@ -564,7 +564,7 @@ response.setCookie({
             _writer._cur = null;
         }
 
-        if (!_request.getMethod().equals("HEAD")) {
+        if ( ! _request.isHeadRequest() ){
             if ( _file != null ){
                 if ( _fileChannel == null ){
                     try {
