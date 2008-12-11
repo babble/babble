@@ -98,6 +98,43 @@ public class HttpServerTest extends TestCase {
     }
 
     @Test
+    public void testHead1()
+            throws IOException {
+
+        Socket s = open();
+
+        OutputStream out = s.getOutputStream();
+        InputStream in = s.getInputStream();
+
+        out.write(headers("HEAD", "", "Connection: Keep-Alive\r\n").toString().getBytes());
+        Response r = read(in,true);
+        assertEquals( "", r.body);
+
+        out.write(headers("GET", "", "Connection: Close\r\n").toString().getBytes());
+        r = read(in);
+        assertEquals(PingHandler.DATA, r.body);
+        checkResponse( r );
+
+        assert (in.read() == -1);
+    }
+
+    @Test
+    public void testHead2()
+            throws IOException {
+
+        Socket s = open();
+
+        OutputStream out = s.getOutputStream();
+        InputStream in = s.getInputStream();
+
+        out.write(headers("HEAD", "", "Connection: Close\r\n").toString().getBytes());
+        Response r = read(in,true);
+        assertEquals( "", r.body);
+
+        assert( in.read() == -1 );
+    }
+
+    @Test
     public void testPipeLine1()
             throws IOException {
 
@@ -180,7 +217,11 @@ public class HttpServerTest extends TestCase {
 
     public static Response read(InputStream in)
             throws IOException {
-
+        return read( in , false );
+    }
+    
+    public static Response read(InputStream in , boolean head )
+            throws IOException {
         StringBuilder buf = new StringBuilder();
 
         int lineCount = 0;
@@ -224,12 +265,16 @@ public class HttpServerTest extends TestCase {
             m.put(line.substring(0, idx).trim(),
                     line.substring(idx + 1).trim());
         }
-
+        
         byte[] data;
-        if (m.get("Content-Length") != null) {
+        if ( head ){
+            data = new byte[0];
+        }
+        else if ( m.get("Content-Length" ) != null) {
             data = new byte[Integer.parseInt(m.get("Content-Length"))];
             in.read(data);
-        } else {
+        } 
+        else {
             data = StreamUtil.readBytesFully(in);
         }
 

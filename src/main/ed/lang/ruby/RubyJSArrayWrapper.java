@@ -16,7 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.jruby.*;
@@ -37,23 +36,20 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 @SuppressWarnings("serial")
 public class RubyJSArrayWrapper extends RubyArray {
 
-    static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
-
     private Scope _scope;
     private JSArray _jsarray;
 
     public static synchronized RubyClass getJSArrayClass(Ruby runtime) {
-        WeakReference<RubyClass> ref = klassDefs.get(runtime);
-        if (ref == null) {
-            RubyClass klazz = runtime.defineClass("JSArray", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+        RubyClass klazz = runtime.getClass("JSArray");
+        if (klazz == null) {
+            klazz = runtime.defineClass("JSArray", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
             klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyJSArrayWrapper;
                     }
                 };
-            klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
         }
-        return ref.get();
+        return klazz;
     }
 
     RubyJSArrayWrapper(Scope s, Ruby runtime, JSArray obj) {

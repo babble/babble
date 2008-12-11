@@ -160,6 +160,9 @@ public class HttpLoadTracker {
     }
 
     public static void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker ... ts  ){
+        if ( options == null )
+            options = DEFAULTS;
+
         if ( name != null ){
             out.print( "<h5>" );
             out.print( name );

@@ -84,6 +84,13 @@ DBCollection.prototype.getIndexes = function(){
     return this.getDB().system.indexes.find( { ns : this.getFullName() } );
 }
 
+DBCollection.prototype.getIndexKeys = function(){
+    return this.getIndexes().toArray().map( 
+        function(i){
+            return i.key;
+        }
+    );
+}
 
 /**
  *   <p>

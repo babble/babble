@@ -171,6 +171,7 @@ public class LB extends NIOClient {
         HttpServer.addGlobalHandler( new WebViews.LBLast( this ) );
 	
         HttpServer.addGlobalHandler( new WebViews.LoadMonitorWebView( this._loadMonitor ) );
+        HttpServer.addGlobalHandler( new WebViews.SiteLoadMonitorWebView( this._loadMonitor ) );
         
         HttpServer.addGlobalHandler( new WebViews.RouterPools( this._router ) );
         HttpServer.addGlobalHandler( new WebViews.RouterServers( this._router ) );
