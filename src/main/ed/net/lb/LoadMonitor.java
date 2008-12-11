@@ -42,10 +42,18 @@ public class LoadMonitor {
         _sites.hit( siteName );
     }
 
-    HttpLoadTracker getTracker( String name ){
+    HttpLoadTracker getTrackerForPool( String name ){
 	return _router.getPool( name )._tracker;
     }
     
+    ThingsPerTimeTracker getTrackerForSite( String sitename ){
+        return _sites.getTimeTrackerForOne( sitename );
+    }
+
+    List<String> sortedSites(){
+        return _sites.sorted( .95 );
+    }
+
     final Router _router;
     final RollingCounter _sites = new RollingCounter( "sites" , 30 * 1000 , 60 );
     final HttpLoadTracker.Rolling _all = new HttpLoadTracker.Rolling( "lb traffic" );

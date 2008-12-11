@@ -150,6 +150,10 @@ public class RollingCounter {
         return all;
     }
 
+    public ThingsPerTimeTracker getTimeTrackerForOne( String thing ){
+        return new ThingsPerTimeTracker( this , thing );
+    }
+
     class Slot {
         
         void hit( String thing , long count ){
