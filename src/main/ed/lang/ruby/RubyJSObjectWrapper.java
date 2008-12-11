@@ -16,7 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.jruby.*;
@@ -44,7 +43,6 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 @SuppressWarnings("serial")
 public class RubyJSObjectWrapper extends RubyHash {
 
-    static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
     static RubyClass jsObjectClass = null;
 
     protected Scope _scope;
@@ -55,18 +53,17 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected Map<String, RubyJSFunctionWrapper> _jsFuncs;
 
     public static synchronized RubyClass getJSObjectClass(Ruby runtime) {
-        WeakReference<RubyClass> ref = klassDefs.get(runtime);
-        if (ref == null) {
-            RubyClass klazz = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+        RubyClass klazz = runtime.getClass("JSObject");
+        if (klazz == null) {
+            klazz = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
             klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyJSObjectWrapper;
                     }
                 };
             addMethodMissing(klazz);
-            klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
         }
-        return ref.get();
+        return klazz;
     }
 
     @SuppressWarnings("unchecked")

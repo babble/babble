@@ -16,7 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.io.*;
 import java.util.*;
 
@@ -35,23 +34,20 @@ import ed.js.engine.Scope;
 @SuppressWarnings("serial")
 public class RubyDBCursorWrapper extends RubyArray {
 
-    static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
-
     protected Scope _scope;
     protected DBCursor _cursor;
 
     public static synchronized RubyClass getDBCursorClass(Ruby runtime) {
-        WeakReference<RubyClass> ref = klassDefs.get(runtime);
-        if (ref == null) {
-            RubyClass klazz = runtime.defineClass("DBCursor", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+        RubyClass klazz = runtime.getClass("DBCursor");
+        if (klazz == null) {
+            klazz = runtime.defineClass("DBCursor", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
             klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyDBCursorWrapper;
                     }
                 };
-            klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
         }
-        return ref.get();
+        return klazz;
     }
 
     RubyDBCursorWrapper(Scope s, Ruby runtime, DBCursor cursor) {
