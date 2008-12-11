@@ -216,6 +216,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         return _command;
     }
 
+    public boolean isHeadRequest(){
+        return _command.equalsIgnoreCase( "HEAD" );
+    }
+
     /**
      * Returns the query string of a request as an unparsed string.
      * For a request with URL "/foo?a=1", this method would return "a=1".
