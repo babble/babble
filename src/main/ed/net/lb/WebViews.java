@@ -38,7 +38,19 @@ public class WebViews {
 	    mr.addHeader( "overview" );
 
 	    out.print( "<div>" );
-            _lb._loadMonitor._all.getShort().displayGraph( out );
+            
+            HttpLoadTracker.printGraph( out , null , _options , 
+                                        _lb._loadMonitor._all.getShort().getRequests() , 
+                                        _lb._loadMonitor._all.getShort().getErrors() , 
+                                        _lb._loadMonitor._all.getShort().getNetworkEvents() );
+
+            HttpLoadTracker.printGraph( out , null , _options , 
+                                        _lb._loadMonitor._all.getShort().getDataOut() , 
+                                        _lb._loadMonitor._all.getShort().getDataIn() );
+
+            HttpLoadTracker.printGraph( out , null , _options , 
+                                        _lb._loadMonitor.getSortedTrackers( 6 ) );
+            
 	    out.print( "</div>" );
 
 	    displayLast( mr , _lb , 15 );
@@ -77,7 +89,7 @@ public class WebViews {
                 out.print( "</td>" );
             }
 
-            out.print( "</tr></table>" );
+            out.print( "</tr></table><br>" );
         }
 
         List<Server> sortedServers(){
@@ -87,6 +99,7 @@ public class WebViews {
         }
 
         final LB _lb;
+        final HttpLoadTracker.GraphOptions _options = new HttpLoadTracker.GraphOptions( 520 , 150 , true , true , false );
         final Comparator<Server> _serverComparator = new Comparator<Server>(){
 
             public int compare( Server a , Server b ){
