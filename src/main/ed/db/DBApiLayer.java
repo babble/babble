@@ -219,7 +219,7 @@ public abstract class DBApiLayer extends DBBase {
         public void doapply( JSObject o ){
             o.set( "_ns" , _removeRoot( _fullNameSpace ) );
         }
-
+        
         public JSObject dofind( ObjectId id ){
             JSObject lookup = new JSObjectBase();
             lookup.set( "_id" , id );
@@ -229,11 +229,9 @@ public abstract class DBApiLayer extends DBBase {
                 return null;
 
             JSObject o = res.next();
-
-            if ( res.hasNext() ){
-		System.out.println( "multiple entries with same _id" );
-                //throw new RuntimeException( "something is wrong" );
-	    }
+            
+            if ( res.hasNext() )
+		System.out.println( "multiple entries with same _id.  collection:" + _fullNameSpace + " id:" + id );
 
             if ( _constructor != null && o instanceof JSObjectBase )
                 ((JSObjectBase)o).setConstructor( _constructor );

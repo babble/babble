@@ -49,13 +49,6 @@ public class ScopeGlobalVariables extends GlobalVariables {
         _delegate = _runtime.getGlobalVariables();
         while (_delegate instanceof ScopeGlobalVariables)
             _delegate = ((ScopeGlobalVariables)_delegate)._delegate;
-
-        for (Object key : RubyJSObjectWrapper.jsKeySet(_scope)) { // Add scope vars to Ruby globals
-            if (!isSpecial(key.toString())) {
-                Object val = _scope.get(key);
-                _delegate.set("$" + key.toString(), toRuby(_scope, _runtime, val, "$" + key));
-            }
-        }
     }
 
     /**
@@ -70,7 +63,7 @@ public class ScopeGlobalVariables extends GlobalVariables {
 
     public void defineReadonly(String name, IAccessor accessor) { _delegate.defineReadonly(name, accessor); }
 
-    public boolean isDefined(String name) { return _delegate.isDefined(name); }
+    public boolean isDefined(String name) { return _delegate.isDefined(name) || _scope.get(name.substring(1)) != null; }
 
     public void alias(String name, String oldName) { _delegate.alias(name, oldName); }
 
