@@ -28,6 +28,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
+import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.js.JSFunction;
@@ -35,7 +36,7 @@ import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
-class RuntimeEnvironment {
+public class RuntimeEnvironment {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final String APP_REQ_RUBY_RUNTIME_KEY = "ruby.runtime";
@@ -63,8 +64,9 @@ class RuntimeEnvironment {
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
 
-    protected Scope scope;
+    protected AppContext appContext;
     protected Ruby runtime;
+    protected Scope scope;
 
     /**
      * Creates Ruby classes and XGen module methods from any new JavaScript
@@ -103,23 +105,26 @@ class RuntimeEnvironment {
         return RuntimeEnvironment.PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
     }
 
-    RuntimeEnvironment(Scope scope, Ruby runtime, InputStream stdin, OutputStream stdout) {
-        this.scope = scope;
-        if (runtime == null)
-            runtime = Ruby.newInstance(CONFIG);
-        this.runtime = runtime;
+    RuntimeEnvironment(AppContext appContext) {
+        this.appContext = appContext;
+        runtime = Ruby.newInstance(CONFIG);
+        /* Create class objects that might be needed in Ruby code before ever
+         * being loaded from Java. Note: could use const_missing instead. */
+        RubyObjectIdWrapper.getObjectIdClass(runtime);
+    }
 
+    public void setup(Scope scope, InputStream stdin, OutputStream stdout) {
+        this.scope = scope;
         addJSFileLibrariesToPath();
         runtime.setGlobalVariables(new ScopeGlobalVariables(scope, runtime));
         exposeScopeFunctions();
         patchRequireAndLoad();
         setIO(stdin, stdout);
         disallowNewThreads();
-
-        /* Create class objects that might be needed in Ruby code before ever
-         * being loaded from Java. Note: could use const_missing instead. */
-        RubyObjectIdWrapper.getObjectIdClass(runtime);
     }
+
+    public AppContext getAppContext() { return appContext; }
+    public Ruby getRuntime() { return runtime; }
 
     IRubyObject commonRun(Node node) {
         /* See the second part of JRuby's Ruby.executeScript(String, String). */

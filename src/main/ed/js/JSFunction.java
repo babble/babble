@@ -18,6 +18,7 @@
 
 package ed.js;
 
+import java.util.*;
 import java.util.concurrent.*;
 
 import ed.lang.*;
@@ -28,6 +29,8 @@ import ed.js.engine.Scope;
 
 /** @expose */
 public abstract class JSFunction extends JSFunctionBase {
+
+    final static int CACHE_SIZE = 100;
 
     static {
         JS._debugSIStart( "JSFunction" );
@@ -269,28 +272,37 @@ public abstract class JSFunction extends JSFunctionBase {
 
     Object _cache( Scope s , long cacheTime , Object args[] ){
 
-        LRUCache<Long,Pair<Object,String>> myCache = _callCache;
-
-        if ( myCache == null ){
-            myCache = new LRUCache<Long,Pair<Object,String>>( 1000 * 3600 , 100 );
-            _callCache = myCache;
-        }
-
-        myCache = _callCache;
-
         // yes, its possible for 2 threads to create their own cache and each to use a different one, but thats ok
         // all that happens is that 2 threads both do the work.
         // but its a race condition anyway, so behavior is a bit odd no matter what
 
-        final long hash = JSInternalFunctions.hash( args );
-        Pair<Object,String> p = null;
+        FunctionResultCache myCache = _callCache;
+        if ( myCache == null ){
+            myCache = new FunctionResultCache();
+            _callCache = myCache;
+        }
+        myCache = _callCache;
+
+        // ----
+        
+        final long now = System.currentTimeMillis();
+        final Long hash = JSInternalFunctions.hash( args );
+        CacheEntry entry = null;
+        
+        boolean force = false;
 
         synchronized ( myCache ){
-            p = myCache.get( hash , cacheTime );
+            entry = myCache.get( hash );
+
+            if ( entry != null && entry.expired( now ) ){
+                entry.setExpiration( now + cacheTime );
+                entry = null;
+                force = true;
+            }
         }
 
-        if ( p == null ){
-
+        if ( entry == null ){
+            
             // make sure i have a real db connection
             AppRequest ar = AppRequest.getThreadLocal();
             if ( ar != null )
@@ -302,20 +314,18 @@ public abstract class JSFunction extends JSFunctionBase {
                 got = true;
 
                 synchronized ( myCache ){
-                    p = myCache.get( hash , cacheTime );
+                    entry = myCache.get( hash );
                 }
-
-                if ( p == null ){
+                
+                if ( entry == null || force ){
 
                     PrintBuffer buf = new PrintBuffer();
                     getScope( true ).set( "print" , buf );
 
-                    p = new Pair<Object,String>();
-                    p.first = call( s , args );
-                    p.second = buf.toString();
+                    entry = new CacheEntry( now + cacheTime , call( s , args ) , buf.toString() );
 
                     synchronized( myCache ){
-                        myCache.put( hash , p , cacheTime  );
+                        myCache.put( hash , entry );
                     }
                     clearScope();
                 }
@@ -328,9 +338,9 @@ public abstract class JSFunction extends JSFunctionBase {
         JSFunction print = (JSFunction)(s.get( "print" ));
         if ( print == null )
             throw new JSException( "print is null" );
-        print.call( s , p.second );
+        print.call( s , entry._print );
 
-        return p.first;
+        return entry._res;
     }
 
     public Object callAndSetThis( Scope s , Object obj , Object args[] ){
@@ -408,7 +418,7 @@ public abstract class JSFunction extends JSFunctionBase {
     protected JSArray _globals;
     protected String _name = "NO NAME SET";
 
-    private LRUCache<Long,Pair<Object,String>> _callCache;
+    private FunctionResultCache _callCache;
     private Semaphore _callCacheSem = new Semaphore( 1 );
 
     /** @unexpose */
@@ -484,6 +494,45 @@ public abstract class JSFunction extends JSFunctionBase {
         _call.lock();
         _apply.lock();
         _cache.lock();
+    }
+
+    static class CacheEntry {
+        CacheEntry( long expiration , Object res , String print ){
+            _expiration = expiration;
+            _res = res;
+            _print = print;
+        }
+
+        boolean expired( long now ){
+            return now > _expiration;
+        }
+
+        void setExpiration( long when ){
+            _expiration = when;
+        }
+
+        long _expiration;
+
+        final Object _res;
+        final String _print;
+    }
+
+    static class FunctionResultCache extends LinkedHashMap<Long,CacheEntry> {
+        
+        public long approxSize( SeenPath seen ){
+            long s = 0;
+            synchronized ( this ){
+                for ( Map.Entry<Long,CacheEntry> e : entrySet() ){
+                    CacheEntry ce = e.getValue();
+                    s += 64 + ( ce._print.length() * 2 ) + JSObjectSize.size( ce._res , seen , this );
+                }
+            }
+            return s;
+        }
+        
+        protected boolean removeEldestEntry( Map.Entry<Long,CacheEntry> eldest ){
+            return size() > CACHE_SIZE;
+        }
     }
     
     public static void _init( JSFunction fcons ){

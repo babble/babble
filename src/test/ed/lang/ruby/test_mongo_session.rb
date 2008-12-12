@@ -15,14 +15,14 @@
 require 'ruby_test'
 require 'xgen/rails/mongo_session'
 
-SessionThing = Struct.new(:session_id)
+MSTSessionThing = Struct.new(:session_id)
 
 # Tests marshal/unmarshal, not the Babble session object.
 class MongoSessionTest < RubyTest
 
   def setup
     $session = {}
-    @s = XGen::Rails::MongoSession.new(SessionThing.new('session_id'))
+    @s = XGen::Rails::MongoSession.new(MSTSessionThing.new('session_id'))
   end
 
   def teardown

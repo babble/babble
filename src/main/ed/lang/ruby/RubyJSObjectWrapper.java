@@ -67,7 +67,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     @SuppressWarnings("unchecked")
-	static Collection<? extends Object> jsKeySet(JSObject jsobj) {
+    static Collection<? extends Object> jsKeySet(JSObject jsobj) {
         try {
             if (jsobj instanceof JSMap)
                 return ((JSMap)jsobj).keys();

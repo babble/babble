@@ -19,33 +19,42 @@ package ed.lang.ruby;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.jruby.Ruby;
 import org.jruby.ast.Node;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
+import ed.appserver.AppContext;
 import ed.js.PrintBuffer;
 import ed.js.engine.Scope;
-import ed.lang.ruby.RubyJxpSource;
 import ed.net.httpserver.JxpWriter;
 
 /** Makes RubyJxpSource testable by letting us control input and capture output. */
 class TestRubyJxpSource extends RubyJxpSource {
+
+    static final RuntimeEnvironment runenv = new RuntimeEnvironment(null);
+
     JxpWriter.Basic _writer;    // receives output
     String _content;            // set directly from within test methods
-    public TestRubyJxpSource(org.jruby.Ruby runtime) {
-        super(null, runtime);
+
+    public TestRubyJxpSource() {
+        super(null);
     }
+
+    protected Ruby getRuntime() { return runenv.getRuntime(); }
     protected String getContent() { return _content; }
     protected Node getAST() throws IOException { return parseContent("fake_file_path"); }
+
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
         _writer = new JxpWriter.Basic();
-        RuntimeEnvironment runenv = new RuntimeEnvironment(s, predefinedRuntime, null, new OutputStream() {
+        runenv.setup(s, null, new OutputStream() {
                 public void write(int b) { _writer.write(b); }
             });
         return runenv.commonRun(node);
     }
+
     protected String getOutput() { return _writer.getContent(); }
 }
 
@@ -55,7 +64,6 @@ class TestRubyJxpSource extends RubyJxpSource {
 public class SourceRunner {
 
     Scope s;
-    org.jruby.Ruby r;
     String jsOutput;
     String rubyOutput;
     TestRubyJxpSource source;
@@ -64,8 +72,7 @@ public class SourceRunner {
     public void setUp() {
         s = new Scope("test", null);
         ed.js.JSON.init(s);        // add tojson, tojson_u, fromjson
-        r = org.jruby.Ruby.newInstance();
-        source = new TestRubyJxpSource(r);
+        source = new TestRubyJxpSource();
     }
 
     /** Return result of running jsCode. Output is stored in jsOutput. */

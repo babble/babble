@@ -36,11 +36,9 @@ public class RubyLanguage extends Language {
 
     static class RubyShellSource extends RubyJxpSource {
 
-        static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.CONFIG);
-
         protected String _code;
         RubyShellSource(String code) {
-            super(null, RUNTIME);
+            super(null);
             _code = code;
         }
         protected String getContent() { return _code; }

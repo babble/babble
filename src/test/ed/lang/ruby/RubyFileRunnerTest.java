@@ -19,22 +19,60 @@ package ed.lang.ruby;
 import java.io.*;
 
 import org.jruby.*;
+import org.jruby.ast.Node;
+import org.jruby.runtime.builtin.IRubyObject;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
 import ed.js.*;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.lang.ruby.RubyJxpSource;
+import ed.net.httpserver.HttpRequest;
+import ed.net.httpserver.HttpResponse;
+
+class FileRunnerJxpSource extends RubyJxpSource {
+
+    private String edBuildDir;
+    private String rootDir;
+
+    public FileRunnerJxpSource(File f, String edBuildDir, String rootDir) {
+        super(f); 
+        this.edBuildDir = edBuildDir;
+        this.rootDir = rootDir;
+    }
+
+    protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
+        HttpRequest request = (HttpRequest)s.get("request");
+        HttpResponse response = (HttpResponse)s.get("response");
+        RuntimeEnvironment runenv = new RuntimeEnvironment(null);
+
+        Ruby runtime = runenv.getRuntime();
+        addRubyLoadPath(runtime, edBuildDir); // for xgen.rb and files it includes
+        addRubyLoadPath(runtime, rootDir);
+
+        runenv.setup(s, request == null ? null : request.getInputStream(),
+                     response == null ? null : response.getOutputStream());
+        return runenv.commonRun(node);
+    }
+
+    protected void addRubyLoadPath(Ruby runtime, String path) {
+        RubyString rpath = RubyString.newString(runtime, path.replace('\\', '/'));
+        RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
+        if (loadPath.include_p(runtime.getCurrentContext(), rpath).isFalse())
+            loadPath.append(rpath);
+    }
+}
 
 public class RubyFileRunnerTest {
 
     protected static final String QA_RAILS_TEST_DIR_RELATIVE = "modules/ruby/rails";
 
     @Test(groups = {"ruby", "ruby.testunit"})
-    public void testRunRubyTests() {
+        public void testRunRubyTests() {
         runTestsIn(new File(System.getenv("ED_HOME"), "src/test/ed/lang/ruby"));
     }
 
@@ -52,7 +90,7 @@ public class RubyFileRunnerTest {
      * of the QA project isn't quite ready to run these tests.
      */
     @Test(groups = {"ruby.activerecord"})
-    public void testRunRailsTests() {
+        public void testRunRailsTests() {
         File dir;
         if ((dir = new File("/data/qa", QA_RAILS_TEST_DIR_RELATIVE)).exists() ||
             (dir = new File(new File(System.getenv("ED_HOME"), "../qa"), QA_RAILS_TEST_DIR_RELATIVE)).exists())
@@ -67,10 +105,7 @@ public class RubyFileRunnerTest {
 
         Scope s = createScope(f.getParentFile());
 
-        Ruby runtime = Ruby.newInstance();
-        RubyJxpSource source = new RubyJxpSource(f, runtime);
-        addRubyLoadPath(s, runtime, source, new File(edHome, "build").getPath()); // for xgen.rb and files it includes
-        addRubyLoadPath(s, runtime, source, rootDir.getPath());
+        RubyJxpSource source = new FileRunnerJxpSource(f, new File(edHome, "build").getPath(), rootDir.getPath());
 
         try {
             source.getFunction().call(s, new Object[0]);
@@ -99,12 +134,5 @@ public class RubyFileRunnerTest {
         s.set("print", print);
 
         return s;
-    }
-
-    protected void addRubyLoadPath(Scope s, Ruby runtime, RubyJxpSource source, String path) {
-        RubyString rpath = RubyString.newString(runtime, path.replace('\\', '/'));
-        RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
-        if (loadPath.include_p(runtime.getCurrentContext(), rpath).isFalse())
-            loadPath.append(rpath);
     }
 }
