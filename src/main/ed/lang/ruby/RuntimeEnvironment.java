@@ -169,8 +169,6 @@ public class RuntimeEnvironment {
      * top-level functions defined in the scope.
      */
     private void exposeScopeFunctions() {
-        runtime.getGlobalVariables().set("$scope", toRuby(scope, runtime, scope));
-
         /* Creates a module named XGen, includes it in the Object class (just
          * like Kernel), and adds all top-level JavaScript methods to the
          * module. */
