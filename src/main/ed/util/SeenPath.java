@@ -198,7 +198,16 @@ public class SeenPath extends IdentityHashMap<Object,List> {
 
         return null;
     }
-    
+
+    public boolean isFirstString() {
+        if( _firstString ) {
+            _firstString = false;
+            return true;
+        }
+        return false;
+    }
+
+    boolean _firstString = true;
     final boolean _skipWeak;
     final List<Set> _specialDontTraverse = new ArrayList<Set>();
 
