@@ -66,7 +66,7 @@ public class JSArrayWrapper extends JSArray {
             return setInt(i, v);
         if ("".equals(n.toString())) {
             _rarray.append(toRuby(_scope, getRuntime(), v));
-            super.set(n, v);
+            return super.set(n, v);
         }
         // TODO handle n == "length"
         throw new IllegalArgumentException("JSArrayWrapper can't handle set(" + n + ", " + v + ")");
