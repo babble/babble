@@ -1099,20 +1099,20 @@ public class JSObjectBase implements JSObject {
      * @return The approximate size of this object.
      */
     public long approxSize( SeenPath seen ){
-        long size = JSObjectSize.OBJ_OVERHEAD + 128;
-
+        long size = JSObjectSize.OBJ_OVERHEAD + 112;
+        
         size += JSObjectSize.size( _name , seen , this );
         size += JSObjectSize.size( _keys , seen , this );
         size += JSObjectSize.size( _dontDeleteKeys , seen , this );
         size += JSObjectSize.size( _readOnlyKeys , seen , this );
         size += JSObjectSize.size( _dontEnum , seen , this );
         size += JSObjectSize.size( _dependencies , seen , this );
-
+        
         if ( seen.shouldVisit( _map , this ) )
             size += _map.approxSize( seen );
 
         // TODO _setterAndGetters
-
+        
         if ( seen.shouldVisit( _constructor , this ) )
             size += _constructor.approxSize( seen );
 
