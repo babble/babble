@@ -351,6 +351,10 @@ public class AppRequest implements Sizable {
             ar._somethingCompiled = true;
     }
 
+    public long approxSize(){
+        return approxSize( new SeenPath() );
+    }
+
     public long approxSize( SeenPath seen ){
         
         // we don't want to count stuff reaching from context here
