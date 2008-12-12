@@ -294,6 +294,31 @@ DBCollection.prototype.sample = function( num , query , fields ){
     return a;
 }
 
+DBCollection.prototype.recoverTo = function( newCollection ){
+    var res = {
+        totol : 0 ,
+        errors : 0
+    };
+    
+    var from = this;
+    var to = this.getDB()[newCollection];
+
+    this.find( {} , { _id : ObjectId() } ).forEach(
+        function( z ){
+            res.total++;
+            try {
+                to.save( from.findOne( z._id ) );
+            }
+            catch ( e ){
+                log( e );
+                res.errors++;
+            }
+        }
+    );
+    
+    return res;
+}
+
 var mydb  = arguments[0];
 
 if (!mydb) {
