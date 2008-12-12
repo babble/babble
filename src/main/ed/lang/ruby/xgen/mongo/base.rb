@@ -244,7 +244,7 @@ module XGen
         #   Person.find_all_by_name("Fred")
         #
         # Mongo-specific example:
-        #   Person.find(:all, :where => "function() { return obj.song == 'Song Title'; }")
+        #   Person.find(:all, :where => "this.address.city == 'New York' || this.age = 42")
         #
         # As a side note, the :order, :limit, and :offset options are passed
         # on to the Cursor (after the :order option is rewritten to be a
