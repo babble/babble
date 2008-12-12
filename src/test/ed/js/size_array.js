@@ -13,7 +13,7 @@ var size1 = arr.approxSize();
 arr.pop();
 var size2 = arr.approxSize();
 
-assert( size0 == size2 );
+assert( Math.abs( size0 - size2 ) < 200 );
 assert( size0 < size1 );
 
 var rar = [1,2,3,4];

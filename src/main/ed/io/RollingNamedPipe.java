@@ -70,9 +70,6 @@ public class RollingNamedPipe {
                 throw new RuntimeException( "can't make named pipe : " + _path , error);
         }
         
-        if ( fake )
-            System.out.println( "fake named pipe for : " + path );
-
         _fake = fake;
         
         _buffer = new ArrayBlockingQueue<byte[]>( queueSize );
