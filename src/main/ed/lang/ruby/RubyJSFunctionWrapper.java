@@ -93,15 +93,14 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
             System.err.println("  creating RubyJSFunctionWrapper named " + name);
         _func = obj;
         _this = jsThis;
-        JavaMethod jm = _makeCallMethod(attachTo);
         if (name != null && name.length() > 0) {
             if (attachTo != null)
-                _addMethod(name, jm, attachTo);
+                _addMethod(name, _makeCallMethod(attachTo), attachTo);
             if (canBeNewClass(runtime, name))
                 _createJSObjectSubclass(s, name);
         }
         else if (attachTo != null)
-            attachTo.addMethod("call", jm);
+            attachTo.addMethod("call", _makeCallMethod(attachTo));
     }
 
     /** For use by RubyJSFileLibraryWrapper subclass. */
