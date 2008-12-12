@@ -34,15 +34,20 @@ public class JSObjectSize {
 
     /** The extra space every object takes up: 8 */
     public static final long OBJ_OVERHEAD = 8;
+    public static final long STRING_CONS_OVERHEAD = 127552;
+
+    public static boolean addStringCons = false;
 
     /** Finds the size of a given object.
      * @param o The object
      * @return The object's size, in bytes
      */
     public static long size( Object o ){
-        return size( o , null , null );
+        long s = size( o , null , null );
+        s += addStringCons ? STRING_CONS_OVERHEAD : 0;
+        addStringCons = false;
+        return s;
     }
-
     
     public static long size( Object o , SeenPath seen , Object from ){
         if ( o == null )
@@ -51,7 +56,7 @@ public class JSObjectSize {
         final long size = _size( o , seen , from );
         return size;
     }
-    
+
     private static long _size( Object o , SeenPath seen , Object from ){
         if ( o == null ||
              o instanceof Boolean ||
@@ -69,10 +74,6 @@ public class JSObjectSize {
              || o instanceof ed.log.Level
              || o instanceof ObjectId )
             return OBJ_OVERHEAD + 8;
-
-        if ( o instanceof JSString ) {
-            return 127552 + ( 10 * o.toString().length() );
-        }
         
         // -------- this is the end of the "primitive" types ------
 
@@ -81,6 +82,10 @@ public class JSObjectSize {
         else if ( ! seen.shouldVisit( o , from ) )
             return 0;
 
+        if ( o instanceof JSString ) {
+            addStringCons = true;
+            return 10 * o.toString().length();
+        }
 
         // --------- special section for WeakReferences and other special thigns
         
