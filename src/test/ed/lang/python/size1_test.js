@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -19,7 +19,7 @@ local.src.test.ed.lang.python.size1_helper();
 /** assert that a <= b <= a + epsilon */
 var within = function( a , b , epsilon ){
     assert( a <= b );
-    assert( b <= a + epsilon );
+  assert( b <= a + epsilon , 'size grew by ' + (b-a));
 };
 
 // These get converted to immutable objects.
@@ -35,7 +35,7 @@ var start = pyDict2.approxSize();
 var before = pyDict2.approxSize(); // str1: str2
 assert.eq( before , pyDict2.approxSize() );
 assert.eq( before , pyDict2.approxSize() );
-within( start , before , 100 );
+within( start , before , 200 );
 
 
 pyModifyDict2(); // str1: str2
