@@ -518,8 +518,11 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
 	    String str = o.toString();
 	    if ( ObjectId.isValid( str ) )
 		o = new ObjectId( str );
-	    else 
-		throw new IllegalArgumentException( "can't call find() with a string that is not a valid ObjectId" );
+	    else {
+                JSObjectBase obj = new JSObjectBase();
+                obj.set( "$where" , o );
+                return obj;
+            }
 	}
 
 	if ( convertIdToObject && o instanceof ObjectId ){

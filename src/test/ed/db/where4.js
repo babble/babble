@@ -17,3 +17,5 @@ t.save( { a : 2 , date : new Date() } );
 assert.eq( 2 , t.find( { $where : "this.a == 2" } ).length() );
 
 assert.eq( 1 , t.find( { $where : "this.date && this.date.getDay() == " + ( new Date() ).getDay() } ).length() );
+
+assert.eq( 2 , t.find( "this.a == 2" ).length() );
