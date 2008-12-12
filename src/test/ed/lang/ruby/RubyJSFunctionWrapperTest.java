@@ -49,24 +49,17 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
     }
 
     public void testClass() {
+        Ruby r = source.getRuntime();
         RubyClass klazz = new RubyJSFunctionWrapper(s, r, addSevenFunc, "addSevenFunc", null).type();
         assertEquals(klazz.name().toString(), "JSFunction");
         assertEquals(((RubyClass)klazz.superclass(r.getCurrentContext())).name().toString(), "JSObject");
     }
 
     public void testClassConstantCreated() {
-        try {
-            r.getClassFromPath("MyJSClass");
-            fail("MyJSClass should not already be defined");
-        }
-        catch (org.jruby.exceptions.RaiseException e) {
-            assertTrue(true);
-        }
-
         runRuby("# gotta run something for the class to be created");
 
         try {
-            RubyModule mo = r.getClassFromPath("MyJSClass");
+            RubyModule mo = source.getRuntime().getClassFromPath("MyJSClass");
             assertNotNull(mo, "getClassFromPath returned null");
         }
         catch (org.jruby.exceptions.RaiseException e) {
@@ -76,6 +69,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
 
     public void testClassHierarchy() {
         runRuby("# gotta run something for the class to be created");
+        Ruby r = source.getRuntime();
         RubyModule mo = r.getClassFromPath("MyJSClass");
         assertTrue(mo instanceof RubyClass, "expected RubyClass, saw " + (mo == null ? "null" : mo.getClass().getName()));
         RubyClass c = (RubyClass)mo;
@@ -90,7 +84,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
 
     public void testJSClassExists() {
         runRuby("# gotta run something for the class to be created");
-        RubyModule m = r.getClassFromPath("MyJSClass");
+        RubyModule m = source.getRuntime().getClassFromPath("MyJSClass");
         assertNotNull(m);
         runRuby("puts Object.constants.include?('MyJSClass').to_s");
         assertEquals(rubyOutput, "true");
@@ -107,7 +101,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
         assertTrue(reverse instanceof JSFunction, "expected JSFunction, saw " + (reverse == null ? "null" : reverse.getClass().getName()));
         assertEquals(((JSFunction)reverse).callAndSetThis(s, jo, RuntimeEnvironment.EMPTY_OBJECT_ARRAY).toString(), "rab");
 
-        assertNotNull(r.getModule("MyJSClass")); // Ruby class was created
+        assertNotNull(source.getRuntime().getModule("MyJSClass")); // Ruby class was created
     }
 
     public void testClassNameInRuby() {

@@ -244,7 +244,7 @@ module XGen
         #   Person.find_all_by_name("Fred")
         #
         # Mongo-specific example:
-        #   Person.find(:all, :where => "function() { return obj.song == 'Song Title'; }")
+        #   Person.find(:all, :where => "this.address.city == 'New York' || this.age = 42")
         #
         # As a side note, the :order, :limit, and :offset options are passed
         # on to the Cursor (after the :order option is rewritten to be a
@@ -374,7 +374,7 @@ module XGen
           # is not allowed).
           criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           fields = fields_from(options[:select])
-          row = collection.find_one(criteria, fields)
+          row = collection.findOne(criteria, fields)
           (row.nil? || row['_id'] == nil) ? nil : self.new(row)
         end
 

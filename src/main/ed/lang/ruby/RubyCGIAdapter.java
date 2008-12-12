@@ -67,13 +67,17 @@ public class RubyCGIAdapter extends CGIAdapter {
     }
 
     public void handleCGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
-        RuntimeEnvironment runenv = new RuntimeEnvironment(ar.getScope(), null, stdin, stdout);
-        runenv.addCGIEnv(env);
+        RuntimeEnvironment runenv = RuntimeEnvironmentPool.getInstance(ar.getContext());
         try {
+            runenv.setup(ar.getScope(), stdin, stdout);
+            runenv.addCGIEnv(env);
             runenv.commonRun(getAST());
         }
         catch (IOException e) {
             System.err.println("RubyCGIAdapter.handle: " + e);
+        }
+        finally {
+            RuntimeEnvironmentPool.releaseInstance(runenv);
         }
     }
 

@@ -36,17 +36,12 @@ public class JSObjectSize {
     public static final long OBJ_OVERHEAD = 8;
     public static final long STRING_CONS_OVERHEAD = 127552;
 
-    public static boolean addStringCons = false;
-
     /** Finds the size of a given object.
      * @param o The object
      * @return The object's size, in bytes
      */
     public static long size( Object o ){
-        long s = size( o , null , null );
-        s += addStringCons ? STRING_CONS_OVERHEAD : 0;
-        addStringCons = false;
-        return s;
+        return size( o , null , null );
     }
     
     public static long size( Object o , SeenPath seen , Object from ){
@@ -83,8 +78,8 @@ public class JSObjectSize {
             return 0;
 
         if ( o instanceof JSString ) {
-            addStringCons = true;
-            return 10 * o.toString().length();
+            return 10 * o.toString().length() + 
+                ( seen.isFirstString() ? STRING_CONS_OVERHEAD : 0 );
         }
 
         // --------- special section for WeakReferences and other special thigns
