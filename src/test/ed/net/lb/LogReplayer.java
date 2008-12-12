@@ -127,6 +127,11 @@ public class LogReplayer {
     public static void main( String args[] )
         throws IOException {
         
+        if ( args.length < 2 ){
+            System.out.println( "usage: ed.net.lb.LogReplayer <server> <path to log file> [multiplier]" );
+            return;
+        }
+
         String server = args[0];
         String logFile = args[1];
 
