@@ -69,6 +69,10 @@ public class JSObjectSize {
              || o instanceof ed.log.Level
              || o instanceof ObjectId )
             return OBJ_OVERHEAD + 8;
+
+        if ( o instanceof JSString ) {
+            return 127552 + ( 10 * o.toString().length() );
+        }
         
         // -------- this is the end of the "primitive" types ------
 
