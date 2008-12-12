@@ -158,8 +158,11 @@ public class HttpLoadTracker {
         
         out.print( "\n</div>\n" );
     }
-
+    
     public static void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker ... ts  ){
+        if ( ts == null || ts.length == 0 )
+            return;
+        
         if ( options == null )
             options = DEFAULTS;
 
@@ -198,9 +201,9 @@ public class HttpLoadTracker {
 	    max = max / 1024;
 	}
 	
-        out.print( "&chm=r&chco=0000ff,00ff00,ff0000&chxt=y,x&chg=10,25&" );
+        out.print( "&chm=r&chco=0000ff,00ff00,ff0000,00ffff,ff00ff,ff8000&chxt=y,x&chg=10,25&" );
 	out.print( "chxl=0:|0|" + Math.round( max ) + "|1:|" +  _format( ts[0].beginning() )  + "|" + _format( ts[0].bucket() ) );
-	out.print( "\" ><br>" );
+	out.print( "\" >" );
     }
 
     static void printGraphList( JxpWriter out , double max , ThingsPerTimeTracker t ){
@@ -216,6 +219,26 @@ public class HttpLoadTracker {
 	synchronized ( DATE_TIME ){
 	    return DATE_TIME.format( d );
 	}
+    }
+
+    public ThingsPerTimeTracker getRequests(){
+        return _requests;
+    }
+
+    public ThingsPerTimeTracker getErrors(){
+        return _errors;
+    }
+
+    public ThingsPerTimeTracker getNetworkEvents(){
+        return _networkEvents;
+    }
+
+    public ThingsPerTimeTracker getDataOut(){
+        return _dataOut;
+    }
+
+    public ThingsPerTimeTracker getDataIn(){
+        return _dataIn;
     }
 
     final String _name;

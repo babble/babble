@@ -137,6 +137,8 @@ public class Python extends Language {
             return new JSPySequenceListWrapper((PySequenceList)p);
         }
 
+        // TODO: tuples, sets
+
         // TODO: this doesn't support several of the Python extensions
         // known things that won't work:
         //   (?iLmsux)

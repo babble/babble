@@ -94,6 +94,22 @@ public class SiteSystemState implements Sizable {
         ensurePath( PYTHON_LIB , 0 );
         setupModules();
 
+        if( ac != null ){
+            ac.addInitRefreshHook(new JSFunctionCalls0(){
+                    public Object call(Scope s, Object[] extra){
+                        if( ! ( pyState.modules instanceof PythonModuleTracker) ){
+                            _log.warn("sys.modules was not a ModuleTracker when _init was refreshed -- refreshing might be broken");
+                            return null;
+                        }
+                        PythonModuleTracker modules = (PythonModuleTracker)pyState.modules;
+                        Collection <String> toFlush = new HashSet<String>();
+                        toFlush.add( "_10gen" );
+                        modules.flushOld( toFlush );
+                        return null;
+                    }
+                });
+        }
+
         checkBrokenSystemRestart();
 
         // Careful -- this is static PySystemState.builtins. We modify

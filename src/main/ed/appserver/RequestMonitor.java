@@ -29,10 +29,9 @@ class RequestMonitor extends Thread {
     public static final long MAX_MS = Config.get().getLong( "REQUEST.TIMEOUT.MAX" , 1000 * 60 * 5 );
     public static final long MIN_MS = Config.get().getLong( "REQUEST.TIMEOUT.MIN" , 1000 * 45 );
     
-    public static final long SLEEP_TIME = 5000;
+    public static final long SLEEP_TIME = 200;
 
-    public static final int MIN_CHECKS = (int)(MIN_MS / SLEEP_TIME);
-    public static final int MAX_CHECKS = (int)(MAX_MS / SLEEP_TIME);
+    public static long REQUEST_WARN = Config.get().getLong( "REQUEST.MEMORY.WARN" , 1024 * 1024 * 10 );
 
     static synchronized RequestMonitor getInstance(){
         if ( _instance == null )
@@ -76,7 +75,29 @@ class RequestMonitor extends Thread {
         }
 
         boolean needToKill( long now ){
+            AppRequest request = _request.get();
+            if ( request == null )
+                return false;
+            
+            return 
+                runningTooLong( request , now ) || 
+                usingTooMuchMemory( request , now );
+        }
+        
+        boolean usingTooMuchMemory( AppRequest request , long now ){
+            long elapsed = now - _start;
+            if ( elapsed < 600 )
+                return false;
+            
+            long size = request.approxSize();
+            if ( size > REQUEST_WARN )
+                _logger.warn( request.getRequest().getFullURL() + " using " + size + " memory" );
 
+            return false;
+        }
+        
+        boolean runningTooLong( AppRequest request , long now ){
+            
             final Thread.State state = _thread.getState();
             if ( state == Thread.State.BLOCKED || 
                  state == Thread.State.WAITING ){
@@ -103,13 +124,17 @@ class RequestMonitor extends Thread {
             if ( request == null )
                 return;            
             
-            _logger.error( "killing : " + request );
+            if ( ! _killAttempted )
+                _logger.error( "killing : " + request );
+
+            _killAttempted = true;
             
             request.getScope().setToThrow( new AppServerError( "running too long " + ( System.currentTimeMillis() - _start ) + " ms" ) );
             _thread.interrupt();
         }
 
         private int _bonuses = 0;
+        private boolean _killAttempted = false;
 
         final WeakReference<AppRequest> _request;
         final Thread _thread;
