@@ -22,8 +22,8 @@ import ed.lang.ruby.RubyErbSource;
 
 /** Makes RubyErbSource testable by letting us control input and capture output. */
 class TestRubyErbSource extends TestRubyJxpSource {
-    public TestRubyErbSource(org.jruby.Ruby runtime) {
-        super(runtime);
+    public TestRubyErbSource() {
+        super();
     }
     protected String getContent() {
         return RubyErbSource.wrap(_content);
@@ -35,6 +35,6 @@ public class ErbSourceRunner extends SourceRunner {
     @BeforeMethod(groups={"ruby", "ruby.erbsource"})
     public void setUp() {
         super.setUp();
-        source = new TestRubyErbSource(r);
+        source = new TestRubyErbSource();
     }
 }
