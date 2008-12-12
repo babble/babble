@@ -276,12 +276,12 @@ public class PythonModuleTracker extends PyStringMap {
             Set<String> rdeps = _reverseDeps.get( o );
             _reverseDeps.remove( o );
             if( rdeps == null ){
-                if( DEBUG || true )
+                if( DEBUG )
                     System.out.println("Nothing imported " + o );
                 continue;
             }
             for( String s : rdeps ){
-                if( DEBUG || true)
+                if( DEBUG )
                     System.out.println("module "+ s + " imported " + o );
                 toAdd.add( s );
             }
