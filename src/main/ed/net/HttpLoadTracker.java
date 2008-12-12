@@ -201,7 +201,7 @@ public class HttpLoadTracker {
 	    max = max / 1024;
 	}
 	
-        out.print( "&chm=r&chco=0000ff,00ff00,ff0000&chxt=y,x&chg=10,25&" );
+        out.print( "&chm=r&chco=0000ff,00ff00,ff0000,00ffff,ff00ff,ff8000&chxt=y,x&chg=10,25&" );
 	out.print( "chxl=0:|0|" + Math.round( max ) + "|1:|" +  _format( ts[0].beginning() )  + "|" + _format( ts[0].bucket() ) );
 	out.print( "\" >" );
     }

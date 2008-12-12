@@ -81,7 +81,7 @@ public class WebViews {
             }
 
             { // logs
-                out.print( "<td>" );
+                out.print( "<td valign='top'>" );
                 
                 out.print( "logs<br>" );
                 HttpMonitor.printLastLogMessages( mr , 10 );

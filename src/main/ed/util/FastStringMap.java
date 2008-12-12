@@ -303,18 +303,18 @@ public final class FastStringMap implements Map<String,Object> {
         
         seen.visited( this );
 
-        long size = 48 + ( 8 * _data.length );
+        long size = 104;
         for ( int i=0; i<_data.length; i++ ){
 
             MyEntry e = _data[i];
             if ( e == null )
                 continue;
-            
-            size += 32;
+
+            size += 24;
             size += JSObjectSize.size( e._key , seen , this );
             size += JSObjectSize.size( e._value , seen , this );
         }
-
+        
         return size;
     }
 
