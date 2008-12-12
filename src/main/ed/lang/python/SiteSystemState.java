@@ -112,14 +112,7 @@ public class SiteSystemState implements Sizable {
 
         checkBrokenSystemRestart();
 
-        // Careful -- this is static PySystemState.builtins. We modify
-        // it once to intercept imports for all sites. TrackImport
-        // then looks at the execution environment and figures out which site
-        // needs to track the import.
-        PyObject builtins = PySystemState.builtins;
-        PyObject pyImport = builtins.__finditem__( "__import__" );
-        if( ! ( pyImport instanceof TrackImport ) )
-            builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
+        lockBuiltins();
 
         _scope.set( "pythonSetCurrentlyRunning" , _setCurrentlyRunning );
 
@@ -191,6 +184,56 @@ public class SiteSystemState implements Sizable {
     void checkBrokenSystemRestart(){
         if( _systemrestart.SystemRestart == null ){
             _systemrestart.SystemRestart = Py.KeyboardInterrupt; // HA HA HA
+        }
+    }
+
+    void lockBuiltins(){
+        /*
+         * Since PySystemState.builtins is static, it's the same for
+         * every Jython thread on the JVM. This sucks; it means the
+         * users can mess with each other's builtins. This is a
+         * security hole, a DOS, and basically unpleasant. To prevent
+         * such nuisances, we "freeze" the builtins by making it
+         * readonly and closing as many ways to access it as we can
+         * think of.
+         *
+         * But first we have to change the __import__ builtin. We can
+         * only change it once, so to track dependencies, it checks
+         * the execution environment.
+         */
+        PyObject builtins = PySystemState.builtins;
+        PyObject pyImport = builtins.__finditem__( "__import__" );
+        if( ! ( pyImport instanceof TrackImport ) )
+            builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
+
+        /* Sever the connection between PySystemState's static
+         * builtins and the Python type.
+         *
+         * A more elegant solution would be to provide a descriptor that
+         * allowed you to get builtins (as a PyDictProxy), but not set.
+         */
+        PyObject dict = pyState.getType().fastGetDict();
+        dict.__delitem__("builtins");
+
+        /*
+         * Make PySystemState.builtins readonly by replacing it with a
+         * readonly proxy to the "real" builtins dict.
+         */
+        PySystemState.builtins = new PyDictProxy( PySystemState.builtins );
+
+        /*
+         * However, the __builtin__ module has already been created,
+         * and if this is the first invokation of this method on this
+         * JVM, then it'll be pointing to the "real" builtins dict
+         * (which still exists somewhere). We replace __builtin__'s
+         * __dict__ too (to the same readonly proxy).
+         */
+        PyObject __builtin__ = pyState.modules.__finditem__( "__builtin__" );
+        if( ! ( __builtin__ instanceof PyModule ) ){
+            _log.warn( "__builtin__ is not a module; no idea what this could mean" );
+        }
+        else {
+            ((PyModule)__builtin__).__dict__ = PySystemState.builtins;
         }
     }
 
