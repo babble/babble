@@ -19,8 +19,6 @@ package ed.lang.ruby;
 import java.io.File;
 import java.io.IOException;
 
-import org.jruby.Ruby;
-
 /**
  * Handles .erb and .rhtml files by turning the file into an ERB template.
  */
@@ -51,11 +49,6 @@ public class RubyErbSource extends RubyJxpSource {
 
     public RubyErbSource(File f) {
         super(f);
-    }
-
-    /** For testing. */
-    protected RubyErbSource(File f, Ruby runtime) {
-        super(f, runtime);
     }
     
     /**

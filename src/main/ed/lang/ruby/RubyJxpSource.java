@@ -18,10 +18,10 @@ package ed.lang.ruby;
 
 import java.io.*;
 
-import org.jruby.*;
 import org.jruby.ast.Node;
 import org.jruby.runtime.builtin.IRubyObject;
 
+import ed.appserver.AppContext;
 import ed.appserver.jxp.JxpSource;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
@@ -32,25 +32,10 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
 
     protected Node node;
     protected long lastCompile;
-    protected Ruby predefinedRuntime;
 
     public RubyJxpSource(File f) {
-        this(f, null);
-    }
-
-    /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(File f, Ruby predefinedRuntime) {
         super(f);
-        this.predefinedRuntime = predefinedRuntime;
     }
-
-//     public Ruby getRuntime(Scope s) {
-//         if (predefinedRuntime != null)
-//             return predefinedRuntime;
-//         if (runenv == null)
-//             return null;
-//         return runenv.getRuntime(s);
-//     }
 
     public JSFunction getFunction() throws IOException {
         final Node node = getAST();
@@ -62,10 +47,15 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
         HttpRequest request = (HttpRequest)s.get("request");
         HttpResponse response = (HttpResponse)s.get("response");
-        RuntimeEnvironment runenv = new RuntimeEnvironment(s, predefinedRuntime,
-                                                           request == null ? null : request.getInputStream(),
-                                                           response == null ? null : response.getOutputStream());
-        return runenv.commonRun(node);
+        RuntimeEnvironment runenv = RuntimeEnvironmentPool.getInstance((AppContext)s.get("__instance__"));
+        try {
+            runenv.setup(s, request == null ? null : request.getInputStream(),
+                         response == null ? null : response.getOutputStream());
+            return runenv.commonRun(node);
+        }
+        finally {
+            RuntimeEnvironmentPool.releaseInstance(runenv);
+        }
     }
 
     protected synchronized Node getAST() throws IOException {
