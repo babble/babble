@@ -243,7 +243,7 @@ module ActiveRecord
         # is not allowed).
         criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
         fields = fields_from(options[:select])
-        row = collection.find_one(criteria, fields)
+        row = collection.findOne(criteria, fields)
         (row.nil? || row['_id'] == nil) ? nil : self.send(:instantiate, row.to_ar_hash)
       end
 
