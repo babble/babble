@@ -11,6 +11,7 @@ public class VLocalFile extends VFile {
     }
     
     public VLocalFile( File f ){
+        super( null , f.toString() );
         _file = f;
     }
 
