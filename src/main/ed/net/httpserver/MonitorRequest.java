@@ -176,13 +176,19 @@ public class MonitorRequest {
         if ( cssClass != null )
             _out.print( " class='" + cssClass + "' " );
         _out.print( ">" );
+
         if ( data == null )
             _out.print( "null" );
-        else 
-            _out.print( HttpMonitor.escape( data.toString() ) );
+        else {
+            String s = HttpMonitor.escape( data.toString() ).trim();
+            if ( s.length() == 0 )
+                s = "&nbsp;";
+            _out.print( s );
+        }
+        
         _out.print( "</td>" );
     }
-
+    
     public void addTableRow( String header , Object ... datas ){
         addTableRow( header , Status.OK ,  datas  );
         _assertIfJson();
