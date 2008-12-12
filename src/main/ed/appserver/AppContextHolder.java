@@ -86,7 +86,7 @@ public class AppContextHolder {
     }
 
     public void addToServer(){
-        HttpServer.addGlobalHandler( new HttpMonitor( "appcontextholder" ){
+        HttpServer.addGlobalHandler( new HttpMonitor( "appcontextholder" , true ){
                 
                 public void handle( MonitorRequest mr ){
                     
