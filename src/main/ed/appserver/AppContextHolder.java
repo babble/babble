@@ -111,6 +111,7 @@ public class AppContextHolder {
                         mr.startData( ac.getName() + ":" + ac.getEnvironmentName() );
                         mr.addData( "Num Requests" , ac._numRequests );
                         mr.addData( "Created" , ac._created );
+                        mr.addData( "git branch" , ac.getGitBranch() );
                         try {
                             int before = seen.size();
                             long size = ac.approxSize( seen );

@@ -19,6 +19,7 @@ package ed.util;
 import org.testng.annotations.Test;
 
 import ed.js.JSFunction;
+import ed.js.JSObjectSize;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.engine.Convert;
 import ed.js.engine.Scope;
@@ -31,12 +32,6 @@ import java.io.IOException;
 
 import sizeof.agent.SizeOfAgent;
 
-/**
- * Dynamic test instance for testing any 10genPlatform script
- * 
- * Code stolen lock, stock and barrel from ConvertTest.  Uses exact same convention
- * and scheme for comparing output
- */
 public class SizeTester extends ScriptTestInstanceBase {
 
     SizeTester() {
@@ -61,27 +56,47 @@ public class SizeTester extends ScriptTestInstanceBase {
 
     public void validateOutput(Scope scope) throws Exception {
         long instApprox = SizeOfAgent.fullSizeOf( scope );
-        long edApprox = scope.approxSize();
-        if( edApprox * 1.1 < instApprox || edApprox * .9 > instApprox )
-            throw new RuntimeException( "too big a size diff in scope:\n"+
-                                        "\taccording to ed: "+edApprox+"\n"+
-                                        "\taccording to java.lang.Instrument.sizeOfObject: "+instApprox);
+        long edApprox = JSObjectSize.size( scope );
+        if( edApprox * 1.1 < instApprox || edApprox * .9 > instApprox ) {
+            System.out.println( getTestScriptFile()+"\ntoo big a size diff in scope:\n"+
+                                "\taccording to ed: "+edApprox+"\n"+
+                                "\taccording to java.lang.Instrument.sizeOfObject: "+instApprox);
+        }
         else 
             System.out.print( "." );
+    }
+
+    private static void testDirs( File here ) {
+        for( File f : here.listFiles() ) {
+            if( f.getName().endsWith( ".js" ) ) {
+                try {
+                    SizeTester st = new SizeTester();
+                    st.setTestScriptFile( f );
+                    st.test();
+                }
+                catch( Exception e ) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 
     public static void main(String args[]) 
         throws Exception {
         if( args.length == 0 ) {
-            System.out.println("No tests selected.  Exiting.");
+            testDirs( new File( "./src/test/ed/js" ) );
+            testDirs( new File( "./src/test/ed/js/engine" ) );
             return;
         }
 
+        SizeTester st = new SizeTester();
         for( String a : args ) {
-            SizeTester st = new SizeTester();
-            st.setTestScriptFile( new File( "./src/test/ed" + File.separator + a ) );
-            st.test();
+            File f = new File( a );
+            if( f.exists() && f.getName().endsWith( ".js" ) ) {
+                st.setTestScriptFile( f );
+                st.test();
+            }
         }
         System.out.println();
     }

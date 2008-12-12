@@ -540,11 +540,6 @@ response.setCookie({
 
     private boolean flush()
         throws IOException {
-        return _flush();
-    }
-
-    private boolean _flush()
-        throws IOException {
 
         if ( _cleaned )
             throw new RuntimeException( "already cleaned" );
@@ -1255,7 +1250,7 @@ response.setCookie({
 
         public void flush()
             throws IOException {
-            _flush();
+            flush();
         }
 
         public void reset(){

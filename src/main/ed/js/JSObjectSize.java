@@ -49,18 +49,17 @@ public class JSObjectSize {
             return 0;
 
         final long size = _size( o , seen , from );
-        //System.out.println( "\t" + o.getClass() + "\t" + size );
         return size;
     }
     
     private static long _size( Object o , SeenPath seen , Object from ){
-        if ( o == null )
-            return 0;
-        
-        if ( o instanceof Boolean ||
+        if ( o == null ||
+             o instanceof Boolean ||
              o instanceof Short ||
-             o instanceof Character )
-            return OBJ_OVERHEAD + 4;
+             o instanceof Character || 
+             o instanceof String ) {
+            return 0;
+        }
 
         if ( o instanceof DBRef
              || o instanceof JSDate
@@ -69,18 +68,7 @@ public class JSObjectSize {
              || o instanceof java.io.File
              || o instanceof ed.log.Level
              || o instanceof ObjectId )
-            return OBJ_OVERHEAD + 16;
-        
-        if ( o instanceof String ||
-             o instanceof JSString )
-            return OBJ_OVERHEAD + (long)( o.toString().length() * 2 );
-        
-        if ( o instanceof JSRegex ){
-            // this is a total guess
-            // TODO: make it a litlte more realistic
-            return o.toString().length() * 4;
-        }
-
+            return OBJ_OVERHEAD + 8;
         
         // -------- this is the end of the "primitive" types ------
 
@@ -118,7 +106,7 @@ public class JSObjectSize {
             return ((Scope)o).approxSize( seen );
         }
 
-        if ( o instanceof JSObjectBase )
+        if ( o instanceof JSObjectBase ) 
             return ((JSObjectBase)o).approxSize( seen );
 
         if ( o instanceof Sizable )
@@ -128,7 +116,7 @@ public class JSObjectSize {
 	    Collection c = (Collection)o;
 	    Iterator i = c.iterator();
             long temp = 0;
-            temp += 32;
+            temp += o instanceof HashSet ? 184 : 80;
 
 	    if ( i == null )
 		return temp;
