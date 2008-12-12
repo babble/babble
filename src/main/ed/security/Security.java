@@ -64,8 +64,7 @@ public class Security {
         "./src/test/ed/lang/python/", // FIXME?
         Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed",
         Config.get().getProperty("ED_HOME", "/data/ed") + "/src/main/ed",
-        Config.get().getProperty("ED_HOME", "/data/ed") + "/include/jython/Lib",
-        "./appserver/libraries/corejs/core" // TODO - fix this - hack to deal with SDK test failures
+        Config.get().getProperty("ED_HOME", "/data/ed") + "/include/jython/Lib"
     };
     
     static {
