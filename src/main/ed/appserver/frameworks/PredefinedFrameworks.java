@@ -6,6 +6,8 @@ import ed.js.JSArray;
 import ed.js.JSObject;
 import ed.js.JSDict;
 import ed.js.JSString;
+import ed.js.func.JSFunctionCalls0;
+import ed.js.engine.Scope;
 import ed.io.StreamUtil;
 import ed.appserver.AppContext;
 import ed.appserver.adapter.AdapterType;
@@ -112,7 +114,7 @@ public class PredefinedFrameworks {
      * @param name  name of environment (for logging purposes only)
      * @param version version of env (for logging purposes only)
      */
-    protected void _setupContext(AppContext context, Env env, String name, String version) {
+    protected void _setupContext(final AppContext context, final Env env, String name, String version) {
         /*
          *   first, set the adapter type directly
          */
@@ -158,6 +160,17 @@ public class PredefinedFrameworks {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            context.addInitRefreshHook(new JSFunctionCalls0(){
+                    public Object call(Scope s, Object[] extra){
+                        try {
+                            context.runInitFile( env._initFile );
+                        }
+                        catch (IOException e){
+                            throw new RuntimeException(e);
+                        }
+                        return null;
+                    }
+                });
         }
 
         /*
