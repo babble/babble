@@ -16,8 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.util.*;
-
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;

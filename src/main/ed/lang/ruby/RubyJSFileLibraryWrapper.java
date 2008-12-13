@@ -16,9 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
