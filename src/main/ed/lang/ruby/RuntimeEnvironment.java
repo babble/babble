@@ -33,7 +33,6 @@ import ed.appserver.JSFileLibrary;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
-import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 public class RuntimeEnvironment {
