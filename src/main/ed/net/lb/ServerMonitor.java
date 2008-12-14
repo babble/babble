@@ -221,14 +221,16 @@ public class ServerMonitor extends Thread {
 
     JSObject fetch( URL url )
         throws IOException {
-        
         _logger.debug( 4 , url );
 
         XMLHttpRequest x = new XMLHttpRequest( url );
         if ( x.send() == null )
             throw x.getError();
 	try {
-	    return (JSObject)(x.getJSON());
+            JSObject ret = (JSObject)(x.getJSON());
+            if ( ret == null )
+                throw new RuntimeException( "no data : " + x.getResponseText() );
+	    return ret;
 	}
 	catch ( Exception e ){
 	    throw new CantParse( url.toString() );
