@@ -69,10 +69,12 @@ public abstract class HttpMonitor implements HttpHandler {
     
     protected boolean allowed( HttpRequest request ){
         String h = request.getHost();
+
         if ( h == null )
             return false;
 	
-	if ( h.equals( "127.0.0.1" ) )
+	if ( h.equals( "127.0.0.1" ) || 
+             h.equals( "localhost" ) )
 	    return true;
         
         if ( ! acceptableHost( h ) )
@@ -91,7 +93,7 @@ public abstract class HttpMonitor implements HttpHandler {
 
         return false;
     }
-
+    
     protected boolean acceptableHost( String host ){
         if (  host.endsWith( "." + Config.getInternalDomain() ) )
             return true;
