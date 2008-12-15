@@ -32,7 +32,7 @@ oplog.*
 build
 crap
 hs_err_*
-docs
+doc{s,}
 target
 include/jython/cachedir
 
