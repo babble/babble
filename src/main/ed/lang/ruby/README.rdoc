@@ -77,7 +77,7 @@ raised. Instead, use XGen::BabbleThread.
 
 The GridFile class represents files that are stored in GridFS, the Mongo-based
 file storage mechanism. Files can have attributes. See GridFile for more
-information.
+information and an example.
 
 
 == Mongo
@@ -102,6 +102,10 @@ the console.
 
 $stdout is directed to the browser. That is, calling "puts 'foo'" will write
 'foo' to the HTTP response, sending it back to the browser.
+
+$stderr is directed to the console. For example, when running Babble locally
+"$stderr.puts 'foo'" will write 'foo' to the terminal window where you started
+Babble.
 
 ==== Sessions
 
@@ -134,7 +138,7 @@ routing. Here is an example, taken from xgen/rails/init.rb:
   end
 
 Note that you should not +return+ from this proc. If you do, you will see the
-exception +org.jruby.exceptions.JumpException$ReturnJump+.
+exception org.jruby.exceptions.JumpException$ReturnJump.
 
 If you do not define $adapterType it defaults to the built-in 10gen method,
 which is perfectly fine for a non-CGI application.
