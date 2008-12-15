@@ -45,7 +45,7 @@ public class JSPyClassWrapper extends JSPyObjectWrapper {
         JSPyObjectWrapper shell = (JSPyObjectWrapper)t;
         PyObject p = callPython(s, params, null);
         shell.setContained(p);
-        return this;
+        return shell;
     }
 
     public JSFunction getFunction( String name , boolean tryLower ){
