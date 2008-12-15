@@ -69,3 +69,10 @@ p1 = new Post();
 p2 = new ns.Post();
 print(p1.x);
 print(p2.x);
+
+function makeArray() {
+    return arguments;
+}
+
+print( (new makeArray( 1,2,3 )).length );
+print( (new makeArray()).length );

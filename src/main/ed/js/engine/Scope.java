@@ -719,6 +719,9 @@ public class Scope implements JSObject , Bindings {
         
         Object o = _this.pop()._this;
 
+        if ( whoCares != null ) 
+            return whoCares;
+
         if ( o instanceof JSNumber )
             return ((JSNumber)o).get();
 
