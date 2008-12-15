@@ -83,6 +83,14 @@ public class SiteSystemState implements Sizable {
      */
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
+        PySystemState oldState = Py.getSystemState();
+        try {
+            Py.setSystemState(pyState);
+            ImportHelper.initClassExceptions(pyState.builtins);
+        }
+        finally {
+            Py.setSystemState(oldState);
+        }
         globals = newGlobals;
         _scope = s;
         _context = ac;
@@ -116,7 +124,7 @@ public class SiteSystemState implements Sizable {
         // it once to intercept imports for all sites. TrackImport
         // then looks at the execution environment and figures out which site
         // needs to track the import.
-        PyObject builtins = PySystemState.builtins;
+        PyObject builtins = pyState.builtins;
         PyObject pyImport = builtins.__finditem__( "__import__" );
         if( ! ( pyImport instanceof TrackImport ) )
             builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );

@@ -391,7 +391,8 @@ public class Python extends Language {
 
         pyglobals.setGlobal( true );
         __builtin__.fillWithBuiltins( globals );
-        globals.invoke( "update", PySystemState.builtins );
+        // FIXME: This can't possibly be right
+        globals.invoke( "update", Py.getSystemState().builtins );
         pyglobals.setGlobal( false );
         return globals;
     }

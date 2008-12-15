@@ -88,7 +88,7 @@ class Message:
             # (and then assume seek() works, too)
             try:
                 fp.tell()
-            except (AttributeError, IOError, TypeError): #NOTE: adding TypeError here until we upgrade to a version of Jython where this bug is fixed.
+            except (AttributeError, IOError):
                 seekable = 0
         self.fp = fp
         self.seekable = seekable
