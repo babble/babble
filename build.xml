@@ -29,6 +29,10 @@
 
   <target name="clean">
     <delete dir="build"/>
+    <delete>
+      <fileset dir="src/" includes="**/*$py.class"/>
+      <fileset dir="include/jython" includes="**/*$py.class"/>
+    </delete>
   </target>
 
   <target name="langcore" depends="init">
