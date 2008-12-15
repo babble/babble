@@ -98,7 +98,7 @@ the console.
 
 == Babble Applications
 
-==== Output
+==== I/O
 
 $stdout is directed to the browser. That is, calling "puts 'foo'" will write
 'foo' to the HTTP response, sending it back to the browser.
