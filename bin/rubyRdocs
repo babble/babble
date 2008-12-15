@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 HERE=`dirname $0`
 
 cd $HERE/../src/main/ed/lang/ruby
