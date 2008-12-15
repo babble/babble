@@ -525,7 +525,7 @@ public class JSObjectBase implements JSObject {
         if ( n instanceof JSString )
             n = n.toString();
 
-        Object val = false;
+        Object val = true;
 
         if ( n instanceof String ){
             if ( _dontDeleteKeys != null && _dontDeleteKeys.contains( (String)n ) )
@@ -536,7 +536,7 @@ public class JSObjectBase implements JSObject {
                 _keys.remove( n );
         }
 
-        return val;
+        return !(val instanceof JSRef) ? true : val;
     }
 
     /** Add a key/value pair to this object, using a numeric key.
