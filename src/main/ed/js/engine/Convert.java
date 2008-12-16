@@ -556,6 +556,9 @@ public class Convert {
             else
                 _append( "scope.get( \"" + n.getString() + "\" )" , n );
             break;
+        case Token.THISFN:
+            _append( "this", n );
+            break;
         case Token.SETVAR:
             final String foo = n.getFirstChild().getString();
             if ( state.useLocalVariable( foo ) ){
@@ -1306,7 +1309,7 @@ public class Convert {
             if ( n.getString() != null && n.getString().length() != 0 ){
                 int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
                 if ( state._nonRootFunctions.contains( id ) ){
-                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );\n" , n );
+                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );" , n );
                 }
                 return;
             }
@@ -1574,8 +1577,14 @@ public class Convert {
                 _append( ")\n" , val );
             return;
         }
+
         _append( "scope.put( \"" + name + "\" , " , val);
-        _add( val , state );
+        if( val.getType() == Token.FUNCTION &&
+            !( val instanceof FunctionNode ) &&
+            val.getString().length() > 0 )
+            _append( "scope.get( \"" + state._functionIdToName.get( val.getIntProp( Node.FUNCTION_PROP , -1 ) ) + "\" )" , val );
+        else
+            _add( val , state );
         _append( " , " + local + "  ) " , val );
     }
 
