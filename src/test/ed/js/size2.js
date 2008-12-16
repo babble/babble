@@ -10,6 +10,8 @@ var str2 = new String( "foo" );
 assert( str1.approxSize() == str2.approxSize() );
 
 str3 = "foo";
+var temp = str1.approxSize();
+temp = str3.approxSize();
 assert( str1.approxSize() == str3.approxSize() );
 
 

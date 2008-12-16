@@ -74,7 +74,7 @@ public class PythonCGIAdapter extends CGIAdapter {
             pd.__setitem__(s, Py.newString((String) env.get(s)));
         }
 
-        PyObject os = PySystemState.builtins.__finditem__("__import__").__call__( new PyObject[] { Py.newString("os"), null, null, null});
+        PyObject os = ss.getPyState().builtins.__finditem__("__import__").__call__( new PyObject[] { Py.newString("os"), null, null, null});
         os.__setattr__("environ", new PyTLSProxyDict());
 
         /*

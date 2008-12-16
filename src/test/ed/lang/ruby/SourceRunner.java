@@ -26,7 +26,6 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-import ed.appserver.AppContext;
 import ed.js.PrintBuffer;
 import ed.js.engine.Scope;
 import ed.net.httpserver.JxpWriter;

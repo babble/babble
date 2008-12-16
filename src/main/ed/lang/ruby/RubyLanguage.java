@@ -16,7 +16,6 @@
 
 package ed.lang.ruby;
 
-import org.jruby.Ruby;
 import org.jruby.exceptions.RaiseException;
 
 import ed.lang.Language;

@@ -73,8 +73,10 @@ public class HttpServer extends NIOServer {
 
         HttpHandler.Info info = new HttpHandler.Info();
         List<HttpHandler> handlers = getHandlers();
+
         for ( int i=0; i<handlers.size(); i++ ){
             HttpHandler h = handlers.get(i);
+
             info.reset();
             if ( h.handles( request , info ) ){
                 if ( info.admin ) _numRequestsAdmin++;
@@ -508,6 +510,7 @@ public class HttpServer extends NIOServer {
         List<HttpHandler> lst = new ArrayList<HttpHandler>();
         lst.addAll( _myHandlers  );
         lst.addAll( _globalHandlers );
+
         Collections.sort( lst , _handlerComparator );
 
         _lastHandlers = lst;
@@ -652,7 +655,7 @@ public class HttpServer extends NIOServer {
     static int _globalHandlersMods = 0;
     static final Comparator _handlerComparator = new Comparator<HttpHandler>(){
         public int compare( HttpHandler a , HttpHandler b ){
-            return a.priority() > b.priority() ? 1 : -1;
+            return a.priority() < b.priority() ? 1 : -1;
         }
     };
 

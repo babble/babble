@@ -32,8 +32,8 @@ import static ed.lang.ruby.RubyObjectWrapper.toJS;
 
 public class GridFS {
 
-    public static void save(RubyJSObjectWrapper rscope, RubyJSObjectWrapper rdb, RubyObject gridFile) {
-        final Scope scope = (Scope)rscope.getJSObject();
+    public static void save(RubyJSObjectWrapper rdb, RubyObject gridFile) {
+        final Scope scope = rdb._scope;
         final Ruby runtime = gridFile.getRuntime();
         final ThreadContext context = runtime.getCurrentContext();
 

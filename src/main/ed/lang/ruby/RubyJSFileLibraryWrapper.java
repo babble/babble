@@ -16,9 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
@@ -85,7 +82,7 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
                     Object result = _func.callAndSetThis(_scope, _this, toJSFunctionArgs(_scope, runtime, args, 0, block));
                     if (RubyObjectWrapper.DEBUG_FCALL)
                         System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-                    RuntimeEnvironment.createNewClassesAndXGenMethods(_scope, runtime);
+                    RuntimeEnvironment.createNewClassesAndXGenMethods();
                     return toRuby(_scope, runtime, result);
                 }
                 catch (Exception e) {
