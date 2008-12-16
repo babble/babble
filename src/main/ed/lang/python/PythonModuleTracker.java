@@ -272,12 +272,12 @@ public class PythonModuleTracker extends PyStringMap {
          * strategy. If you take it out, we'll revert back to our incomplete
          * "try to be smart" code.
          */
-        if( ! newer.isEmpty() ){
-            if( DEBUG )
-                System.out.println("Flushing *everything*");
-            dropUserModules();
-            return null;
-        }
+        // if( ! newer.isEmpty() ){
+        //     if( DEBUG )
+        //         System.out.println("Flushing *everything*");
+        //     dropUserModules();
+        //     return null;
+        // }
 
         while( ! toAdd.isEmpty() ){
             // FIXME -- guess I should use a queue or something
