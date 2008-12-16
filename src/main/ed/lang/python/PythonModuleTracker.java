@@ -267,6 +267,11 @@ public class PythonModuleTracker extends PyStringMap {
         Set<String> toAdd = new HashSet<String>();
 
         toAdd.addAll( newer );
+        /*
+         * The following if statement is what turns on the aggressive flushing
+         * strategy. If you take it out, we'll revert back to our incomplete
+         * "try to be smart" code.
+         */
         if( ! newer.isEmpty() ){
             if( DEBUG )
                 System.out.println("Flushing *everything*");
