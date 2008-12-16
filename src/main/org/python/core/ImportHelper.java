@@ -143,4 +143,8 @@ public class ImportHelper {
         }
     }
 
+    public static void initClassExceptions(PyObject dict){
+        Py.initClassExceptions(dict);
+    }
+
 }
