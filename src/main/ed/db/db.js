@@ -61,6 +61,15 @@ DB.prototype.dropDatabase = function() {
 }
 
 /**
+  Repair database.
+ 
+ * @return Object returned has member ok set to true if operation succeeds, false otherwise.
+*/
+DB.prototype.repairDatabase = function() {
+    return this._dbCommand( { repairDatabase: 1 } );
+}
+
+/**
   Clone database on another server to here.
   <p>
   Generally, you should dropDatabase() first as otherwise the cloned information will MERGE 
