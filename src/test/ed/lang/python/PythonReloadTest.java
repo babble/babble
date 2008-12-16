@@ -66,7 +66,7 @@ public class PythonReloadTest extends PythonTestCase {
 
             PyObject m = Py.getSystemState().__findattr__("modules");
 
-            shouldRun2(globalScope);
+            shouldRun3(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest2File2();
@@ -133,7 +133,7 @@ public class PythonReloadTest extends PythonTestCase {
 
             Thread.sleep(SLEEP_MS);
             writeTest5File2();
-            shouldRun2(globalScope);
+            shouldRun3(globalScope);
             shouldRun1(globalScope);
 
             Thread.sleep(SLEEP_MS);
@@ -161,7 +161,7 @@ public class PythonReloadTest extends PythonTestCase {
 
             Thread.sleep(SLEEP_MS);
             writeTest6File2();
-            shouldRun2(globalScope);
+            shouldRun3(globalScope);
             shouldRun1(globalScope);
 
             Thread.sleep(SLEEP_MS);
