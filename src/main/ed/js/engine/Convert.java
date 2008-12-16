@@ -122,14 +122,7 @@ public class Convert {
         _className = cleanName( _name ) + _getNumForClass( _name , _source );
         _fullClassName = _package + "." + _className;
         _random = _random( _fullClassName );
-
-        /** Generate a non-negative random value for _id. We ensure it's
-         * non-negative because it is used in identifiers (function names). */
-        int tmp_id = _random.nextInt();
-        if (tmp_id < 0)
-            tmp_id = -tmp_id;
-        _id = tmp_id;
-
+        _id = _randNonNegativeInt();
         _scriptInfo = new ScriptInfo( _name , _fullClassName , _sourceLanguage , this );
 
         CompilerEnvirons ce = new CompilerEnvirons();
@@ -1909,6 +1902,10 @@ public class Convert {
 
     String _rand(){
         return String.valueOf( _random.nextInt( 1000000 ) );
+    }
+
+    int _randNonNegativeInt(){
+        return Math.abs( _random.nextInt() );
     }
 
     static Random _random( String name ){
