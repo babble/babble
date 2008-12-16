@@ -563,6 +563,9 @@ public class Convert {
             else
                 _append( "scope.get( \"" + n.getString() + "\" )" , n );
             break;
+        case Token.THISFN:
+            _append( "this", n );
+            break;
         case Token.SETVAR:
             final String foo = n.getFirstChild().getString();
             if ( state.useLocalVariable( foo ) ){
@@ -1313,7 +1316,7 @@ public class Convert {
             if ( n.getString() != null && n.getString().length() != 0 ){
                 int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
                 if ( state._nonRootFunctions.contains( id ) ){
-                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );\n" , n );
+                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) )" , n );
                 }
                 return;
             }
@@ -1504,6 +1507,11 @@ public class Convert {
                 _append( ret + " = " , child );
 
             _add( child , state );
+
+            if( !( child instanceof FunctionNode) && 
+                child.getType() == Token.FUNCTION ) {
+                _append( ";", child );
+            }
 
             if ( child.getType() == Token.IFNE ||
                  child.getType() == Token.SWITCH )
