@@ -221,6 +221,10 @@ module XGen
         #
         # <code>:offset</code> - Number of records to skip.
         #
+        # <code>:where</code> - A string containing a JavaScript expression.
+        # This expression is run by the database server against each record
+        # found after the :conditions are run.
+        #
         # Examples for find by id:
         #   Person.find("48e5307114f4abdf00dfeb86")     # returns the object for this ID
         #   Person.find(["a_hex_id", "another_hex_id"]) # returns a Cursor over these two objects

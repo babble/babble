@@ -66,7 +66,21 @@ public class Security {
         Config.get().getProperty("ED_HOME", "/data/ed") + "/src/main/ed",
         Config.get().getProperty("ED_HOME", "/data/ed") + "/include/jython/Lib"
     };
-    
+
+    /**
+     * Stuff that shouldn't be flushed.
+     *
+     * Files in these locations should only be loaded once (per system state)
+     * and might require an appserver restart to rerun.
+     */
+    final static String ED_LOCATIONS[] = new String[]{
+        "src/main/ed/",
+        new File( "src/main/ed/" ).getAbsolutePath(),
+        new File( "include/jython/Lib" ).getAbsolutePath(),
+        Config.get().getProperty("ED_HOME", "/data/ed") + "/src/main/ed",
+        Config.get().getProperty("ED_HOME", "/data/ed") + "/include/jython/Lib"
+    };
+
     static {
         for ( int i=0; i<SECURE.length; i++ ){
             SECURE[i] = SECURE[i].replace( '/' , File.separatorChar );
@@ -92,6 +106,13 @@ public class Security {
                 return true;
         }
         
+        return false;
+    }
+
+    public static boolean isInEd( String s ){
+        for( int i = 0; i < ED_LOCATIONS.length; ++i){
+            if( s.startsWith( ED_LOCATIONS[i] ) ) return true;
+        }
         return false;
     }
 

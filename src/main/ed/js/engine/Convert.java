@@ -122,14 +122,7 @@ public class Convert {
         _className = cleanName( _name ) + _getNumForClass( _name , _source );
         _fullClassName = _package + "." + _className;
         _random = _random( _fullClassName );
-
-        /** Generate a non-negative random value for _id. We ensure it's
-         * non-negative because it is used in identifiers (function names). */
-        int tmp_id = _random.nextInt();
-        if (tmp_id < 0)
-            tmp_id = -tmp_id;
-        _id = tmp_id;
-
+        _id = _randNonNegativeInt();
         _scriptInfo = new ScriptInfo( _name , _fullClassName , _sourceLanguage , this );
 
         CompilerEnvirons ce = new CompilerEnvirons();
@@ -562,6 +555,9 @@ public class Convert {
                 _append( n.getString() , n );
             else
                 _append( "scope.get( \"" + n.getString() + "\" )" , n );
+            break;
+        case Token.THISFN:
+            _append( "this", n );
             break;
         case Token.SETVAR:
             final String foo = n.getFirstChild().getString();
@@ -1313,7 +1309,7 @@ public class Convert {
             if ( n.getString() != null && n.getString().length() != 0 ){
                 int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
                 if ( state._nonRootFunctions.contains( id ) ){
-                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );\n" , n );
+                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) )" , n );
                 }
                 return;
             }
@@ -1504,6 +1500,11 @@ public class Convert {
                 _append( ret + " = " , child );
 
             _add( child , state );
+
+            if( !( child instanceof FunctionNode) && 
+                child.getType() == Token.FUNCTION ) {
+                _append( ";", child );
+            }
 
             if ( child.getType() == Token.IFNE ||
                  child.getType() == Token.SWITCH )
@@ -1909,6 +1910,10 @@ public class Convert {
 
     String _rand(){
         return String.valueOf( _random.nextInt( 1000000 ) );
+    }
+
+    int _randNonNegativeInt(){
+        return Math.abs( _random.nextInt() );
     }
 
     static Random _random( String name ){

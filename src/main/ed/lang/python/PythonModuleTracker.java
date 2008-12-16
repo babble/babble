@@ -24,6 +24,7 @@ import java.io.*;
 
 import ed.appserver.*;
 import ed.util.*;
+import ed.security.Security;
 
 /**
  * Replacement class for sys.modules. Can flush outdated modules, and
@@ -34,10 +35,33 @@ public class PythonModuleTracker extends PyStringMap {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.PYTHONMODULETRACKER" );
 
     boolean _flushing = false;
-
     PythonModuleTracker( PyStringMap old ){
         super();
         update( new PyObject[]{ old }, new String[0] );
+    }
+
+    public void dropUserModules(){
+        // FIXME: PyStringMap, right? Aren't I casting to/from PyString here?
+        PyList keys = keys();
+        int length = keys.__len__();
+        for( int i = 0; i < length; ++i ){
+            PyObject key = keys.pyget(i);
+            if( key.equals("_10gen") )
+                continue; // yeah, whatever
+            PyObject val = __finditem__( key );
+            PyObject __file__ = val.__findattr__( "__file__" );
+            if( __file__ == null || __file__ == Py.None )
+                continue;  // builtin; can't be flushed
+            if( ! ( __file__ instanceof PyString ) )
+                continue; // ??
+
+            String __file__S = __file__.toString();
+            if( Security.isInEd( __file__S ) ){
+                continue;
+            }
+
+            __delitem__( key );
+        }
     }
 
     public PyObject __finditem__( String key ){
@@ -243,6 +267,18 @@ public class PythonModuleTracker extends PyStringMap {
         Set<String> toAdd = new HashSet<String>();
 
         toAdd.addAll( newer );
+        /*
+         * The following if statement is what turns on the aggressive flushing
+         * strategy. If you take it out, we'll revert back to our incomplete
+         * "try to be smart" code.
+         */
+        if( ! newer.isEmpty() ){
+            if( DEBUG )
+                System.out.println("Flushing *everything*");
+            dropUserModules();
+            return null;
+        }
+
         while( ! toAdd.isEmpty() ){
             // FIXME -- guess I should use a queue or something
             String o = toAdd.iterator().next();
