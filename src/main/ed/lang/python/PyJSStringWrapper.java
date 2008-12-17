@@ -25,20 +25,42 @@ import org.python.expose.*;
 import org.python.expose.generate.*;
 
 import ed.js.*;
+import ed.util.*;
+import static ed.lang.python.Python.*;
+
 
 public class PyJSStringWrapper extends PyUnicode {
 
+    final static public PyType TYPE = PyType.fromClass( PyJSStringWrapper.class );
+
     public PyJSStringWrapper( JSString s ){
-        super( s.toString() );
+        super( TYPE , s.toString() );
+        _js = s;
         _p = new PyJSObjectWrapper( s );
     }
 
-    public PyObject iterkeys(){ return _p.iterkeys(); }
-    public PyObject iteritems(){ return _p.iteritems(); }
+    public PyObject iterkeys(){ return keys().__iter__(); }
+    public PyObject iteritems(){ return _p.items().__iter__(); }
 
-    // FIXME: don't use integer indices as valid keys
-    public PyList keys(){ return _p.keys(); }
-    public PyList values(){ return _p.values(); }
+    public PyList keys(){
+        PyList l = new PyList();
+        for( String s : _js.keySet() ){
+            if( ! StringUtil.isDigits( s ) ){
+                l.append( Py.newString( s ) );
+            }
+        }
+        return l;
+    }
+
+    public PyList values(){
+        PyList l = new PyList();
+        for( String s : _js.keySet() ){
+            if( ! StringUtil.isDigits( s ) ){
+                l.append( toPython( _js.get( s ) ) );
+            }
+        }
+        return l;
+    }
 
     public boolean has_key(PyObject key){ return _p.has_key(key); }
 
@@ -85,4 +107,5 @@ public class PyJSStringWrapper extends PyUnicode {
     }
 
     PyJSObjectWrapper _p;
+    JSString _js;
 }
