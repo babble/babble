@@ -45,7 +45,8 @@
                     ],
                     initFile : "/~~/modules/py-google/_init_ae.py",
                     initDependencies : [
-                        "app.yaml"
+                        "app.yaml",
+                        "index.yaml"
                     ]
                 }
             ]
