@@ -364,7 +364,7 @@ IfNode.BoolExpr.prototype = {
     }
 };
 IfNode.prototype = {
-    __proto: djang10.Node.prototype,
+    __proto__: djang10.Node.prototype,
 
     toString: function() {
         return "<If node: " + this.bool_exprs + ">";
