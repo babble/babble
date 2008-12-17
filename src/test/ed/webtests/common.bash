@@ -73,8 +73,8 @@ function run_db {
     
     
     pushd $PROOT/db > /dev/null
-    
-    if ! nohup ./db --port $db_port --dbpath /tmp/$DBNAME/db/ run > /tmp/$DBNAME/logs/db&
+
+    if ! nohup ./db --port $db_port --appsrvpath $EDROOT --dbpath /tmp/$DBNAME/db/ run > /tmp/$DBNAME/logs/db&
         then
             echo "db failed to start"
             return 1
