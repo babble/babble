@@ -50,14 +50,8 @@ assert not _10gen.jsString.has_key('me st')
 # But this is still not allowed
 assert not 'goober' in _10gen.jsString
 
-assert 'jsAttr' in _10gen.jsString.keys()
-assert 1 not in _10gen.jsString.keys()
-assert '1' not in _10gen.jsString.keys()
-assert _10gen.jsString.values() == [42]
-
 def set_slice(): _10gen.jsString[1:4] = 'hi'
 _10gen.assert.raises( set_slice )
 
 def set_int(): _10gen.jsString[1] = 'b'
 _10gen.assert.raises(set_int)
-
