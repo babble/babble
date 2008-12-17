@@ -15,17 +15,6 @@
 #++
 
 
-# To get Rails to work with babble, you need to create two files. First,
-# create a file named _init.rb in the root directory of your Rails app that
-# looks like this:
-#
-#   require 'xgen/rails/init'
-#
-# Next, add public/xgen_dispatch.rb:
-#
-#   require 'xgen/rails'
-#   Dispatcher.dispatch
-
 # RAILS_ENV is set to the name of your cloud environment. If none is specified
 # (for example, you are running locally), then 'development' is used. If the
 # cloud environment name is "www" (the default production name), then use
