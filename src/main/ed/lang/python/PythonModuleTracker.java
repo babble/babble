@@ -271,6 +271,11 @@ public class PythonModuleTracker extends PyStringMap {
          * The following if statement is what turns on the aggressive flushing
          * strategy. If you take it out, we'll revert back to our incomplete
          * "try to be smart" code.
+         *
+         * The problem is that some things need to not be flushed. os.environ
+         * gets customized, so flushing it is bad. logging modules
+         * need to not get flushed because AE might add a custom logger.
+         * So we try to be smart and only flush based on dependencies.
          */
         // if( ! newer.isEmpty() ){
         //     if( DEBUG )
