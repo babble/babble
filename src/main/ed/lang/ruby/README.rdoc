@@ -201,7 +201,8 @@ it looks in the third party libraries suplied by 10gen.
         require 'xgen/rails'
         Dispatcher.dispatch
 
-4. Use XGen::Mongo::Base instead of ActiveRecord::Base
+4. Use XGen::Mongo::Base instead of ActiveRecord::Base. (Though ActiveRecord
+   is not yet officially supported by Babble, work is in progress
 
         class Course < XGen::Mongo::Base
 
