@@ -1309,7 +1309,7 @@ public class Convert {
             if ( n.getString() != null && n.getString().length() != 0 ){
                 int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
                 if ( state._nonRootFunctions.contains( id ) ){
-                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) )" , n );
+                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );" , n );
                 }
                 return;
             }
@@ -1501,11 +1501,6 @@ public class Convert {
 
             _add( child , state );
 
-            if( !( child instanceof FunctionNode) && 
-                child.getType() == Token.FUNCTION ) {
-                _append( ";", child );
-            }
-
             if ( child.getType() == Token.IFNE ||
                  child.getType() == Token.SWITCH )
                 break;
@@ -1582,8 +1577,14 @@ public class Convert {
                 _append( ")\n" , val );
             return;
         }
+
         _append( "scope.put( \"" + name + "\" , " , val);
-        _add( val , state );
+        if( val.getType() == Token.FUNCTION &&
+            !( val instanceof FunctionNode ) &&
+            val.getString().length() > 0 )
+            _append( "scope.get( \"" + state._functionIdToName.get( val.getIntProp( Node.FUNCTION_PROP , -1 ) ) + "\" )" , val );
+        else
+            _add( val , state );
         _append( " , " + local + "  ) " , val );
     }
 

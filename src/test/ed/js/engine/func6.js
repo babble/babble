@@ -15,3 +15,5 @@ a = function b( num ) {
 
 a(3);
 
+b //should be null
+
