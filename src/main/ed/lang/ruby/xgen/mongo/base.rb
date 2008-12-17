@@ -33,7 +33,7 @@ module XGen
     end
 
     # A superclass for database collection instances. The API is very similar
-    # to ActiveRecord. See find for examples.
+    # to ActiveRecord. See #find for examples.
     #
     # If you override initialize, make sure to call the superclass version,
     # passing it the database row or hash that it was given.

@@ -29,7 +29,8 @@ import ed.db.DBCursor;
 import ed.js.engine.Scope;
 
 /**
- * RubyDBCursorWrapper is a RubyArray.
+ * RubyDBCursorWrapper wraps a DBCursor for Ruby. It is a subclass of
+ * RubyArray, which means it is also enumerable (in the Ruby sense).
  */
 @SuppressWarnings("serial")
 public class RubyDBCursorWrapper extends RubyArray {
@@ -75,14 +76,6 @@ public class RubyDBCursorWrapper extends RubyArray {
     protected IRubyObject _at(long i) {
         return toRuby(_cursor.getInt((int)i));
     }
-
-    /* Superclass implementation is OK. */
-//     public IRubyObject initialize(ThreadContext context, IRubyObject[] args, Block block) {
-//     }
-
-    /* Superclass implementation is OK. */
-//     public IRubyObject initialize_copy(IRubyObject orig) {
-//     }
 
     public IRubyObject replace(IRubyObject orig) {
         return notImplemented("replace");
@@ -244,10 +237,6 @@ public class RubyDBCursorWrapper extends RubyArray {
                 return getRuntime().getTrue();
         return getRuntime().getFalse();
     }
-
-    /* Superclass implementation is OK. */
-//     public RubyBoolean frozen_p(ThreadContext context) {
-//     }
 
     public IRubyObject aref(IRubyObject arg0) {
         if (arg0 instanceof RubyFixnum) return _at(((RubyFixnum)arg0).getLongValue());
@@ -421,14 +410,6 @@ public class RubyDBCursorWrapper extends RubyArray {
         return join(context, sep);
     }
 
-    /* Superclass implementation is OK. */
-//     public RubyArray to_a() {
-//     }
-
-    /* Superclass implementation is OK. */
-//     public IRubyObject to_ary() {
-//     }
-
     public IRubyObject op_equal(ThreadContext context, IRubyObject obj) {
         if (this == obj) return getRuntime().getTrue();
 
@@ -512,10 +493,6 @@ public class RubyDBCursorWrapper extends RubyArray {
 
         return runtime.getNil();
     }
-
-    /* Superclass implementation is OK. */
-//     public IRubyObject indexes(IRubyObject[] args) {
-//     }
 
     public IRubyObject reverse_bang() {
         return notImplemented("reverse!");

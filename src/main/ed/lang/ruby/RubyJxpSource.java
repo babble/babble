@@ -28,6 +28,9 @@ import ed.js.engine.Scope;
 import ed.net.httpserver.HttpRequest;
 import ed.net.httpserver.HttpResponse;
 
+/**
+ * Handles .rb file compilation and execution.
+ */
 public class RubyJxpSource extends JxpSource.JxpFileSource {
 
     protected Node node;

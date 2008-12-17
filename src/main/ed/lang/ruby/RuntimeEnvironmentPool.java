@@ -23,6 +23,9 @@ import ed.appserver.AppContext;
 import ed.net.httpserver.HttpServer;
 import ed.util.SimplePool;
 
+/**
+ * Provides a pool of {@link RuntimeEnvironment} objects, one pool for each {@link AppContext}.
+ */
 public class RuntimeEnvironmentPool extends SimplePool<RuntimeEnvironment> {
 
     /** Each AppContext has its own RuntimeEnvironment pool.. */
