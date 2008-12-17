@@ -223,6 +223,7 @@ public class SiteSystemState implements Sizable {
         String modName = "_10gen".intern();
         if( pyState.modules.__finditem__( modName ) == null ){
             PyModule xgenMod = new PyModule( modName , globals );
+            xgenMod.__setattr__( "__pyjsstringwrapper", PyJSStringWrapper.TYPE );
             pyState.modules.__setitem__( modName , xgenMod );
         }
 
