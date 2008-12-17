@@ -35,6 +35,13 @@ import ed.js.JSFunction;
 import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
+/**
+ * Encapsulates the information needed to run Ruby code within an {@link
+ * AppContext}. Performs Ruby runtime initialization and object/module setup.
+ * Each AppContext has a pool of RuntimeEnvironment instances.
+ *
+ * @see RuntimeEnvironmentPool
+ */
 public class RuntimeEnvironment {
 
     public static final String XGEN_MODULE_NAME = "XGen";
@@ -199,7 +206,6 @@ public class RuntimeEnvironment {
                 }
             });
     }
-
 
     /**
      * Set Ruby's $stdin, $stdout, STDIN, and STDOUT so that reading and

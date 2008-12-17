@@ -23,6 +23,9 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.db.ObjectId;
 
+/**
+ * A wrapper for ObjectId instances that come into Ruby.
+ */
 @SuppressWarnings("serial")
 public class RubyObjectIdWrapper extends RubyObject {
 

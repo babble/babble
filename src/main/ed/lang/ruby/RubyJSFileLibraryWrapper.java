@@ -29,9 +29,11 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
 
 /**
- * The JSFileLibrary wrapper implements peek() in a way that makes sure the
- * file library object is not initialized. It also makes sure newly-defined
- * classes are created after every call to itself.
+ * Wraps JSFileLibrary objects for Ruby.
+ * <p>
+ * This wrapper implements peek() in a way that makes sure the file library
+ * object is not initialized. It also makes sure newly-defined classes are
+ * created after every call to itself.
  */
 @SuppressWarnings("serial")
 public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {

@@ -29,7 +29,8 @@ import ed.appserver.JSFileLibrary;
 import java.io.File;
 
 /**
- * Used by the {@link ed.js.Shell} to run Ruby code.
+ * Used by the {@link ed.js.Shell} to run Ruby code. Provides an IRB REPL for
+ * the shell.
  */
 public class RubyLanguage extends Language {
 
