@@ -32,21 +32,21 @@ import ed.util.*;
 
 public class E4X {
 
-    static Object _nodeGet( ENode start , Object s ){
+    static XMLList _nodeGet( ENode start , Object s ){
         if( start instanceof XMLList ) {
             return _nodeGet( (XMLList)start, s );
         }
         return _nodeGet( new XMLList( start ), s );
     }
 
-    static Object _attrNodeGet( ENode start , Object s ){
+    static XMLList _attrNodeGet( ENode start , Object s ){
         if( start instanceof XMLList ) {
             return _attrNodeGet( (XMLList)start, s );
         }
         return _attrNodeGet( new XMLList( start ), s );
     }
 
-    static Object _attrNodeGet( XMLList start, Object obj ) {
+    static XMLList _attrNodeGet( XMLList start, Object obj ) {
         String s = obj instanceof QName ?
             ((QName)obj).localName.toString() :
             obj.toString();
@@ -68,7 +68,7 @@ public class E4X {
         String uri = qualified ? ((QName)obj).uri + "" : "";
 
         List<ENode> traverse = new LinkedList<ENode>();
-        List<ENode> res = new ArrayList<ENode>();
+        XMLList res = new XMLList();
 
         for(int k=0; k< start.size(); k++) {
             traverse.add( start.get(k) );
@@ -99,10 +99,10 @@ public class E4X {
                 }
             }
         }
-        return _handleListReturn( res );
+        return res;
     }
 
-    static Object _nodeGet( XMLList start , Object obj ){
+    static XMLList _nodeGet( XMLList start , Object obj ){
         String s = obj instanceof QName ?
             ((QName)obj).localName.toString() :
             obj.toString();
@@ -121,7 +121,7 @@ public class E4X {
         String uri = qualified ? ((QName)obj).uri.toString() : "";
 
         List<ENode> traverse = new LinkedList<ENode>();
-        List<ENode> res = new ArrayList<ENode>();
+        XMLList res = new XMLList();
     
         for(int k=0; k< start.size(); k++) {
             traverse.add( start.get(k) );
@@ -154,10 +154,10 @@ public class E4X {
                 }
             }
         }
-        return _handleListReturn( res );
+        return res;
     }
 
-    static Object _handleListReturn( List<ENode> lst ){
+    /*    static Object _handleListReturn( List<ENode> lst ){
         if ( lst.size() == 0 )
             return null;
 
@@ -165,7 +165,7 @@ public class E4X {
             return lst.get(0);
         }
         return new XMLList(lst);
-    }
+        }*/
 
     public static boolean isXMLName( String name ) {
         Pattern invalidChars = Pattern.compile("[@\\s\\{\\/\\']|(\\.\\.)|(\\:\\:)");
@@ -236,5 +236,25 @@ public class E4X {
         if( q.localName.toString().matches( "[A-Za-z_][\\w\\.\\-]*" ) )
             return true;
         return false;
+    }
+
+    public static QName toXMLName( Object o ) {
+        if( o instanceof QName ) {
+            return (QName)o;
+        }
+        else {
+            String name = o.toString();
+            // not quite spec
+            return new QName( name.charAt(0) == '@' ? name.substring( 1 ) : name );
+        }
+    }
+
+    public static XMLList toXMLList( Object o ) {
+        if( o instanceof XMLList ) 
+            return (XMLList)o;
+        else if( o instanceof ENode ) {
+            return new XMLList( (ENode)o );
+        }
+        else return new XMLList();
     }
 }
