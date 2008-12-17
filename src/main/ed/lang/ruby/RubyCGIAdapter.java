@@ -32,6 +32,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Set;
 
+/**
+ * Handles CGI requests.
+ */
 public class RubyCGIAdapter extends CGIAdapter {
 
     protected File file;

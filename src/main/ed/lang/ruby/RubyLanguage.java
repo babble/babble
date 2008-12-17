@@ -29,7 +29,8 @@ import ed.appserver.JSFileLibrary;
 import java.io.File;
 
 /**
- * Used by the {@link ed.js.Shell} to run Ruby code.
+ * Used by the {@link ed.js.Shell} to run Ruby code. Provides an IRB REPL for
+ * the shell.
  */
 public class RubyLanguage extends Language {
 
@@ -48,22 +49,19 @@ public class RubyLanguage extends Language {
     public RubyLanguage() { super("ruby"); }
 
     public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
-
-        /*
-         *  if we're still in init, treat everything as a .rb - for example, an import initialized
-         *  in an _init.rb would be mightily disturbed to be treated like a CGI script
-         */
-        if (context != null && context.inScopeSetup()) {
+        /* If we're still in init, treat everything as a .rb file. For
+         *  example, an import initialized in an _init.rb would be mightily
+         *  disturbed to be treated like a CGI script. */
+        if (context != null && context.inScopeSetup())
             return new RubyJxpSource(f);
-        }
 
-        switch(type) {
-            case CGI :
-                return new RubyCGIAdapter(f);
-            case DIRECT_10GEN :
-                return new RubyJxpSource(f);
-            default :
-                throw new RuntimeException("ERROR : unsupported AdapterType : " + type);
+        switch (type) {
+        case CGI:
+            return new RubyCGIAdapter(f);
+        case DIRECT_10GEN:
+            return new RubyJxpSource(f);
+        default:
+            throw new RuntimeException("ERROR : unsupported AdapterType : " + type);
         }
     }
 
