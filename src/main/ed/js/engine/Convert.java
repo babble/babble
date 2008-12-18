@@ -517,7 +517,11 @@ public class Convert {
         case Token.NUMBER:
             double d = n.getDouble();
             String temp = String.valueOf( d );
-            if( ( ( temp.endsWith( ".0" ) ||
+            if( Double.isNaN( d ) ) {
+                _append( "Double.NaN" , n );
+                break;
+            }
+            else if( ( ( temp.endsWith( ".0" ) ||
                     JSNumericFunctions.couldBeInt( d ) ) &&
                   !temp.equals( "-0.0" ) ) && 
                 !temp.equals( "-0" ) ) {
