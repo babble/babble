@@ -169,29 +169,7 @@ public class JSNumber extends Number implements JSObject {
         }
         
         Number _parse( Object a , Object b ){
-            if( a == null )
-                return JSNumber.getDouble( b );
-
-            if ( a instanceof JSNumber ) 
-                return ((JSNumber)a)._val;
-
-            if ( a instanceof Number )
-                return (Number)a;
-            
-            if ( a instanceof JSDate )
-                return ((JSDate)a).getTime();
-            
-            if ( ( a instanceof String || a instanceof JSString ) && 
-                 a.toString().matches( POSSIBLE_NUM ) ) 
-                return StringParseUtil.parseNumber( a.toString() , (Number)b );
-
-            if ( a != null )
-                return Double.NaN;
-
-            if ( b != null )
-                return (Number)b;
-
-            throw new RuntimeException( "not a number [" + a + "]" );
+            return JSNumber.getNumber( a == null ? b : a );
         }
         
         protected void init(){
