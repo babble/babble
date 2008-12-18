@@ -28,13 +28,13 @@ import ed.util.SimplePool;
  */
 public class RuntimeEnvironmentPool extends SimplePool<RuntimeEnvironment> {
 
-    /** Each AppContext has its own RuntimeEnvironment pool.. */
+    /** Each AppContext has its own RuntimeEnvironment pool. */
     static Map<AppContext, RuntimeEnvironmentPool> POOLS = new HashMap<AppContext, RuntimeEnvironmentPool>();
-    static AppContext NULL_APP_CONTEXT = new AppContext("."); // For testing
 
     /** Returns an instance of RuntimeEnvironment from the pool. */
     public static RuntimeEnvironment getInstance(AppContext appContext) {
-        if (appContext == null) appContext = NULL_APP_CONTEXT;
+        if (appContext == null)
+            throw new IllegalArgumentException("appContext must not be null");
         RuntimeEnvironmentPool pool = POOLS.get(appContext);
         if (pool == null) {
             pool = new RuntimeEnvironmentPool(appContext);
@@ -45,19 +45,17 @@ public class RuntimeEnvironmentPool extends SimplePool<RuntimeEnvironment> {
 
     public static void releaseInstance(RuntimeEnvironment runenv) {
         AppContext appContext = runenv.getAppContext();
-        if (appContext == null) appContext = NULL_APP_CONTEXT;
-
-        RuntimeEnvironmentPool pool = POOLS.get(runenv.getAppContext());
+        RuntimeEnvironmentPool pool = POOLS.get(appContext);
         if (pool == null)
-            throw new IllegalArgumentException("Trying to release Ruby RuntimeEnvironment; unknown AppContext " + appContext.hashCode());
+            throw new IllegalArgumentException("Trying to release Ruby RuntimeEnvironment; unknown AppContext " + (appContext == null ? "null" : ("" + appContext.hashCode())));
         pool.done(runenv);
     }
 
     private AppContext appContext;
 
     private RuntimeEnvironmentPool(AppContext appContext) {
-        super("RubyRunEnv-" + (appContext == null ? NULL_APP_CONTEXT : appContext).hashCode(), HttpServer.WORKER_THREADS, HttpServer.WORKER_THREAD_QUEUE_MAX);
-        this.appContext = appContext == null ? NULL_APP_CONTEXT : appContext;
+        super("RubyRunEnv-" + appContext.hashCode(), HttpServer.WORKER_THREADS, HttpServer.WORKER_THREAD_QUEUE_MAX);
+        this.appContext = appContext;
     }
 
     protected RuntimeEnvironment createNew() { return new RuntimeEnvironment(appContext); }

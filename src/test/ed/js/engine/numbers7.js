@@ -34,3 +34,7 @@ c( -4 , null );
 //n = 5;
 //Number.prototype.b = function(){ return 7; };
 //print( n.b );
+
+print( (0/0) ); // Double.NaN when it gets to converter
+print( (10/0) ); // Double.POS/NEG_INF
+print( new Number( "-0x123456789abe8" ) );
