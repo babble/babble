@@ -34,3 +34,5 @@ c( -4 , null );
 //n = 5;
 //Number.prototype.b = function(){ return 7; };
 //print( n.b );
+
+print( (0/0) ); // Double.NaN when it gets to converter
