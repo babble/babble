@@ -225,13 +225,15 @@ public final class StringParseUtil {
                  ( s.charAt( 1 ) == 'x' || s.charAt( 1 ) == 'X' ) )
             return Integer.parseInt( s.substring( 2, s.length() ) , 16 );
 
-        int e = s.indexOf( 'e' );
+        int e = s.toLowerCase().indexOf( 'e' );
         if( e > 0 ) {
             double num = Double.parseDouble( s.substring( 0, e ) );
             int exp = Integer.parseInt( s.substring( e + 1 ) );
             return num * Math.pow( 10 , exp );
         }
-        if ( s.length() > 10 )
+        if ( s.length() > 17 )
+            return Double.parseDouble( s );
+        else if ( s.length() > 10  )
             return Long.parseLong(s);
         return Integer.parseInt(s);
     }
