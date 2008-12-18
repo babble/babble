@@ -96,6 +96,19 @@ during development), all log messages are echoed to $stderr which is normally
 the console.
 
 
+== Ruby Shell
+
+Normally, you start a Babble shell by typing
+
+  ./shell
+
+which starts a shell that uses JavaScript. If you type
+
+  ./shell --ruby
+
+then the shell will use Ruby and start IRB.
+
+
 == Babble Applications
 
 ==== I/O
