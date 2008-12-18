@@ -521,6 +521,10 @@ public class Convert {
                 _append( "Double.NaN" , n );
                 break;
             }
+            else if( Double.isInfinite( d ) ) {
+                _append( d < 0 ? "Double.NEGATIVE_INFINITY" : "Double.POSITIVE_INFINITY" , n );
+                break;
+            }
             else if( ( ( temp.endsWith( ".0" ) ||
                     JSNumericFunctions.couldBeInt( d ) ) &&
                   !temp.equals( "-0.0" ) ) && 
