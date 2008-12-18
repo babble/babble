@@ -291,6 +291,9 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     }
 
     public int length() {
+        if( this.size() == 1 &&
+            this.getOne().isDummy() )
+            return 0;
         return this.size();
     }
 
