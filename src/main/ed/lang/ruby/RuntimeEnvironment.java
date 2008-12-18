@@ -74,6 +74,7 @@ public class RuntimeEnvironment {
     protected AppContext appContext;
     protected Ruby runtime;
     protected Scope scope;
+    @SuppressWarnings("unchecked")
     protected Map<String, Class> functionDefs = new HashMap<String, Class>();
 
     public static RuntimeEnvironment getCurrentRuntimeEnvironment() { return threadLocalRuntimeEnvironment.get(); }
@@ -83,6 +84,7 @@ public class RuntimeEnvironment {
      * classes and functions found in the top level of <var>scope</var>.
      * Called immediately after loading a file using a JSFileLibrary.
      */
+    @SuppressWarnings("unchecked")
     public static void createNewClassesAndXGenMethods() {
         RuntimeEnvironment runenv = RuntimeEnvironment.getCurrentRuntimeEnvironment();
         Ruby runtime = runenv.getRuntime();
