@@ -43,10 +43,7 @@ public class JSDate extends JSObjectBase implements Comparable {
                     int [] myargs = new int[8];
                     for( int i = 0; i < args.length+1 && i < myargs.length ; i++){
                         Object o = (i == 0 ? foo : args[i-1]);
-                        if ( o instanceof JSString )
-                            o = StringParseUtil.parseStrict(((JSString)o).toString());
-                        if ( o instanceof Number )
-                            myargs[i] = ((Number)o).intValue();
+                        myargs[i] = JSNumber.getNumber( o ).intValue();
                     }
                     
                     Calendar c = Calendar.getInstance();
@@ -224,7 +221,8 @@ public class JSDate extends JSObjectBase implements Comparable {
         if ( o instanceof String || o instanceof JSString )
             return parseDate( o.toString() , def );
 
-        if ( ! ( o instanceof Number ) )
+        o = JSNumber.getNumber( o );
+        if ( Double.isNaN( ((Number)o).doubleValue() ) )
             return def;
         return ((Number)o).longValue();
     }
