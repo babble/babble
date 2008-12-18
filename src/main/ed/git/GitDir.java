@@ -53,6 +53,22 @@ public class GitDir {
         return _dotGit.exists() && _dotGit.isDirectory();
     }
 
+    /**
+     * checks to see if head info is there.  Didn't want to add this to isValid() as the current isValid() contract
+     * is far weaker and I don't know who depends on it
+     *
+     * TODO - discuss with eliot
+     */
+    public boolean hasHead() {
+        try {
+            String s = readHead();
+            return true;
+        }
+        catch(IOException ioe) {
+            return false;
+        }
+    }
+
     public String getBranchOrTagName(){
         _assertValid();
         
