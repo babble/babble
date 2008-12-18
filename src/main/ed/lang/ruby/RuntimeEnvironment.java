@@ -50,6 +50,7 @@ public class RuntimeEnvironment {
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
+    static final boolean RUBY_GLOBAL_DEBUG = Boolean.getBoolean("DEBUG.RB.DEBUG");
     /** Scope top-level functions to avoid loading. */
     static final Collection<String> DO_NOT_LOAD_FUNCS;
     // TODO for now, we just add the local site dir to the load path
@@ -148,6 +149,8 @@ public class RuntimeEnvironment {
         this.scope = scope;
         addJSFileLibrariesToPath();
         runtime.setGlobalVariables(new ScopeGlobalVariables(scope, runtime));
+        if (RUBY_GLOBAL_DEBUG)
+            runtime.getGlobalVariables().set("$DEBUG", runtime.getTrue());
         createNewClassesAndXGenMethods();
         patchRequireAndLoad();
         setIO(stdin, stdout);
