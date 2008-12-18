@@ -7,9 +7,11 @@ import java.io.*;
 import ed.*;
 import ed.js.*;
 import ed.io.*;
+import org.testng.annotations.Test;
 
 public class GitDirTest extends TestCase {
-    
+
+    @Test(groups = {"basic"})
     public void testBasic()
         throws IOException {
         GitDir gd = _create();
@@ -44,6 +46,7 @@ public class GitDirTest extends TestCase {
         }
     }
 
+    @Test(groups = {"basic"})
     public void testTagFinding()
         throws IOException {
         GitDir gd = _create();
@@ -69,6 +72,7 @@ public class GitDirTest extends TestCase {
         }
     }
 
+    @Test(groups = {"basic"})
     public void testReadConfig()
         throws IOException {
         GitDir gd = _create();
