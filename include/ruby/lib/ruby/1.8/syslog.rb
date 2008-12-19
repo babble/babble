@@ -15,7 +15,7 @@
 # platform.
 begin
   require 'ffi'
-  require "#{File.join(JRuby::FFI::Platform::CONF_DIR, 'syslog.rb')}"
+  require "#{File.join(FFI::Platform::CONF_DIR, 'syslog.rb')}"
 rescue LoadError => ex
   raise LoadError, "Syslog not supported on this platform"
 end
@@ -25,10 +25,10 @@ module Syslog
   
   module Foreign
     # methods
-    attach_function "openlog", :open, [:string, :int, :int], :void
-    attach_function "closelog", :close, [], :void
-    attach_function "syslog", :write, [:int, :string, :string], :void
-    attach_function "setlogmask", :set_mask, [:int], :int
+    attach_function :open, "openlog", [:pointer, :int, :int], :void
+    attach_function :close, "closelog", [], :void
+    attach_function :write, "syslog", [:int, :string, :string], :void
+    attach_function :set_mask, "setlogmask", [:int], :int
   end
   
   class << self
@@ -79,8 +79,14 @@ module Syslog
       @ident = ident
       @options = opt
       @facility = fac
-
-      Foreign.open(ident, opt, fac)
+      @ident_memory = if ident
+        ptr = MemoryPointer.new ident.length + 1
+        ptr.write_string(ident + "\0")
+        ptr
+      else
+        nil
+      end
+      Foreign.open(@ident_memory, opt, fac)
 
       @opened = true
 

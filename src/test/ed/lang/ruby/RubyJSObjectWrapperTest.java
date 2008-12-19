@@ -117,6 +117,7 @@ public class RubyJSObjectWrapperTest {
             assertTrue(re.getException().toString().contains("undefined method `xyzzy'"), "raised exception should be \"undefined method `xyzzy'\"; instead text = " + re.getException().toString());
         }
         catch (Exception e) {
+            e.printStackTrace(); // DEBUG
             fail("expected org.jruby.exceptions.RaiseException, saw " + e.toString());
         }
     }

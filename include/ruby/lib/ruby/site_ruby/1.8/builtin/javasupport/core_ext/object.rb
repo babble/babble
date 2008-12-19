@@ -5,7 +5,13 @@ class Object
     alias_method :java_package_method_added, :method_added
 
     def method_added(name)
-      result = java_package_method_added(name)
+      # If someone added a new method_added since we aliased original, then 
+      # lets defer to that.  Otherwise run one we aliased.
+      if self.class.superclass.instance_method(:method_added) != method(:java_package_method_added)
+        result = super 
+      else
+        result = java_package_method_added(name)
+      end
       JavaPackageModuleTemplate.__block__(name) if self == Object
       result
     end
@@ -21,7 +27,7 @@ class Object
       # FIXME: When I changed this user const_set instead of eval below Comparator got lost
       # which means I am missing something.
       constant = include_class.java_class.to_s.split(".").last
-      if (respond_to?(:class_eval, true))
+      if (Module === self)
         return class_eval("#{constant} = #{include_class.java_class}", __FILE__, __LINE__)
       else
         return eval("#{constant} = #{include_class.java_class}", binding, __FILE__, __LINE__)
@@ -29,7 +35,7 @@ class Object
     end
     
     if include_class.respond_to? "_name"
-      return self.class.instance_eval { import(include_class._name) };
+      return self.class.instance_eval { import(include_class._name) }
     end
     
     # else, pull in the class
@@ -61,7 +67,7 @@ class Object
 
       # FIXME: When I changed this user const_set instead of eval below Comparator got lost
       # which means I am missing something.
-      if (respond_to?(:class_eval, true))
+      if (Module === self)
         class_eval("#{constant} = JavaUtilities.get_proxy_class(\"#{full_class_name}\")", __FILE__, __LINE__)
       else
         eval("#{constant} = JavaUtilities.get_proxy_class(\"#{full_class_name}\")", binding, __FILE__, __LINE__)
