@@ -95,7 +95,7 @@ public class RubyObjectWrapperTest {
 
     @Test(groups = {"r2js"})
     public void testRubyBigDecimalToJSBigDecimal() {
-        IRubyObject ro = new RubyBigDecimal(r, new BigDecimal((double)42.4));
+        IRubyObject ro = RubyObjectWrapper.javaBigDecimalToRubyBigDecimal(r, new BigDecimal((double)42.4));
         Object o = toJS(s, ro);
         assertTrue(o instanceof Number, "expected Number, saw " + (o == null ? "null" : o.getClass().getName()));
         assertEquals(((Number)o).doubleValue(), 42.4);
