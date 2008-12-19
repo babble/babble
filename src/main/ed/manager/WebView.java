@@ -40,27 +40,40 @@ public class WebView extends HttpMonitor {
 
     public void handle( MonitorRequest request ){
         
-        final String restartId = request.getRequest().getParameter( "restart" );
-        if ( restartId != null ){
-            Application app = _manager.findApplication( restartId );
-            if ( app == null ){
-                request.addMessage( "can't find application [" + restartId + "]" );
+        if( request.getRequest().getParameter( "action" ) != null ) {
+            final String restartId = request.getRequest().getParameter( "restart" );
+            final String pauseId = request.getRequest().getParameter( "pause" );
+            final String unpauseId = request.getRequest().getParameter( "unpause" );
+            Application app;
+            if ( ( app = _getApp( restartId, request ) ) != null ) {
+                try {
+                    _manager.getRunning( app ).restart();
+                    request.addMessage( "restarted [" + restartId + "]" );
+                }
+                catch( RuntimeException e ) {
+                    request.addMessage( "couldn't restart" );
+                }
             }
-            else {
-                request.addMessage( "restarted [" + restartId + "]" );
-                _manager.getRunning( app ).restart();
+            if( ( app = _getApp( pauseId, request ) ) != null ) {
+                request.addMessage( "paused [" + pauseId + "]" );
+                _manager.togglePause( app );
             }
-            
+            if( ( app = _getApp( unpauseId, request ) ) != null ) {
+                request.addMessage( "unpaused [" + unpauseId + "]" );
+                _manager.togglePause( app );
+            }
         }
         
         request.startData( "applications" , "type" , "id" , "started" , "uptime" , "timesStarted" );
         
         for ( Application app : _manager.getApplications() ){
             RunningApplication ra = _manager.getRunning( app );
+            String pauser = _manager.isPaused( app ) ? _action( "unpause" , app ) : _action( "pause" , app );
             request.addData( app.getType() + "." + app.getId() , 
                              app.getType() , app.getId() , new Date( ra.getLastStart() ) , ra.getUptimeMinutes() , ra.timesStarted() , 
                              "<a href='" + _detail.getURI() + "?id=" + app.getFullId() + "'>detail</a> | " + 
-                             _action( "restart" , app )
+                             _action( "restart" , app ) +
+                             pauser
                              );
         }
         
@@ -75,6 +88,18 @@ public class WebView extends HttpMonitor {
         return buf.toString();
     }
     
+    private Application _getApp( String s, MonitorRequest request ) {
+        if( s != null ) {
+            Application app = _manager.findApplication( s );
+            if ( app == null ){
+                request.addMessage( "can't find application [" + s + "]" );
+                return null;
+            }
+            return app;
+        }
+        return null;
+    }
+
     void add(){
         HttpServer.addGlobalHandler( this );
         HttpServer.addGlobalHandler( _detail );
