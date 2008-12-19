@@ -315,10 +315,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return their not-ed value, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public Number JS_bitnot( Object a ){
-        a = _parseNumber( a );
-        if ( a instanceof Number )
-            return ~((Number)a).intValue();
-        return -1;
+        return ~JSNumber.toInt32( a );
     }
 
     /** Returns the string representation of an object
