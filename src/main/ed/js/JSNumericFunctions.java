@@ -288,17 +288,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return the object's left-shifted value, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public Number JS_lsh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number &&
-             b != null && b instanceof Number )
-            return ((Number)a).intValue() << ((Number)b).intValue();
-
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-
-        return (Number)a;
+        return JSNumber.toInt32( a ) << JSNumber.toUint32( b );
     }
 
     /** Performs a right shift on an object a given number of bits.
@@ -307,17 +297,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return the object's right-shifted value, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public Number JS_rsh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number &&
-             b != null && b instanceof Number )
-            return ((Number)a).intValue() >> ((Number)b).intValue();
-
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-
-        return (Number)a;
+        return JSNumber.toInt32( a ) >> JSNumber.toUint32( b );
     }
 
     /** Performs a zero-propagating right shift on an object a given number of bits.
@@ -326,17 +306,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return the object's right-shifted value, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
     public Number JS_ursh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number &&
-             b != null && b instanceof Number )
-            return ((Number)a).intValue() >>> ((Number)b).intValue();
-
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-
-        return (Number)a;
+        return JSNumber.toInt32( a ) >>> JSNumber.toUint32( b );
     }
 
     /** Performs a bitwise not on two objects.

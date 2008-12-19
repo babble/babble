@@ -407,8 +407,16 @@ public class JSNumber extends Number implements JSObject {
         return preint - (long)Math.pow(2,64);
     }
 
-    public static short toUint16( final Object o ) {
-        return (short)toUintX( o , 16 );
+    public static int toUint16( final Object o ) {
+        return (int)toUintX( o , 16 );
+    }
+
+    public static long toUint32( final Object o ) {
+        return toUintX( o , 32 );
+    }
+
+    public static long toUint64( final Object o ) {
+        return toUintX( o , 64 );
     }
 
     public static String formatNumber( Number o ) {
