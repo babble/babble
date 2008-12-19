@@ -82,6 +82,10 @@ public class Manager extends Thread {
             int running = 0;
 
             for ( Application app : _factory.getApplications() ){
+                if ( isPaused( app ) ) {
+                    running++;
+                    continue;
+                }
 
                 try {
                     _logger.debug( "manager checking apps" );
@@ -141,6 +145,25 @@ public class Manager extends Thread {
         return _shutdown;
     }
 
+
+    public void togglePause( Application app ) {
+        RunningApplication ra = _running.get( app );
+        if( _paused.contains( app ) ) {
+            _paused.remove( app );
+            ra = new RunningApplication( this , app );
+            _running.put( app , ra );
+            ra.start();
+        }
+        else {
+            _paused.add( app );
+            ra.shutdown();
+        }
+    }
+
+    public boolean isPaused( Application r ) {
+        return _paused.contains( r );
+    }
+
     public Application findApplication( String fullId ){
         for ( Application app : getApplications() )
             if ( app.getFullId().equals( fullId ) )
@@ -176,6 +199,7 @@ public class Manager extends Thread {
 
     private boolean _shutdown = false;
     private final Map<Application,RunningApplication> _running = new HashMap<Application,RunningApplication>();
+    private final ArrayList<Application> _paused = new ArrayList<Application>();
 
     public static void main( String args[] )
         throws Exception {
