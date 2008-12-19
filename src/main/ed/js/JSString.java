@@ -578,12 +578,7 @@ public class JSString extends JSObjectBase implements Comparable {
                         if(args == null) return new JSString("");
                         StringBuffer buf = new StringBuffer();
                         for(int i = 0; i < args.length; i++){
-                            Object o = args[i];
-                            if(! (o instanceof Number) )
-                                throw new RuntimeException( "fromCharCode only takes numbers" );
-                            Number n = (Number)o;
-                            char c = (char)JSNumber.toUint16( o );
-                            buf.append(c);
+                            buf.append( (char)JSNumber.toUint16( args[i] ) );
                         }
                         return new JSString( buf.toString() );
                     }
