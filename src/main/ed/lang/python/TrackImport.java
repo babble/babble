@@ -188,13 +188,17 @@ public class TrackImport extends PyObject {
      */
     PyObject getFromGlobals( PyObject globals , String attribute ,
                              Class target ){
-        // This can only happen from Java code, as far as I can tell.
-        // For example, Jython's codecs.java calls
-        // __builtin__.__import__("encodings").  Python calls to
-        // __import__ that don't provide an argument get supplied with
-        // an empty Python dict. (And there's no way Python can
-        // explicitly provide a null.)
-        if( globals != null ){
+        /* globals == null: This can only happen from Java code, as
+         * far as I can tell.  For example, Jython's codecs.java calls
+         * __builtin__.__import__("encodings").  Python calls to
+         * __import__ that don't provide an argument get supplied with
+         * an empty Python dict. (And there's no way Python can
+         * explicitly provide a null.)
+         */
+        /*
+         * globals == Py.None: done by handling an __import__('foo', None, None)
+         */
+        if( globals != null && globals != Py.None ){
             PyObject tmp = getIfValid( globals, attribute, target );
             if( tmp != null )
                 return tmp;
