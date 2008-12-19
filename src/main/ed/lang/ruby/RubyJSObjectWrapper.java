@@ -19,6 +19,7 @@ package ed.lang.ruby;
 import java.util.*;
 
 import org.jruby.*;
+import org.jruby.anno.JRubyMethod;
 import org.jruby.common.IRubyWarnings.ID;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.util.RuntimeHelpers;
@@ -61,7 +62,7 @@ public class RubyJSObjectWrapper extends RubyHash {
                         return obj instanceof RubyJSObjectWrapper;
                     }
                 };
-            addMethodMissing(klazz);
+            klazz.defineAnnotatedMethods(RubyJSObjectWrapper.class);
         }
         return klazz;
     }
@@ -416,69 +417,66 @@ public class RubyJSObjectWrapper extends RubyHash {
         _jsIvars.remove(skey);
     }
 
-    protected static void addMethodMissing(final RubyModule klazz) {
-        klazz.addMethod("method_missing", new JavaMethod(klazz, PUBLIC) {
-                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-                    if (!(self instanceof RubyJSObjectWrapper))
-                        return RuntimeHelpers.invokeAs(context, klazz.getSuperClass(), self, "method_missing", args, CallType.SUPER, block);
-                    RubyJSObjectWrapper wrapper = (RubyJSObjectWrapper)self;
+    @JRubyMethod(name = "method_missing", rest = true, frame = true, module = true, visibility = PUBLIC)
+    public static IRubyObject method_missing(ThreadContext context, IRubyObject self, IRubyObject[] args, Block block) {
+        if (!(self instanceof RubyJSObjectWrapper))
+            return RuntimeHelpers.invokeSuper(context, self, args, block);
+        RubyJSObjectWrapper wrapper = (RubyJSObjectWrapper)self;
 
-                    Ruby runtime = context.getRuntime();
-                    /* args[0] is method name symbol, args[1..-1] are arguments. */
-                    String key = args[0].toString();
-                    if (RubyObjectWrapper.DEBUG_FCALL)
-                        System.err.println("RubyJSObjectWrapper.method_missing " + key);
-                    if (key.endsWith("=")) {
-                        if (RubyObjectWrapper.DEBUG_FCALL)
-                            System.err.println("method_missing: turning " + key + " into op_aset call");
-                        key = key.substring(0, key.length() - 1);
-                        return wrapper.op_aset(context, toRuby(wrapper._scope, runtime, key), toRuby(wrapper._scope, runtime, args[1], key.toString()));
-                    }
+        Ruby runtime = context.getRuntime();
+        /* args[0] is method name symbol, args[1..-1] are arguments. */
+        String key = args[0].toString();
+        if (RubyObjectWrapper.DEBUG_FCALL)
+            System.err.println("RubyJSObjectWrapper.method_missing " + key);
+        if (key.endsWith("=")) {
+            if (RubyObjectWrapper.DEBUG_FCALL)
+                System.err.println("method_missing: turning " + key + " into op_aset call");
+            key = key.substring(0, key.length() - 1);
+            return wrapper.op_aset(context, toRuby(wrapper._scope, runtime, key), toRuby(wrapper._scope, runtime, args[1], key.toString()));
+        }
 
-                    /* Look for the thing anyway. It's possible that the
-                     * JSObject does not respond to keySet but it still has
-                     * something named key. */
-                    Object val = wrapper.peek(key);
-                    if (val == null) {
-                        if (RubyObjectWrapper.DEBUG_FCALL)
-                            System.err.println("method_missing: did not find value for key " + key + "; calling super.method_missing");
-                        return RuntimeHelpers.invokeAs(context, klazz.getSuperClass(), self, "method_missing", args, CallType.SUPER, block);
-                    }
-                    if (val instanceof JSFunction) {
-                        if (isCallableJSFunction(val)) {
-                            if (RubyObjectWrapper.DEBUG_FCALL)
-                                System.err.println("method_missing: found a callable function for key " + key + "; calling it");
-                            try {
-                                IRubyObject retval = toRuby(wrapper._scope, runtime, ((JSFunction)val).callAndSetThis(wrapper._scope, wrapper._jsobj, RubyObjectWrapper.toJSFunctionArgs(wrapper._scope, runtime, args, 1, block)));
-                                if (val instanceof JSFileLibrary)
-                                    RuntimeEnvironment.createNewClassesAndXGenMethods();
-                                return retval;
-                            }
-                            catch (Exception e) {
-                                if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-                                    System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
-                                    e.printStackTrace();
-                                }
-                                self.callMethod(context, "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
-                            }
-                        }
-                        else {
-                            if (RubyObjectWrapper.DEBUG_FCALL)
-                                System.err.println("method_missing: found a non-callable function object for key " + key + "; returning it");
-                            return toRuby(wrapper._scope, runtime, val);
-                        }
-                    }
-                    if (args.length > 1) { // we have function arguments but this is not a function
-                        if (RubyObjectWrapper.DEBUG_FCALL)
-                            System.err.println("method_missing: the non-function " + key + " was called with arguments; calling super.method_missing");
-                        return RuntimeHelpers.invokeAs(context, klazz.getSuperClass(), self, "method_missing", args, CallType.SUPER, block);
-                    }
-                    else {
-                        if (RubyObjectWrapper.DEBUG_FCALL)
-                            System.err.println("method_missing: found " + key + "; it is a " + val.getClass().getName() + "; returning it");
-                        return toRuby(wrapper._scope, runtime, val);
-                    }
+        /* Look for the thing anyway. It's possible that the
+         * JSObject does not respond to keySet but it still has
+         * something named key. */
+        Object val = wrapper.peek(key);
+        if (val == null) {
+            if (RubyObjectWrapper.DEBUG_FCALL)
+                System.err.println("method_missing: did not find value for key " + key + "; calling super.method_missing");
+            return RuntimeHelpers.invokeSuper(context, self, args, block);
+        }
+        if (val instanceof JSFunction) {
+            if (isCallableJSFunction(val)) {
+                if (RubyObjectWrapper.DEBUG_FCALL)
+                    System.err.println("method_missing: found a callable function for key " + key + "; calling it");
+                try {
+                    IRubyObject retval = toRuby(wrapper._scope, runtime, ((JSFunction)val).callAndSetThis(wrapper._scope, wrapper._jsobj, RubyObjectWrapper.toJSFunctionArgs(wrapper._scope, runtime, args, 1, block)));
+                    if (val instanceof JSFileLibrary)
+                        RuntimeEnvironment.createNewClassesAndXGenMethods();
+                    return retval;
                 }
-            });
+                catch (Exception e) {
+                    if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+                        System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
+                        e.printStackTrace();
+                    }
+                    self.callMethod(context, "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
+                }
+            }
+            else {
+                if (RubyObjectWrapper.DEBUG_FCALL)
+                    System.err.println("method_missing: found a non-callable function object for key " + key + "; returning it");
+                return toRuby(wrapper._scope, runtime, val);
+            }
+        }
+        if (args.length > 1) { // we have function arguments but this is not a function
+            if (RubyObjectWrapper.DEBUG_FCALL)
+                System.err.println("method_missing: the non-function " + key + " was called with arguments; calling super.method_missing");
+            return RuntimeHelpers.invokeSuper(context, self, args, block);
+        }
+        else {
+            if (RubyObjectWrapper.DEBUG_FCALL)
+                System.err.println("method_missing: found " + key + "; it is a " + val.getClass().getName() + "; returning it");
+            return toRuby(wrapper._scope, runtime, val);
+        }
     }
 }
