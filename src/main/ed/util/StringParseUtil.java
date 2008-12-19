@@ -246,7 +246,7 @@ public final class StringParseUtil {
         // parse with smallest possible precision
         if ( s.length() > 17 )
             return Double.parseDouble( s );
-        else if ( s.length() > 10  )
+        else if ( s.length() > 9  )
             return Long.parseLong(s);
         return Integer.parseInt(s);
     }
