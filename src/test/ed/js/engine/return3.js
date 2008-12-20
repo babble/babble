@@ -27,3 +27,11 @@ function foo2(){
 
 print( ! foo1() );
 print( ! foo2() );
+
+x = true;
+y = true;
+z = 3;
+
+// implicit return
+print( eval( 'if(x&&y) "PASS"; else "FAIL";' ) );
+print( z == eval( "var a=3; { a }" ) );

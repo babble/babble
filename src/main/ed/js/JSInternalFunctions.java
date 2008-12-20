@@ -336,7 +336,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @return The inverse of the boolean equivalent of <tt>o</tt>
      */
     public static Boolean JS_not( Object o ){
-        return ! JS_evalToBool( o );
+        return !JSBoolean.booleanValue( o );
     }
 
     /** Finds the boolean equivalent of an object.
