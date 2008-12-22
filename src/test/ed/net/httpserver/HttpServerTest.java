@@ -95,6 +95,7 @@ public class HttpServerTest extends TestCase {
         checkResponse( r );
 
         assert (in.read() == -1);
+        s.close();
     }
 
     @Test
@@ -116,6 +117,7 @@ public class HttpServerTest extends TestCase {
         checkResponse( r );
 
         assert (in.read() == -1);
+        s.close();
     }
 
     @Test
@@ -132,6 +134,7 @@ public class HttpServerTest extends TestCase {
         assertEquals( "", r.body);
 
         assert( in.read() == -1 );
+        s.close();
     }
 
     @Test
@@ -162,6 +165,7 @@ public class HttpServerTest extends TestCase {
         assertEquals(PingHandler.DATA, r.body);
         checkResponse( r );
         assert (in.read() == -1);
+        s.close();
     }
 
     @Test
@@ -299,13 +303,14 @@ public class HttpServerTest extends TestCase {
     }
 
     public static class Response {
-
+        
         Response(String fl, Map<String, String> h, byte[] data) {
             firstLine = fl;
             headers = h;
+            bodyLength = data.length;
             body = new String(data);
         }
-
+        
         public String toString() {
             return firstLine + " headers:" + headers + " [" + body + "]";
         }
@@ -317,8 +322,9 @@ public class HttpServerTest extends TestCase {
 
             return k.trim().equalsIgnoreCase( "keep-alive" );
         }
-
+        
         public final String firstLine;
+        public final int bodyLength;
         public final String body;
         public final Map<String, String> headers;
     }
@@ -558,6 +564,89 @@ public class HttpServerTest extends TestCase {
         int _thisTime = 0;
     }
     
+    @Test
+    public void testContentLength1()
+        throws IOException {
+        _doCLTest();
+    }
+    
+    @Test
+    public void testContentLength2()
+        throws Throwable {
+        _testContentLength( 1 , 100 );
+    }
+
+    @Test
+    public void testContentLength3()
+        throws Throwable {
+        _testContentLength( 10 , 200 );
+    }
+
+    @Test
+    public void testContentLength4()
+        throws Throwable {
+        if ( _load )
+            _testContentLength( 50 , 2000 );
+    }
+    
+    @Test
+    void _testContentLength( final int threads , final int num )
+        throws Throwable {
+        
+        List<Thread> all = new ArrayList<Thread>();
+        final List<Throwable> errors = new ArrayList<Throwable>();
+        
+        for ( int i=0; i<threads; i++ ){
+            Thread t = new Thread(){
+                    
+                    public void run(){
+                        try {
+                            for ( int i=0; i<num; i++ )
+                                _doCLTest();
+                        }
+                        catch ( Throwable t ){
+                            t.printStackTrace();
+                            errors.add( t );
+                        }
+                    }
+                    
+                };
+            all.add( t );
+        }
+        
+        for ( Thread t : all )
+            t.start();
+
+        for ( Thread t : all )
+            t.join();
+
+        if ( errors.size() > 0 )
+            throw errors.get(0);
+        
+    }
+    
+    void _doCLTest()
+        throws IOException {
+
+        Socket s = open();
+
+        OutputStream out = s.getOutputStream();
+        InputStream in = s.getInputStream();
+
+        out.write(headers("GET", "fork=true&num=20", "Connection: Close\r\n").toString().getBytes());
+        Response r = read(in);
+        
+        assertEquals( 20 * PingHandler.DATA.length() , r.body.length() );
+        assertEquals( Integer.parseInt( r.headers.get( "Content-Length" ) ) , r.bodyLength );
+        checkResponse( r );
+
+        assert( in.read() == -1 );
+
+        s.close();
+
+        System.out.print( "." );
+    }
+
     HttpServer _server;
     final protected int _port;
     protected boolean _load = false;
