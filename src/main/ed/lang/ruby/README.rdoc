@@ -63,6 +63,13 @@ When you modify or create new globals, they are put back into the scope when
 your code uses code in other languages. That is, modifications to the $scope
 object or any global will be seen outside of Ruby.
 
+=== $DEBUG
+
+To set $DEBUG when running the 10gen cloud from source, start it with
+DEBUG.RB.DEBUG set to true.
+
+  ./runserver.sh -DDEBUG.RB.DEBUG=true ed.appserver.AppServer path/to/site
+
 
 == Resources
 
