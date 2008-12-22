@@ -12,6 +12,24 @@ module java::util::Map
     val
   end
 end
+
+module java::lang::Iterable
+  include Enumerable
+
+  def each
+    iter = iterator
+    yield(iter.next) while iter.hasNext
+  end
+
+  def each_with_index
+    index = 0
+    iter = iterator
+    while iter.hasNext
+      yield(iter.next, index)
+      index += 1
+    end
+  end
+end
   
 module java::lang::Comparable
   include Comparable
