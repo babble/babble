@@ -233,6 +233,22 @@ it looks in the third party libraries suplied by 10gen.
 
         config.frameworks -= [ :active_record ]
 
+5. If you use any gems besides those Rails gems already frozen in step 1,
+   freeze them into your Rails app. One way to do this is to use topfunky's
+   Freeze Other Gems Rake task, which can be found at
+   http://nubyonrails.com/articles/freeze-other-gems-to-rails-lib-directory.
+
+   * Download
+     http://topfunky.net/svn/plugins/topfunky_power_tools/tasks/freeze.rake
+     into your lib/tasks directory
+   * Run
+
+          GEMS="gem list space separated" rake topfunky:freeze:others
+
+   freeze.rake also comes with the topfunky:freeze:rails task, which freezes
+   Rails recursively and is said to work better with Subversion than the
+   built-in freeze.
+
 
 ==== Running Your App
 
