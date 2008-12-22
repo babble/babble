@@ -56,7 +56,7 @@ assert.eq(extraNode, pyDict2.approxSize());
 var start = pyList1.approxSize();
 var before = pyList1.approxSize();
 assert.eq( before , pyList1.approxSize() );
-within( start , before , 100 );
+within( start , before , 200 );
 
 var diff = before - pyList2.approxSize();
 assert(diff > 0); // same object reused [1,1]
@@ -85,7 +85,7 @@ var jxp2 = local.src.test.ed.lang.python.date1_helper;
 var start = jxp.approxSize();
 var before = jxp.approxSize();
 
-within(start, before, 100);
+within(start, before, 200);
 //assert.eq( before , jxp.approxSize() ); // FIXME: scope grows after within()?
 
 // jxp and jxp2 should share some stuff, so together they shouldn't be as

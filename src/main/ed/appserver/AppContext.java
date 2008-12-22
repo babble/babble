@@ -131,7 +131,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
         _moduleRegistry = ModuleRegistry.getNewGlobalChild();
 
-        if ( _git.isValid() ){
+        if ( _git.isValid() && _git.hasHead()){
             _gitBranch = _git.getBranchOrTagName();
             _gitHash = _git.getCurrentHash();
         }
@@ -1092,12 +1092,12 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         if (files == null)
             return;
 
-        for (int i = 0; i < files.length; i++)
-            runInitFile( files[i].replaceAll("PREFIX", _codePrefix) );
-
         for (JSFunction func : _initRefreshHooks ){
             func.call( _initScope , null );
         }
+
+        for (int i = 0; i < files.length; i++)
+            runInitFile( files[i].replaceAll("PREFIX", _codePrefix) );
     }
 
     public void addInitRefreshHook(JSFunction func){

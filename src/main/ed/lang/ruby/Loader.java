@@ -96,7 +96,7 @@ public class Loader {
             if (isCallableJSFunction(o)) {
                 try {
                     ((JSFunction)o).call(_scope, RuntimeEnvironment.EMPTY_OBJECT_ARRAY);
-                    createNewClassesAndXGenMethods(_scope, runtime);
+                    createNewClassesAndXGenMethods();
                 }
                 catch (Exception e) {
                     if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {

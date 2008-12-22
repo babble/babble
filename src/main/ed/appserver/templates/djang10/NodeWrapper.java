@@ -32,6 +32,11 @@ import ed.util.SeenPath;
 public class NodeWrapper {
 
     public static JSObject wrap(JSObject node, Token token) {
+        if(!(node.get( "render" ) instanceof JSFunction))
+            throw new IllegalArgumentException("The node must contain a render method");
+        if(!(node.get( "__render" ) instanceof JSFunction))
+            throw new IllegalArgumentException("The node must contain a __render method");
+
         node.set("render", new RenderWrapperFunc((JSFunction)node.get("render")));
         node.set("__render", new __RenderWrapperFunc((JSFunction)node.get("__render")));
         node.set("__token", token);

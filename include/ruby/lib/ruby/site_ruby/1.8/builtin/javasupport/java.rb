@@ -18,7 +18,7 @@ module JavaPackageModuleTemplate
   
     # blank-slate logic relocated from org.jruby.javasupport.Java
     instance_methods.each do |meth|
-      unless meth =~ @@keep
+      unless meth.to_s =~ @@keep
         # keep aliased methods for those we'll undef, for use by IRB and other utilities
         unless method_defined?(method_alias = :"__#{meth}__")
           alias_method method_alias, meth
@@ -43,7 +43,11 @@ module JavaPackageModuleTemplate
       JavaUtilities.get_proxy_or_package_under_package self, sym
     end
     private :method_missing
-    
+
+    def package_name
+      # strip off trailing .
+      @package_name[0..-2]
+    end
   end
 end
 # pull in the default package

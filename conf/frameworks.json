@@ -43,9 +43,10 @@
                             path : "django"
                         }
                     ],
-                    initFile : "/~~/modules/py-google/_init_ae.py",
+                    initFile : "/~~/modules/py-google/xgen/_init_ae.py",
                     initDependencies : [
-                        "app.yaml"
+                        "app.yaml",
+                        "index.yaml"
                     ]
                 }
             ]

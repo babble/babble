@@ -16,8 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.util.*;
-
 import org.jruby.*;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -99,15 +97,31 @@ public class RubyJSArrayWrapper extends RubyArray {
         return o;
     }
 
-    public IRubyObject pop() {
-        IRubyObject o = super.pop();
+    public IRubyObject pop(ThreadContext context) {
+        IRubyObject o = super.pop(context);
         _jsarray.remove(_jsarray.size() - 1);
         return o;
     }
 
-    public IRubyObject shift() {
-        IRubyObject o = super.shift();
+    public IRubyObject pop19(ThreadContext context, IRubyObject num) {
+        IRubyObject o = super.pop19(context, num);
+        int n = (int)((RubyNumeric)num).getLongValue();
+        for (int i = 0; i < n; ++i)
+            _jsarray.remove(_jsarray.size() - 1);
+        return o;
+    }
+
+    public IRubyObject shift(ThreadContext context) {
+        IRubyObject o = super.shift(context);
         _jsarray.remove(0);
+        return o;
+    }
+
+    public IRubyObject shift19(ThreadContext context, IRubyObject num) {
+        IRubyObject o = super.shift19(context, num);
+        int n = (int)((RubyNumeric)num).getLongValue();
+        for (int i = 0; i < n; ++i)
+            _jsarray.remove(0);
         return o;
     }
 
@@ -147,8 +161,28 @@ public class RubyJSArrayWrapper extends RubyArray {
         return o;
     }
 
-    public IRubyObject fill(ThreadContext context, IRubyObject[] args, Block block) {
-        IRubyObject o = super.fill(context, args, block);
+    public IRubyObject fill(ThreadContext context, Block block) {
+        IRubyObject o = super.fill(context, block);
+        ruby2js();
+        return o;
+    }
+
+
+    public IRubyObject fill(ThreadContext context, IRubyObject arg, Block block) {
+        IRubyObject o = super.fill(context, arg, block);
+        ruby2js();
+        return o;
+    }
+
+
+    public IRubyObject fill(ThreadContext context, IRubyObject arg1, IRubyObject arg2, Block block) {
+        IRubyObject o = super.fill(context, arg1, arg2, block);
+        ruby2js();
+        return o;
+    }
+
+    public IRubyObject fill(ThreadContext context, IRubyObject arg1, IRubyObject arg2, IRubyObject arg3, Block block) {
+        IRubyObject o = super.fill(context, arg1, arg2, arg3, block);
         ruby2js();
         return o;
     }
@@ -219,7 +253,7 @@ public class RubyJSArrayWrapper extends RubyArray {
         IRubyObject[] a = new IRubyObject[len];
         for (int i = 0; i < len; ++i)
             a[i] = toRuby(_scope, getRuntime(), _jsarray.get(i));
-        replace(new RubyArray(getRuntime(), len, a));
+        replace(RubyArray.newArray(getRuntime(), a));
     }
 
     /** Writes contents of RubyArrray into JSArray. */

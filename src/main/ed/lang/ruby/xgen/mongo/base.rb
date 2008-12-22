@@ -33,7 +33,7 @@ module XGen
     end
 
     # A superclass for database collection instances. The API is very similar
-    # to ActiveRecord. See find for examples.
+    # to ActiveRecord. See #find for examples.
     #
     # If you override initialize, make sure to call the superclass version,
     # passing it the database row or hash that it was given.
@@ -220,6 +220,10 @@ module XGen
         # <code>:limit</code> - Maximum number of records to return.
         #
         # <code>:offset</code> - Number of records to skip.
+        #
+        # <code>:where</code> - A string containing a JavaScript expression.
+        # This expression is run by the database server against each record
+        # found after the :conditions are run.
         #
         # Examples for find by id:
         #   Person.find("48e5307114f4abdf00dfeb86")     # returns the object for this ID

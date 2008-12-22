@@ -456,6 +456,10 @@ public class XMLHttpRequest extends JSObjectBase {
         public void removeHeader( String name ){}
 
         public void gotResponseCode( int responseCode ){
+            //Need to reset state in case of redirect
+            _header.setLength( 0 );
+            set( "headers", null );
+
             set( "status" , responseCode );
             setStatus( HEADERS_RECEIVED );
         }

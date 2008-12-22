@@ -16,9 +16,6 @@
 
 package ed.lang.ruby;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
@@ -32,9 +29,11 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
 
 /**
- * The JSFileLibrary wrapper implements peek() in a way that makes sure the
- * file library object is not initialized. It also makes sure newly-defined
- * classes are created after every call to itself.
+ * Wraps JSFileLibrary objects for Ruby.
+ * <p>
+ * This wrapper implements peek() in a way that makes sure the file library
+ * object is not initialized. It also makes sure newly-defined classes are
+ * created after every call to itself.
  */
 @SuppressWarnings("serial")
 public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
@@ -85,7 +84,7 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
                     Object result = _func.callAndSetThis(_scope, _this, toJSFunctionArgs(_scope, runtime, args, 0, block));
                     if (RubyObjectWrapper.DEBUG_FCALL)
                         System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-                    RuntimeEnvironment.createNewClassesAndXGenMethods(_scope, runtime);
+                    RuntimeEnvironment.createNewClassesAndXGenMethods();
                     return toRuby(_scope, runtime, result);
                 }
                 catch (Exception e) {

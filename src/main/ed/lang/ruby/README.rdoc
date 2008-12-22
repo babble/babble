@@ -77,7 +77,7 @@ raised. Instead, use XGen::BabbleThread.
 
 The GridFile class represents files that are stored in GridFS, the Mongo-based
 file storage mechanism. Files can have attributes. See GridFile for more
-information.
+information and an example.
 
 
 == Mongo
@@ -96,12 +96,29 @@ during development), all log messages are echoed to $stderr which is normally
 the console.
 
 
+== Ruby Shell
+
+Normally, you start a Babble shell by typing
+
+  ./shell
+
+which starts a shell that uses JavaScript. If you type
+
+  ./shell --ruby
+
+then the shell will use Ruby and start IRB.
+
+
 == Babble Applications
 
-==== Output
+==== I/O
 
 $stdout is directed to the browser. That is, calling "puts 'foo'" will write
 'foo' to the HTTP response, sending it back to the browser.
+
+$stderr is directed to the console. For example, when running Babble locally
+"$stderr.puts 'foo'" will write 'foo' to the terminal window where you started
+Babble.
 
 ==== Sessions
 
@@ -134,7 +151,7 @@ routing. Here is an example, taken from xgen/rails/init.rb:
   end
 
 Note that you should not +return+ from this proc. If you do, you will see the
-exception +org.jruby.exceptions.JumpException$ReturnJump+.
+exception org.jruby.exceptions.JumpException$ReturnJump.
 
 If you do not define $adapterType it defaults to the built-in 10gen method,
 which is perfectly fine for a non-CGI application.
@@ -197,7 +214,8 @@ it looks in the third party libraries suplied by 10gen.
         require 'xgen/rails'
         Dispatcher.dispatch
 
-4. Use XGen::Mongo::Base instead of ActiveRecord::Base
+4. Use XGen::Mongo::Base instead of ActiveRecord::Base. (Though ActiveRecord
+   is not yet officially supported by Babble, work is in progress.)
 
         class Course < XGen::Mongo::Base
 
@@ -214,6 +232,22 @@ it looks in the third party libraries suplied by 10gen.
    Rails::Initializer block, add this line:
 
         config.frameworks -= [ :active_record ]
+
+5. If you use any gems besides those Rails gems already frozen in step 1,
+   freeze them into your Rails app. One way to do this is to use topfunky's
+   Freeze Other Gems Rake task, which can be found at
+   http://nubyonrails.com/articles/freeze-other-gems-to-rails-lib-directory.
+
+   * Download
+     http://topfunky.net/svn/plugins/topfunky_power_tools/tasks/freeze.rake
+     into your lib/tasks directory
+   * Run
+
+          GEMS="gem list space separated" rake topfunky:freeze:others
+
+   freeze.rake also comes with the topfunky:freeze:rails task, which freezes
+   Rails recursively and is said to work better with Subversion than the
+   built-in freeze.
 
 
 ==== Running Your App

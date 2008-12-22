@@ -157,7 +157,7 @@ class GridFile < StringIO
   def close
     rewind()
     if @mode == :write || @mode == :append
-      Java::EdLangRuby::GridFS.save($scope, self.class.connection, self)
+      Java::EdLangRuby::GridFS.save(self.class.connection, self)
     end
     super
   end

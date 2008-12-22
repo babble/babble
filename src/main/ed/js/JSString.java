@@ -170,7 +170,7 @@ public class JSString extends JSObjectBase implements Comparable {
 
                         int start = 0;
                         if ( foo != null && foo.length > 0 && foo[0] != null ) {
-                            start = ((Number)foo[0]).intValue();
+                            start = JSNumber.getNumber( foo[0] ).intValue();
                         }
                         return str.indexOf( thing , start );
                     }
@@ -228,19 +228,14 @@ public class JSString extends JSObjectBase implements Comparable {
             _prototype.set( "substring" , new JSFunctionCalls2() {
                     public Object call( Scope s , Object startO , Object endO , Object foo[] ){
                         String str = s.getThis().toString();
+                        if( endO == null || endO == VOID )
+                            endO = str.length();
 
-                        int start = (int)JSNumber.getDouble( startO );
-                        int end = endO == null ? str.length() : (int)JSNumber.getDouble( endO );
-
-                        if ( start < 0 )
-                            start = 0;
-                        if ( start >= str.length() || start < 0 )
-                            return EMPTY;
-
-                        if ( end > str.length() )
-                            end = str.length();
-                        if ( end < 0 )
-                            return new JSString( str.substring( start ) );
+                        int len = str.length();
+                        int temp1 = (int)Math.min( Math.max( JSNumber.getDouble( startO ), 0 ), len );
+                        int temp2 = (int)Math.min( Math.max( JSNumber.getDouble( endO ), 0 ), len );
+                        int start = Math.min( temp1, temp2 );
+                        int end = Math.max( temp1, temp2 );
 
                         return new JSString( str.substring( start , end ) );
                     }
@@ -315,7 +310,7 @@ public class JSString extends JSObjectBase implements Comparable {
                             }
                         }
 
-                        if ( o == null ) {
+                        if ( o == null || o == VOID ) {
                             a.add( s.getThis() );
                             return a;
                         }
@@ -583,12 +578,7 @@ public class JSString extends JSObjectBase implements Comparable {
                         if(args == null) return new JSString("");
                         StringBuffer buf = new StringBuffer();
                         for(int i = 0; i < args.length; i++){
-                            Object o = args[i];
-                            if(! (o instanceof Number) )
-                                throw new RuntimeException( "fromCharCode only takes numbers" );
-                            Number n = (Number)o;
-                            char c = (char)JSNumber.toUint16( o );
-                            buf.append(c);
+                            buf.append( (char)JSNumber.toUint16( args[i] ) );
                         }
                         return new JSString( buf.toString() );
                     }

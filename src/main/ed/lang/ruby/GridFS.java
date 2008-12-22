@@ -30,14 +30,21 @@ import ed.js.*;
 import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 
+/**
+ * A helper for the Ruby GridFile class. Deals with the concrete JSFile
+ * subclass instances need to manipulate GridFS files in the database.
+ */
 public class GridFS {
 
-    public static void save(RubyJSObjectWrapper rscope, RubyJSObjectWrapper rdb, RubyObject gridFile) {
-        final Scope scope = (Scope)rscope.getJSObject();
+    /**
+     * Save <var>gridFile</var> to <var>rubyDb</var>. 
+     */
+    public static void save(RubyJSObjectWrapper rubyDb, RubyObject gridFile) {
+        final Scope scope = rubyDb._scope;
         final Ruby runtime = gridFile.getRuntime();
         final ThreadContext context = runtime.getCurrentContext();
 
-        DBBase db = (DBBase)rdb.getJSObject();
+        DBBase db = (DBBase)rubyDb.getJSObject();
         DBCollection _files = db.getCollectionFromString("_files");
         RubyObject gridFileName = (RubyObject)gridFile.instance_variable_get(context, runtime.newString("@name"));
         String name = gridFileName.toString();
@@ -54,7 +61,7 @@ public class GridFS {
                     }
                 });
 
-            remove(rdb, name);
+            remove(rubyDb, name);
             _files.save(scope, f);
         }
         catch (IOException e) {
@@ -63,8 +70,12 @@ public class GridFS {
         }
     }
 
-    public static void remove(RubyJSObjectWrapper rdb, String fileName) {
-        DBBase db = (DBBase)rdb.getJSObject();
+    /**
+     * Removes <var>fileName</var> from <var>rubyDb</var>. Takes care of
+     * removing the chunks associated with the file.
+     */
+    public static void remove(RubyJSObjectWrapper rubyDb, String fileName) {
+        DBBase db = (DBBase)rubyDb.getJSObject();
 
         JSObjectBase criteria = new JSObjectBase();
         criteria.set("filename", fileName.toString());

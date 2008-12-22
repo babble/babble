@@ -25,7 +25,6 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
 import ed.js.*;
 import ed.js.engine.Scope;

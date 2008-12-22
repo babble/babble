@@ -43,7 +43,7 @@ def pythonKeys(jsFoo):
 
     values = jsFoo.values()
     values.sort()
-    assert values == [1, 2, 3, 'j']
+    assert values == ['j', 1, 2, 3] # actually 'j' is a PyJSStringWrapper
 _10gen.pythonKeys = pythonKeys
 
 class SomeClass(object):

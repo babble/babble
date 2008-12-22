@@ -221,17 +221,32 @@ public final class StringParseUtil {
                  s.equals( "-0" ) ) {
             return Double.parseDouble(s);
         }
-        else if( s.length() > 2 && s.charAt( 0 ) == '0' && 
-                 ( s.charAt( 1 ) == 'x' || s.charAt( 1 ) == 'X' ) )
-            return Integer.parseInt( s.substring( 2, s.length() ) , 16 );
+        // parse hex
+        else if( s.toLowerCase().indexOf( "0x" ) > -1 ) {
+            int coef = s.charAt( 0 ) == '-' ? -1 : 1;
+            if( s.length() > 17 ) 
+                throw new RuntimeException( "Can't handle a number this big: "+s );
+            // if coef == -1: (coef * -.5 + 2.5) == 3
+            // e.g., -0xf00 (start substring at 3)
+            // if coef == 1: (coef * -.5 + 2.5) == 2
+            // e.g., 0xf00 (start substring at 2)
+            if( s.length() > 9 )
+                return coef * Long.parseLong( s.substring( (int)(coef * -.5 + 2.5) ) , 16 );
+            return coef * Integer.parseInt( s.substring( (int)(coef * -.5 + 2.5) ) , 16 );
+        }
 
-        int e = s.indexOf( 'e' );
+        int e = s.toLowerCase().indexOf( 'e' );
+        // parse exp
         if( e > 0 ) {
             double num = Double.parseDouble( s.substring( 0, e ) );
             int exp = Integer.parseInt( s.substring( e + 1 ) );
             return num * Math.pow( 10 , exp );
         }
-        if ( s.length() > 10 )
+
+        // parse with smallest possible precision
+        if ( s.length() > 17 )
+            return Double.parseDouble( s );
+        else if ( s.length() > 9  )
             return Long.parseLong(s);
         return Integer.parseInt(s);
     }

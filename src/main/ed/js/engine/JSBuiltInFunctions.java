@@ -638,6 +638,9 @@ public class JSBuiltInFunctions {
     
     public static class eval extends JSFunctionCalls1 {
         public Object call( Scope scope , Object thing , Object [] args){
+            if( thing == null || thing == VOID )
+                return thing;
+
             Scope s = scope;
             
             Object t = scope.getThis();

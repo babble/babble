@@ -201,6 +201,12 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         init( node );
     }
 
+    public XMLList( ENodeFunction node ) {
+        super( _getListCons() );
+        this.children = new LinkedList<ENode>();
+        init( node.cnode );
+    }
+
     public XMLList( List<ENode> list ) {
         super( _getListCons() );
         children = list;
@@ -212,10 +218,11 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         }
         // make a copy of an existing xmllist
         else if( nodes instanceof XMLList ) {
-            for( ENode child : (XMLList)nodes ) {
+            this.addAll( (XMLList)nodes );
+            /*for( ENode child : (XMLList)nodes ) {
                 ENode temp = child.copy();
                 this.add( temp );
-            }
+                }*/
         }
         else if( nodes instanceof ENode ) {
             if( ((ENode)nodes).node == null && 
@@ -236,26 +243,41 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         return children.size();
     }
 
+    public Object get( Object o ) {
+        return super.get( o );
+    }
+
     public ENode get( int index ) {
+        if( index >= size() ) {
+            if( index == 0 ) {
+                ENode foo = new ENode();
+                foo.setDummy( true );
+                return foo;
+            }
+            return new ENode( this.parent(), get( 0 ).name() );
+        }
         return children.get(index);
     }
 
     public XMLList children() {
-        XMLList kids = new XMLList();
-        for( ENode n : this ) {
-            kids.addAll( n.children() );
+        return children( true );
+    }
+
+    private XMLList children( boolean copy ) {
+        if( copy ) {
+            XMLList kids = new XMLList();
+            for( ENode n : this ) {
+                kids.addAll( n.children() );
+            }
+            return kids;
         }
-        return kids;
+        else {
+            return this;
+        }
     }
 
     public XMLList comments() {
-        XMLList comments = new XMLList();
-
-        for( ENode child : children ) {
-            if( child.node.getNodeType() == Node.COMMENT_NODE )
-                comments.add( child );
-        }
-        return comments;
+        return this.getOne().comments();
     }
 
     public boolean contains( Object o ) { 
@@ -269,6 +291,9 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     }
 
     public int length() {
+        if( this.size() == 1 &&
+            this.getOne().isDummy() )
+            return 0;
         return this.size();
     }
 
@@ -322,6 +347,10 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         return children.add(n); 
     }
 
+    public ENode set(int index, ENode o) { 
+        return children.set(index, o); 
+    }
+
     public void add( int index, ENode n) { children.add( index, n); }
     public boolean addAll( Collection<? extends ENode> list ) { return children.addAll( list ); }
     public boolean addAll( int index, Collection<? extends ENode> list ) { return children.addAll( index, list ); }
@@ -338,7 +367,6 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     public boolean remove(Object o) { return children.remove( o ); }
     public boolean removeAll(Collection c) { return children.removeAll(c); }
     public boolean retainAll(Collection c) { return children.retainAll(c); }
-    public ENode set(int index, ENode o) { return children.set(index, o); }
     public List<ENode> subList(int from, int to) { return children.subList(from, to); }
     public Object[] toArray() { return children.toArray(); }
     public <T> T[] toArray(T[] a) { return children.toArray(a); }

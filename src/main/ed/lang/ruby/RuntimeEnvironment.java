@@ -33,9 +33,15 @@ import ed.appserver.JSFileLibrary;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
-import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
+/**
+ * Encapsulates the information needed to run Ruby code within an {@link
+ * AppContext}. Performs Ruby runtime initialization and object/module setup.
+ * Each AppContext has a pool of RuntimeEnvironment instances.
+ *
+ * @see RuntimeEnvironmentPool
+ */
 public class RuntimeEnvironment {
 
     public static final String XGEN_MODULE_NAME = "XGen";
@@ -44,12 +50,13 @@ public class RuntimeEnvironment {
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
+    static final boolean RUBY_GLOBAL_DEBUG = Boolean.getBoolean("DEBUG.RB.DEBUG");
     /** Scope top-level functions to avoid loading. */
     static final Collection<String> DO_NOT_LOAD_FUNCS;
     // TODO for now, we just add the local site dir to the load path
     static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local" /* , "core", "external" */};
     static final RubyInstanceConfig CONFIG = new RubyInstanceConfig();
-    static final Map<Ruby, Map<String, Class>> FUNCTION_DEF_MAPS = new HashMap<Ruby, Map<String, Class>>();
+    static final ThreadLocal<RuntimeEnvironment> threadLocalRuntimeEnvironment = new ThreadLocal<RuntimeEnvironment>();
 
     static {
         DO_NOT_LOAD_FUNCS = new ArrayList<String>();
@@ -68,22 +75,24 @@ public class RuntimeEnvironment {
     protected AppContext appContext;
     protected Ruby runtime;
     protected Scope scope;
+    @SuppressWarnings("unchecked")
+    protected Map<String, Class> functionDefs = new HashMap<String, Class>();
+
+    public static RuntimeEnvironment getCurrentRuntimeEnvironment() { return threadLocalRuntimeEnvironment.get(); }
 
     /**
      * Creates Ruby classes and XGen module methods from any new JavaScript
      * classes and functions found in the top level of <var>scope</var>.
      * Called immediately after loading a file using a JSFileLibrary.
      */
-    public static void createNewClassesAndXGenMethods(Scope scope, Ruby runtime) {
-        Map<String, Class> functionDefs = FUNCTION_DEF_MAPS.get(runtime);
-        if (functionDefs == null) {
-            functionDefs = new HashMap<String, Class>();
-            FUNCTION_DEF_MAPS.put(runtime, functionDefs);
-        }
+    @SuppressWarnings("unchecked")
+    public static void createNewClassesAndXGenMethods() {
+        RuntimeEnvironment runenv = RuntimeEnvironment.getCurrentRuntimeEnvironment();
+        Ruby runtime = runenv.getRuntime();
 
         RubyModule xgen = runtime.getOrCreateModule(XGEN_MODULE_NAME);
         Set<String> alreadySeen = new HashSet<String>();
-        Scope s = scope;
+        Scope s = runenv.scope;
         while (s != null) {
             for (String key : s.keySet()) {
                 if (alreadySeen.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
@@ -93,17 +102,17 @@ public class RuntimeEnvironment {
                     /* Each function is a separate subclass of JSFunction. If
                      * we already have a function with the same name and the
                      * same class, then we don't need to re-wrap it. */
-                    Class existingFuncClass = functionDefs.get(key.toString());
+                    Class existingFuncClass = runenv.functionDefs.get(key.toString());
                     if (existingFuncClass != null && existingFuncClass.equals(obj.getClass()))
                         continue;
 
                     if (DEBUG)
                         System.err.println("adding top-level method " + key);
                     alreadySeen.add(key);
-                    functionDefs.put(key.toString(), obj.getClass());
+                    runenv.functionDefs.put(key.toString(), obj.getClass());
  
                     /* Creates method and attaches to the module. Also creates a new Ruby class if appropriate. */
-                    RubyObjectWrapper.createRubyMethod(scope, runtime, (JSFunction)obj, key, xgen, null);
+                    RubyObjectWrapper.createRubyMethod(runenv.scope, runtime, (JSFunction)obj, key, xgen, null);
                 }
             }
             s = s.getParent();
@@ -136,10 +145,13 @@ public class RuntimeEnvironment {
     }
 
     public void setup(Scope scope, InputStream stdin, OutputStream stdout) {
+        threadLocalRuntimeEnvironment.set(this);
         this.scope = scope;
         addJSFileLibrariesToPath();
         runtime.setGlobalVariables(new ScopeGlobalVariables(scope, runtime));
-        exposeScopeFunctions();
+        if (RUBY_GLOBAL_DEBUG)
+            runtime.getGlobalVariables().set("$DEBUG", runtime.getTrue());
+        createNewClassesAndXGenMethods();
         patchRequireAndLoad();
         setIO(stdin, stdout);
         disallowNewThreads();
@@ -186,17 +198,6 @@ public class RuntimeEnvironment {
         }
     }
 
-    /**
-     * Creates the $scope global object and sets up the XGen module with
-     * top-level functions defined in the scope.
-     */
-    private void exposeScopeFunctions() {
-        /* Creates a module named XGen, includes it in the Object class (just
-         * like Kernel), and adds all top-level JavaScript methods to the
-         * module. */
-        createNewClassesAndXGenMethods(scope, runtime);
-    }
-
     private void patchRequireAndLoad() {
         RubyModule kernel = runtime.getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
@@ -210,7 +211,6 @@ public class RuntimeEnvironment {
                 }
             });
     }
-
 
     /**
      * Set Ruby's $stdin, $stdout, STDIN, and STDOUT so that reading and
