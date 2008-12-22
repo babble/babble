@@ -285,14 +285,23 @@ public class TrackImport extends PyObject {
 
         String imported = null;
         if( fromlist != null && fromlist.__len__() > 0 ){
-            // But if we got an import "from foo.bar.baz import thingy",
-            // we're holding foo.bar.baz, so we just get the name from
-            // m.
-            PyObject __name__ = m.__findattr__("__name__");
-            if( __name__ == null ){
-                throw new RuntimeException("imported a module without a __name__ : " + m);
+            /* But if we got an import "from foo.bar.baz import thingy",
+             * we're holding foo.bar.baz, so we just get the name from
+             * m.
+             */
+            for( PyObject s : fromlist.asIterable() ){
+                if( ! ( s instanceof PyString ) ){
+                    throw new RuntimeException("elements of fromlist must be strings, please");
+                }
+
+                String fromName = s.toString();
+                PyObject fromItem = m.__findattr__( fromName );
+                if( fromItem instanceof PyModule ){
+                    sss.addDependency( getModuleName( fromItem ) , importer);
+                }
             }
-            imported = __name__.toString();
+
+            imported = getModuleName( m );
         }
         else {
             PyObject __name__ = m.__findattr__("__name__");
@@ -376,6 +385,14 @@ public class TrackImport extends PyObject {
             firstPart = target.substring( 0 , dot );
         siteModule.__setattr__( firstPart , result );
         return siteModule;
+    }
+
+    public String getModuleName( PyObject m ){
+        PyObject __name__ = m.__findattr__("__name__");
+        if( __name__ == null ){
+            throw new RuntimeException("imported a module without a __name__ : " + m);
+        }
+        return __name__.toString();
     }
 
     public PyObject tryModuleRewrite(SiteSystemState sss , String target ,
