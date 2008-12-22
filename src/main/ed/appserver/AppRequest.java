@@ -274,6 +274,16 @@ public class AppRequest implements Sizable {
         _profiler.makeThreadLocal();
     }
 
+    public ProfilingTracker getProfiler(){
+        return getProfiler( false );
+    }
+
+    public ProfilingTracker getProfiler( boolean createIfNotOn ){
+        if ( _profiler == null && createIfNotOn )
+            turnOnProfiling();
+        return _profiler;
+    }
+
     JxpServlet getServlet( File f )
         throws IOException {
         
