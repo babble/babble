@@ -516,6 +516,13 @@ public class HttpServer extends NIOServer {
         _lastHandlers = lst;
         _lastHandlerHash = curHash;
 
+        if ( D ){
+            System.out.println( "---" );
+            for ( HttpHandler hh : lst ){
+                System.out.println( "\t" + hh + "\t" + hh.priority() );
+            }
+        }
+
         return lst;
     }
 
@@ -655,7 +662,7 @@ public class HttpServer extends NIOServer {
     static int _globalHandlersMods = 0;
     static final Comparator _handlerComparator = new Comparator<HttpHandler>(){
         public int compare( HttpHandler a , HttpHandler b ){
-            return a.priority() < b.priority() ? 1 : -1;
+            return a.priority() < b.priority() ? -1 : 1;
         }
     };
 
