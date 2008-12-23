@@ -34,6 +34,12 @@ public abstract class ConfigurableApplicationFactory implements ApplicationFacto
     protected abstract SimpleConfig getConfig()
         throws IOException;
     
+    public String textView(){
+        if ( _lastConfig == null )
+            return "not run yet";
+        return _lastConfig.toString();
+    }
+
     public List<Application> getApplications(){
         SimpleConfig config = null;
         try {
@@ -48,6 +54,8 @@ public abstract class ConfigurableApplicationFactory implements ApplicationFacto
         
         if ( config == null )
             throw new RuntimeException( "getConfig() returned null, not allowed" );
+        
+        _lastConfig = config;
 
         List<Application> apps = new ArrayList<Application>();
         
@@ -87,9 +95,10 @@ public abstract class ConfigurableApplicationFactory implements ApplicationFacto
     public boolean runGridApplication(){
         return false;
     }
-
+    
     final long _timeBetweenRefresh;
     private List<Application> _previousApps;
+    private SimpleConfig _lastConfig;
 
     private static final Logger _logger = Logger.getLogger( "appFactory" );
 }

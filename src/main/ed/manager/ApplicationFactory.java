@@ -33,4 +33,6 @@ public interface ApplicationFactory {
     public long timeBetweenRefresh();
 
     public boolean runGridApplication();
+
+    public String textView();
 }

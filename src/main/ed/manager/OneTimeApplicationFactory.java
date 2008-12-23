@@ -27,6 +27,10 @@ public class OneTimeApplicationFactory implements ApplicationFactory {
         for ( Application a : apps )
             _apps.add( a );
     }
+
+    public String textView(){
+        return _apps.toString();
+    }
     
     public List<Application> getApplications(){
         return _apps;
