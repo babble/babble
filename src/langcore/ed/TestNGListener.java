@@ -13,13 +13,13 @@ public class TestNGListener extends TestListenerAdapter {
         log("F");
     }
 
-    public void onTestStart(ITestResult tr) {
-        log("test starting = " + tr.getName());
-    }
-
-    public void onStart(ITestContext tc) {
-        log("TestNG Starting = " + tc.getName());
-    }
+//    public void onTestStart(ITestResult tr) {
+//        log("Test : " + tr.getName() + "\n");
+//    }
+//
+//    public void onStart(ITestContext tc) {
+//        log("TestSet :" + tc.getName());
+//    }
 
     public void onTestSkipped(ITestResult tr) {
         log("S");
