@@ -29,7 +29,7 @@ import ed.net.nioclient.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 
-public final class Router {
+public class Router {
     
     public Router( MappingFactory mappingFactory ){
 	_logger = Logger.getLogger( "LB" ).getChild( "router" );
@@ -133,10 +133,14 @@ public final class Router {
             if ( s != null )
                 return s;
             
-            s = new Server( addr );
+            s = _createServer( addr );
             _addressToServer.put( addr , s );
         }
         return s;
+    }
+
+    Server _createServer( InetSocketAddress addr ){
+        return new Server( addr );
     }
 
     Set<String> getPoolNames(){
@@ -163,7 +167,7 @@ public final class Router {
     }
 
     class Pool {
-
+        
         Pool( String name , List<InetSocketAddress> addrs ){
 
             if ( addrs == null || addrs.size() == 0 )

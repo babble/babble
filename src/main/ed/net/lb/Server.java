@@ -30,10 +30,15 @@ import ed.log.*;
 public class Server implements Comparable<Server> {
 
     static final Logger _serverLogger = Logger.getLogger( "lb.server" );
-
+    
     Server( InetSocketAddress addr ){
+        this( addr , true );
+    }
+
+    Server( InetSocketAddress addr , boolean register ){
         if ( addr == null )
             throw new NullPointerException( "addr can't be null" );
+        
         _logger = _serverLogger.getChild( addr.getHostName() );
 	_addr = addr;
 	_monitor = ServerMonitor.register( this );
@@ -65,7 +70,7 @@ public class Server implements Comparable<Server> {
      * 0 rather not have traffic
      * > 1 the higher the better
      */
-    double rating( Environment e ){
+    int rating( Environment e ){
 	if ( _inErrorState )
 	    return 0;
 	
