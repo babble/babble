@@ -41,6 +41,10 @@ public class ManagerTest extends ed.TestCase {
             return false;
         }
 
+        public String textView(){
+            return "debug";
+        }
+
     }
 
     @Test

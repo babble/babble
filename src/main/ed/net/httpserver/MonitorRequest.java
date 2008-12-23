@@ -250,6 +250,18 @@ public class MonitorRequest {
             o = "null";
         _out.print( o.toString() );
     }
+
+    public void addHumanPRE( Object o ){
+        if ( ! html() )
+            return;
+        
+        if ( o == null )
+            return;
+
+        _out.print( "\n<pre>\n" );
+        _out.print( o.toString() );
+        _out.print( "\n</pre>\n" );
+    }
 	
     private final JxpWriter _out;
     private final HttpRequest _request;
