@@ -81,7 +81,8 @@ public class Manager extends Thread {
             
             int running = 0;
 
-            for ( Application app : _factory.getApplications() ){
+            _currentApps = _factory.getApplications();
+            for ( Application app : _currentApps ){
                 if ( isPaused( app ) ) {
                     running++;
                     continue;
@@ -119,16 +120,25 @@ public class Manager extends Thread {
                 _logger.info( "shutting down because nothing running" );
                 break;
             }
-
+            
             try {
+                _sleeping = true;
                 Thread.sleep( _factory.timeBetweenRefresh() );
             }
             catch ( InterruptedException e ){
+            }
+            finally {
+                _sleeping = false;
             }
             
         }
         
         // TODO: shut things down
+    }
+
+    public void check(){
+        if ( _sleeping )
+            interrupt();
     }
 
     public void shutdown(){
@@ -198,12 +208,15 @@ public class Manager extends Thread {
     final HttpServer _server;
 
     private boolean _shutdown = false;
+    private boolean _sleeping = false;
+    
+    List<Application> _currentApps = new ArrayList<Application>();
     private final Map<Application,RunningApplication> _running = new HashMap<Application,RunningApplication>();
     private final ArrayList<Application> _paused = new ArrayList<Application>();
 
     public static void main( String args[] )
         throws Exception {
-
+        
         HttpMonitor.setApplicationType( "System Manager" );
 
         Options o = new Options();
