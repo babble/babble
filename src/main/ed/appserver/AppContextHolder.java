@@ -514,8 +514,12 @@ public class AppContextHolder {
                     host += ".com";
                 break;
             }
-        }
+            else if ( ("." + host).equals( d ) ){
+                host = "www";
+            }
 
+        }
+        
         if ( host.startsWith( "www." ) )
             host = host.substring( 4 );
 
