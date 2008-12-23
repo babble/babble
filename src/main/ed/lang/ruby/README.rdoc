@@ -260,7 +260,10 @@ it looks in the third party libraries suplied by 10gen.
           end
         end
 
-   Now you can require those gems in your code.     
+   Now you can require those gems in your code.
+
+   Note that these instructions work for any Rails app running anywhere, not
+   just on Babble.
 
 
 ==== Running Your App
