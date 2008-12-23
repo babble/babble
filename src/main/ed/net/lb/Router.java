@@ -89,7 +89,11 @@ public class Router {
     }
 
     public void success( HttpRequest request , HttpResponse response , InetSocketAddress addr ){
-        getServer( addr ).success( _mapping.getEnvironment( request ) , request , response );
+        success( request , response , addr , _mapping.getEnvironment( request ) );
+    }
+    
+    public void success( HttpRequest request , HttpResponse response , InetSocketAddress addr , Environment e ){
+        getServer( addr ).success( e , request , response );
     }
 
     Pool getPool( HttpRequest request ){
@@ -204,7 +208,7 @@ public class Router {
         }
 
         InetSocketAddress getAddress( Environment e , boolean doOrDie ){
-            final int start = (int)(Math.random()*_servers.size());
+            final int start = _random.nextInt( _servers.size() );
             final int size = _servers.size();
             _seen.add( e );
             
@@ -274,6 +278,7 @@ public class Router {
     }
 
     final Logger _logger;
+    final Random _random = new Random();
 
     private final MappingFactory _mappingFactory;
     private final MappingUpdater _mappingUpdater;

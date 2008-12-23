@@ -34,14 +34,16 @@ public class Server implements Comparable<Server> {
     Server( InetSocketAddress addr ){
         this( addr , true );
     }
-
+    
     Server( InetSocketAddress addr , boolean register ){
         if ( addr == null )
             throw new NullPointerException( "addr can't be null" );
         
         _logger = _serverLogger.getChild( addr.getHostName() );
 	_addr = addr;
-	_monitor = ServerMonitor.register( this );
+        
+	_monitor = register ? ServerMonitor.register( this ) : null;
+        
         _tracker = new HttpLoadTracker( "Server : " + addr );
 	reset();
     }
@@ -55,7 +57,7 @@ public class Server implements Comparable<Server> {
     void error( Environment env , NIOClient.ServerErrorType type , Exception what , HttpRequest request , HttpResponse response ){
         if ( what instanceof HttpExceptions.ClientError )
             return;
-        _intoErrorState( "error state because of socket error" , what );
+        _intoErrorState( "error state because of error" , what );
 	_tracker.networkEvent();
         _tracker.hit( request , response );
     }

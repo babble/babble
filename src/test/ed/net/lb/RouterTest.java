@@ -21,6 +21,9 @@ public class RouterTest extends ed.TestCase {
 
     static final int START_PORT = 18231;
 
+    static final Environment DUMMY_ENV = new Environment( SITE , ENV );
+
+
     RouterTest(){
         
     }
@@ -47,34 +50,98 @@ public class RouterTest extends ed.TestCase {
 
         a.success( e , null , null );
         assertLess( b.rating( e ) , a.rating( e ) );
+
+        b.success( e , null , null );
+        assertEquals( b.rating( e ) , a.rating( e ) );
+        
     }
 
     public void test1()
         throws Exception {
         
-        final Router r = new MyRouter( 2 );
-        final Environment e = new Environment( "foo" , "www" );
+        final MyRouter r = new MyRouter( 2 );
+
+        Count c = _countPorts( r );
+        assertEquals( .5 , c.ratio() , .1 );
         
-        for ( int i=0; i<0; i++ ){
-            System.out.println( r.chooseAddressForPool( e , "prod1" , false ) );
-            Thread.sleep( 10 );
-        }
+        r.success( 0 );
+        assertEquals( addr(0) , r.next() );
+        c = _countPorts( r );
+        assertEquals( 1 , c.size() );
+        
+        r.success( 1 );
+        c = _countPorts( r );
+        assertEquals( 2 , c.size() );
+        assertEquals( .5 , c.ratio() , .1 );
+        
+        r.error( 0 );
+        assertEquals( addr(1) , r.next() );
+        c = _countPorts( r );
+        assertEquals( 1 , c.size() );
+        
+        r.success( 0 );
+        assertEquals( addr(1) , r.next() );
+        c = _countPorts( r );
+        assertEquals( 1 , c.size() );
+        
+        r.reset( 0 );
+        r.success( 0 );
+        c = _countPorts( r );
+        System.out.println( c );
+        assertEquals( 2 , c.size() );
+        assertEquals( .5 , c.ratio() , .1 );
+
+
+        r.error( 0 );
+        assertEquals( addr(1) , r.next() );
+        c = _countPorts( r );
+        assertEquals( 1 , c.size() );
+
+        r.reset( 0 );
+        assertEquals( addr(1) , r.next() );
+        c = _countPorts( r );
+        assertEquals( 1 , c.size() );
         
     }
     
+    Count _countPorts( MyRouter r ){
+        
+        Count c = new Count();
+        for ( int i=0; i<1000; i++ ){
+            c.inc( r.next() );
+        }
+        return c;
+    }
 
     // ------ INTERNAL -------
 
     class MyRouter extends Router {
         MyRouter( int num ){
             super( new MyMappingFactory( num ) );
+            _random.setSeed( 17123121 );
         }
 
-        protected Server _createServer( InetSocketAddress addr ){
+        Server _createServer( InetSocketAddress addr ){
             return new Server( addr , false );
         }
+
+        InetSocketAddress next(){
+            return chooseAddressForPool( DUMMY_ENV , POOL , false );
+        }
+
+        void success( int num ){
+            success( null , null , addr( num ) , DUMMY_ENV );
+        }
+        
+        void error( int num ){
+            getServer( addr(num) ).error( DUMMY_ENV , null , null , null , null );
+        }
+
+        void reset( int num ){
+            getServer( addr( num ) ).reset();
+        }
     }
-    
+                      
     class MyMappingFactory implements MappingFactory , Mapping {
         
         MyMappingFactory( int num ){
@@ -170,6 +237,32 @@ public class RouterTest extends ed.TestCase {
 
     }
 
+    class Count extends TreeMap<Integer,Integer> {
+
+        void inc( InetSocketAddress addr ){
+            inc( addr.getPort() - START_PORT );
+        }
+
+        void inc( int num ){
+            Integer old = get( num );
+            put( num , 1 + ( old == null ? 0 : old ) );
+        }
+
+        double ratio(){
+            if ( size() == 0 )
+                throw new RuntimeException( "no data" );
+            if ( size() == 1 )
+                return 1;
+            if ( size() > 2 )
+                throw new RuntimeException( "too much data" );
+            
+            Iterator<Integer> i = keySet().iterator();
+            double a = get( i.next() );
+            double b = get( i.next() );
+            return Math.min(a,b) / (b+a);
+        }
+    }
+    
     final Map<Integer,HttpServer> _servers = new TreeMap<Integer,HttpServer>();
     final Map<Integer,MyHandler> _handlers = new TreeMap<Integer,MyHandler>();
 
