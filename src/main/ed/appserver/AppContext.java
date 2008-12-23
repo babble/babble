@@ -131,7 +131,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
         _moduleRegistry = ModuleRegistry.getNewGlobalChild();
 
-        if ( _git.isValid() && _git.hasHead()){
+        if ( _git.isValid()){
             _gitBranch = _git.getBranchOrTagName();
             _gitHash = _git.getCurrentHash();
         }
