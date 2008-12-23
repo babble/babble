@@ -81,9 +81,18 @@ public class ObjectPath extends ArrayList {
              || o instanceof String )
             s += "(" + o + ")";
         
+        if ( o instanceof Collection )
+            s += "(size=" + ((Collection)o).size() + ")";
+
+
+        if ( o instanceof FastStringMap )
+            s += "(size=" + ((FastStringMap)o).size() + ")";
+
         if ( o instanceof JSObjectBase )
             s += "(" + ((JSObjectBase)o)._getName() + ")";
         
+        s += ":" + System.identityHashCode( o );
+
         return s;
     }
 

@@ -15,6 +15,7 @@
 #++
 
 require 'base64'
+require 'openssl'
 require 'xgen/oid'              # defines ObjectId.marshal_{dump,load}
 
 module XGen
@@ -36,8 +37,18 @@ module XGen
       attr_reader :session_id
 
       def initialize(session, options={})
-        @session_id = session.session_id # unused
+        @session = session
+        @secret = options['secret']
+        @digest = options['digest'] || 'SHA1'
+        @session_id = session.session_id
         @data = {}
+      end
+
+      # Generate the HMAC keyed message digest. Uses SHA1 by default. Used by
+      # the Rails code that performs request forgery protection.
+      def generate_digest(data)
+        key = @secret.respond_to?(:call) ? @secret.call(@session) : @secret
+        OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(@digest), key, data)
       end
 
       # Return the session value stored at +key+.

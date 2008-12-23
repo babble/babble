@@ -76,8 +76,34 @@ public class ManagerTest extends ed.TestCase {
         assertEquals( "OUT: hello" , ra.outputLine( 2 ) );
         assertEquals( "OUT: goodbye" , ra.outputLine( 1 ) );
         assertEquals( "ERR: done" , ra.outputLine( 0 ) );
+    }
 
 
+    @Test
+    public void testPause() 
+        throws Exception {
+        Manager m = new Manager( new MyApplicationFactory() );
+        m.start();
+        Thread.sleep( 100 );
+
+        Application app = m.getApplications().get( 0 );
+        assertEquals( m.getRunning( app ).timesStarted(), 1 );
+        assertEquals( m.getRunning( app ).isDone(), false );
+
+        // pause
+        m.togglePause( app );
+        Thread.sleep( 100 );
+        assertEquals( m.getRunning( app ).isDone(), true );
+        assertEquals( m.isPaused( app ), true );
+
+        // unpause
+        m.togglePause( app );
+        Thread.sleep( 100 );
+        assertEquals( m.getRunning( app ).timesStarted(), 1 );
+        assertEquals( m.getRunning( app ).isDone(), false );
+        assertEquals( m.isPaused( app ), false );
+
+        m.join();
     }
     
     String _toString( String[] s ){

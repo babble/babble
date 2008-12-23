@@ -722,6 +722,10 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
     }
 
+    public String toString(){
+        return "AppServer";
+    }
+
     private final AppContextHolder _contextHolder;
     private final Map<String,HttpLoadTracker> _stats = Collections.synchronizedMap( new StringMap<HttpLoadTracker>() );
     private final RequestMonitor _requestMonitor = RequestMonitor.getInstance();

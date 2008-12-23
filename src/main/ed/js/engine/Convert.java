@@ -36,6 +36,7 @@ public class Convert {
     static boolean DJS = Boolean.getBoolean( "DEBUG.JS" );
     final boolean D;
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
+    public static final String RETURN_VARIABLE = "returnee";
 
     public static JSFunction makeAnon( String code ){
         return makeAnon( code , false );
@@ -188,6 +189,7 @@ public class Convert {
         if ( _loadOnce ) 
             n = n.getNext();
         
+        _append( "\nObject " + RETURN_VARIABLE + " = null;\n" , n );
 	String whyRasReturn = null;
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
@@ -196,11 +198,13 @@ public class Convert {
 
                     if ( n.getType() == Token.EXPR_RESULT ){
                         _append( "return " , n );
+                        _useDefaultReturn = false;
                         _hasReturn = true;
                         whyRasReturn = "EXPR_RESULT";
                     }
 
                     if ( n.getType() == Token.RETURN ){
+                        _useDefaultReturn = false;
                         _hasReturn = true;
                         whyRasReturn = "RETURN";
                     }
@@ -215,8 +219,8 @@ public class Convert {
             n = n.getNext();
         }
 
-        if ( ! _hasReturn ) {
-            _append( "return null; /* null added at end */" , sn );
+        if ( _useDefaultReturn ) {
+            _append( "return " + RETURN_VARIABLE + "; " , sn );
         }
         else {
             _append( "/* no return b/c : " + whyRasReturn + " */" , sn );
@@ -403,7 +407,7 @@ public class Convert {
                 break;
             }
 
-            _append( "\n { \n" , n );
+            _append( "null; \n { \n" , n );
 
             _append( "JSObject __tempObject = (JSObject)" , n );
             _add( n.getFirstChild() , state );
@@ -417,7 +421,8 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( ";\n" , n );
 
-            _append( " __tempObject.set(" , n );
+            _append( "" + RETURN_VARIABLE + " = __tempObject.set(" , n );
+            _hasReturn = true;
             _append( tempName , n );
             _append( " , " , n );
             _add( n.getFirstChild().getNext().getNext() , state );
@@ -507,6 +512,8 @@ public class Convert {
 
         case Token.EXPR_RESULT:
             _assertOne( n );
+            _hasReturn = true;
+            _append( "" + RETURN_VARIABLE + " = " , n );
             _add( n.getFirstChild() , state );
             _append( ";\n" , n );
             break;
@@ -605,6 +612,8 @@ public class Convert {
             break;
         case Token.EXPR_VOID:
             _assertOne( n );
+            _append( "" + RETURN_VARIABLE + " = " , n );
+            _hasReturn = true;
             _add( n.getFirstChild() , state );
             _append( ";\n" , n );
             break;
@@ -1426,6 +1435,7 @@ public class Convert {
                 _append( "scope.put( \"" + foo + "\" , null , true );\n" , n );
             }
         }
+        _append( "\nObject " + RETURN_VARIABLE + " = null;\n" , n );
 
         _addFunctionNodes( fn , state );
 
@@ -1494,18 +1504,11 @@ public class Convert {
         state._depth++;
         _append( "{" , n );
 
-        String ret = "retName" + _rand();
-        if ( endReturn )
-            _append( "\n\nObject " + ret + " = null;\n\n" , n );
-
         Node child = n.getFirstChild();
         while ( child != null ){
 
             if ( endReturn && child.getType() == Token.LEAVEWITH )
                 break;
-
-            if ( endReturn && child.getType() == Token.EXPR_RESULT )
-                _append( ret + " = " , child );
 
             _add( child , state );
 
@@ -1516,7 +1519,7 @@ public class Convert {
             child = child.getNext();
         }
         if ( endReturn )
-            _append( "\n\nif ( true ){ return " + ret + "; }\n\n" , n );
+            _append( "\n\nif ( true ){ return " + RETURN_VARIABLE + "; }\n\n" , n );
         _append( "}" , n );
         state._depth--;
     }
@@ -1952,6 +1955,7 @@ public class Convert {
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
 
+    private boolean _useDefaultReturn = true;
     private boolean _hasReturn = false;
     private JSFunction _it;
     private boolean _loadOnce = false;

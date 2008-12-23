@@ -47,6 +47,7 @@ module ActiveRecord
       # many.
       def method_missing(sym, *args)
         $stderr.puts "#{sym}(#{args.inspect}) sent to conn" # DEBUG
+        caller(0).each { |s| $stderr.puts s } if $DEBUG # -DDEBUG.RB.DEBUG=true sets $DEBUG
       end
 
       # Return a quoted value.
@@ -84,6 +85,16 @@ module ActiveRecord
       # Transactions are not yet supported by Mongo, so this method simply
       # yields to the given block.
       def transaction(start_db_transaction=true)
+        yield
+      end
+
+      # Enable the query cache within the block. Ignored.
+      def cache
+        yield
+      end
+
+      # Disable the query cache within the block. Ignored.
+      def uncached
         yield
       end
     end

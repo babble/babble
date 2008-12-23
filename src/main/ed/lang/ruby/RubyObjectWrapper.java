@@ -112,7 +112,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
         else if (obj instanceof DBCursor)
             wrapper = new RubyDBCursorWrapper(s, runtime, (DBCursor)obj);
         else if (obj instanceof BigDecimal)
-            wrapper = new RubyBigDecimal(runtime, (BigDecimal)obj);
+            wrapper = javaBigDecimalToRubyBigDecimal(runtime, (BigDecimal)obj);
         else if (obj instanceof BigInteger)
             wrapper = new RubyBignum(runtime, (BigInteger)obj);
         else if (obj instanceof ObjectId)
@@ -124,6 +124,16 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
         cacheWrapper(runtime, obj, wrapper);
         return wrapper;
+    }
+
+    /**
+     * Creates a RubyBigDecimal from a Java BigDecimal. Lazily loads the Ruby
+     * BigDecimal class when first needed.
+     */
+    public static RubyBigDecimal javaBigDecimalToRubyBigDecimal(Ruby runtime, BigDecimal bd) {
+        if (runtime.fastGetClass("BigDecimal") == null) // lazily load
+            runtime.getLoadService().require("bigdecimal");
+        return new RubyBigDecimal(runtime, bd);
     }
 
     /**

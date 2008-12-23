@@ -63,6 +63,13 @@ When you modify or create new globals, they are put back into the scope when
 your code uses code in other languages. That is, modifications to the $scope
 object or any global will be seen outside of Ruby.
 
+=== $DEBUG
+
+To set $DEBUG when running the 10gen cloud from source, start it with
+DEBUG.RB.DEBUG set to true.
+
+  ./runserver.sh -DDEBUG.RB.DEBUG=true ed.appserver.AppServer path/to/site
+
 
 == Resources
 
@@ -232,6 +239,22 @@ it looks in the third party libraries suplied by 10gen.
    Rails::Initializer block, add this line:
 
         config.frameworks -= [ :active_record ]
+
+5. If you use any gems besides those Rails gems already frozen in step 1,
+   freeze them into your Rails app. One way to do this is to use topfunky's
+   Freeze Other Gems Rake task, which can be found at
+   http://nubyonrails.com/articles/freeze-other-gems-to-rails-lib-directory.
+
+   * Download
+     http://topfunky.net/svn/plugins/topfunky_power_tools/tasks/freeze.rake
+     into your lib/tasks directory
+   * Run
+
+          GEMS="gem list space separated" rake topfunky:freeze:others
+
+   freeze.rake also comes with the topfunky:freeze:rails task, which freezes
+   Rails recursively and is said to work better with Subversion than the
+   built-in freeze.
 
 
 ==== Running Your App

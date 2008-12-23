@@ -112,7 +112,7 @@ public class JSBoolean extends JSObjectBase {
 
         if ( o instanceof Number ) {
             double d = ((Number)o).doubleValue();
-            return d == 1 || d == -1 || Double.isInfinite( d );
+            return !Double.isNaN( d ) && d != 0;
         }
 
         if ( o instanceof JSObject ) {

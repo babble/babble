@@ -136,7 +136,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         }
         
         if ( ! ( t.getExtension().equals( "js" ) || t.getExtension().equals( "ssjs" ) ) )
-            throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
+            throw new RuntimeException( "don't know what to do with : " + t.getExtension() );
 	
         try {
             Convert convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );

@@ -113,11 +113,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
         int endURI = _url.indexOf( "?" );
         if ( endURI < 0 ){
-            _fullPath = Encoding._unescape( _url );
+            _fullPath = _urlDecode( _url );
             _queryString = null;
         }
         else {
-            _fullPath = Encoding._unescape( _url.substring( 0 , endURI ) );
+            _fullPath = _urlDecode( _url.substring( 0 , endURI ) );
             _queryString = _url.substring( endURI + 1 );
         }
     }
@@ -900,21 +900,21 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 
     private final String _urlDecode( String s ){
 
-    try {
+        try {
             return URLDecoder.decode( s , "UTF-8" );
-    }
-    catch ( Exception e ){}
-
+        }
+        catch ( Exception e ){}
+        
         try {
             return URLDecoder.decode( s , _characterEncoding );
         }
         catch ( Exception e ){}
-
+        
         try {
             return URLDecoder.decode( s );
         }
         catch ( Exception e ){}
-
+        
         return s;
     }
 
