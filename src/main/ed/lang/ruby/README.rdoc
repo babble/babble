@@ -240,21 +240,30 @@ it looks in the third party libraries suplied by 10gen.
 
         config.frameworks -= [ :active_record ]
 
-5. If you use any gems besides those Rails gems already frozen in step 1,
-   freeze them into your Rails app. One way to do this is to use topfunky's
-   Freeze Other Gems Rake task, which can be found at
-   http://nubyonrails.com/articles/freeze-other-gems-to-rails-lib-directory.
+6. If you use any gems (besides the gems that make up Rails that were already
+   frozen in step 1), freeze them into your Rails app. Here's how (taken from
+   http://errtheblog.com/posts/50-vendor-everything):
 
-   * Download
-     http://topfunky.net/svn/plugins/topfunky_power_tools/tasks/freeze.rake
-     into your lib/tasks directory
-   * Run
+   1. Copy the gems you want into the directory vendor/gems.
 
-          GEMS="gem list space separated" rake topfunky:freeze:others
+        $ mkdir vendor/gems
+        $ cd vendor/gems
+        $ gem unpack some_gem_name # repeat for each gem
 
-   freeze.rake also comes with the topfunky:freeze:rails task, which freezes
-   Rails recursively and is said to work better with Subversion than the
-   built-in freeze.
+   2. Edit config/environment.rb and add the following inside the
+      <code>Rails::Initializer.run</code> block:
+
+        Rails::Initializer.run do |config|
+          # add the next three lines
+          config.load_paths += Dir["#{RAILS_ROOT}/vendor/gems/**"].map do |dir|
+            File.directory?(lib = "#{dir}/lib") ? lib : dir
+          end
+        end
+
+   Now you can require those gems in your code.
+
+   Note that these instructions work for any Rails app running anywhere, not
+   just on Babble.
 
 
 ==== Running Your App
@@ -264,7 +273,7 @@ Start guide (http://www.10gen.com/wiki/SDK.QuickStart).
 
 Log messages are sent to the capped collection named rails_log_{RAILS_ENV}.
 
-=== xgen/rails.rb
+=== The contents of xgen/rails.rb
 
 This file sets session storage, RAILS_ENV, RAILS_DEFAULT_LOGGER, includes
 XGen::Mongo classes (and ActiveRecord, when that becomes available).
