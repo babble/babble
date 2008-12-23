@@ -132,10 +132,18 @@ public class AppContextHolder {
                             mr.addData( "Memory" , "error getting size : " + e );
                         }
                         mr.endData();
-                    }
 
+                        Snapshot temp = Snapshot.getAppContextSnapshot( ac );
+                        mr.addData( Snapshot.compareSnapshots( temp, _snapshot ) );
+                        if ( mr.getRequest().getBoolean( "snapshot" , false ) ) {
+                            _snapshot = temp;
+                        }
+                    }
+                    mr.addData( "<form method=\"POST\">"+
+                                "<input type=\"submit\" name=\"snapshot\" value=\"Take Snapshot\" />"+
+                                "</form>" );
                     
-                    mr.startData( "TOTOAL" );
+                    mr.startData( "TOTAL" );
                     mr.addData( "Total Memory (kb)" , totalSize / 1024 );
                     mr.endData();
                     
@@ -590,6 +598,7 @@ public class AppContextHolder {
 
     private final String _defaultWebRoot;
     private AppContext _defaultContext;
+    private Snapshot _snapshot = null;
 
     private final Map<String,AppContext> _contextCache = Collections.synchronizedMap( new StringMap<AppContext>(){
             public AppContext put( String name , AppContext c ){
