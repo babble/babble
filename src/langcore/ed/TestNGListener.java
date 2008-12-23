@@ -12,7 +12,15 @@ public class TestNGListener extends TestListenerAdapter {
     public void onTestFailure(ITestResult tr) {
         log("F");
     }
-    
+
+    public void onTestStart(ITestResult tr) {
+        log("test starting = " + tr.getName());
+    }
+
+    public void onStart(ITestContext tc) {
+        log("TestNG Starting = " + tc.getName());
+    }
+
     public void onTestSkipped(ITestResult tr) {
         log("S");
     }
@@ -26,6 +34,7 @@ public class TestNGListener extends TestListenerAdapter {
         if ( ++_count % 40 == 0) {
             System.out.println("");
         }
+        System.out.flush();
     }
 
     public void onFinish(ITestContext context){
