@@ -35,8 +35,8 @@ public class WebView extends HttpMonitor {
         _configView = new ConfigView();
     }
 
-    protected boolean uriOK( String uri ){ 
-        return uri.equals( "/" );
+    protected boolean uriOK( String uri , String host ){ 
+        return uri.equals( "/" ) && ! host.contains( "grid" );
     }
 
     public void handle( MonitorRequest request ){
