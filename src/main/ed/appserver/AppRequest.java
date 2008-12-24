@@ -29,7 +29,7 @@ import ed.appserver.jxp.*;
 import ed.lang.*;
 import ed.util.*;
 
-public class AppRequest implements Sizable {
+public class AppRequest implements Sizable , WatchableRequest {
     
     AppRequest( AppContext context , HttpRequest request ) {
         this( context , request , request.getHost() , request.getURI() );
@@ -398,6 +398,10 @@ public class AppRequest implements Sizable {
 
     public void setTimeZone( String tz ){
         _tz = TimeZone.getTimeZone( tz );
+    }
+
+    public String debugName(){
+        return _request.getFullURL();
     }
 
     final String _uri;

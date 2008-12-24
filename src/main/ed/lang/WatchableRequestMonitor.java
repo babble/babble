@@ -52,20 +52,20 @@ public class WatchableRequestMonitor extends Thread {
     // ----
 
 
-    public void watch( AppRequest request ){
+    public void watch( WatchableRequest request ){
         if ( request.canBeLong() )
             return;
         _watched.add( new Watched( request , Thread.currentThread() ) );
     }
 
     class Watched {
-        Watched( AppRequest request , Thread thread ){
-            _request = new WeakReference<AppRequest>( request );
+        Watched( WatchableRequest request , Thread thread ){
+            _request = new WeakReference<WatchableRequest>( request );
             _thread = thread;
         }
         
         boolean done(){
-            AppRequest request = _request.get();
+            WatchableRequest request = _request.get();
             if ( request == null )
                 return true;
 
@@ -76,7 +76,7 @@ public class WatchableRequestMonitor extends Thread {
         }
 
         boolean needToKill( long now ){
-            AppRequest request = _request.get();
+            WatchableRequest request = _request.get();
             if ( request == null )
                 return false;
             
@@ -85,19 +85,19 @@ public class WatchableRequestMonitor extends Thread {
                 usingTooMuchMemory( request , now );
         }
         
-        boolean usingTooMuchMemory( AppRequest request , long now ){
+        boolean usingTooMuchMemory( WatchableRequest request , long now ){
             long elapsed = now - _start;
             if ( elapsed < 600 )
                 return false;
             
             long size = request.approxSize();
             if ( size > REQUEST_WARN )
-                _logger.warn( request.getRequest().getFullURL() + " using " + size + " memory" );
+                _logger.warn( request.debugName() + " using " + size + " memory" );
 
             return false;
         }
         
-        boolean runningTooLong( AppRequest request , long now ){
+        boolean runningTooLong( WatchableRequest request , long now ){
             
             final Thread.State state = _thread.getState();
             if ( state == Thread.State.BLOCKED || 
@@ -121,7 +121,7 @@ public class WatchableRequestMonitor extends Thread {
         }
 
         void kill(){
-            AppRequest request = _request.get();
+            WatchableRequest request = _request.get();
             if ( request == null )
                 return;            
             
@@ -137,7 +137,7 @@ public class WatchableRequestMonitor extends Thread {
         private int _bonuses = 0;
         private boolean _killAttempted = false;
 
-        final WeakReference<AppRequest> _request;
+        final WeakReference<WatchableRequest> _request;
         final Thread _thread;
         final long _start = System.currentTimeMillis();
     }
