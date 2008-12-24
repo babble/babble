@@ -603,7 +603,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
         Ruby runtime = getRuntime();
         for (int i = 0; i < len; i++) {
-            IRubyObject v = _at(i).callMethod(context, MethodIndex.OP_SPACESHIP, "<=>", ary2.aref(getRuntime().newFixnum(i)));
+            IRubyObject v = _at(i).callMethod(context, "<=>", ary2.entry(i));
             if (!(v instanceof RubyFixnum) || ((RubyFixnum) v).getLongValue() != 0) return v;
         }
         len = realLength - ary2RealLength;
