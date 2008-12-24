@@ -106,13 +106,13 @@ public abstract class HttpMonitor implements HttpHandler {
         return false;
     }
     
-    protected boolean uriOK( String uri ){ return false; };
+    protected boolean uriOK( String uri , String host ){ return false; };
     protected void addStyle( StringBuilder buf ){}
     public abstract void handle( MonitorRequest request );
     
-    public boolean handles( HttpRequest request , Info info ){
+    public final boolean handles( HttpRequest request , Info info ){
         
-        if ( ! ( request.getURI().equalsIgnoreCase( _uri ) || uriOK( request.getURI() ) ) )
+        if ( ! ( request.getURI().equalsIgnoreCase( _uri ) || uriOK( request.getURI() , request.getHost() ) ) )
             return false;
 
         if ( ! allowed( request ) )
