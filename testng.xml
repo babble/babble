@@ -15,8 +15,8 @@
       <class name="ed.net.httpserver.HttpRequestTest"/>
       <class name="ed.net.httpserver.HttpResponseTest"/>
       <class name="ed.net.httpclient.HttpClientTest"/>
-      <class name="ed.net.httpserver.HttpServerTest"/>
-      <class name="ed.net.lb.MappingBaseTest"/>
+  <!--    <class name="ed.net.httpserver.HttpServerTest"/> -->
+     <class name="ed.net.lb.MappingBaseTest"/>
       <class name="ed.util.FastStringMapTest"/>
       <class name="ed.util.FastStackTest"/>
       <class name="ed.util.CircularListTest"/>
@@ -45,6 +45,7 @@
       <class name="ed.net.httpserver.PostDataInMemoryTest"/>
       <class name="ed.appserver.framework.AppContextFrameworkTest"/>
       <class name="ed.appserver.adapter.AppContextAdapterTest"/>
+      <class name="ed.git.GitDirTest"/>
     </classes>
   </test>
 

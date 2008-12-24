@@ -24,7 +24,6 @@ import java.util.*;
 import ed.io.*;
 import ed.js.*;
 import ed.log.*;
-import ed.util.*;
 
 public class GitDir {
     
@@ -49,24 +48,27 @@ public class GitDir {
         return _root.exists();
     }
 
-    public boolean isValid(){
-        return _dotGit.exists() && _dotGit.isDirectory();
-    }
-
     /**
-     * checks to see if head info is there.  Didn't want to add this to isValid() as the current isValid() contract
-     * is far weaker and I don't know who depends on it
+     *  Determines if this directory is really a git directory.  It checks to see
+     *  if there is a subdir named ".git" and if the dir has a HEAD file.  This is still
+     *  a little weak, because this is still subject to damage, but it's an improvement
+     *  that helps w/ current SDK and other times where someone accidentally makes a .git
+     *  directory
      *
-     * TODO - discuss with eliot
+     * @return true if the directory exists and containes a "HEAD" file
      */
-    public boolean hasHead() {
+    public boolean isValid(){
+
+        boolean hasHead;
+
         try {
-            String s = readHead();
-            return true;
+            readHead();  // we're just looking for the exception - we don't care about the value
+            hasHead = true;
         }
         catch(IOException ioe) {
-            return false;
+            hasHead = false;
         }
+        return _dotGit.exists() && _dotGit.isDirectory() && hasHead;
     }
 
     public String getBranchOrTagName(){
@@ -285,7 +287,7 @@ public class GitDir {
     }
 
     /** Updates all of the remote tracking branches.
-     * @retirm if the fetch was successful
+     * @return if the fetch was successful
      */
     public boolean fetch(){
         return fetch( "" );

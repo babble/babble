@@ -42,6 +42,9 @@ public class RunningApplicationTest extends ed.TestCase {
             return false;
         }
 
+        public String textView(){
+            return "debug";
+        }
     }
 
     @Test

@@ -30,6 +30,8 @@ import ed.util.*;
 
 
 public abstract class HttpMonitor implements HttpHandler {
+
+    public static final double DEFAULT_PRIORITY = -1000000.0;
     
     public static enum Status { OK , WARN , ERROR , FATAL };
     static String _applicationType = null;
@@ -205,7 +207,7 @@ public abstract class HttpMonitor implements HttpHandler {
     }
     
     public double priority(){
-        return Double.MIN_VALUE;
+        return DEFAULT_PRIORITY;
     }
     
     public String getName(){
@@ -259,6 +261,10 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         buf.append( "<hr>" );
         _allContent = buf.toString();
+    }
+
+    public String toString(){
+        return "HttpMonitor:" + _name;
     }
 
     final String _name;
@@ -502,7 +508,7 @@ public abstract class HttpMonitor implements HttpHandler {
         }
 
         public double priority(){
-            return Double.MIN_VALUE;
+            return DEFAULT_PRIORITY;
         }
     }
     
@@ -535,7 +541,11 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         
         public double priority(){
-            return Double.MIN_VALUE;
+            return DEFAULT_PRIORITY;
+        }
+
+        public String toString(){
+            return "AdminStaticFile:" + _name;
         }
 
         final String _name;

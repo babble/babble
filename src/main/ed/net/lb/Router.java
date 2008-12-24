@@ -29,7 +29,7 @@ import ed.net.nioclient.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 
-public final class Router {
+public class Router {
     
     public Router( MappingFactory mappingFactory ){
 	_logger = Logger.getLogger( "LB" ).getChild( "router" );
@@ -89,7 +89,11 @@ public final class Router {
     }
 
     public void success( HttpRequest request , HttpResponse response , InetSocketAddress addr ){
-        getServer( addr ).success( _mapping.getEnvironment( request ) , request , response );
+        success( request , response , addr , _mapping.getEnvironment( request ) );
+    }
+    
+    public void success( HttpRequest request , HttpResponse response , InetSocketAddress addr , Environment e ){
+        getServer( addr ).success( e , request , response );
     }
 
     Pool getPool( HttpRequest request ){
@@ -133,10 +137,14 @@ public final class Router {
             if ( s != null )
                 return s;
             
-            s = new Server( addr );
+            s = _createServer( addr );
             _addressToServer.put( addr , s );
         }
         return s;
+    }
+
+    Server _createServer( InetSocketAddress addr ){
+        return new Server( addr );
     }
 
     Set<String> getPoolNames(){
@@ -163,7 +171,7 @@ public final class Router {
     }
 
     class Pool {
-
+        
         Pool( String name , List<InetSocketAddress> addrs ){
 
             if ( addrs == null || addrs.size() == 0 )
@@ -200,7 +208,7 @@ public final class Router {
         }
 
         InetSocketAddress getAddress( Environment e , boolean doOrDie ){
-            final int start = (int)(Math.random()*_servers.size());
+            final int start = _random.nextInt( _servers.size() );
             final int size = _servers.size();
             _seen.add( e );
             
@@ -270,6 +278,7 @@ public final class Router {
     }
 
     final Logger _logger;
+    final Random _random = new Random();
 
     private final MappingFactory _mappingFactory;
     private final MappingUpdater _mappingUpdater;
