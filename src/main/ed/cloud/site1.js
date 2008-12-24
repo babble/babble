@@ -564,6 +564,19 @@ Cloud.Site.resetSiteOnHost = function( machine , hostName , command , dryRun ){
     return res;
 }
 
+Cloud.Site.createAPIKey = function(){
+    var s = "";
+
+    for ( i=0; i<1000; i++ )
+        s += Math.random();
+
+    var key = md5( s );
+    if ( ! this.apiKeys )
+        this.apiKeys = [];
+    this.apiKeys.add( { key : key , created : new Date() } );
+    return key;
+}
+
 // ---- Static Stuff -------
 
 Cloud.Site.forName = function( name , create ){
