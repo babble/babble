@@ -1,4 +1,4 @@
-// RequestMonitor.java
+// WatchableRequestMonitor.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,15 +16,16 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver;
+package ed.lang;
 
 import java.util.*;
 import java.lang.ref.*;
 
 import ed.util.*;
 import ed.log.*;
+import ed.appserver.*;
 
-class RequestMonitor extends Thread {
+public class WatchableRequestMonitor extends Thread {
 
     public static final long MAX_MS = Config.get().getLong( "REQUEST.TIMEOUT.MAX" , 1000 * 60 * 5 );
     public static final long MIN_MS = Config.get().getLong( "REQUEST.TIMEOUT.MIN" , 1000 * 45 );
@@ -33,16 +34,16 @@ class RequestMonitor extends Thread {
 
     public static long REQUEST_WARN = Config.get().getLong( "REQUEST.MEMORY.WARN" , 1024 * 1024 * 10 );
 
-    static synchronized RequestMonitor getInstance(){
+    public static synchronized WatchableRequestMonitor getInstance(){
         if ( _instance == null )
-            _instance = new RequestMonitor();
+            _instance = new WatchableRequestMonitor();
         return _instance;
     }
 
-    private static RequestMonitor _instance;
+    private static WatchableRequestMonitor _instance;
 
-    private RequestMonitor(){
-        super( "RequestMonitor" );
+    private WatchableRequestMonitor(){
+        super( "WatchableRequestMonitor" );
         setDaemon( true );
         start();
     }
@@ -51,7 +52,7 @@ class RequestMonitor extends Thread {
     // ----
 
 
-    void watch( AppRequest request ){
+    public void watch( AppRequest request ){
         if ( request.canBeLong() )
             return;
         _watched.add( new Watched( request , Thread.currentThread() ) );
