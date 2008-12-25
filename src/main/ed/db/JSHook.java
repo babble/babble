@@ -9,6 +9,7 @@ import com.twmacinta.util.*;
 
 import ed.*;
 import ed.js.*;
+import ed.log.*;
 import ed.lang.*;
 import ed.util.*;
 import ed.js.engine.*;
@@ -363,8 +364,12 @@ public class JSHook {
             return INVOKE_SUCCESS;
         }
         catch ( Throwable t ){
-            t.printStackTrace();
+            call.done();
+            s.clearToThrow();
+
+            _invokeLogger.error( clientString , t );
             scopeSetString( scopeID , "error" , t.toString() );
+
             return INVOKE_ERROR;
         }
         finally {
@@ -430,10 +435,16 @@ public class JSHook {
     static int _numInvokes = 0;
     static final ThreadLocal<JSObject> _nextArgs = new ThreadLocal<JSObject>();
 
-    private static WatchableRequestMonitor _monitor;
+    private static WatchableRequestMonitor _monitor;    
+    private static Logger _invokeLogger;
+    
     private static WatchableRequestMonitor getMonitor(){
-        if ( _monitor == null )
+        if ( _monitor == null ){
             _monitor = new WatchableRequestMonitor( 2 , 10 );
+            _invokeLogger = Logger.getLogger( "db.invoke" );
+        }
         return _monitor;
     }
+
+
 }
