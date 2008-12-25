@@ -27,12 +27,7 @@ import ed.appserver.*;
 
 public class WatchableRequestMonitor extends Thread {
 
-    public static final long MAX_MS = Config.get().getLong( "REQUEST.TIMEOUT.MAX" , 1000 * 60 * 5 );
-    public static final long MIN_MS = Config.get().getLong( "REQUEST.TIMEOUT.MIN" , 1000 * 45 );
-    
     public static final long SLEEP_TIME = 200;
-
-    public static long REQUEST_WARN = Config.get().getLong( "REQUEST.MEMORY.WARN" , 1024 * 1024 * 10 );
 
     public static synchronized WatchableRequestMonitor getInstance(){
         if ( _instance == null )
@@ -41,9 +36,29 @@ public class WatchableRequestMonitor extends Thread {
     }
 
     private static WatchableRequestMonitor _instance;
+    
+    public WatchableRequestMonitor(){
+        this( "REQUEST" );
+    }
+    
+    public WatchableRequestMonitor( String configPrefix ){
+        this( Config.get().getLong( configPrefix + ".TIMEOUT.MIN" , 1000 * 45 ) , 
+              Config.get().getLong( configPrefix + ".TIMEOUT.MAX" , 1000 * 60 * 5 ) , 
+              Config.get().getLong( configPrefix + ".MEMORY.WARN" , 1024 * 1024 * 10 )
+              );
+    }
 
-    private WatchableRequestMonitor(){
+    public WatchableRequestMonitor( int normalSeconds , int megabytes ){
+        this( 1000 * normalSeconds , 1000 * 6 * normalSeconds , 1024 * 1024 * megabytes );
+    }
+    
+    public WatchableRequestMonitor( long maxAllowedTime , long normalAllowedTime , long memoryWarn ){
         super( "WatchableRequestMonitor" );
+        
+        _maxAllowedTime = maxAllowedTime;
+        _normalAllowedTime = normalAllowedTime;
+        _memoryWarn = memoryWarn;
+        
         setDaemon( true );
         start();
     }
@@ -91,7 +106,7 @@ public class WatchableRequestMonitor extends Thread {
                 return false;
             
             long size = request.approxSize();
-            if ( size > REQUEST_WARN )
+            if ( size > _memoryWarn )
                 _logger.warn( request.debugName() + " using " + size + " memory" );
 
             return false;
@@ -107,14 +122,14 @@ public class WatchableRequestMonitor extends Thread {
 
             long elapsed = now - _start;
 
-            if ( elapsed > MAX_MS )
+            if ( elapsed > _maxAllowedTime )
                 return true;
             
-            if ( elapsed < MIN_MS )
+            if ( elapsed < _normalAllowedTime )
                 return false;
             
             elapsed = elapsed - ( _bonuses * SLEEP_TIME );
-            if ( elapsed > MIN_MS )
+            if ( elapsed > _normalAllowedTime )
                 return true;
 
             return false;
@@ -179,4 +194,8 @@ public class WatchableRequestMonitor extends Thread {
     
     private final List<Watched> _watched = new Vector<Watched>();
     private final Logger _logger = Logger.getLogger( "requestmonitor" );
+
+    private final long _maxAllowedTime;
+    private final long _normalAllowedTime;
+    private final long _memoryWarn;
 }
