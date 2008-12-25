@@ -337,7 +337,7 @@ public class JSHook {
         }
         
         JSCall call = new JSCall( s , clientString );
-        _monitor.watch( call );
+        getMonitor().watch( call );
 
         try {
 	    Object[] args = null;
@@ -435,5 +435,10 @@ public class JSHook {
     static int _numInvokes = 0;
     static final ThreadLocal<JSObject> _nextArgs = new ThreadLocal<JSObject>();
 
-    private static final WatchableRequestMonitor _monitor = new WatchableRequestMonitor( 2 , 10 );
+    private static WatchableRequestMonitor _monitor;
+    private static WatchableRequestMonitor getMonitor(){
+        if ( _monitor == null )
+            _monitor = new WatchableRequestMonitor( 2 , 10 );
+        return _monitor;
+    }
 }
