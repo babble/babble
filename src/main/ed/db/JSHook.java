@@ -8,6 +8,7 @@ import java.util.*;
 import com.twmacinta.util.*;
 
 import ed.js.*;
+import ed.lang.*;
 import ed.util.*;
 import ed.js.engine.*;
 
@@ -324,8 +325,9 @@ public class JSHook {
         }
 
         Object client = s.get( "$client" );
+        String clientString = "db call";
         if ( client != null ){
-            String clientString = client.toString();
+            clientString = client.toString();
             DBJni db = _clients.get( clientString );
             if ( db == null ){
                 db = new DBJni( clientString );
@@ -334,6 +336,9 @@ public class JSHook {
             s.set( "db" , db );
         }
         
+        JSCall call = new JSCall( s , clientString );
+        _monitor.watch( call );
+
         try {
 	    Object[] args = null;
 	    {
@@ -367,6 +372,9 @@ public class JSHook {
             scopeSetString( scopeID , "error" , t.toString() );
             return INVOKE_ERROR;
         }
+        finally {
+            call.done();
+        }
     }
     
     static void printStatus( boolean gc ){
@@ -376,6 +384,42 @@ public class JSHook {
         System.out.println( "functionIDS \t " + _functionIDS.size() );
         System.out.println( "scopes      \t " + _scopes.size() );
         System.out.println( "clients     \t " + _clients.size() );
+    }
+
+    static class JSCall implements WatchableRequest {
+        
+        JSCall( Scope s , String debugName ){
+            _scope = s;
+            _debugName = debugName;
+        }
+
+        void done(){
+            _done = true;
+        }
+        
+        public boolean isDone(){
+            return _done;
+        }
+        
+        public Scope getScope(){
+            return _scope;
+        }
+        
+        public long approxSize(){
+            return _scope.approxSize();
+        }
+        
+        public String debugName(){
+            return _debugName;
+        }
+        
+        public boolean canBeLong(){
+            return false;
+        }
+
+        final Scope _scope;
+        final String _debugName;
+        boolean _done = false;
     }
     
     private final static MD5 _myMd5 = new MD5();
@@ -387,7 +431,9 @@ public class JSHook {
     private static Map<Long,Scope> _scopes = Collections.synchronizedMap( new HashMap<Long,Scope>() );
 
     static final Map<String,DBJni> _clients = Collections.synchronizedMap( new HashMap<String,DBJni>() );
-
+    
     static int _numInvokes = 0;
     static final ThreadLocal<JSObject> _nextArgs = new ThreadLocal<JSObject>();
+
+    private static final WatchableRequestMonitor _monitor = new WatchableRequestMonitor( 2 , 10 );
 }
