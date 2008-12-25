@@ -18,8 +18,6 @@
 
 package ed.appserver;
 
-import ed.db.JSHook;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -32,6 +30,9 @@ import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 import ed.security.*;
+import ed.lang.*;
+import ed.db.JSHook;
+
 
 /** The server to handle HTTP requests.
  */
@@ -728,7 +729,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
     private final AppContextHolder _contextHolder;
     private final Map<String,HttpLoadTracker> _stats = Collections.synchronizedMap( new StringMap<HttpLoadTracker>() );
-    private final RequestMonitor _requestMonitor = RequestMonitor.getInstance();
+    private final WatchableRequestMonitor _requestMonitor = WatchableRequestMonitor.getInstance();
     private final HttpLoadTracker.GraphOptions _displayOptions = new HttpLoadTracker.GraphOptions( 400 , 100 , true , true , true );
     private final IdentitySet<AppRequest> _currentRequests = new IdentitySet<AppRequest>();
 

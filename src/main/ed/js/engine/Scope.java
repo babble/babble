@@ -1198,6 +1198,8 @@ public class Scope implements JSObject , Bindings {
     }
     
     public static Scope getThreadLocal(){
+        if ( _threadLocal == null )
+            return null;
         return _threadLocal.get();
     }
     
