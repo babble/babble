@@ -25,8 +25,8 @@ import java.util.jar.*;
 
 import org.eclipse.jdt.internal.compiler.batch.*;
 
+import ed.*;
 import ed.io.*;
-import ed.db.*;
 import ed.util.*;
 
 public class CompileUtil {
@@ -122,8 +122,8 @@ public class CompileUtil {
                 if ( CD ) System.err.println( "going to start compiling " );
                 
                 String cp = "build";
-                if ( JSHook.whereIsEd != null )
-                    cp += File.pathSeparatorChar + JSHook.whereIsEd + "/build";
+                if ( EDFinder.whereIsEd != null )
+                    cp += File.pathSeparatorChar + EDFinder.whereIsEd + "/build";
 
                 MyCompiler compiler = _compilerPool.get();
                 boolean res = false;
@@ -288,10 +288,10 @@ public class CompileUtil {
             }
         }
         
-        if ( root == null && ed.db.JSHook.whereIsEd != null ){
-            File temp = new File( ed.db.JSHook.whereIsEd , _dependsDirs[0] );
+        if ( root == null && EDFinder.whereIsEd != null ){
+            File temp = new File( EDFinder.whereIsEd , _dependsDirs[0] );
             if ( temp.exists() && temp.isDirectory() ){
-                root = ed.db.JSHook.whereIsEd;
+                root = EDFinder.whereIsEd;
             }
         }
         

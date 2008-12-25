@@ -22,6 +22,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import ed.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
@@ -31,7 +32,6 @@ import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 import ed.security.*;
 import ed.lang.*;
-import ed.db.JSHook;
 
 
 /** The server to handle HTTP requests.
@@ -767,7 +767,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                 portNum = Integer.valueOf(args[++i]);
             }
             else if ("--serverroot".equals(args[i])) {
-                JSHook.whereIsEd = args[++i];
+                EDFinder.whereIsEd = args[++i];
             }
             else if ( "--sitesRoot".equals( args[i] ) ){
                 sitesRoot = args[++i];
@@ -792,7 +792,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
         System.out.println("     listen port = " + portNum);
-        System.out.println("     server root = " + JSHook.whereIsEd);
+        System.out.println("     server root = " + EDFinder.whereIsEd);
         System.out.println("         webRoot = " + webRoot);
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);

@@ -21,12 +21,12 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
+import ed.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.security.*;
 import ed.appserver.jxp.*;
-import ed.db.JSHook;
 import ed.util.*;
 
 public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
@@ -47,7 +47,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
      * @return Library or null if can't be found
      */
     public static JSFileLibrary loadLibraryFromEd(String location,  String uriBase, Scope scope){
-        String root = JSHook.whereIsEd;
+        String root = EDFinder.whereIsEd;
         if ( root == null )
             root = "";
         else

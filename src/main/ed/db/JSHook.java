@@ -7,18 +7,13 @@ import java.util.*;
 
 import com.twmacinta.util.*;
 
+import ed.*;
 import ed.js.*;
 import ed.lang.*;
 import ed.util.*;
 import ed.js.engine.*;
 
 public class JSHook {
-
-    public static String whereIsEd = null;
-    static {
-        if ( System.getenv( "ED_HOME" ) != null )
-            whereIsEd = System.getenv( "ED_HOME" );
-    }
 
     static final boolean DEBUG = false;
 
@@ -38,8 +33,8 @@ public class JSHook {
 
     // ---- init stuff
     
-    public static void init( String ed ){
-        whereIsEd = ed;
+    public static void init( String where ){
+        EDFinder.whereIsEd = where;
     }
 
     // -----    scope   -------    
