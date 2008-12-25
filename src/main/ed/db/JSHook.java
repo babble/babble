@@ -440,7 +440,7 @@ public class JSHook {
     
     private static WatchableRequestMonitor getMonitor(){
         if ( _monitor == null ){
-            _monitor = new WatchableRequestMonitor( 2 , 10 );
+            _monitor = new WatchableRequestMonitor( 120 , 10 );
             _invokeLogger = Logger.getLogger( "db.invoke" );
         }
         return _monitor;
