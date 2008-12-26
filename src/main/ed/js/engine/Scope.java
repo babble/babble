@@ -826,7 +826,7 @@ public class Scope implements JSObject , Bindings {
             // tell the Convert CTOR that we're in the context of eval so
             //  not use a private scope for the execution of this code
 
-            Convert c = new Convert( name , code, true);
+            Convert c = new Convert( name , code , CompileOptions.forEval() );
             
             if ( hasReturn != null && hasReturn.length > 0 ) {
                 hasReturn[0] = c.hasReturn();
