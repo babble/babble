@@ -116,7 +116,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
                         // eval doesn't take arguments, so we'll do the conversion ourselves
                         try {
                             String randomFile = "anon"+Math.random();
-                            Convert c = new Convert( randomFile , code , true);
+                            Convert c = new Convert( randomFile , code , CompileOptions.forEval() );
                             return c.get().call( local, extra2 );
                         }
                         catch( IOException e ) {
