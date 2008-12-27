@@ -65,4 +65,32 @@ public class NodeUtil {
         return n.getClass().getName().indexOf( "StringNode" ) >= 0;
     }
 
+
+    static int hash( Node n ){
+        if ( n.getType() == Token.TARGET )
+            n = n.getNext();
+
+        int hash = n.getClass().getName().toString().hashCode();
+        
+        if ( NodeUtil.hasString( n ) )
+            hash += ( 7 * n.getString().hashCode() );
+
+        if ( n.getType() == Token.NUMBER )
+            hash += (int)( 11 * n.getDouble() );
+        
+        if ( n.getType() == Token.FUNCTION )
+            hash += ( 711 * n.getIntProp( Node.FUNCTION_PROP , -17 ) );
+        
+        hash += n.getLineno() * 17;
+        
+        Node child = n.getFirstChild();
+        while ( child != null ){
+            hash += 11 * hash( child );
+            child = child.getNext();
+        }
+
+        return hash;
+    }
+
+
 }

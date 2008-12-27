@@ -966,7 +966,7 @@ public class Convert {
         while ( caseArea != null ){
             _append( "if ( JS_sheq( " + val + " , " , caseArea );
             _add( caseArea.getFirstChild() , state );
-            _append( " ) ) {\n " + switcherVar + " = " + ((Node.Jump)caseArea).target.hashCode() + "; \n " , caseArea );
+            _append( " ) ) {\n " + switcherVar + " = " + NodeUtil.hash( ((Node.Jump)caseArea).target ) + "; \n " , caseArea );
             _append( " } \n " , caseArea );
 
             _append( "else ", caseArea );
@@ -980,7 +980,7 @@ public class Convert {
                 _append( " default: \n" , n );
             }
             else {
-                _append( " case " + n.hashCode() + ": \n" , n );
+                _append( " case " + NodeUtil.hash( n ) + ": \n" , n );
             }
             n = n.getNext();
             _assertType( n , Token.BLOCK );
