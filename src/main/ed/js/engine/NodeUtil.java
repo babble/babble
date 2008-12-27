@@ -67,8 +67,15 @@ public class NodeUtil {
 
 
     static int hash( Node n ){
+        
+        if ( n == null )
+            return 0;
+
         if ( n.getType() == Token.TARGET )
             n = n.getNext();
+        
+        if ( n == null )
+            return 1;
 
         int hash = n.getClass().getName().toString().hashCode();
         
