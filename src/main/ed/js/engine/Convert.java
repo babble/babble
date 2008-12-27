@@ -43,15 +43,18 @@ public class Convert {
     }
 
     public static JSFunction makeAnon( String code , boolean forceEval ){
+        return makeAnon( code , forceEval , new CompileOptions() );
+    }
+    
+    public static JSFunction makeAnon( String code , boolean forceEval , CompileOptions options ){
         try {
-
             final String nice = code.trim();
             final String name = "anon" + Math.random();
             
             if ( nice.startsWith( "function" ) &&
                  nice.endsWith( "}" ) ){
-
-                Convert c = new Convert( name , code , CompileOptions.forEval() );
+                
+                Convert c = new Convert( name , code , options.createNewScope( false ) );
                 JSFunction func = c.get();
                 Scope s = Scope.newGlobal().child();
                 s.setGlobal( true );
@@ -81,7 +84,9 @@ public class Convert {
 
             }
             
-            Convert c = new Convert( name , nice , (new CompileOptions()).createNewScope( ! forceEval ) );
+            if ( forceEval )
+                options.createNewScope( false );
+            Convert c = new Convert( name , nice , options );
             return c.get();
         }
         catch ( IOException ioe ){
@@ -723,6 +728,7 @@ public class Convert {
             break;
 
         case Token.WHILE:
+            _assertLoopingConstructs();
             _append( "while( false || JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ){ " , n );
@@ -1124,6 +1130,7 @@ public class Convert {
 
         final int numChildren = countChildren( n );
         if ( numChildren == 4 ){
+            _assertLoopingConstructs();
             _append( "\n for ( " , n );
 
             if ( n.getFirstChild().getType() == Token.BLOCK ){
@@ -1629,6 +1636,12 @@ public class Convert {
         if ( c != null )
             msg += " file : " + c._name + " : " + ( c._nodeToSourceLine.get( n ) + 1 );
         throw new RuntimeException( msg );
+    }
+
+    void _assertLoopingConstructs(){
+        if ( _options.allowLoopingConstructs() )
+            return;
+        throw new RuntimeException( "looping constructs not allowed" );
     }
 
     private void _setLineNumbers( final Node startN , final ScriptOrFnNode startSOF ){

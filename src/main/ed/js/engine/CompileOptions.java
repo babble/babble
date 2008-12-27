@@ -31,12 +31,23 @@ public class CompileOptions {
     public CompileOptions(){
     }
 
+    public CompileOptions copy(){
+        CompileOptions options = new CompileOptions();
+        options._useLocalVariables = _useLocalVariables;
+        options._allowLoopingConstructs = _allowLoopingConstructs;
+        options._createNewScope = _createNewScope;
+        options._sourceLanguage = _sourceLanguage;
+        return options;
+    }
+
     /**
        doesn't work yet
      */
     public CompileOptions useLocalVariables( boolean useLocalVariables ){
-        _check();
-        _useLocalVariables = useLocalVariables;
+        if ( _useLocalVariables != useLocalVariables ){
+            _check();
+            _useLocalVariables = useLocalVariables;
+        }
         return this;
     }
     
@@ -48,8 +59,10 @@ public class CompileOptions {
        doesn't work yet
      */
     public CompileOptions allowLoopingConstructs( boolean allowLoopingConstructs ){
-        _check();
-        _allowLoopingConstructs = allowLoopingConstructs;
+        if ( _allowLoopingConstructs != allowLoopingConstructs ){
+            _check();
+            _allowLoopingConstructs = allowLoopingConstructs;
+        }
         return this;
     }
 
@@ -58,8 +71,10 @@ public class CompileOptions {
     }
 
     public CompileOptions createNewScope( boolean createNewScope ){
-        _check();
-        _createNewScope = createNewScope;
+        if ( _createNewScope != createNewScope ){
+            _check();
+            _createNewScope = createNewScope;
+        }
         return this;
     }
     
@@ -68,8 +83,10 @@ public class CompileOptions {
     }
 
     public CompileOptions sourceLanguage( Language sourceLanguage ){
-        _check();
-        _sourceLanguage = sourceLanguage;
+        if ( _sourceLanguage != sourceLanguage ){
+            _check();
+            _sourceLanguage = sourceLanguage;
+        }
         return this;
     }
     
