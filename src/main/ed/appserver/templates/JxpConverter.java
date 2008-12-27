@@ -31,7 +31,7 @@ public class JxpConverter extends HtmlLikeConverter {
     public JxpConverter( boolean dotHtmlMode ){
         super( dotHtmlMode ? ".html" : ".jxp" ,
                dotHtmlMode ? _codeTagsHtml : _codeTagsJxp , 
-               ed.lang.Language.JS );
+               ed.lang.Language.JS() );
         _dotHtmlMode = dotHtmlMode;
     }
 

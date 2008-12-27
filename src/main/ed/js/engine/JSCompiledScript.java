@@ -94,7 +94,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
     
     public Language getFileLanguage(){
         if ( _scriptInfo == null )
-            return Language.JS;
+            return Language.JS();
         return _scriptInfo._sourceLanguage;
     }
     

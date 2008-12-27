@@ -109,5 +109,5 @@ public class CompileOptions {
     private boolean _useLocalVariables = true;
     private boolean _allowLoopingConstructs = true;
     private boolean _createNewScope = true;
-    private Language _sourceLanguage = Language.JS;
+    private Language _sourceLanguage = Language.JS();
 }

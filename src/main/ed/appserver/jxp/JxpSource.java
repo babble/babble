@@ -58,14 +58,14 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             s = new Djang10Source(parentScope.child( "Djang10 Scope for: " + f ), f);
         }
         else if ( f.getName().endsWith( ".py" ) ) {
-            s = Language.PYTHON.getAdapter(adapterType, f, context, lib);
+            s = Language.PYTHON().getAdapter(adapterType, f, context, lib);
 
             if (s == null) {
                 s = new PythonJxpSource( f , lib );
             }
         }
         else if ( f.getName().endsWith( ".rb" ) ){
-            s = Language.RUBY.getAdapter(adapterType, f, context, lib);
+            s = Language.RUBY().getAdapter(adapterType, f, context, lib);
 
             if (s == null) {
                 s = new RubyJxpSource(f);

@@ -138,7 +138,7 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
 
         _isGrid = name.equals("grid");
 
-        _scope = new Scope("AppContext:" + root + (_admin ? ":admin" : ""), _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal(), null, Language.JS, _rootFile);
+        _scope = new Scope("AppContext:" + root + (_admin ? ":admin" : ""), _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal(), null, Language.JS() , _rootFile);
         _scope.setGlobal(true);
         _initScope = _scope.child("_init");
 
