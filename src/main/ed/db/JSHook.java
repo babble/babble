@@ -264,7 +264,7 @@ public class JSHook {
         final String sym = code.substring( 0 , idx );
         
         if ( sym.equals( "function" ) )
-            return Convert.makeAnon( code , true );
+            return Convert.makeAnon( code , true  , _jsOptions );
         
         if ( sym.equals( "def" ) ){
 	    if ( firstLine.endsWith( ":" ) )
@@ -273,7 +273,7 @@ public class JSHook {
 	}
         
         // default to JS
-        return Convert.makeAnon( code , true );
+        return Convert.makeAnon( code , true , _jsOptions);
     }
     
     public static long functionCreate( String code ){
@@ -462,5 +462,5 @@ public class JSHook {
         return _monitor;
     }
 
-
+    private static CompileOptions _jsOptions = (new CompileOptions()).createNewScope( false ).useLocalVariables( false ).lock();
 }

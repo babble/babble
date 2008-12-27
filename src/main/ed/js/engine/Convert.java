@@ -43,15 +43,18 @@ public class Convert {
     }
 
     public static JSFunction makeAnon( String code , boolean forceEval ){
+        return makeAnon( code , forceEval , new CompileOptions() );
+    }
+    
+    public static JSFunction makeAnon( String code , boolean forceEval , CompileOptions options ){
         try {
-
             final String nice = code.trim();
             final String name = "anon" + Math.random();
             
             if ( nice.startsWith( "function" ) &&
                  nice.endsWith( "}" ) ){
-
-                Convert c = new Convert( name , code , CompileOptions.forEval() );
+                
+                Convert c = new Convert( name , code , options.createNewScope( false ) );
                 JSFunction func = c.get();
                 Scope s = Scope.newGlobal().child();
                 s.setGlobal( true );
@@ -81,7 +84,9 @@ public class Convert {
 
             }
             
-            Convert c = new Convert( name , nice , (new CompileOptions()).createNewScope( ! forceEval ) );
+            if ( forceEval )
+                options.createNewScope( false );
+            Convert c = new Convert( name , nice , options );
             return c.get();
         }
         catch ( IOException ioe ){
@@ -121,7 +126,7 @@ public class Convert {
         _fullClassName = _package + "." + _className;
         _random = _random( _fullClassName );
         _id = _randNonNegativeInt();
-        _scriptInfo = new ScriptInfo( _name , _fullClassName , options.sourceLanguage , this );
+        _scriptInfo = new ScriptInfo( _name , _fullClassName , options.sourceLanguage() , this );
 
         CompilerEnvirons ce = new CompilerEnvirons();
 
@@ -173,7 +178,7 @@ public class Convert {
             Debug.print( sn , 0 );
         }
 
-        State state = new State();
+        State state = new State( _options );
 
         _setLineNumbers( sn , sn );
         _addFunctionNodes( sn , state );
@@ -723,6 +728,7 @@ public class Convert {
             break;
 
         case Token.WHILE:
+            _assertLoopingConstructs();
             _append( "while( false || JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ){ " , n );
@@ -1124,6 +1130,7 @@ public class Convert {
 
         final int numChildren = countChildren( n );
         if ( numChildren == 4 ){
+            _assertLoopingConstructs();
             _append( "\n for ( " , n );
 
             if ( n.getFirstChild().getType() == Token.BLOCK ){
@@ -1631,6 +1638,12 @@ public class Convert {
         throw new RuntimeException( msg );
     }
 
+    void _assertLoopingConstructs(){
+        if ( _options.allowLoopingConstructs() )
+            return;
+        throw new RuntimeException( "looping constructs not allowed" );
+    }
+
     private void _setLineNumbers( final Node startN , final ScriptOrFnNode startSOF ){
 
         final IdentitySet seen = new IdentitySet();
@@ -1785,7 +1798,7 @@ public class Convert {
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
 
-        if ( ! _options.createNewScope ) {
+        if ( ! _options.createNewScope() ) {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {
