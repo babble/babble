@@ -89,7 +89,7 @@ class State {
     }
 
     boolean useLocalVariable( String name ){
-        if ( ! _options.useLocalVariables() )
+        if ( ! _options.useLocalJavaVariables() )
             return false;
 
         if ( name.equals( "arguments" ) )

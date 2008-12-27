@@ -462,5 +462,5 @@ public class JSHook {
         return _monitor;
     }
 
-    private static CompileOptions _jsOptions = (new CompileOptions()).createNewScope( false ).useLocalVariables( false ).lock();
+    private static CompileOptions _jsOptions = (new CompileOptions()).createNewScope( false ).useLocalJavaVariables( false ).lock();
 }
