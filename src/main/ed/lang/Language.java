@@ -84,13 +84,6 @@ public abstract class Language {
 
     final String _name;
     
-    public static final Language JS = new ed.js.JS();
-    public static final Language RUBY = new ed.lang.ruby.RubyLanguage();
-    public static final Language PYTHON = new ed.lang.python.Python();
-
-    // instantiate lazily so PHP can be optional
-    public static  Language PHP;
-
     public static Language find( String file ){
         return find( file , false );
     }
@@ -107,32 +100,50 @@ public abstract class Language {
         
         if ( extension.equals( "js" )
              || extension.equals( "jxp" ) )
-            return JS;
+            return JS();
 
         if ( extension.equals( "rb" )
              || extension.equals( "erb" )
              || extension.equals( "rhtml" )
 	     || extension.equals( "ruby" ) ) // only so "--ruby" will work
-            return RUBY;
+            return RUBY();
 
-        if ( extension.equals( "php" ) ) {
-
-            /*
-             *   lazy instantiation - if this method isn't static at some point, protect this 
-             */
-            if (PHP == null) {
-                PHP = new ed.lang.php.PHP();
-            }
-            return PHP;
-        }
+        if ( extension.equals( "php" ) ) 
+            return PHP();
         
         if ( extension.equals( "py" ) || extension.equals( "python" ) )
-            return PYTHON;
+            return PYTHON();
         
         if ( errorOnNoMatch )
             throw new RuntimeException( "no language for [" + extension + "]" );
 
-        return JS;
+        return JS();
     }
+
+    public static Language JS(){
+        return _js;
+    }
+    public static Language RUBY(){
+        if ( _ruby == null )
+            _ruby = new ed.lang.ruby.RubyLanguage();
+        return _ruby;
+    }
+    public static Language PYTHON(){
+        if ( _python == null )
+            _python = new ed.lang.python.Python();
+        return _python;
+    }
+    public static Language PHP(){
+        if ( _php == null )
+            _php = new ed.lang.php.PHP();
+        return _php;
+    }
+    
+    private static final Language _js = new ed.js.JS();
+    private static Language _ruby;// = new ed.lang.ruby.RubyLanguage();
+    private static Language _python; // = new ed.lang.python.Python();
+    private static Language _php;
+
+
         
 }

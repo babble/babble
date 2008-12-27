@@ -46,7 +46,7 @@ import ed.appserver.templates.*;
 public class PHPJxpSource extends JxpSource {
 
     public PHPJxpSource( File file ){
-        _language = Language.PHP;
+        _language = Language.PHP();
         _file = file;
         _quercus = new Quercus();
     }

@@ -228,7 +228,7 @@ public class Shell {
 
         boolean exit = false;
 
-        Language replLang = Language.JS;
+        Language replLang = Language.JS();
         String rubyFile = null;
 
         for ( String a : args ){

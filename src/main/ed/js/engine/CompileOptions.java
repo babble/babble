@@ -33,7 +33,7 @@ public class CompileOptions {
 
     public CompileOptions copy(){
         CompileOptions options = new CompileOptions();
-        options._useLocalVariables = _useLocalVariables;
+        options._useLocalJavaVariables = _useLocalJavaVariables;
         options._allowLoopingConstructs = _allowLoopingConstructs;
         options._createNewScope = _createNewScope;
         options._sourceLanguage = _sourceLanguage;
@@ -43,16 +43,16 @@ public class CompileOptions {
     /**
        doesn't work yet
      */
-    public CompileOptions useLocalVariables( boolean useLocalVariables ){
-        if ( _useLocalVariables != useLocalVariables ){
+    public CompileOptions useLocalJavaVariables( boolean useLocalJavaVariables ){
+        if ( _useLocalJavaVariables != useLocalJavaVariables ){
             _check();
-            _useLocalVariables = useLocalVariables;
+            _useLocalJavaVariables = useLocalJavaVariables;
         }
         return this;
     }
     
-    public boolean useLocalVariables(){
-        return _useLocalVariables;
+    public boolean useLocalJavaVariables(){
+        return _useLocalJavaVariables;
     }
 
     /**
@@ -106,8 +106,8 @@ public class CompileOptions {
 
     private boolean _locked = false;
 
-    private boolean _useLocalVariables = true;
+    private boolean _useLocalJavaVariables = true;
     private boolean _allowLoopingConstructs = true;
     private boolean _createNewScope = true;
-    private Language _sourceLanguage = Language.JS;
+    private Language _sourceLanguage = Language.JS();
 }

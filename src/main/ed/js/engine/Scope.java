@@ -72,11 +72,11 @@ public class Scope implements JSObject , Bindings {
     }
     
     public Scope( String name , Scope parent ){
-        this( name , parent , null , Language.JS );
+        this( name , parent , null , Language.JS() );
     }
 
     public Scope( String name , Scope parent , File root ){
-        this( name , parent , null , Language.JS , root );
+        this( name , parent , null , Language.JS() , root );
     }
 
     
@@ -510,7 +510,7 @@ public class Scope implements JSObject , Bindings {
     }
 
     public boolean isRuby(){
-        return _lang == Language.RUBY;
+        return _lang == Language.RUBY();
     }
     
     public void enterWith( JSObject o ){
