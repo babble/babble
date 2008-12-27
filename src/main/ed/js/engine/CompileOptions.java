@@ -27,7 +27,7 @@ public class CompileOptions {
         co.createNewScope( false );
         return co;
     }
-
+    
     public CompileOptions(){
     }
 
@@ -35,30 +35,62 @@ public class CompileOptions {
        doesn't work yet
      */
     public CompileOptions useLocalVariables( boolean useLocalVariables ){
-        this.useLocalVariables = useLocalVariables;
+        _check();
+        _useLocalVariables = useLocalVariables;
         return this;
+    }
+    
+    public boolean useLocalVariables(){
+        return _useLocalVariables;
     }
 
     /**
        doesn't work yet
      */
     public CompileOptions allowLoopingConstructs( boolean allowLoopingConstructs ){
-        this.allowLoopingConstructs = allowLoopingConstructs;
+        _check();
+        _allowLoopingConstructs = allowLoopingConstructs;
         return this;
+    }
+
+    public boolean allowLoopingConstructs(){
+        return _allowLoopingConstructs;
     }
 
     public CompileOptions createNewScope( boolean createNewScope ){
-        this.createNewScope = createNewScope;
+        _check();
+        _createNewScope = createNewScope;
         return this;
+    }
+    
+    public boolean createNewScope(){
+        return _createNewScope;
     }
 
     public CompileOptions sourceLanguage( Language sourceLanguage ){
-        this.sourceLanguage = sourceLanguage;
+        _check();
+        _sourceLanguage = sourceLanguage;
         return this;
     }
+    
+    public Language sourceLanguage(){
+        return _sourceLanguage;
+    }
 
-    public boolean useLocalVariables = true;
-    public boolean allowLoopingConstructs = true;
-    public boolean createNewScope = true;
-    public Language sourceLanguage = Language.JS;
+    public CompileOptions lock(){
+        _locked = true;
+        return this;
+    }
+    
+    void _check(){
+        if ( _locked )
+            throw new RuntimeException( "locked" );
+    }
+
+    private boolean _locked = false;
+
+    private boolean _useLocalVariables = true;
+    private boolean _allowLoopingConstructs = true;
+    private boolean _createNewScope = true;
+    private Language _sourceLanguage = Language.JS;
 }

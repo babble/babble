@@ -121,7 +121,7 @@ public class Convert {
         _fullClassName = _package + "." + _className;
         _random = _random( _fullClassName );
         _id = _randNonNegativeInt();
-        _scriptInfo = new ScriptInfo( _name , _fullClassName , options.sourceLanguage , this );
+        _scriptInfo = new ScriptInfo( _name , _fullClassName , options.sourceLanguage() , this );
 
         CompilerEnvirons ce = new CompilerEnvirons();
 
@@ -173,7 +173,7 @@ public class Convert {
             Debug.print( sn , 0 );
         }
 
-        State state = new State();
+        State state = new State( _options );
 
         _setLineNumbers( sn , sn );
         _addFunctionNodes( sn , state );
@@ -1785,7 +1785,7 @@ public class Convert {
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
 
-        if ( ! _options.createNewScope ) {
+        if ( ! _options.createNewScope() ) {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {

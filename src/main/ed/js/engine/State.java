@@ -28,16 +28,18 @@ import ed.ext.org.mozilla.javascript.*;
  */
 class State {
     
-    State(){
+    State( CompileOptions options ){
         _parent = null;
+        _options = options;
     }
     
-    State( State s ){
+    State( CompileOptions options , State s ){
         _parent = s;
+        _options = s._options;
     }
     
     State child(){
-        return new State( this );
+        return new State( _options , this );
     }
     
     State parent(){
@@ -87,6 +89,9 @@ class State {
     }
 
     boolean useLocalVariable( String name ){
+        if ( ! _options.useLocalVariables() )
+            return false;
+
         if ( name.equals( "arguments" ) )
             return false;
         
@@ -105,6 +110,7 @@ class State {
     final Stack<String> _tempOpNames = new Stack<String>();
 
     final State _parent;
+    final CompileOptions _options;
     
     int _depth = 0;
     FunctionInfo _fi;
