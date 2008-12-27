@@ -12,11 +12,15 @@
       <class name="ed.appserver.ModuleTest" />
       <class name="ed.net.DNSUtilTest" />
       <class name="ed.net.httpserver.ReplayTest"/>
+
+<!--  gmj : isolating since it's hanging on hudson box
       <class name="ed.net.httpserver.HttpRequestTest"/>
+-->
+
       <class name="ed.net.httpserver.HttpResponseTest"/>
       <class name="ed.net.httpclient.HttpClientTest"/>
-  <!--    <class name="ed.net.httpserver.HttpServerTest"/> -->
-     <class name="ed.net.lb.MappingBaseTest"/>
+      <class name="ed.net.httpserver.HttpServerTest"/>
+      <class name="ed.net.lb.MappingBaseTest"/>
       <class name="ed.util.FastStringMapTest"/>
       <class name="ed.util.FastStackTest"/>
       <class name="ed.util.CircularListTest"/>
