@@ -45,6 +45,14 @@ function testcopydb() {
 
 	assert(x==y);
     }
+    if( t.system.indexes.count() != tc.system.indexes.count() ) { 
+	print("error: # of indexes does not match");
+	print(t.system.indexes.count());
+	print(tc.system.indexes.count());
+	print("" + t);
+	print("" + tc);
+	throw "stopping";
+    }
     assert( t.system.indexes.count() == tc.system.indexes.count() );
     assert( t.dots.count() == tc.dots.count() );
 }
