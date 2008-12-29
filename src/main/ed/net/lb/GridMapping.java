@@ -129,6 +129,8 @@ public class GridMapping extends MappingBase {
             }
             
         }
+        
+        checkGridSite();
 
         String defaultPool = null;
 
@@ -160,6 +162,18 @@ public class GridMapping extends MappingBase {
 	    while ( i.hasNext() )
 		blockUrl( i.next().get( "url" ).toString() );
         
+    }
+
+    void checkGridSite(){
+
+        if ( getSiteInfo( "grid" , false ) != null )
+            return;
+        
+        _logger.info( "no grid site so adding to : " + _cloud.getGridLocation() );
+        for ( String s : _cloud.getGridLocation() )
+            addAddressToPool( "gridauto" , s );
+
+        addSiteMapping( "grid" , "www" , "gridauto" );
     }
 
     final Cloud _cloud;
