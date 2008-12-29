@@ -802,6 +802,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("==================================");
 
         AppServer as = new AppServer( webRoot , sitesRoot );
+        if ( as._contextHolder._getDefaultContext() != null )
+            as._contextHolder._getDefaultContext().getScope();
         as.addToServer();
 
         HttpMonitor.setApplicationType( "Application Server" );

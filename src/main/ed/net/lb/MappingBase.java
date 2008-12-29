@@ -34,6 +34,7 @@ public abstract class MappingBase implements Mapping {
     protected MappingBase( String name ){
         _name = name;
         _logger = Logger.getLogger( "LB" ).getChild( name );
+        _logger.setLevel( Level.DEBUG );
     }
 
     public String getPool( HttpRequest request ){
@@ -233,8 +234,12 @@ public abstract class MappingBase implements Mapping {
     }
     
     SiteInfo getSiteInfo( String site ){
+        return getSiteInfo( site , true );
+    }
+    
+    SiteInfo getSiteInfo( String site , boolean create ){
         SiteInfo si = _sites.get( site );
-        if ( si == null ){
+        if ( si == null && create ){
             si = new SiteInfo();
             _sites.put( site , si );
         }
