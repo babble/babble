@@ -394,7 +394,7 @@ public class AppContextHolder {
         throw new RuntimeException( "can't find environment [" + subdomain + "] in [" + root + "]  siteName [" + siteName + "] found site:" + ( site != null )  );
     }
 
-    private synchronized AppContext _getDefaultContext(){
+    synchronized AppContext _getDefaultContext(){
         if ( _defaultWebRoot == null )
             return null;
 
