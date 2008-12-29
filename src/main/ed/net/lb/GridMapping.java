@@ -170,8 +170,13 @@ public class GridMapping extends MappingBase {
             return;
         
         _logger.info( "no grid site so adding to : " + _cloud.getGridLocation() );
-        for ( String s : _cloud.getGridLocation() )
+        for ( String s : _cloud.getGridLocation() ){
+            if ( s.indexOf( ":" ) < 0 )
+                s += ":8000";
+            else
+                s = s.replaceAll( ":.*$" , ":8000" );
             addAddressToPool( "gridauto" , s );
+        }
 
         addSiteMapping( "grid" , "www" , "gridauto" );
     }
