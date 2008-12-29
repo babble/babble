@@ -58,6 +58,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
         _addDefaultsIfAny( config );
         
         try {
+            _updateSystemConfig();
             _doDBs( config );
             _doAppServers( config );
             _doLoadBalancers( config );
@@ -92,9 +93,10 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
 
             if ( db.get( "name" ) == null )
                 throw new IllegalArgumentException( "db has to have a name" );
-
+            
             final String name = db.get( "name" ).toString();
-            System.out.println( "DB : " + name + " " + db.keySet() );
+            
+            boolean addedThisNode = false;
 
             if ( db.get( "machine" ) != null && _cloud.isMyServerName( db.get( "machine" ).toString() ) ){
                 
@@ -104,7 +106,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                 config.addEntry( "db" , name , "ACTIVE" , "true" );
                 config.addEntry( "db" , name , "master" , "true" );
                 
-                added = true;
+                addedThisNode = true;
             }
             
             List slaves = JS.getArray( db , "slaves" );
@@ -121,9 +123,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                     config.addEntry( "db" , name , "slave" , "true" );
                     config.addEntry( "db" , name , "source" , db.get( "machine" ).toString() );
                     
-                    System.out.println( (new DBApp( name , config.getMap( "db" , name ) ) ) );
-
-                    added = true;
+                    addedThisNode = true;
                 }
             }
 
@@ -133,7 +133,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                     throw new RuntimeException( "invalid pair config for [" + name + "] need exactly 2 pairs" );
                 
                 for ( int i=0; i<pairs.size(); i++ ){
-
+                    
                     Object mySide = pairs.get(i);
                     
                     if ( ! _cloud.isMyServerName( mySide.toString() ) )
@@ -141,10 +141,18 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                     
                     if ( added )
                         throw new RuntimeException( "have multiple databases configured for this node!" );
+                    
+                    addedThisNode = true;
 
                     config.addEntry( "db" , name , "ACTIVE" , "true" );
                     config.addEntry( "db" , name , "pairwith" , pairs.get(1-i).toString() );
                 }
+            }
+            
+            added = added || addedThisNode;
+
+            if ( addedThisNode && JS.bool( _systemConfig.get( "dbquota" ) ) ){
+                config.addEntry( "db" , name , "quota" , "true" );
             }
         }
         
@@ -174,6 +182,23 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
                 
             config.addEntry( "lb" , machine , "ACTIVE" , "true" );
         }
+    }
+
+
+    private void _updateSystemConfig(){
+        JSObject sys = null;
+        for ( final JSObject o : _find( "options" ) ){
+            if ( sys != null )
+                throw new RuntimeException( "options should only have 1 thing" );
+            sys = o;
+        }
+
+        if ( sys == null ){
+            sys = new JSObjectBase();
+            System.out.println( "default options" );
+        }
+
+        _systemConfig = sys;
     }
     
     protected Iterable<JSObject> _find( String type ){
@@ -218,6 +243,7 @@ public class GridConfigApplicationFactory extends ConfigurableApplicationFactory
     final DBBase _db;
     final String _serverName;
 
+    private JSObject _systemConfig;
     private SimpleConfig _lastConfig;
 
     private static File _cacheFile = new File( "logs/gridappcache" );
