@@ -102,6 +102,9 @@ DB.prototype.cloneDatabase = function(from) {
   about the operation log stored at local.oplog.$main on the replication master.  (It also 
   works on a machine in a replica pair: for replica pairs, both machines are "masters" from 
   an internal database perspective.
+  <p>
+  * @return Object timeSpan: time span of the oplog from start to end  if slave is more out 
+  *                          of date than that, it can't recover without a complete resync
 */
 DB.prototype.getReplicationLogInfo = function() { 
     if( "local" != this )
