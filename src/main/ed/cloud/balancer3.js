@@ -16,63 +16,36 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var getNumber = function( str ){
-    var p = /(\d+)/;
-    var r = p.exec( str );
-    if ( ! r )
-        return 0;
-    return Number( r[1] );
-}
-
-
-var pickBest = function( a , b ){
-    if ( ! a )
-        return b;
-
-    if ( ! b )
-        return a;
-    
-    if ( getNumber( a ) < getNumber( b ) )
-        return b;
-
-    return a;
-}
-
 Cloud.Balancer = {};
 
+Cloud.Balancer._getArray = function( cursor ){
+    if ( ! cursor )
+        return [];
+    return cursor.toArray();
+}
+
+Cloud.Balancer._find = function( coll ){
+    var all = Cloud.Balancer._getArray( coll.find( { type : "PROD" , assignable : true } ) );
+
+    if ( all.length == 0 )
+        all = Cloud.Balancer._getArray( coll.find( { assignable : true } ) );
+
+    return all;
+}
+
+Cloud.Balancer._getAvail = function( coll , name ){
+    var all = Cloud.Balancer._find( coll );
+    if ( all.length == 0 )
+        throw "can't find a valid " + name + " server";
+    return all[ Math.floor( all.length * Math.random() ) ];    
+}
+
 Cloud.Balancer.getAvailableDB = function(){
-
-    var best = null;
-
-    for each ( var mydb in db.dbs.find().toArray() ){
-        if ( mydb.type != "PROD" )
-            continue;
-        
-        best = pickBest( best , mydb.name );
-    }
-    
-    if ( ! best )
-        throw "can't find a valid db server";
-    
-    return best;
+    return Cloud.Balancer._getAvail( db.dbs , "db" );
 }
 
 Cloud.Balancer.getAvailablePool = function(){
-
-    var best = null;
-
-    for each ( var mypool in db.pools.find().toArray() ){
-
-        if ( mypool.type != "PROD" )
-            continue;
-        
-        best = pickBest( best , mypool.name );
-    }
-    
-    if ( ! best )
-        throw "can't find a valid pool";
-    
-    return best;
+    return Cloud.Balancer._getAvail( db.pools , "appserver pool" );
 }
-k
+
 

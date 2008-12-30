@@ -350,6 +350,28 @@ public class Cloud extends JSObjectBase {
         return o.toString();
     }
 
+    public List<String> getGridLocation(){
+        Object o = evalFunc( getMe() , "getGridLocation" );
+        if ( o == null )
+            return null;
+        
+        List<String> lst = new ArrayList<String>();
+
+        if ( o instanceof String || o instanceof JSString ){
+            lst.add( o.toString() );
+        }
+        else if ( o instanceof Collection ){
+            for ( Object foo : (Collection)o ){
+                lst.add( foo.toString() );
+            }
+        }
+        else {
+            throw new RuntimeException( "don't know what to do with [" + o.getClass() + "]" );
+        }
+
+        return lst;
+    }
+
     public String getModuleSymLink( String moduleName , String version ){
         if ( _bad )
             return null;

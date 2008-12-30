@@ -72,11 +72,11 @@ public class Scope implements JSObject , Bindings {
     }
     
     public Scope( String name , Scope parent ){
-        this( name , parent , null , Language.JS );
+        this( name , parent , null , Language.JS() );
     }
 
     public Scope( String name , Scope parent , File root ){
-        this( name , parent , null , Language.JS , root );
+        this( name , parent , null , Language.JS() , root );
     }
 
     
@@ -139,13 +139,18 @@ public class Scope implements JSObject , Bindings {
     public Object get( Object n ){
         return get( n.toString() );
     }
-    
+
     public Object remove( Object n ){
         return removeField( n );
     }
 
     public Object removeField( Object n ){
         return removeField( n.toString() );
+    }
+
+    public void removeChild( Scope s ) {
+        _children.remove( s );
+        _childrenAdds--;
     }
 
     public Object setInt( int n , Object v ){
@@ -510,7 +515,7 @@ public class Scope implements JSObject , Bindings {
     }
 
     public boolean isRuby(){
-        return _lang == Language.RUBY;
+        return _lang == Language.RUBY();
     }
     
     public void enterWith( JSObject o ){
@@ -826,7 +831,7 @@ public class Scope implements JSObject , Bindings {
             // tell the Convert CTOR that we're in the context of eval so
             //  not use a private scope for the execution of this code
 
-            Convert c = new Convert( name , code, true);
+            Convert c = new Convert( name , code , CompileOptions.forEval() );
             
             if ( hasReturn != null && hasReturn.length > 0 ) {
                 hasReturn[0] = c.hasReturn();
@@ -1198,6 +1203,8 @@ public class Scope implements JSObject , Bindings {
     }
     
     public static Scope getThreadLocal(){
+        if ( _threadLocal == null )
+            return null;
         return _threadLocal.get();
     }
     

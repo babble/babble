@@ -131,14 +131,14 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
         _moduleRegistry = ModuleRegistry.getNewGlobalChild();
 
-        if ( _git.isValid() && _git.hasHead()){
+        if ( _git.isValid()){
             _gitBranch = _git.getBranchOrTagName();
             _gitHash = _git.getCurrentHash();
         }
 
         _isGrid = name.equals("grid");
 
-        _scope = new Scope("AppContext:" + root + (_admin ? ":admin" : ""), _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal(), null, Language.JS, _rootFile);
+        _scope = new Scope("AppContext:" + root + (_admin ? ":admin" : ""), _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal(), null, Language.JS() , _rootFile);
         _scope.setGlobal(true);
         _initScope = _scope.child("_init");
 

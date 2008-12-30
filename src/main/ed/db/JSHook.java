@@ -1,5 +1,21 @@
 // JSHook.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.db;
 
 import java.nio.*;
@@ -7,17 +23,14 @@ import java.util.*;
 
 import com.twmacinta.util.*;
 
+import ed.*;
 import ed.js.*;
+import ed.log.*;
+import ed.lang.*;
 import ed.util.*;
 import ed.js.engine.*;
 
 public class JSHook {
-
-    public static String whereIsEd = null;
-    static {
-        if ( System.getenv( "ED_HOME" ) != null )
-            whereIsEd = System.getenv( "ED_HOME" );
-    }
 
     static final boolean DEBUG = false;
 
@@ -37,8 +50,8 @@ public class JSHook {
 
     // ---- init stuff
     
-    public static void init( String ed ){
-        whereIsEd = ed;
+    public static void init( String where ){
+        EDFinder.whereIsEd = where;
     }
 
     // -----    scope   -------    
@@ -251,7 +264,7 @@ public class JSHook {
         final String sym = code.substring( 0 , idx );
         
         if ( sym.equals( "function" ) )
-            return Convert.makeAnon( code , true );
+            return Convert.makeAnon( code , true  , _jsOptions );
         
         if ( sym.equals( "def" ) ){
 	    if ( firstLine.endsWith( ":" ) )
@@ -260,7 +273,7 @@ public class JSHook {
 	}
         
         // default to JS
-        return Convert.makeAnon( code , true );
+        return Convert.makeAnon( code , true , _jsOptions);
     }
     
     public static long functionCreate( String code ){
@@ -324,8 +337,9 @@ public class JSHook {
         }
 
         Object client = s.get( "$client" );
+        String clientString = "db call";
         if ( client != null ){
-            String clientString = client.toString();
+            clientString = client.toString();
             DBJni db = _clients.get( clientString );
             if ( db == null ){
                 db = new DBJni( clientString );
@@ -334,6 +348,9 @@ public class JSHook {
             s.set( "db" , db );
         }
         
+        JSCall call = new JSCall( s , clientString );
+        getMonitor().watch( call );
+
         try {
 	    Object[] args = null;
 	    {
@@ -363,9 +380,16 @@ public class JSHook {
             return INVOKE_SUCCESS;
         }
         catch ( Throwable t ){
-            t.printStackTrace();
+            call.done();
+            s.clearToThrow();
+
+            _invokeLogger.error( clientString , t );
             scopeSetString( scopeID , "error" , t.toString() );
+
             return INVOKE_ERROR;
+        }
+        finally {
+            call.done();
         }
     }
     
@@ -377,6 +401,42 @@ public class JSHook {
         System.out.println( "scopes      \t " + _scopes.size() );
         System.out.println( "clients     \t " + _clients.size() );
     }
+
+    static class JSCall implements WatchableRequest {
+        
+        JSCall( Scope s , String debugName ){
+            _scope = s;
+            _debugName = debugName;
+        }
+
+        void done(){
+            _done = true;
+        }
+        
+        public boolean isDone(){
+            return _done;
+        }
+        
+        public Scope getScope(){
+            return _scope;
+        }
+        
+        public long approxSize(){
+            return _scope.approxSize();
+        }
+        
+        public String debugName(){
+            return _debugName;
+        }
+        
+        public boolean canBeLong(){
+            return false;
+        }
+
+        final Scope _scope;
+        final String _debugName;
+        boolean _done = false;
+    }
     
     private final static MD5 _myMd5 = new MD5();
     
@@ -387,7 +447,20 @@ public class JSHook {
     private static Map<Long,Scope> _scopes = Collections.synchronizedMap( new HashMap<Long,Scope>() );
 
     static final Map<String,DBJni> _clients = Collections.synchronizedMap( new HashMap<String,DBJni>() );
-
+    
     static int _numInvokes = 0;
     static final ThreadLocal<JSObject> _nextArgs = new ThreadLocal<JSObject>();
+
+    private static WatchableRequestMonitor _monitor;    
+    private static Logger _invokeLogger;
+    
+    private static WatchableRequestMonitor getMonitor(){
+        if ( _monitor == null ){
+            _monitor = new WatchableRequestMonitor( 120 , 10 );
+            _invokeLogger = Logger.getLogger( "db.invoke" );
+        }
+        return _monitor;
+    }
+
+    private static CompileOptions _jsOptions = (new CompileOptions()).createNewScope( false ).useLocalJavaVariables( false ).lock();
 }

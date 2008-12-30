@@ -49,9 +49,9 @@ public class Config extends Properties {
         System.getenv( "ED_HOME" ) + "/" ,
         System.getenv( "ED_HOME" ) + "/conf"  ,
         System.getenv( "ED_HOME" ) + "/etc" ,
-        ed.db.JSHook.whereIsEd + "/" ,
-        ed.db.JSHook.whereIsEd + "/conf" ,
-        ed.db.JSHook.whereIsEd + "/etc" ,
+        ed.EDFinder.whereIsEd + "/" ,
+        ed.EDFinder.whereIsEd + "/conf" ,
+        ed.EDFinder.whereIsEd + "/etc" ,
     };
 
     private static String _configFile = "10gen.properties";

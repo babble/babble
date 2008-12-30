@@ -117,6 +117,8 @@ public class AppServerTest extends ed.TestCase {
         assertEquals( "foo.co.uk/abc" , AppContextHolder.fixBase( "foo.co.uk" , "abc" ).toString() );
         assertEquals( "foo.co.uk/abc" , AppContextHolder.fixBase( "foo.co.uk.10gen.com" , "abc" ).toString() );
 
+        assertEquals( "www/" , AppContextHolder.fixBase( "www.10gen.com" , "/" ).toString() );
+        assertEquals( "www/" , AppContextHolder.fixBase( "10gen.com" , "/" ).toString() );
     }
 
     @Test(groups = {"basic"})

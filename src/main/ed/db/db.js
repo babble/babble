@@ -90,6 +90,66 @@ DB.prototype.cloneDatabase = function(from) {
     return this._dbCommand( { clone: from } );
 }
 
+/** 
+  Get a replication log information summary.
+  <p>
+  This command is for the database/cloud administer and not applicable to most databases.
+  It is only used with the local database.  One might invoke from the JS shell:
+  <pre>
+       connect("local","serverhostname").getReplicationLogInfo();
+  </pre>
+  It is assumed that this database is a replication master -- the information returned is 
+  about the operation log stored at local.oplog.$main on the replication master.  (It also 
+  works on a machine in a replica pair: for replica pairs, both machines are "masters" from 
+  an internal database perspective.
+  <p>
+  * @return Object timeSpan: time span of the oplog from start to end  if slave is more out 
+  *                          of date than that, it can't recover without a complete resync
+*/
+DB.prototype.getReplicationLogInfo = function() { 
+    if( "local" != this )
+	return { errmsg : "this command only works for database local" };
+
+    var result = { };
+    var db = this;
+    var ol = db.system.namespaces.findOne({name:"local.oplog.$main"});
+    if( ol && ol.options ) {
+	result.logSizeMB = ol.options.size / 1000 / 1000;
+    } else {
+	result.errmsg  = "local.oplog.$main, or its options, not found in system.namespaces";
+	return result;
+    }
+
+    var firstc = db.oplog.$main.find().sort({$natural:1}).limit(1);
+    var lastc = db.oplog.$main.find().sort({$natural:-1}).limit(1);
+    if( !firstc.hasNext() || !lastc.hasNext() ) { 
+	result.errmsg = "objects not found in local.oplog.$main -- is this a new and empty db instance?";
+	result.oplogMainRowCount = db.oplog.$main.count();
+	return result;
+    }
+
+    var first = firstc.next();
+    var last = lastc.next();
+    {
+	var tfirst = first.ts;
+	var tlast = last.ts;
+	if( tfirst && tlast ) { 
+	    tfirst = tfirst / 4294967296; // low 32 bits are ordinal #s within a second
+	    tlast = tlast / 4294967296;
+	    result.timeDiff = tlast - tfirst;
+	    result.timeDiffHours = result.timeDiff / 3600;
+	    result.tFirst = (new Date(tfirst*1000)).toString();
+	    result.tLast  = (new Date(tlast*1000)).toString();
+	    result.now = Date();
+	}
+	else { 
+	    result.errmsg = "ts element not found in oplog objects";
+	}
+    }
+
+    return result;
+}
+
 /**
   Copy database from one server or name to another server or name.
 

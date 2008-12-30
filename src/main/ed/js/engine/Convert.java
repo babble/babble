@@ -43,15 +43,18 @@ public class Convert {
     }
 
     public static JSFunction makeAnon( String code , boolean forceEval ){
+        return makeAnon( code , forceEval , new CompileOptions() );
+    }
+    
+    public static JSFunction makeAnon( String code , boolean forceEval , CompileOptions options ){
         try {
-
             final String nice = code.trim();
             final String name = "anon" + Math.random();
-
+            
             if ( nice.startsWith( "function" ) &&
                  nice.endsWith( "}" ) ){
-
-                Convert c = new Convert( name , code , true );
+                
+                Convert c = new Convert( name , code , options.createNewScope( false ) );
                 JSFunction func = c.get();
                 Scope s = Scope.newGlobal().child();
                 s.setGlobal( true );
@@ -80,8 +83,10 @@ public class Convert {
                 }
 
             }
-
-            Convert c = new Convert( name , nice , forceEval );
+            
+            if ( forceEval )
+                options.createNewScope( false );
+            Convert c = new Convert( name , nice , options );
             return c.get();
         }
         catch ( IOException ioe ){
@@ -91,21 +96,20 @@ public class Convert {
 
     public Convert( File sourceFile )
         throws IOException {
-        this( sourceFile.getAbsolutePath() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
+        this( sourceFile , new CompileOptions() );
     }
-
+    
+    public Convert( File sourceFile , CompileOptions options )
+        throws IOException {
+        this( sourceFile.getAbsolutePath() , StreamUtil.readFully( sourceFile , "UTF-8" ) , options );
+    }
+    
     public Convert( String name , String source )
         throws IOException {
-
-        this(name, source, false);
+        this( name , source , new CompileOptions() );
     }
-
-    public Convert( String name , String source, boolean invokedFromEval)
-        throws IOException {
-        this( name , source , invokedFromEval , Language.JS );
-    }
-
-    public Convert( String name , String source, boolean invokedFromEval , Language sourceLanguage )
+    
+    public Convert( String name , String source , CompileOptions options )
         throws IOException {
 
         D = DJS
@@ -113,18 +117,16 @@ public class Convert {
             && ! name.contains( "src/main/ed/appserver/" )
             && ! name.contains( "src_main_ed_lang" )
             ;
-
-        _invokedFromEval = invokedFromEval;
-        _sourceLanguage = sourceLanguage;
-
+        
         _name = name;
         _source = source;
+        _options = options;
 
         _className = cleanName( _name ) + _getNumForClass( _name , _source );
         _fullClassName = _package + "." + _className;
         _random = _random( _fullClassName );
         _id = _randNonNegativeInt();
-        _scriptInfo = new ScriptInfo( _name , _fullClassName , _sourceLanguage , this );
+        _scriptInfo = new ScriptInfo( _name , _fullClassName , options.sourceLanguage() , this );
 
         CompilerEnvirons ce = new CompilerEnvirons();
 
@@ -176,7 +178,7 @@ public class Convert {
             Debug.print( sn , 0 );
         }
 
-        State state = new State();
+        State state = new State( _options );
 
         _setLineNumbers( sn , sn );
         _addFunctionNodes( sn , state );
@@ -220,7 +222,7 @@ public class Convert {
         }
 
         if ( _useDefaultReturn ) {
-            _append( "return " + RETURN_VARIABLE + "; " , sn );
+            _append( "scope.getParent().removeChild( scope );\nreturn " + RETURN_VARIABLE + "; " , sn );
         }
         else {
             _append( "/* no return b/c : " + whyRasReturn + " */" , sn );
@@ -621,7 +623,7 @@ public class Convert {
             boolean last = state._depth <= 1 && n.getNext() == null;
             if ( ! last )
                 _append( "if ( true ) { " , n );
-            _append( "return " , n );
+            _append( RETURN_VARIABLE + " = ", n );
             if ( n.getFirstChild() != null ){
                 _assertOne( n );
                 _add( n.getFirstChild() , state );
@@ -629,6 +631,8 @@ public class Convert {
             else {
                 _append( " null " , n );
             }
+            _append( ";\nscope.getParent().removeChild( scope );\n", n );
+            _append( "return "+RETURN_VARIABLE , n );
             _append( "; /* explicit return */" , n );
             if ( ! last )
                 _append( "}" , n );
@@ -726,6 +730,7 @@ public class Convert {
             break;
 
         case Token.WHILE:
+            _assertLoopingConstructs();
             _append( "while( false || JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ){ " , n );
@@ -959,11 +964,18 @@ public class Convert {
         _assertType( n , Token.GOTO ); 
         n = n.getNext();
 
+        List<Node> targets = new ArrayList<Node>();
+
         caseArea = caseArea.getNext();
         while ( caseArea != null ){
+            
+            Node target = ((Node.Jump)caseArea).target;
+            int pos = targets.size();
+            targets.add( target );
+
             _append( "if ( JS_sheq( " + val + " , " , caseArea );
             _add( caseArea.getFirstChild() , state );
-            _append( " ) ) {\n " + switcherVar + " = " + ((Node.Jump)caseArea).target.hashCode() + "; \n " , caseArea );
+            _append( " ) ) {\n " + switcherVar + " = " + pos + "; \n " , caseArea );
             _append( " } \n " , caseArea );
 
             _append( "else ", caseArea );
@@ -972,12 +984,14 @@ public class Convert {
         _append( "; // default: switcher set to -1 \n", n ); 
 
         _append( "switch( " + switcherVar + " ) { \n" , n );
-        while( n != null && n.getNext() != null ) {
+        while( n != null && n.getNext() != null ){
+            int pos = targets.indexOf( n );
             if( n == caseDefault ) {
                 _append( " default: \n" , n );
             }
             else {
-                _append( " case " + n.hashCode() + ": \n" , n );
+                assert( pos >= 0 );
+                _append( " case " + pos + ": \n" , n );
             }
             n = n.getNext();
             _assertType( n , Token.BLOCK );
@@ -1127,6 +1141,7 @@ public class Convert {
 
         final int numChildren = countChildren( n );
         if ( numChildren == 4 ){
+            _assertLoopingConstructs();
             _append( "\n for ( " , n );
 
             if ( n.getFirstChild().getType() == Token.BLOCK ){
@@ -1634,6 +1649,12 @@ public class Convert {
         throw new RuntimeException( msg );
     }
 
+    void _assertLoopingConstructs(){
+        if ( _options.allowLoopingConstructs() )
+            return;
+        throw new RuntimeException( "looping constructs not allowed" );
+    }
+
     private void _setLineNumbers( final Node startN , final ScriptOrFnNode startSOF ){
 
         final IdentitySet seen = new IdentitySet();
@@ -1788,7 +1809,7 @@ public class Convert {
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
 
-        if (_invokedFromEval) {
+        if ( ! _options.createNewScope() ) {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {
@@ -1939,8 +1960,7 @@ public class Convert {
     final String _className;
     final String _fullClassName;
     final String _package = DEFAULT_PACKAGE;
-    final boolean _invokedFromEval;
-    final Language _sourceLanguage;
+    final CompileOptions _options;
     final int _id;
 
     // these 3 variables should only be use by _append

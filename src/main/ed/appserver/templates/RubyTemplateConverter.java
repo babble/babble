@@ -27,7 +27,7 @@ import ed.lang.ruby.*;
 public class RubyTemplateConverter extends HtmlLikeConverter {
 
     public RubyTemplateConverter( String ext ){
-        super( ext , _codeTags , ed.lang.Language.RUBY );
+        super( ext , _codeTags , ed.lang.Language.RUBY() );
     }
 
     protected String getNewName( Template t ){

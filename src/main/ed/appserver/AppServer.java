@@ -18,12 +18,11 @@
 
 package ed.appserver;
 
-import ed.db.JSHook;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import ed.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
@@ -32,6 +31,8 @@ import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 import ed.security.*;
+import ed.lang.*;
+
 
 /** The server to handle HTTP requests.
  */
@@ -722,9 +723,13 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
     }
 
+    public String toString(){
+        return "AppServer";
+    }
+
     private final AppContextHolder _contextHolder;
     private final Map<String,HttpLoadTracker> _stats = Collections.synchronizedMap( new StringMap<HttpLoadTracker>() );
-    private final RequestMonitor _requestMonitor = RequestMonitor.getInstance();
+    private final WatchableRequestMonitor _requestMonitor = WatchableRequestMonitor.getInstance();
     private final HttpLoadTracker.GraphOptions _displayOptions = new HttpLoadTracker.GraphOptions( 400 , 100 , true , true , true );
     private final IdentitySet<AppRequest> _currentRequests = new IdentitySet<AppRequest>();
 
@@ -762,7 +767,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
                 portNum = Integer.valueOf(args[++i]);
             }
             else if ("--serverroot".equals(args[i])) {
-                JSHook.whereIsEd = args[++i];
+                EDFinder.whereIsEd = args[++i];
             }
             else if ( "--sitesRoot".equals( args[i] ) ){
                 sitesRoot = args[++i];
@@ -787,7 +792,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
         System.out.println("     listen port = " + portNum);
-        System.out.println("     server root = " + JSHook.whereIsEd);
+        System.out.println("     server root = " + EDFinder.whereIsEd);
         System.out.println("         webRoot = " + webRoot);
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
@@ -797,6 +802,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         System.out.println("==================================");
 
         AppServer as = new AppServer( webRoot , sitesRoot );
+        if ( as._contextHolder._getDefaultContext() != null )
+            as._contextHolder._getDefaultContext().getScope();
         as.addToServer();
 
         HttpMonitor.setApplicationType( "Application Server" );

@@ -32,10 +32,11 @@ public class WebView extends HttpMonitor {
         _manager = manager;
         _detail = new Detail();
         _javaApps = new JavaApps();
+        _configView = new ConfigView();
     }
 
-    protected boolean uriOK( String uri ){ 
-        return uri.equals( "/" );
+    protected boolean uriOK( String uri , String host ){ 
+        return uri.equals( "/" ) && ! host.contains( "grid" );
     }
 
     public void handle( MonitorRequest request ){
@@ -104,6 +105,7 @@ public class WebView extends HttpMonitor {
         HttpServer.addGlobalHandler( this );
         HttpServer.addGlobalHandler( _detail );
         HttpServer.addGlobalHandler( _javaApps );
+        HttpServer.addGlobalHandler( _configView );
     }
     
     abstract class ProcessViewer extends HttpMonitor {
@@ -201,7 +203,40 @@ public class WebView extends HttpMonitor {
         }
     }
 
+    class ConfigView extends HttpMonitor {
+
+        ConfigView(){
+            super( BASE_NAME + "-config" );
+        }
+
+        public void handle( MonitorRequest request ){
+
+            if ( request.getRequest().getBoolean( "check" , false ) ){
+                _manager.check();
+                if ( request.html() )
+                    request.getWriter().print( "<b>CHECKED</b>" );
+            }
+
+            request.startData( "applications" , "type" , "id" , "exec dir" , "log dir" , "command" );
+            
+            for ( Application app : _manager._currentApps ){
+                request.addData( app.getFullId() , app.getType() , app.getId() , 
+                                 app.getExecDir() , app.getLogDir() , Arrays.toString( app.getCommand() ) );
+            }
+            request.endData();
+            
+            
+            request.addHumanPRE( _manager._factory.textView() );
+            
+            if ( request.html() ){
+                request.getWriter().print( "<br><a href='" + getURI() + "?check=true'><b>check app config</b></a>" );
+            }
+        }        
+        
+    }
+
     final Manager _manager;
     final Detail _detail;
     final JavaApps _javaApps;
+    final ConfigView _configView;
 }

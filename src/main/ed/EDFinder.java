@@ -1,4 +1,4 @@
-// ApplicationFactory.java
+// EDFinder.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,23 +16,16 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.manager;
+package ed;
 
-import java.util.*;
-
-public interface ApplicationFactory {
-
-    /**
-     * @return list of Application that should be running
-     */
-    public List<Application> getApplications();
+public class EDFinder {
     
-    /**
-     * @return ms between calls to getApplications
-     */
-    public long timeBetweenRefresh();
+    public static String whereIsEd = null;
+    
+    static {
+        if ( System.getenv( "ED_HOME" ) != null )
+            whereIsEd = System.getenv( "ED_HOME" );
+    }
+    
 
-    public boolean runGridApplication();
-
-    public String textView();
 }

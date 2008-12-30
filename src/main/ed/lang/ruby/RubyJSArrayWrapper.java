@@ -61,11 +61,23 @@ public class RubyJSArrayWrapper extends RubyArray {
 
     public JSArray getJSArray() { return _jsarray; }
 
-    public IRubyObject initialize(ThreadContext context, IRubyObject[] args, Block block) {
-        IRubyObject o = super.initialize(context, args, block);
+    public IRubyObject initialize(ThreadContext context, Block block) {
+        IRubyObject o = super.initialize(context, block);
         ruby2js();
         return o;
     }
+
+    public IRubyObject initialize(ThreadContext context, IRubyObject arg0, Block block) {
+        IRubyObject o = super.initialize(context, arg0, block);
+        ruby2js();
+        return o;
+   }
+
+    public IRubyObject initialize(ThreadContext context, IRubyObject arg0, IRubyObject arg1, Block block) {
+        IRubyObject o = super.initialize(context, arg0, arg1, block);
+        ruby2js();
+        return o;
+ }
 
     public IRubyObject replace(IRubyObject orig) {
         IRubyObject o = super.replace(orig);

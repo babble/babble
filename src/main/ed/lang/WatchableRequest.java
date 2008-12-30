@@ -1,4 +1,4 @@
-// ApplicationFactory.java
+// WatchableRequest.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,23 +16,19 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.manager;
+package ed.lang;
 
-import java.util.*;
+import ed.js.engine.Scope;
 
-public interface ApplicationFactory {
+public interface WatchableRequest {
 
-    /**
-     * @return list of Application that should be running
-     */
-    public List<Application> getApplications();
+    public boolean canBeLong();
+    public boolean isDone();
+
+    public String debugName();
+
+    public long approxSize();
+
+    public Scope getScope();
     
-    /**
-     * @return ms between calls to getApplications
-     */
-    public long timeBetweenRefresh();
-
-    public boolean runGridApplication();
-
-    public String textView();
 }

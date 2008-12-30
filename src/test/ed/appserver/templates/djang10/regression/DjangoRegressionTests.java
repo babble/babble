@@ -33,11 +33,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
+import ed.EDFinder;
 import ed.appserver.AppContext;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Djang10Source;
 import ed.appserver.templates.djang10.JSHelper;
-import ed.db.JSHook;
 import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSException;
@@ -102,7 +102,7 @@ public class DjangoRegressionTests {
     public DjangoRegressionTests(){ }
 
     private String getBasePath() {
-        String basePath = (JSHook.whereIsEd == null)? "" : JSHook.whereIsEd + "/";
+        String basePath = (EDFinder.whereIsEd == null)? "" : EDFinder.whereIsEd + "/";
         basePath += TEST_DIR;
 
         return basePath;

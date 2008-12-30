@@ -58,14 +58,14 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             s = new Djang10Source(parentScope.child( "Djang10 Scope for: " + f ), f);
         }
         else if ( f.getName().endsWith( ".py" ) ) {
-            s = Language.PYTHON.getAdapter(adapterType, f, context, lib);
+            s = Language.PYTHON().getAdapter(adapterType, f, context, lib);
 
             if (s == null) {
                 s = new PythonJxpSource( f , lib );
             }
         }
         else if ( f.getName().endsWith( ".rb" ) ){
-            s = Language.RUBY.getAdapter(adapterType, f, context, lib);
+            s = Language.RUBY().getAdapter(adapterType, f, context, lib);
 
             if (s == null) {
                 s = new RubyJxpSource(f);
@@ -136,10 +136,10 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         }
         
         if ( ! ( t.getExtension().equals( "js" ) || t.getExtension().equals( "ssjs" ) ) )
-            throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
+            throw new RuntimeException( "don't know what to do with : " + t.getExtension() );
 	
         try {
-            Convert convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );
+            Convert convert = new Convert( t.getName() , t.getContent() , (new CompileOptions()).sourceLanguage( t.getSourceLanguage()  ) );
             _func = convert.get();
             _func.set(JXP_SOURCE_PROP, this);
 	    if ( _lib != null )

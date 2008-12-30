@@ -412,7 +412,7 @@ public abstract class JSFunction extends JSFunctionBase {
     private boolean _forceUsePassedInScopeTLEver = false;
 
     protected JSObjectBase _prototype;
-    protected Language _sourceLanguage = Language.JS;
+    protected Language _sourceLanguage = Language.JS();
 
     protected JSArray _arguments;
     protected JSArray _globals;

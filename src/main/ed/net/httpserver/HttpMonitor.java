@@ -30,6 +30,8 @@ import ed.util.*;
 
 
 public abstract class HttpMonitor implements HttpHandler {
+
+    public static final double DEFAULT_PRIORITY = -1000000.0;
     
     public static enum Status { OK , WARN , ERROR , FATAL };
     static String _applicationType = null;
@@ -104,13 +106,13 @@ public abstract class HttpMonitor implements HttpHandler {
         return false;
     }
     
-    protected boolean uriOK( String uri ){ return false; };
+    protected boolean uriOK( String uri , String host ){ return false; };
     protected void addStyle( StringBuilder buf ){}
     public abstract void handle( MonitorRequest request );
     
-    public boolean handles( HttpRequest request , Info info ){
+    public final boolean handles( HttpRequest request , Info info ){
         
-        if ( ! ( request.getURI().equalsIgnoreCase( _uri ) || uriOK( request.getURI() ) ) )
+        if ( ! ( request.getURI().equalsIgnoreCase( _uri ) || uriOK( request.getURI() , request.getHost() ) ) )
             return false;
 
         if ( ! allowed( request ) )
@@ -205,7 +207,7 @@ public abstract class HttpMonitor implements HttpHandler {
     }
     
     public double priority(){
-        return Double.MIN_VALUE;
+        return DEFAULT_PRIORITY;
     }
     
     public String getName(){
@@ -259,6 +261,10 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         buf.append( "<hr>" );
         _allContent = buf.toString();
+    }
+
+    public String toString(){
+        return "HttpMonitor:" + _name;
     }
 
     final String _name;
@@ -502,7 +508,7 @@ public abstract class HttpMonitor implements HttpHandler {
         }
 
         public double priority(){
-            return Double.MIN_VALUE;
+            return DEFAULT_PRIORITY;
         }
     }
     
@@ -535,7 +541,11 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         
         public double priority(){
-            return Double.MIN_VALUE;
+            return DEFAULT_PRIORITY;
+        }
+
+        public String toString(){
+            return "AdminStaticFile:" + _name;
         }
 
         final String _name;

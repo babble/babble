@@ -1,4 +1,4 @@
-// RequestMonitor.java
+// WatchableRequestMonitor.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,33 +16,49 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver;
+package ed.lang;
 
 import java.util.*;
 import java.lang.ref.*;
 
 import ed.util.*;
 import ed.log.*;
+import ed.appserver.*;
 
-class RequestMonitor extends Thread {
+public class WatchableRequestMonitor extends Thread {
 
-    public static final long MAX_MS = Config.get().getLong( "REQUEST.TIMEOUT.MAX" , 1000 * 60 * 5 );
-    public static final long MIN_MS = Config.get().getLong( "REQUEST.TIMEOUT.MIN" , 1000 * 45 );
-    
     public static final long SLEEP_TIME = 200;
 
-    public static long REQUEST_WARN = Config.get().getLong( "REQUEST.MEMORY.WARN" , 1024 * 1024 * 10 );
-
-    static synchronized RequestMonitor getInstance(){
+    public static synchronized WatchableRequestMonitor getInstance(){
         if ( _instance == null )
-            _instance = new RequestMonitor();
+            _instance = new WatchableRequestMonitor();
         return _instance;
     }
 
-    private static RequestMonitor _instance;
+    private static WatchableRequestMonitor _instance;
+    
+    public WatchableRequestMonitor(){
+        this( "REQUEST" );
+    }
+    
+    public WatchableRequestMonitor( String configPrefix ){
+        this( Config.get().getLong( configPrefix + ".TIMEOUT.MIN" , 1000 * 45 ) , 
+              Config.get().getLong( configPrefix + ".TIMEOUT.MAX" , 1000 * 60 * 5 ) , 
+              Config.get().getLong( configPrefix + ".MEMORY.WARN" , 1024 * 1024 * 10 )
+              );
+    }
 
-    private RequestMonitor(){
-        super( "RequestMonitor" );
+    public WatchableRequestMonitor( int normalSeconds , int megabytes ){
+        this( 1000 * normalSeconds , 1000 * 6 * normalSeconds , 1024 * 1024 * megabytes );
+    }
+    
+    public WatchableRequestMonitor( long maxAllowedTime , long normalAllowedTime , long memoryWarn ){
+        super( "WatchableRequestMonitor" );
+        
+        _maxAllowedTime = maxAllowedTime;
+        _normalAllowedTime = normalAllowedTime;
+        _memoryWarn = memoryWarn;
+        
         setDaemon( true );
         start();
     }
@@ -51,20 +67,20 @@ class RequestMonitor extends Thread {
     // ----
 
 
-    void watch( AppRequest request ){
+    public void watch( WatchableRequest request ){
         if ( request.canBeLong() )
             return;
         _watched.add( new Watched( request , Thread.currentThread() ) );
     }
 
     class Watched {
-        Watched( AppRequest request , Thread thread ){
-            _request = new WeakReference<AppRequest>( request );
+        Watched( WatchableRequest request , Thread thread ){
+            _request = new WeakReference<WatchableRequest>( request );
             _thread = thread;
         }
         
         boolean done(){
-            AppRequest request = _request.get();
+            WatchableRequest request = _request.get();
             if ( request == null )
                 return true;
 
@@ -75,7 +91,7 @@ class RequestMonitor extends Thread {
         }
 
         boolean needToKill( long now ){
-            AppRequest request = _request.get();
+            WatchableRequest request = _request.get();
             if ( request == null )
                 return false;
             
@@ -84,19 +100,19 @@ class RequestMonitor extends Thread {
                 usingTooMuchMemory( request , now );
         }
         
-        boolean usingTooMuchMemory( AppRequest request , long now ){
+        boolean usingTooMuchMemory( WatchableRequest request , long now ){
             long elapsed = now - _start;
             if ( elapsed < 600 )
                 return false;
             
             long size = request.approxSize();
-            if ( size > REQUEST_WARN )
-                _logger.warn( request.getRequest().getFullURL() + " using " + size + " memory" );
+            if ( size > _memoryWarn )
+                _logger.warn( request.debugName() + " using " + size + " memory" );
 
             return false;
         }
         
-        boolean runningTooLong( AppRequest request , long now ){
+        boolean runningTooLong( WatchableRequest request , long now ){
             
             final Thread.State state = _thread.getState();
             if ( state == Thread.State.BLOCKED || 
@@ -106,21 +122,21 @@ class RequestMonitor extends Thread {
 
             long elapsed = now - _start;
 
-            if ( elapsed > MAX_MS )
+            if ( elapsed > _maxAllowedTime )
                 return true;
             
-            if ( elapsed < MIN_MS )
+            if ( elapsed < _normalAllowedTime )
                 return false;
             
             elapsed = elapsed - ( _bonuses * SLEEP_TIME );
-            if ( elapsed > MIN_MS )
+            if ( elapsed > _normalAllowedTime )
                 return true;
 
             return false;
         }
 
         void kill(){
-            AppRequest request = _request.get();
+            WatchableRequest request = _request.get();
             if ( request == null )
                 return;            
             
@@ -136,7 +152,7 @@ class RequestMonitor extends Thread {
         private int _bonuses = 0;
         private boolean _killAttempted = false;
 
-        final WeakReference<AppRequest> _request;
+        final WeakReference<WatchableRequest> _request;
         final Thread _thread;
         final long _start = System.currentTimeMillis();
     }
@@ -178,4 +194,8 @@ class RequestMonitor extends Thread {
     
     private final List<Watched> _watched = new Vector<Watched>();
     private final Logger _logger = Logger.getLogger( "requestmonitor" );
+
+    private final long _maxAllowedTime;
+    private final long _normalAllowedTime;
+    private final long _memoryWarn;
 }
