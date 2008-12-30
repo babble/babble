@@ -201,14 +201,16 @@ ForNode.prototype = {
             } catch(e) {}
         }
 
-        var count = values.length;
-
         if( this.is_reversed )
             values.reverse();
 
+        //Iterate over values
         var loop_dict = context["forloop"] = {parentloop: parentloop};
-        var i = 0;
-        for each(var item in values) {
+        var count = values.length;
+        var self = this;
+
+        //loop body
+        var doIter = function(i, item) {
             loop_dict['counter0'] = i;
             loop_dict['counter'] = i+1;
             loop_dict['revcounter'] = count - i;
@@ -216,16 +218,27 @@ ForNode.prototype = {
             loop_dict['first'] = (i==0);
             loop_dict['last'] = (i== (count - 1));
 
-            if(this.loopvars.length == 1)
-                context[this.loopvars[0]] = item;
+            if(self.loopvars.length == 1)
+                context[self.loopvars[0]] = item;
             else
-                for(var j=0;j<this.loopvars.length; j++)
-                    context[this.loopvars[j]] = item[j];
+                for(var j=0;j<self.loopvars.length; j++)
+                    context[self.loopvars[j]] = item[j];
 
-            this.nodelist_loop.__render(context, printer);
+            self.nodelist_loop.__render(context, printer);
+        };
 
-            i++;
+        //special case looping over indexed lists
+        if(values instanceof String || values instanceof Array) {
+            for(var i=0; i<count; i++)
+                doIter(i, values[i]);
         }
+        else {
+            var i=0;
+            for each(var item in values) {
+                doIter(i++, item);
+            }
+        }
+
         context.pop();
     }
 };
