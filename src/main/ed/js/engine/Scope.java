@@ -149,7 +149,9 @@ public class Scope implements JSObject , Bindings {
     }
 
     public void removeChild( Scope s ) {
-        _children.remove( s );
+        synchronized ( _children ){
+            _children.remove( s );
+        }
         _childrenAdds--;
     }
 

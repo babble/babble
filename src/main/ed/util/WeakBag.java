@@ -39,24 +39,26 @@ public class WeakBag<T> implements Iterable<T> {
         _set.add( new MyRef( t ) );
     }
 
-    public void remove( T t ){
-        
+    public boolean remove( T t ){
+
         for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){
             MyRef ref = i.next();
+            if( ref == null )
+                continue;
             T me = ref.get();
-
+            
             if ( me == null ){
                 // this is just here cause i'm already doing the work, so why not
                 i.remove();
                 continue;
             }
-
+            
             if ( me == t ){
                 i.remove();
-                break;
-            }
-
+                return true;
+            }                
         }
+        return false;
     }
 
     public boolean contains( T t ){
