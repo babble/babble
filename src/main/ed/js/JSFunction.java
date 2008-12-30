@@ -308,31 +308,27 @@ public abstract class JSFunction extends JSFunctionBase {
             if ( ar != null )
                 ar.getContext().getDB().requestEnsureConnection();
 
-            boolean got = false;
-            try {
-                _callCacheSem.acquireUninterruptibly();
-                got = true;
-
+            final String synckey = ("function-synckey" + System.identityHashCode( this ) + ":" + hash ).intern();
+            synchronized( synckey ){
+                
                 synchronized ( myCache ){
                     entry = myCache.get( hash );
                 }
                 
                 if ( entry == null || force ){
-
+                    
                     PrintBuffer buf = new PrintBuffer();
                     getScope( true ).set( "print" , buf );
-
+                    
                     entry = new CacheEntry( now + cacheTime , call( s , args ) , buf.toString() );
-
+                    
                     synchronized( myCache ){
                         myCache.put( hash , entry );
                     }
                     clearScope();
                 }
             }
-            finally {
-                _callCacheSem.release();
-            }
+
         }
 
         JSFunction print = (JSFunction)(s.get( "print" ));
@@ -419,7 +415,6 @@ public abstract class JSFunction extends JSFunctionBase {
     protected String _name = "NO NAME SET";
 
     private FunctionResultCache _callCache;
-    private Semaphore _callCacheSem = new Semaphore( 1 );
 
     /** @unexpose */
     public static JSFunction _call = new ed.js.func.JSFunctionCalls1(){

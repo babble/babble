@@ -96,6 +96,7 @@ class LBCall extends Call {
         }
 
         if ( ! _response.isCommitted() && 
+             _request.getMethod().equalsIgnoreCase( "GET" ) &&
              type != ServerErrorType.WEIRD && 
              ( _state == State.WAITING || _state == State.IN_HEADER ) && 
              ++_numFails <= 3 ){
