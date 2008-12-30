@@ -964,11 +964,18 @@ public class Convert {
         _assertType( n , Token.GOTO ); 
         n = n.getNext();
 
+        List<Node> targets = new ArrayList<Node>();
+
         caseArea = caseArea.getNext();
         while ( caseArea != null ){
+            
+            Node target = ((Node.Jump)caseArea).target;
+            int pos = targets.size();
+            targets.add( target );
+
             _append( "if ( JS_sheq( " + val + " , " , caseArea );
             _add( caseArea.getFirstChild() , state );
-            _append( " ) ) {\n " + switcherVar + " = " + NodeUtil.hash( ((Node.Jump)caseArea).target ) + "; \n " , caseArea );
+            _append( " ) ) {\n " + switcherVar + " = " + pos + "; \n " , caseArea );
             _append( " } \n " , caseArea );
 
             _append( "else ", caseArea );
@@ -977,12 +984,14 @@ public class Convert {
         _append( "; // default: switcher set to -1 \n", n ); 
 
         _append( "switch( " + switcherVar + " ) { \n" , n );
-        while( n != null && n.getNext() != null ) {
+        while( n != null && n.getNext() != null ){
+            int pos = targets.indexOf( n );
             if( n == caseDefault ) {
                 _append( " default: \n" , n );
             }
             else {
-                _append( " case " + NodeUtil.hash( n ) + ": \n" , n );
+                assert( pos >= 0 );
+                _append( " case " + pos + ": \n" , n );
             }
             n = n.getNext();
             _assertType( n , Token.BLOCK );
