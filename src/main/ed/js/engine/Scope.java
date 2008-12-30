@@ -139,13 +139,18 @@ public class Scope implements JSObject , Bindings {
     public Object get( Object n ){
         return get( n.toString() );
     }
-    
+
     public Object remove( Object n ){
         return removeField( n );
     }
 
     public Object removeField( Object n ){
         return removeField( n.toString() );
+    }
+
+    public void removeChild( Scope s ) {
+        _children.remove( s );
+        _childrenAdds--;
     }
 
     public Object setInt( int n , Object v ){
