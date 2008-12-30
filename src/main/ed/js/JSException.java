@@ -51,10 +51,33 @@ public class JSException extends RuntimeException implements JSObject {
             }
 
             protected void init(){
-
+                
             }
         };
-
+    
+    public static class ThrowableToHTML extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object o , Object[] extra){
+            
+            if ( ! ( o instanceof Throwable ) )
+                return JS.toString( o );
+            
+            Throwable t = (Throwable)o;
+        
+            StringBuilder html = new StringBuilder();
+            html.append( toString() ).append( "<BR>" );
+            
+            while ( t != null ){
+                html.append( t.toString() ).append( "<BR>" );
+                for ( StackTraceElement e : t.getStackTrace() )
+                    html.append( "&nbsp;&nbsp;&nbsp;&nbsp;" ).append( e ).append( "<BR>" );
+                t = t.getCause();
+            }
+            
+        return html.toString();
+            
+        }
+    }
+    
     public static class cons extends JSFunctionCalls1{
 
         public JSObject newOne(){
@@ -72,13 +95,14 @@ public class JSException extends RuntimeException implements JSObject {
             e._object = msg;
             return e;
         }
-
+        
         protected void init(){
             set( "Quiet" , new quietCons() );
             set( "Redirect" , new redirectCons() );
+            set( "toHTML" , new ThrowableToHTML() );
         }
     }
-
+    
     /** Initializes a new exception
      * @param o Object describing the exception
      */
