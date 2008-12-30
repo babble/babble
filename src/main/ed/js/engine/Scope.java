@@ -1103,9 +1103,12 @@ public class Scope implements JSObject , Bindings {
             size += _objects.approxSize( seen );
         
         if ( includeChildren && seen.shouldVisit( _children , this ) ){
+            final List<Scope> children;
             synchronized ( _children ){
-                size += _children.approxSize( seen );
+                children = _children.getAll();
             }
+            for ( Scope c : children )
+                size += c.approxSize( seen );
         }
 
 	if ( includeParents && seen.shouldVisit( _parent , this ) )
