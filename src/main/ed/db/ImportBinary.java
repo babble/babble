@@ -31,7 +31,8 @@ public class ImportBinary {
                 continue;
             }
 
-            if ( f.toString().endsWith( ".bin" ) ){
+            if ( f.toString().endsWith( ".bin" ) || 
+                 f.toString().endsWith( ".bson" ) ){
                 loadOne( f );
                 continue;
             }
@@ -60,7 +61,7 @@ public class ImportBinary {
         if ( ! f.exists() || f.isDirectory() )
             throw new RuntimeException( f + " must be a regular fule" );
 
-        final String ns = f.getName().replaceAll( "\\.bin$" , "" );
+        final String ns = f.getName().replaceAll( "\\.(bin|bson)$" , "" );
         final String root = f.getParentFile().getName();
         
         DBBase db = DBProvider.get( root );
