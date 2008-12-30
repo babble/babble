@@ -96,7 +96,7 @@ public class NodeUtil {
             child = child.getNext();
         }
 
-        return Math.abs( hash );
+        return hash;
     }
 
 
