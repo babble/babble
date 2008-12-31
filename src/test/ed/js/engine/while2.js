@@ -55,3 +55,12 @@ while ( a < 5 ){
 print( a );
 print( b );
 print( c );
+
+var array = [1,2,3];
+var t;
+var count = 0;
+while( t = array.shift() ) {
+    print( t );
+    count++;
+}
+print( count );
