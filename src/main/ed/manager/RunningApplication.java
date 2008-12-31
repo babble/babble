@@ -20,6 +20,7 @@ package ed.manager;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import ed.io.*;
 import ed.log.*;
@@ -76,8 +77,10 @@ public class RunningApplication extends Thread {
             
             _logger.info( "RESTARTING.  exitValue : " + exitValue  );
         }
-        
+
         _done = true;
+        // if shutdown is waiting, let it know we're done
+        latch.countDown();
         _process = null;
         _manager.interrupt();
     }
@@ -152,11 +155,11 @@ public class RunningApplication extends Thread {
         
         _kill();
 
-        for ( int i=0; ! _done && i<100; i++ ){
-            try {
-                Thread.sleep( 10 );
-            }
-            catch ( InterruptedException ie ){}
+        try {
+            latch.await();
+        }
+        catch ( InterruptedException ie ){
+            ie.printStackTrace();
         }
         
         assert( _done );
@@ -273,6 +276,8 @@ public class RunningApplication extends Thread {
     private long _lastStart;
     private int _timesStarted = 0;
     private int _exitValue = -1;
+    private final CountDownLatch latch = new CountDownLatch( 1 );
+        
 
     class OutputLine {
         OutputLine( String line , boolean out ){
