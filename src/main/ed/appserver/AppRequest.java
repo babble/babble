@@ -297,7 +297,7 @@ public class AppRequest implements Sizable , WatchableRequest {
         _done = true;
         _context.setTLPreferredScope( this , null );
         _scope.done();
-        _scope.getParent().removeChild( _scope );
+        _scope.removeFromParent();
         if ( _session.sync( _context.getDB() ) )
             response.addCookie( Session.COOKIE_NAME , _session.getCookie() );
     }
