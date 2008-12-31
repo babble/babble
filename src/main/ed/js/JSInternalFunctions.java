@@ -346,7 +346,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @return The boolean equivalent.
      */
     public static boolean JS_evalToBool( Object foo ){
-        if ( foo == null )
+        if ( foo == null || foo == VOID )
             return false;
 
         if ( foo instanceof Boolean )
