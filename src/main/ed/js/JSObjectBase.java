@@ -857,7 +857,7 @@ public class JSObjectBase implements JSObject {
 
             s.setThis( this );
             _constructor.call( s , args );
-            s.getParent().removeChild( s );
+            s.removeFromParent();
         }
     }
 
