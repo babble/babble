@@ -222,7 +222,7 @@ public class Convert {
         }
 
         if ( _useDefaultReturn ) {
-            _append( "scope.getParent().removeChild( scope );\nreturn " + RETURN_VARIABLE + "; " , sn );
+            _append( "scope.removeFromParent(); \n return " + RETURN_VARIABLE + "; " , sn );
         }
         else {
             _append( "/* no return b/c : " + whyRasReturn + " */" , sn );
@@ -631,7 +631,7 @@ public class Convert {
             else {
                 _append( " null " , n );
             }
-            _append( ";\nscope.getParent().removeChild( scope );\n", n );
+            _append( ";\nscope.removeFromParent();\n", n );
             _append( "return "+RETURN_VARIABLE , n );
             _append( "; /* explicit return */" , n );
             if ( ! last )
