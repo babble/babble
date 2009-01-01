@@ -198,26 +198,34 @@ public class GitDir {
     
     public Collection<String> getAllBranchAndTagNames(){
         
-        Collection<String> all = new ArrayList<String>();
+        List<String> all = new ArrayList<String>();
 
         getLocalBranches( all ) ;
         getTags( all );
         getRemoteBranches( all );
-
+        
         all.remove( "HEAD" );
+        
+        Collections.sort( all );
         return new JSArray( all );
     }
     
     public Collection<String> getLocalBranches(){
-        return getLocalBranches( new ArrayList<String>() );
+        List<String> lst = new ArrayList();
+        getLocalBranches( lst );
+        Collections.sort( lst );
+        return lst;
     }
     public Collection<String> getLocalBranches( Collection<String> all ){
         _getHeads( all , new File( _dotGit , "refs/heads" ) );        
         return all;
     }
-
+    
     public Collection<String> getRemoteBranches(){
-        return getRemoteBranches( new ArrayList<String>() );
+        List<String> lst = new ArrayList<String>();
+        getRemoteBranches( lst );
+        Collections.sort( lst );
+        return lst;
     }
     public Collection<String> getRemoteBranches( Collection<String> all ){
         _getHeads( all , new File( _dotGit , "refs/remotes/origin" ) );        
@@ -225,7 +233,10 @@ public class GitDir {
     }
 
     public Collection<String> getTags(){
-        return getTags( new ArrayList<String>() );
+        List<String> lst = new ArrayList<String>();
+        getTags( lst );
+        Collections.sort( lst );
+        return lst;
     }    
     public Collection<String> getTags( Collection<String> all ){
         _getHeads( all , new File( _dotGit , "refs/tags" ) );        
