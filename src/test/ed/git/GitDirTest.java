@@ -65,7 +65,7 @@ public class GitDirTest extends TestCase {
             assertEquals( "master" , gd.getBranchOrTagName() );
             assertTrue( gd.onLocalBranch() );
 
-            assertClose( "master, abc" , gd.getAllBranchAndTagNames() );
+            assertClose( "abc, master" , gd.getAllBranchAndTagNames() );
         }
         finally {
             _destroy( gd );
