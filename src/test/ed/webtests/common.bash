@@ -144,7 +144,7 @@ function run_ed {
             return 1
     fi
     
-    PID=`ps -a -x -e -o pid,command | grep java | grep -v "runAnt" | grep "ed.appserver.AppServer" |  awk '{ print $1 }'`
+    PID=`ps -a -x -e -o pid,command | grep java | grep -v "runAnt" | grep "ed.appserver.AppServer" | grep "port $http_port" |  awk '{ print $1 }'`
 }
 
 
