@@ -1329,6 +1329,7 @@ public class Convert {
             }
 
             state._functionIdToName.put( i , useName );
+            state._functionIdToType.put( i, fn.getFunctionType() );
 
             _setVar( useName , fn , state , anon );
             _append( "; \n scope.getFunction( \"" + useName + "\" ).setName( \"" + name + "\" );\n\n" , fn );
@@ -1341,7 +1342,9 @@ public class Convert {
             if ( n.getString() != null && n.getString().length() != 0 ){
                 int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
                 if ( state._nonRootFunctions.contains( id ) ){
-                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );" , n );
+                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) )" , n );
+                    if( state._functionIdToType.get( id ) != FunctionNode.FUNCTION_EXPRESSION )
+                        _append( ";", n );
                 }
                 return;
             }
