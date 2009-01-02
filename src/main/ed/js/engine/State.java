@@ -106,6 +106,7 @@ class State {
 
     final Set<String> _localSymbols = new HashSet<String>();
     final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
+    final Map<Integer,Integer> _functionIdToType = new HashMap<Integer,Integer>();
     final Set<Integer> _nonRootFunctions = new HashSet<Integer>();
     final Stack<String> _tempOpNames = new Stack<String>();
 
