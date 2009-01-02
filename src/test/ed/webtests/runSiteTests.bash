@@ -17,6 +17,13 @@ if [ -d "$1" ]
         exit 1
 fi
 
+PID=`ps -a -x -e -o pid,command | grep java | grep -v "runAnt" | grep "ed.appserver.AppServer" | grep "port $http_port" |  awk '{ print $1 }'`
+if [ $PID ];
+then
+    echo "Found stale babble, PID: $PID, killing"
+    kill -9 $PID
+fi
+
 # SITE is just the name of the site, like 'alleyinsider'. FULLSITE is the full
 # path to the site's directory. TESTDIR is the webtest directory.
 pushd "$1" > /dev/null
