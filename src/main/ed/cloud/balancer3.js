@@ -41,11 +41,11 @@ Cloud.Balancer._getAvail = function( coll , name ){
 }
 
 Cloud.Balancer.getAvailableDB = function(){
-    return Cloud.Balancer._getAvail( db.dbs , "db" );
+    return Cloud.Balancer._getAvail( db.dbs , "db" ).name;
 }
 
 Cloud.Balancer.getAvailablePool = function(){
-    return Cloud.Balancer._getAvail( db.pools , "appserver pool" );
+    return Cloud.Balancer._getAvail( db.pools , "appserver pool" ).name;
 }
 
 
