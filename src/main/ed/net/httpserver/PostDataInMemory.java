@@ -21,6 +21,8 @@ package ed.net.httpserver;
 import java.io.*;
 import java.nio.*;
 
+import ed.js.*;
+
 class PostDataInMemory extends PostData {
 
     static final int MAX = 1024 * 1024 * 110;
@@ -76,6 +78,10 @@ class PostDataInMemory extends PostData {
         FileOutputStream fout = new FileOutputStream( f );
         fout.write( _data );
         fout.close();
+    }
+
+    public JSFile getAsFile(){
+        return new JSInputFile( "not named" , "none" , _data );
     }
 
     public String toString(){

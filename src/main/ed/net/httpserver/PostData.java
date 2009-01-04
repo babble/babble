@@ -77,6 +77,8 @@ public abstract class PostData {
     abstract String string( int start , int len );
     abstract void fillIn( ByteBuffer buf , int start , int end );
 
+    public abstract JSFile getAsFile();
+
     public void writeTo( JSLocalFile f )
         throws IOException {
         writeTo( f.getRealFile() );

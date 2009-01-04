@@ -586,7 +586,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         return jo;
     }
 
-    private void _findSubObject( Scope s , JSObject jo , IdentitySet seenSubs ){
+    private void _findSubObject( Scope scope , JSObject jo , IdentitySet seenSubs ){
         if ( seenSubs == null )
             seenSubs = new IdentitySet();
 
@@ -670,7 +670,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                     JSFunction otherSave = e.getFunction( "_save" );
                     if ( otherSave == null )
                         throw new RuntimeException( "no save :(" );
-                    otherSave.call( s , e , null );
+                    otherSave.call( scope , e , null );
                     continue;
                 }
 
@@ -691,7 +691,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                 if ( e instanceof JSObjectBase && ! ((JSObjectBase)e).isDirty() )
                     continue;
 
-                otherUpdate.call( s , lookup , e , _upsertOptions , seenSubs );
+                otherUpdate.call( scope , lookup , e , _upsertOptions , seenSubs );
 
             }
             
