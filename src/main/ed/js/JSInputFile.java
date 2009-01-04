@@ -48,11 +48,10 @@ public class JSInputFile extends JSNewFile {
      * @param contentType Type of file
      * @param b Contents of the file
      */
-    public JSInputFile( String filename , String contentType , byte b[] )
-        throws IOException {
-        this( filename , contentType , new ByteArrayInputStream( b ) );
+    public JSInputFile( String filename , String contentType , byte b[] ){
+        this( filename , contentType , _chunk( b ) );
     }
-
+    
     /** Initializes a new input file.
      * @param filename Name for the file
      * @param contentType Type of file
@@ -108,6 +107,21 @@ public class JSInputFile extends JSNewFile {
 
         if ( pos > 0 )
             data.add( new JSBinaryData.ByteArray( cur , 0 , pos ) );
+
+        return data;
+    }
+
+    private static List<JSBinaryData> _chunk( byte[] b ){
+        List<JSBinaryData> data = new ArrayList<JSBinaryData>();
+        
+        int pos = 0;
+        while ( pos < b.length ){
+            int len = Math.min( DEF_CHUNK_SIZE , b.length - pos );
+            data.add( new JSBinaryData.ByteArray( b , pos , len ) );
+            pos += len;
+        }
+        
+        assert( Math.ceil( b.length / (double)DEF_CHUNK_SIZE ) == data.size() );
 
         return data;
     }
