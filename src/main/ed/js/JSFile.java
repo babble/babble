@@ -312,6 +312,21 @@ public abstract class JSFile extends JSObjectBase {
 
         return f.getAbsolutePath();
     }
+    
+    public void save( DBCollection fileColl ){
+
+        if ( ! fileColl.getName().equals( "_files" ) )
+            throw new IllegalArgumentException( "need the _files collection not [" + fileColl.getName() + "]" );
+        
+        DBCollection chunks = fileColl.getBase().getCollection( "_chunks" );
+        JSFileChunk chunk = getFirstChunk();
+        while ( chunk != null ){
+            chunks.save( chunk );
+            chunk = chunk.getNext();
+        }
+        
+        fileColl.save( this );
+    }
 
     public static class Sender extends InputStream {
 
