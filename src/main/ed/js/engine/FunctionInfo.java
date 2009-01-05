@@ -134,7 +134,9 @@ public class FunctionInfo implements Iterable<String> {
             else if ( cur.getType() == Token.SETVAR ){
                 _vars.settingTo( cur.getFirstChild().getString() , cur.getFirstChild().getNext() );
             }
-            
+            else if ( cur.getType() == Token.SETNAME ){
+                _vars.settingTo( cur.getFirstChild().getString() , cur.getFirstChild().getNext() );
+            }
         }
         _played = true;
     }
