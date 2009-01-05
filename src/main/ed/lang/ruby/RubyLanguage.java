@@ -99,6 +99,7 @@ public class RubyLanguage extends Language {
             code.append("IRB.start\n");
         RubyJxpSource source = new RubyShellSource(code.toString());
         try {
+            s.set("__instance__", new AppContext(System.getProperty("user.dir"))); // Needed for RuntimeEnvironmentPool
             source._doCall(source.parseContent("(shell)"), s, RuntimeEnvironment.EMPTY_OBJECT_ARRAY);
         }
         catch (RaiseException re) {
