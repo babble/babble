@@ -6,6 +6,8 @@
 var t = connect("test");
 db=t;
 
+var _start = new Date();
+
 var z = 0;
 function progress() {}// print(++z); }
 
@@ -375,3 +377,7 @@ assert( db.eval(function(){return 3;}) == 3 );
 
 testcopydb();
 
+var _end = new Date();
+var dt = _end - _start;
+print("testdb.js runtime: " + dt + "ms macbook 2.8 typ: 15sec");
+assert( dt < 30000 );
