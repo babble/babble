@@ -60,6 +60,13 @@ public class Shell {
         _displayCursor( c );
     }
     
+    void _showHelp(){
+        _out.println( "HELP" );
+        _out.println( "\t" + "show (dbs|collections)" );
+        _out.println( "\t" + "db.foo.find()" );
+        _out.println( "\t" + "db.foo.find( { a : 1 } )" );
+    }
+    
     static String _string( Object val ){
         if ( val == null )
             return "null";
@@ -145,9 +152,14 @@ public class Shell {
                 continue;
             }
             
-            if ( line.equals( "exit" ) )
+            if ( line.equalsIgnoreCase( "exit" ) )
                 break;
             
+            if ( line.equalsIgnoreCase( "help" ) ){
+                _showHelp();
+                continue;
+            }
+
             if ( line.toLowerCase().startsWith( "show " ) ){
                 _handleShow( line.substring( 5 ).trim() );
                 continue;
