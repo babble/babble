@@ -812,5 +812,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             System.setSecurityManager( new AppSecurityManager() );
         hs.start();
         hs.join();
+        if( !hs.hadCleanShutdown() )
+            System.exit( -1 );
     }
 }

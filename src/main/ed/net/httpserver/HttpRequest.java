@@ -143,7 +143,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     public String getServletPath(){
-        return getRequestURI();
+        return "";
     }
 
     public String getRequestURI(){

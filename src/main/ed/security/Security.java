@@ -85,6 +85,9 @@ public class Security {
         for ( int i=0; i<SECURE.length; i++ ){
             SECURE[i] = SECURE[i].replace( '/' , File.separatorChar );
         }
+        for ( int i=0; i<ED_LOCATIONS.length; i++){
+            ED_LOCATIONS[i] = ED_LOCATIONS[i].replace( '/' , File.separatorChar );
+        }
     }
 
     public static boolean inTrustedCode(){

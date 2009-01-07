@@ -131,10 +131,9 @@ public class FunctionInfo implements Iterable<String> {
 	    else if ( cur.getType() == Token.FOR && Convert.countChildren( cur ) == 3 ){
 		_vars.unknownEvidence( cur.getFirstChild().getString() );
 	    }
-            else if ( cur.getType() == Token.SETVAR ){
+            else if ( cur.getType() == Token.SETVAR || cur.getType() == Token.SETNAME ){
                 _vars.settingTo( cur.getFirstChild().getString() , cur.getFirstChild().getNext() );
             }
-            
         }
         _played = true;
     }
