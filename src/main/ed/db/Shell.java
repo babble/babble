@@ -31,6 +31,21 @@ public class Shell {
             }
             return;
         }
+        if ( cmd.equalsIgnoreCase( "dbs" ) ){
+            DBBase admin = DBProvider.getSisterDB( _db , "admin" );
+            JSObject res = admin.getCollection( "$cmd" ).findOne( JSDictBuilder.start().set( "listDatabases" , 1 ).get() );
+            if ( ! ( res.get( "ok" ) instanceof Number) ||
+                 ((Number)res.get( "ok" )).intValue() != 1 ){
+                _out.println( "error : " + JSON.serialize( res ) );
+                return;
+            }
+
+            for ( Object o : (List)(res.get( "databases" ) ) ){
+                _out.println( ((JSObject)o).get( "name" ) );
+            }
+            return;
+        }
+
         
         _out.println( "don't know how to show [" + cmd + "]" );
     }
@@ -137,9 +152,16 @@ public class Shell {
                 _handleShow( line.substring( 5 ).trim() );
                 continue;
             }
+
+            if ( line.toLowerCase().startsWith( "use " ) ){
+                String newDB = line.substring( 4 ).trim();
+                _out.println( "switching to [" + newDB + "]" );
+                _db = DBProvider.getSisterDB( _db , newDB );
+                continue;
+            }
             
             try {
-                Object res = _scope.eval( "db." + line );
+                Object res = _scope.eval( line );
                 
                 if ( res instanceof DBCursor ){
                     _scope.put( "last" , res , true );
@@ -147,7 +169,7 @@ public class Shell {
                     continue;
                 }
     
-                _out.println( res );
+                _out.println( JSON.serialize( res ) );
             }
             catch(RuntimeException e) { 
                 if (e.getMessage().startsWith("can't compile")) {
@@ -162,19 +184,19 @@ public class Shell {
         
     }
 
+    DBBase _db;
     final PrintStream _out;
-    final DBBase _db;
     final Scope _scope;
-
+    
     public static void main( String args[] )
         throws IOException {
 
-        if ( args.length < 1 ){
-            System.err.println( "usage: ed.db.Shell [db url format]" );
-            System.exit(-1);
-        }
+        String dbName = "test";
+
+        if ( args.length > 0 )
+            dbName = args[0];
         
-        Shell s = new Shell( System.out , DBProvider.get( args[0] ) );
+        Shell s = new Shell( System.out , DBProvider.get( dbName ) );
         s.repl();
     }
 
