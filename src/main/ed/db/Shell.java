@@ -15,9 +15,8 @@ public class Shell {
     
     Shell( PrintStream out , DBBase db ){
         _out = out;
-        _db = db;
         _scope = Scope.newGlobal().child();
-        _scope.put( "db" , _db , true );
+        _setDB( db );
     }
 
     void _handleShow( String cmd ){
@@ -169,7 +168,7 @@ public class Shell {
             if ( line.toLowerCase().startsWith( "use " ) ){
                 String newDB = line.substring( 4 ).trim();
                 _out.println( "switching to [" + newDB + "]" );
-                _db = DBProvider.getSisterDB( _db , newDB );
+                _setDB( DBProvider.getSisterDB( _db , newDB ) );
                 continue;
             }
             
@@ -197,12 +196,19 @@ public class Shell {
         
     }
 
+    void _setDB( DBBase db ){
+        _db = db;
+        _scope.put( "db" , _db , true );
+    }
+
     DBBase _db;
     final PrintStream _out;
     final Scope _scope;
     
     public static void main( String args[] )
         throws IOException {
+
+        System.setProperty( "NO-GRID" , "true" );
 
         String dbName = "test";
 
