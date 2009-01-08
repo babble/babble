@@ -122,8 +122,12 @@ public class CompileUtil {
                 if ( CD ) System.err.println( "going to start compiling " );
                 
                 String cp = "build";
-                if ( EDFinder.whereIsEd != null )
-                    cp += File.pathSeparatorChar + EDFinder.whereIsEd + "/build";
+                if ( EDFinder.whereIsEd != null ){
+                    cp += File.pathSeparatorChar + EDFinder.whereIsEd;
+                    if ( ! EDFinder.whereIsEd.endsWith( ".jar" ) )
+                        cp += "/build";
+
+                }
 
                 MyCompiler compiler = _compilerPool.get();
                 boolean res = false;
