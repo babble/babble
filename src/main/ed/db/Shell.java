@@ -199,6 +199,7 @@ public class Shell {
     void _setDB( DBBase db ){
         _db = db;
         _scope.put( "db" , _db , true );
+        _db.getCollection( "foo" ).findOne( new JSObjectBase() );
     }
 
     DBBase _db;
