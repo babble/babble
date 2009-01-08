@@ -15,9 +15,8 @@ public class Shell {
     
     Shell( PrintStream out , DBBase db ){
         _out = out;
-        _db = db;
         _scope = Scope.newGlobal().child();
-        _scope.put( "db" , _db , true );
+        _setDB( db );
     }
 
     void _handleShow( String cmd ){
@@ -58,6 +57,14 @@ public class Shell {
         }
         
         _displayCursor( c );
+    }
+    
+    void _showHelp(){
+        _out.println( "HELP" );
+        _out.println( "\t" + "show (dbs|collections)" );
+        _out.println( "\t" + "use <db name>" );
+        _out.println( "\t" + "db.foo.find()" );
+        _out.println( "\t" + "db.foo.find( { a : 1 } )" );
     }
     
     static String _string( Object val ){
@@ -131,6 +138,8 @@ public class Shell {
     public void repl()
         throws IOException {
         
+        _out.println( "type help for help" );
+
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsdbshell" ) ) );
         
@@ -145,9 +154,14 @@ public class Shell {
                 continue;
             }
             
-            if ( line.equals( "exit" ) )
+            if ( line.equalsIgnoreCase( "exit" ) )
                 break;
             
+            if ( line.equalsIgnoreCase( "help" ) ){
+                _showHelp();
+                continue;
+            }
+
             if ( line.toLowerCase().startsWith( "show " ) ){
                 _handleShow( line.substring( 5 ).trim() );
                 continue;
@@ -156,7 +170,7 @@ public class Shell {
             if ( line.toLowerCase().startsWith( "use " ) ){
                 String newDB = line.substring( 4 ).trim();
                 _out.println( "switching to [" + newDB + "]" );
-                _db = DBProvider.getSisterDB( _db , newDB );
+                _setDB( DBProvider.getSisterDB( _db , newDB ) );
                 continue;
             }
             
@@ -184,6 +198,12 @@ public class Shell {
         
     }
 
+    void _setDB( DBBase db ){
+        _db = db;
+        _scope.put( "db" , _db , true );
+        _db.getCollection( "foo" ).findOne( new JSObjectBase() );
+    }
+
     DBBase _db;
     final PrintStream _out;
     final Scope _scope;
@@ -191,11 +211,23 @@ public class Shell {
     public static void main( String args[] )
         throws IOException {
 
-        String dbName = "test";
+        System.setProperty( "NO-GRID" , "true" );
 
+        String dbName = "test";
+        
         if ( args.length > 0 )
             dbName = args[0];
         
+        if ( dbName.equalsIgnoreCase( "--help" ) || 
+             dbName.equalsIgnoreCase( "-h" ) ){
+            System.out.println( "usage: ./dbshell <db address>" );
+            System.out.println( "db address can be: " );
+            System.out.println( "   foo   =   foo database on local machine" );
+            System.out.println( "   192.169.0.5/foo   =   foo database on 192.168.0.5 machine" );
+            System.out.println( "   192.169.0.5:9999/foo   =   foo database on 192.168.0.5 machine on port 9999" );
+            return;
+        }
+
         Shell s = new Shell( System.out , DBProvider.get( dbName ) );
         s.repl();
     }
