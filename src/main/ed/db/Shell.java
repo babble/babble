@@ -138,6 +138,8 @@ public class Shell {
     public void repl()
         throws IOException {
         
+        _out.println( "type help for help" );
+
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsdbshell" ) ) );
         
@@ -212,10 +214,20 @@ public class Shell {
         System.setProperty( "NO-GRID" , "true" );
 
         String dbName = "test";
-
+        
         if ( args.length > 0 )
             dbName = args[0];
         
+        if ( dbName.equalsIgnoreCase( "--help" ) || 
+             dbName.equalsIgnoreCase( "-h" ) ){
+            System.out.println( "usage: ./dbshell <db address>" );
+            System.out.println( "db address can be: " );
+            System.out.println( "   foo   =   foo database on local machine" );
+            System.out.println( "   192.169.0.5/foo   =   foo database on 192.168.0.5 machine" );
+            System.out.println( "   192.169.0.5:9999/foo   =   foo database on 192.168.0.5 machine on port 9999" );
+            return;
+        }
+
         Shell s = new Shell( System.out , DBProvider.get( dbName ) );
         s.repl();
     }
