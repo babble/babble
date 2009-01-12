@@ -15,9 +15,9 @@
       <class name="ed.net.httpserver.HttpRequestTest"/>
       <class name="ed.net.httpserver.HttpResponseTest"/>
       <class name="ed.net.httpclient.HttpClientTest"/>
-<!--
+
       <class name="ed.net.httpserver.HttpServerTest"/>
--->
+
       <class name="ed.net.lb.MappingBaseTest"/>
       <class name="ed.util.FastStringMapTest"/>
       <class name="ed.util.FastStackTest"/>
@@ -62,6 +62,7 @@
     </classes>
   </test>
 
+<!--
 
   <test name="app-level js tests">
     <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
@@ -73,12 +74,14 @@
     </classes>
   </test>
 
+-->
+
   <test name="python bridge tests">
     <parameter name="test-class" value="ed.js.engine.JSTestInstance"/>
     <parameter name="dir-name" value="ed/src/test/ed/lang/python/"/>
     <parameter name="file-ending" value=""/>
     <parameter name="inc-regex" value=".*_test\..*"/>
-    <parameter name="ex-regex" value=".*~$"/>
+    <parameter name="ex-regex" value=".*~$|.*thread2_test.*"/>
     <classes>
        <class name="ed.util.ScriptTestFactory"/>
     </classes>
