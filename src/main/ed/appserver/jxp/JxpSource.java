@@ -174,12 +174,15 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     public JxpServlet getServlet( AppContext context )
         throws IOException {
         _checkTime();
-        if ( _servlet == null ){
+        JxpServlet temp = _servlet;
+        if ( temp == null ){
             JSFunction f = getFunction();
-            _servlet = new JxpServlet( context , f );
+            temp = new JxpServlet( context , f );
             JSFileLibrary.addPath( f.getClass() , _lib );
+            _servlet = temp;
         }
-        return _servlet;
+
+        return temp;
     }
 
 
