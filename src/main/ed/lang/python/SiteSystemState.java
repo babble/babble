@@ -156,7 +156,7 @@ public class SiteSystemState implements Sizable {
         ensurePath( myPath , 0 );
     }
 
-    void ensurePath( String myPath , int location ){
+    synchronized void ensurePath( String myPath , int location ){
 
         for ( Object o : pyState.path )
             if ( o.toString().equals( myPath ) )
@@ -168,11 +168,11 @@ public class SiteSystemState implements Sizable {
             pyState.path.insert( location , Py.newString( myPath ) );
     }
 
-    void addPath( String myPath ){
+    synchronized void addPath( String myPath ){
         pyState.path.insert( 0 , Py.newString( myPath ) );
     }
 
-    void removePath( String myPath ){
+    synchronized void removePath( String myPath ){
         PyList path = pyState.path;
         int len = path.__len__();
         for( int i = 0; i < len ; i++ ){
