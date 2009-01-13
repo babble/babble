@@ -274,7 +274,7 @@ public abstract class NIOServer extends Thread {
         catch ( IOException ioe ){
             // don't care
         }
-        
+        _cleanShutdown = true;        
     }
 
     private void _cleanOldConnections(){
@@ -368,6 +368,10 @@ public abstract class NIOServer extends Thread {
     public boolean isServerClosed(){
         return _closed;
     }
+
+    public boolean hadCleanShutdown(){
+        return _cleanShutdown;
+    }
     
     protected final int _port;
     protected final ServerSocketChannel _ssChannel;    
@@ -376,8 +380,9 @@ public abstract class NIOServer extends Thread {
     
     private boolean _didASelectorReset = false;
     private boolean _closed = false;
+    private boolean _cleanShutdown = false;
     private int _numSelectors = 0;
-
+    
     Logger _logger = Logger.getLogger( "nioserver" );
     Logger _selectLoopLogger = _logger.getChild( "runloop" );
 }

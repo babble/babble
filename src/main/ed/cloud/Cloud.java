@@ -39,12 +39,13 @@ public class Cloud extends JSObjectBase {
      */
     public static final long CLOUD_REFRESH_RATE = 1000 * 30; 
     
+    static final boolean NO_GRID = ed.util.Config.get().getBoolean( "NO-GRID" );
     static final boolean FORCE_GRID = ed.util.Config.get().getBoolean( "FORCE-GRID" );
     
     public static int getGridDBPort(){
         return 27016;
     }
-
+    
     static Logger _log = Logger.getLogger( "cloud" );
     static {
         _log.setLevel( Level.INFO );
@@ -56,7 +57,8 @@ public class Cloud extends JSObjectBase {
         Cloud c = null;
         
         try {
-            c = new Cloud();
+            if ( ! NO_GRID )
+                c = new Cloud();
         }
         catch ( Throwable t ){
             t.printStackTrace();

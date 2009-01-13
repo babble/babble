@@ -422,7 +422,8 @@ public class JSHook {
         }
         
         public long approxSize(){
-            return _scope.approxSize();
+            return 0;
+            //return _scope.approxSize();
         }
         
         public String debugName(){

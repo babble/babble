@@ -22,8 +22,10 @@ public abstract class DBBase extends JSObjectLame implements Sizable {
 
         JSFileLibrary lib = JSFileLibrary.loadLibraryFromEd("ed/db/", null, s);
         
-        ((JSFunction)(lib.get( "db" ))).call( s, this );
-        ((JSFunction)(lib.get( "dbcollection" ))).call( s, this);	
+        if ( lib != null && lib.get("db") != null ){
+            ((JSFunction)(lib.get( "db" ))).call( s, this );
+            ((JSFunction)(lib.get( "dbcollection" ))).call( s, this);	
+        }
     }
 
     public void requestStart(){}

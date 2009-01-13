@@ -85,6 +85,19 @@
 
   </target>
 
+  <target name="jar" depends="compile">
+    
+    <exec executable="git-log" output="build/git-hash">
+      <arg value="--pretty=format:%H" />
+      <arg value="-1" />
+    </exec>
+    
+    <jar jarfile="babble.jar" >
+      <fileset dir="build" />
+    </jar>
+  </target>
+
+
  <target name="headers" depends="compile">
 
    <javah destdir="src/jni/headers/" verbose="yes" force="yes">
