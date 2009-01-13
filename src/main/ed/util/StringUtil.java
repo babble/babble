@@ -84,4 +84,14 @@ public final class StringUtil{
 		return false;
 	return true;
     }
+
+    public static String getStackTrace( Throwable t ){
+        StringBuilder buf = new StringBuilder();
+        
+        buf.append( t ).append( "\n" );
+        for ( StackTraceElement e : t.getStackTrace() )
+            buf.append( "  " ).append( e ).append( "\n" );
+        
+        return buf.toString();
+    }
 }
