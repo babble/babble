@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -38,13 +38,13 @@ import ed.appserver.templates.*;
 import ed.appserver.templates.djang10.Djang10Source;
 
 public abstract class JxpSource extends JSObjectLame implements Dependency , DependencyTracker {
-    
+
     public static final String JXP_SOURCE_PROP = "_jxpSource";
 
     public static JxpSource getSource( File f , AppContext context , JSFileLibrary lib ){
         if ( f == null )
             throw new NullPointerException( "can't have null file" );
-        
+
         JxpSource s = null;
 
         AdapterType adapterType = AdapterType.DIRECT_10GEN;
@@ -86,7 +86,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         s._context = context;
         return s;
     }
-    
+
     // -----
 
     protected abstract String getContent() throws IOException;
@@ -97,11 +97,11 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     public final long lastUpdated() {
         return lastUpdated(new HashSet<Dependency>());
     }
-    
+
     /**
      * @return File if it makes sense, otherwise nothing
      */
-    public abstract File getFile(); 
+    public abstract File getFile();
 
     public void addDependency( Dependency d ){
         _dependencies.add( d );
@@ -109,12 +109,12 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
     public synchronized JSFunction getFunction()
         throws IOException {
-        
+
         _checkTime();
-        
+
         if ( _func != null )
             return _func;
-        
+
         long start = System.currentTimeMillis();
 
         _lastParse = lastUpdated();
@@ -122,28 +122,28 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
         Template t = new Template( getName() , getContent() , Language.find( getName() ) );
         while ( ! t.getExtension().equals( "js" ) ){
-            
+
             TemplateConverter.Result result = TemplateEngine.oneConvert( t , this );
-            
+
             if ( result == null )
                 break;
-            
+
             if ( result.getLineMapping() != null )
-                StackTraceHolder.getInstance().set( result.getNewTemplate().getName() , 
+                StackTraceHolder.getInstance().set( result.getNewTemplate().getName() ,
                                                     new BasicLineNumberMapper( t.getName() , result.getNewTemplate().getName() , result.getLineMapping() ) );
-            
+
             t = result.getNewTemplate();
         }
-        
+
         if ( ! ( t.getExtension().equals( "js" ) || t.getExtension().equals( "ssjs" ) ) )
             throw new RuntimeException( "don't know what to do with : " + t.getExtension() );
-	
+
         try {
             Convert convert = new Convert( t.getName() , t.getContent() , (new CompileOptions()).sourceLanguage( t.getSourceLanguage()  ) );
             _func = convert.get();
             _func.set(JXP_SOURCE_PROP, this);
-	    if ( _lib != null )
-		JSFileLibrary.addPath( _func , _lib );
+        if ( _lib != null )
+        JSFileLibrary.addPath( _func , _lib );
             return _func;
         }
         catch ( JSCompileException jce ){
@@ -153,7 +153,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             String thing = e.toString();
             if ( thing.indexOf( ":" ) >= 0 )
                 thing = thing.substring( thing.indexOf(":") + 1 );
-            
+
             String msg = "couldn't compile ";
             if ( ! thing.contains( t.getName() ) )
                 msg += " [" + t.getName() + "] ";
@@ -165,7 +165,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             ProfilingTracker.tlGotTime( "compile" , System.currentTimeMillis() - start , 0 );
         }
     }
-    
+
 
     private String _getFileSafeName(){
         return getName().replaceAll( "[^\\w]" , "_" );
@@ -181,12 +181,12 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         }
         return _servlet;
     }
-    
+
 
     private void _checkTime(){
         if ( ! _needsParsing() )
             return;
-        
+
         _func = null;
         _servlet = null;
     }
@@ -207,7 +207,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     protected AppContext getAppContext(){
         return _context;
     }
-    
+
     public long approxSize( SeenPath seen ){
         if ( _func == null )
             return 0;
@@ -216,20 +216,20 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
     protected long _lastParse = 0;
     protected List<Dependency> _dependencies = new ArrayList<Dependency>();
-    
+
     private JSFunction _func;
     private JxpServlet _servlet;
 
     private JSFileLibrary _lib;
     private AppContext _context;
-    
+
     // -------------------
-    
+
     public static class JxpFileSource extends JxpSource implements Sizable {
         protected JxpFileSource( File f ){
             _f = f;
         }
-        
+
         public String getName(){
             return _f.toString();
         }
@@ -243,15 +243,15 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             throws IOException {
             return new FileInputStream( _f );
         }
-        
+
         public long lastUpdated(Set<Dependency> visitedDeps){
             visitedDeps.add(this);
-            
+
             long lastUpdated = _f.lastModified();
             for(Dependency dep : _dependencies)
                 if(!visitedDeps.contains(dep))
                     lastUpdated = Math.max(lastUpdated, dep.lastUpdated(visitedDeps));
-            
+
             return lastUpdated;
         }
 
