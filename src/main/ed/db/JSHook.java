@@ -384,7 +384,7 @@ public class JSHook {
             s.clearToThrow();
 
             _invokeLogger.error( clientString , t );
-            scopeSetString( scopeID , "error" , t.toString() );
+            scopeSetString( scopeID , "error" , StringUtil.getStackTrace( t ) );
 
             return INVOKE_ERROR;
         }

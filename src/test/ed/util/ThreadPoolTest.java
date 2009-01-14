@@ -21,7 +21,7 @@ package ed.util;
 import org.testng.annotations.Test;
 
 public class ThreadPoolTest extends ed.TestCase {
-    /*
+
     @Test
     public void test1()
         throws Exception {
@@ -41,7 +41,7 @@ public class ThreadPoolTest extends ed.TestCase {
 
         assertEquals( 0 , tp.inProgress() );
         assertEquals( 0 , tp.numThreads() );
-    }*/
+    }
     
     public static void main( String args[] ){
         (new ThreadPoolTest()).runConsole();

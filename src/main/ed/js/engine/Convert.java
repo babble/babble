@@ -515,7 +515,7 @@ public class Convert {
         case Token.EXPR_RESULT:
             _assertOne( n );
             _hasReturn = true;
-            _append( "" + RETURN_VARIABLE + " = " , n );
+            _append( RETURN_VARIABLE + " = " , n );
             _add( n.getFirstChild() , state );
             _append( ";\n" , n );
             break;
@@ -1312,8 +1312,10 @@ public class Convert {
             String name = fn.getFunctionName();
             String anonName = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
 
+            int funcType = fn.getFunctionType();
+
             boolean anon = name.length() == 0;
-            if ( anon )
+            if ( anon || funcType == FunctionNode.FUNCTION_EXPRESSION )
                 name = anonName;
 
             if ( D ){
@@ -1329,11 +1331,10 @@ public class Convert {
             }
 
             state._functionIdToName.put( i , useName );
-            state._functionIdToType.put( i, fn.getFunctionType() );
+            state._functionIdToType.put( i, funcType );
 
             _setVar( useName , fn , state , anon );
             _append( "; \n scope.getFunction( \"" + useName + "\" ).setName( \"" + name + "\" );\n\n" , fn );
-
         }
     }
 
@@ -1771,8 +1772,10 @@ public class Convert {
         }
 
         String name = n.getString();
-        if ( name == null || name.length() == 0 ){
-            int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
+        int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
+        int type = id == -1 ? -1 : state._functionIdToType.get( id );
+        if( ( name == null || name.length() == 0 ) || 
+            type == FunctionNode.FUNCTION_EXPRESSION ) {
             if ( id == -1 )
                 throw new RuntimeException( "no name or id for this thing" );
             name = state._functionIdToName.get( id );
