@@ -29,6 +29,14 @@ db = connect( "test" );
 f = db.ed_db_index7;
 f.drop();
 
+f.ensureIndex( { a: 1 } );
+index( f.find().sort( { a: 1 } ) );
+index( f.find( { a: 5 } ) );
+index( f.find( { a: 5 } ).sort( { a: 1 } ) );
+index( f.find( { a: { $gt: 5 } } ) );
+index( f.find( { a: { $gt: 5 } } ).sort( { a: 1 } ) );
+f.drop();
+
 f.ensureIndex( { a: 1, b: 1 } );
 index( f.find().sort( { a: 1, b: 1 } ) );
 index( f.find().sort( { a: -1, b: -1 } ) );
