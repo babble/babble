@@ -18,7 +18,8 @@ t.save( { name : "clusterstock" ,
           ]
         } );
 
-t.ensureIndex( { instances : { pool : 1 } } );
+t.ensureIndex( { "instances.pool" : 1 } );
+
 sleep( 10 );
 
 a = t.find( { instances : { pool : "prod1" } } );
