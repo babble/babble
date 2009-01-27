@@ -42,7 +42,7 @@ public class ThreadPoolTest extends ed.TestCase {
         assertEquals( 0 , tp.inProgress() );
         assertEquals( 0 , tp.numThreads() );
     }
-
+    
     public static void main( String args[] ){
         (new ThreadPoolTest()).runConsole();
     }

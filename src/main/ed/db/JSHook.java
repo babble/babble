@@ -384,7 +384,7 @@ public class JSHook {
             s.clearToThrow();
 
             _invokeLogger.error( clientString , t );
-            scopeSetString( scopeID , "error" , t.toString() );
+            scopeSetString( scopeID , "error" , StringUtil.getStackTrace( t ) );
 
             return INVOKE_ERROR;
         }
@@ -422,7 +422,8 @@ public class JSHook {
         }
         
         public long approxSize(){
-            return _scope.approxSize();
+            return 0;
+            //return _scope.approxSize();
         }
         
         public String debugName(){
