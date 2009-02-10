@@ -47,6 +47,7 @@ public class JSDate extends JSObjectBase implements Comparable {
                     }
                     
                     Calendar c = Calendar.getInstance();
+		    c.setTimeZone( getTimeZone() );
                     c.set( myargs[0], myargs[1], myargs[2], myargs[3], myargs[4], myargs[5] );
                     
                     c.set( c.MILLISECOND , myargs[6] );
@@ -667,6 +668,9 @@ public class JSDate extends JSObjectBase implements Comparable {
      */
     public String format( DateFormat df , TimeZone tz ){
 
+	if ( df == null )
+	    df = _simpleFormat;
+
         if ( tz == null )
             tz = getTimeZone();
 
@@ -780,6 +784,7 @@ public class JSDate extends JSObjectBase implements Comparable {
             return;
         _c = Calendar.getInstance();
         _c.setTimeInMillis( _time );
+	_c.setTimeZone( getTimeZone() );
     }
 
     /** Compare an object with this date.
