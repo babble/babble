@@ -46,8 +46,7 @@ public class JSDate extends JSObjectBase implements Comparable {
                         myargs[i] = JSNumber.getNumber( o ).intValue();
                     }
                     
-                    Calendar c = Calendar.getInstance();
-		    c.setTimeZone( getTimeZone() );
+                    Calendar c = getCalendar();
                     c.set( myargs[0], myargs[1], myargs[2], myargs[3], myargs[4], myargs[5] );
                     
                     c.set( c.MILLISECOND , myargs[6] );
@@ -736,7 +735,7 @@ public class JSDate extends JSObjectBase implements Comparable {
 
     /** @unexpose */
     public Calendar _roundHour(){
-        Calendar c = Calendar.getInstance();
+        Calendar c = getCalendar();
         c.setTimeInMillis( _time );
         c.set( c.MILLISECOND , 0 );
         c.set( c.SECOND , 0 );
@@ -748,7 +747,7 @@ public class JSDate extends JSObjectBase implements Comparable {
      * @return A Date at the beginning of this date's minute.
      */
     public JSDate roundMinutes( int min ){
-        Calendar c = Calendar.getInstance();
+        Calendar c = getCalendar();
         c.setTimeInMillis( _time );
         c.set( c.MILLISECOND , 0 );
         c.set( c.SECOND , 0 );
@@ -782,7 +781,7 @@ public class JSDate extends JSObjectBase implements Comparable {
     private void _cal(){
         if ( _c != null )
             return;
-        _c = Calendar.getInstance();
+        _c = getCalendar();
         _c.setTimeInMillis( _time );
 	_c.setTimeZone( getTimeZone() );
     }
@@ -822,6 +821,12 @@ public class JSDate extends JSObjectBase implements Comparable {
         return
             o instanceof JSDate &&
             _time == ((JSDate)o)._time;
+    }
+
+    public static Calendar getCalendar(){
+        Calendar c = Calendar.getInstance();
+        c.setTimeZone( getTimeZone() );
+        return c;
     }
 
     /** @unexpose */
