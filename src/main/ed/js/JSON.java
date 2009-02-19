@@ -159,6 +159,12 @@ public class JSON {
 
         static void string( Appendable a , String s )
             throws java.io.IOException {
+
+            if (s == null) {
+                a.append("\"null\"");
+                return;
+            }
+
             a.append("\"");
             for(int i = 0; i < s.length(); ++i){
                 char c = s.charAt(i);
