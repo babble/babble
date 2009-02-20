@@ -659,6 +659,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
      * @return an array of parameter values as strings
      */
     public JSArray getParameters( String name , boolean post ){
+        _finishParsing();
         List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
         if ( lst == null )
             return null;
@@ -709,9 +710,14 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         return getParameters( name , true );
     }
 
-    public JSObject getPostParameters(){
-    _finishParsing();
-    return _paramsAsObject( _postParameters );
+    public JSObject getPostParameters() {
+        _finishParsing();
+        return _paramsAsObject(_postParameters);
+    }
+
+    public JSObject getPutParameters() {
+        _finishParsing();
+        return _paramsAsObject(_postParameters);
     }
 
     /**
@@ -971,11 +977,16 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
             }
         }
 
-        if ( ! _parsedPost && _postData != null && _command.equalsIgnoreCase( "POST" ) ){
-            _parsedPost = true;
-            _postData.go( this );
+        if (_postData != null) {
+            if ( ! _parsedPost  && _command.equalsIgnoreCase( "POST" ) ){
+                _parsedPost = true;
+                _postData.go( this );
+            }
+             else if(! _parsedPut && _command.equalsIgnoreCase( "PUT" )){
+                _parsedPut = true; // OK, probably, these to fs could be folded, but I'm leaving them for the time being just in case we want to add other PUT specifics.
+                _postData.go( this );
+            }
         }
-
     }
 
     /**
@@ -1315,6 +1326,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     String _remoteIP;
 
     boolean _parsedPost = false;
+    boolean _parsedPut = false;
     PostData _postData;
 
     boolean _parsedURL = false;
