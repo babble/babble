@@ -29,7 +29,7 @@
         <class name="ed.util.ScriptTestFactory"/>
       </classes>
     </test>
-
+<!--
     <test name="db py tests">
 	  <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
 	  <parameter name="dir-name"  value="ed/src/test/ed/db/"/>
@@ -47,6 +47,6 @@
         <class name="ed.util.ScriptTestFactory"/>
       </classes>
     </test>
-
+-->
 </suite>
 
