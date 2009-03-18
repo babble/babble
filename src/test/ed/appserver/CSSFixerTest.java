@@ -28,7 +28,7 @@ public class CSSFixerTest extends ed.TestCase {
     public void testBasic(){
         assertClose( "body { color: red; }" , fixer.fixSingeLine( "body { color: red; }" ) );
         assertClose( "body { color: red; url(P/a.jpg?S=1); }" , fixer.fixSingeLine( "body { color: red; url(/a.jpg); }" ) );
-        assertClose( "body { color: red; url(P/a.jpg?z=1&amp;S=1); }" , fixer.fixSingeLine( "body { color: red; url(/a.jpg?z=1); }" ) );
+        assertClose( "body { color: red; url(P/a.jpg?z=1&S=1); }" , fixer.fixSingeLine( "body { color: red; url(/a.jpg?z=1); }" ) );
     }
 
     @Test(groups = {"basic"})

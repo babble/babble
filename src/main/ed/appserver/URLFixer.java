@@ -46,6 +46,10 @@ public class URLFixer {
     }
 
     public void fix( String url , Appendable a ){
+        fix(url, a, true);
+    }
+
+    public void fix( String url , Appendable a , boolean amp_as_entity ){
         // don't rewrite w/in js files
         if (_ar != null && _ar.getResponse() != null && _ar.getResponse().getContentType() != null) {
             String content_type = _ar.getResponse().getContentType();
@@ -121,11 +125,11 @@ public class URLFixer {
             if ( doVersioning && _context != null && ! url.contains( "lm=" ) ){
                 File f = _context.getFileSafe( uri );
                 if ( f == null )
-                    cdnTags = _urlAppendNameValue( cdnTags , "lm=cantfind" );
+                    cdnTags = _urlAppendNameValue( cdnTags , "lm=cantfind" , amp_as_entity );
                 else if ( ! f.exists() )
-                    cdnTags = _urlAppendNameValue( cdnTags , "lm=" + LM404 );
+                    cdnTags = _urlAppendNameValue( cdnTags , "lm=" + LM404 , amp_as_entity );
                 else
-                    cdnTags = _urlAppendNameValue( cdnTags , "lm=" + f.lastModified() );
+                    cdnTags = _urlAppendNameValue( cdnTags , "lm=" + f.lastModified() , amp_as_entity );
             }
         }
 
@@ -141,7 +145,11 @@ public class URLFixer {
                 if ( questionIndex < 0 )
                     a.append( "?" );
                 else
-                    a.append( "&amp;" );
+                    if ( amp_as_entity ) {
+                        a.append( "&amp;" );
+                    } else {
+                        a.append( "&" );
+                    }
                 a.append( cdnTags );
             }
         }
@@ -202,17 +210,23 @@ public class URLFixer {
         return prefix;
     }
 
-    static String _urlAppendNameValue( String base , String extra ){
+    static String _urlAppendNameValue( String base , String extra , boolean amp_as_entity ){
         if ( base == null || base.length() == 0 )
             return extra;
+        if ( amp_as_entity ) {
+            if ( base.endsWith( "&amp;" ) )
+                return base + extra;
 
-        if ( base.endsWith( "&amp;" ) )
+            if ( base.endsWith( "&" ) )
+                return base + "amp;" + extra;
+
+            return base + "&amp;" + extra;
+        }
+
+        if ( base.endsWith( "&" ) ) {
             return base + extra;
-
-        if ( base.endsWith( "&" ) )
-            return base + "amp;" + extra;
-
-        return base + "&amp;" + extra;
+        }
+        return base + "&" + extra;
     }
 
     static String getStaticSuffix( HttpRequest request , AppRequest ar ){
