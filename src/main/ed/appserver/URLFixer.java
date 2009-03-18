@@ -141,7 +141,7 @@ public class URLFixer {
                 if ( questionIndex < 0 )
                     a.append( "?" );
                 else
-                    a.append( "&" );
+                    a.append( "&amp;" );
                 a.append( cdnTags );
             }
         }
@@ -206,10 +206,13 @@ public class URLFixer {
         if ( base == null || base.length() == 0 )
             return extra;
 
-        if ( base.endsWith( "&" ) )
+        if ( base.endsWith( "&amp;" ) )
             return base + extra;
 
-        return base + "&" + extra;
+        if ( base.endsWith( "&" ) )
+            return base + "amp;" + extra;
+
+        return base + "&amp;" + extra;
     }
 
     static String getStaticSuffix( HttpRequest request , AppRequest ar ){
