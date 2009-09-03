@@ -91,7 +91,7 @@ public class CSSFixer {
 
             String url = line.substring( idx + 4 , end );
             url = removeSurroundingQuotes(url);
-            _fixer.fix( url , out );
+            _fixer.fix( url , out , false );
 
             line = line.substring( end );
         }
