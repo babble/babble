@@ -66,7 +66,7 @@ public class JxpServletTest extends ed.TestCase {
         ServletWriter p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
         p.print( "abc <img " );
         p.print( " src='/1.jpg?a=b' >"  );
-        assertClose( "abc <img src='" + STATIC + "/1.jpg?a=b&lm=" + one.lastModified() + "' > " , w.getContent() );
+        assertClose( "abc <img src='" + STATIC + "/1.jpg?a=b&amp;lm=" + one.lastModified() + "' > " , w.getContent() );
     }
 
     @Test(groups = {"basic"})
@@ -88,7 +88,7 @@ public class JxpServletTest extends ed.TestCase {
         p.print( " src='"  );
         p.print( "/1.jpg"  );
         p.print( "' >"  );
-        assertClose( "abc <img src='" + STATIC + "/1.jpg?Z=Y&lm=" + one.lastModified() + "' > " , w.getContent() );
+        assertClose( "abc <img src='" + STATIC + "/1.jpg?Z=Y&amp;lm=" + one.lastModified() + "' > " , w.getContent() );
     }
 
     @Test(groups = {"basic"})
