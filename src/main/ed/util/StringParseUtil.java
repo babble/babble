@@ -204,6 +204,7 @@ public final class StringParseUtil {
      * @return the numeric value
      */
     public static Number parseStrict( String s ){
+        s = s.trim();
         if( s.length() == 0 )
             return 0;
         if( s.charAt(0) == '+' ) 
