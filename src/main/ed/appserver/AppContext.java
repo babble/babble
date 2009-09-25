@@ -1532,7 +1532,8 @@ public class AppContext extends ServletContextBase implements JSObject, Sizable 
     }
 
     public void setTimeZone( String tz ){
-        tz = tz.toUpperCase();
+        if ( tz.length() == 3 )
+            tz = tz.toUpperCase();
         _tz = TimeZone.getTimeZone( tz );
         if ( ! _tz.getID().equals( tz ) )
             throw new RuntimeException( "can't find time zone[" + tz + "]" );
