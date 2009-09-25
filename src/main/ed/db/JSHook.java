@@ -238,6 +238,7 @@ public class JSHook {
 
         ByteEncoder encoder = new ByteEncoder( bb );
         encoder.putObject( obj );
+        encoder.neverUsingThisAgain();
         return bb.position();
     }
     

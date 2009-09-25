@@ -47,6 +47,8 @@ public class ByteEncoder extends Bytes {
     }
 
     protected void done(){
+        if ( _doneForever )
+            throw new RuntimeException( "you broke something" );
         reset();
         _pool.done( this );
     }
@@ -106,6 +108,9 @@ public class ByteEncoder extends Bytes {
     private int putObject( String name , JSObject o ){
         if ( o == null )
             throw new NullPointerException( "can't save a null object" );
+
+        if ( _doneForever )
+            throw new RuntimeException( "you broke something" );
 
         if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet( false ).size() );
         
@@ -437,10 +442,22 @@ public class ByteEncoder extends Bytes {
         return _dontRef.peek().contains( o );
     }
     
-    private final CharBuffer _cbuf = CharBuffer.allocate( MAX_STRING );
+    void neverUsingThisAgain(){
+        _doneForever = true;
+        _charBufferPool.done( _cbuf );
+    }
+    
+    static SimplePool<CharBuffer> _charBufferPool = new SimplePool( "ByteEncoder.CharBuffer" , 10 , -1 ){
+            protected CharBuffer createNew(){
+                return CharBuffer.allocate( MAX_STRING );
+            }
+        };
+    
+    private final CharBuffer _cbuf = _charBufferPool.get();
     private final CharsetEncoder _encoder = _utf8.newEncoder();
     private Stack<IdentitySet> _dontRef = new Stack<IdentitySet>();
     
     private boolean _flipped = false;
+    private boolean _doneForever = false;
     final ByteBuffer _buf;
 }
