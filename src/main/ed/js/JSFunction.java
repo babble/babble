@@ -473,6 +473,15 @@ public abstract class JSFunction extends JSFunctionBase {
                 return func._cache( s , cacheTime , args );
             }
         };
+
+    static JSFunction _cacheSize = new ed.js.func.JSFunctionCalls0(){
+            public Object call( Scope s , Object[] args ){
+                JSFunction func = (JSFunction)s.getThis();
+                if ( func._callCache == null )
+                    return 0;
+                return func._callCache.size();
+            }
+        };
     
 
     private static JSObjectBase _staticFunctions = new JSObjectBase();
@@ -482,13 +491,15 @@ public abstract class JSFunction extends JSFunctionBase {
         
         Prototype._functionWrap.lock();
         Prototype._functionBind.lock();
-
+        
         _staticFunctions.set( "call" , _call );
         _staticFunctions.set( "apply" , _apply );
         _staticFunctions.set( "cache" , _cache );
+        _staticFunctions.set( "cacheSize" , _cacheSize );
         _call.lock();
         _apply.lock();
         _cache.lock();
+        _cacheSize.lock();
     }
 
     static class CacheEntry {

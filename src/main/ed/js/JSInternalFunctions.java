@@ -674,7 +674,8 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
         if ( o instanceof Collection ){
             for ( Object foo : (Collection)o )
-                hash += hash( o );
+                if( o != foo )
+                    hash += hash( foo );
         }
         else if ( o.getClass().isArray() ){
             Object a[] = (Object[])o;
