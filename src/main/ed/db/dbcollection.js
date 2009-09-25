@@ -282,7 +282,7 @@ DBCollection.prototype.sample = function( num , query , fields ){
     var r = this.getDB().eval(
         function(){
             var a = db[args[0]].find( args[2] || {} , args[3] ).limit(10000).toArray();
-            a.shuffle();
+            Array.shuffle( a );
             return a.splice( 0 , args[1] );
         } ,
         this.getName() , num , query , fields 
